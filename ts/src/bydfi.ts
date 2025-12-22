@@ -66,9 +66,9 @@ export default class bydfi extends Exchange {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': false,
                 'deposit': false,
-                'editOrder': 'emulated',
-                'editOrders': false,
-                'editOrderWithClientOrderId': false,
+                'editOrder': true,
+                'editOrders': true,
+                'editOrderWithClientOrderId': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -242,8 +242,8 @@ export default class bydfi extends Exchange {
                         'v1/account/transfer': 1, // https://developers.bydfi.com/en/account#asset-transfer-between-accounts
                         'v1/swap/trade/place_order': 1, // done
                         'v1/swap/trade/batch_place_order': 1, // done
-                        'v1/swap/trade/edit_order': 1, // https://developers.bydfi.com/en/swap/trade#order-modification
-                        'v1/swap/trade/batch_edit_order': 1, // https://developers.bydfi.com/en/swap/trade#batch-order-modification
+                        'v1/swap/trade/edit_order': 1, // done
+                        'v1/swap/trade/batch_edit_order': 1, // done
                         'v1/swap/trade/cancel_all_order': 1, // https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
                         'v1/swap/trade/leverage': 1, // https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
                         'v1/swap/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/swap/trade#modify-leverage-and-margin-type-with-one-click
@@ -1088,13 +1088,13 @@ export default class bydfi extends Exchange {
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const marketId = this.safeString (rawOrder, 'symbol');
+            const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         let wallet = 'W001'; // todo check if it is mandatory
@@ -1106,6 +1106,93 @@ export default class bydfi extends Exchange {
         const response = await this.privatePostV1SwapTradeBatchPlaceOrder (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data);
+    }
+
+    /**
+     * @method
+     * @name bydfi#editOrder
+     * @description edit a trade order
+     * @see https://developers.bydfi.com/en/swap/trade#order-modification
+     * @param {string} id order id (mandatory if params.clientOrderId is not provided)
+     * @param {string} [symbol] unified symbol of the market to create an order in
+     * @param {string} [type] not used by bydfi editOrder
+     * @param {string} [side] 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique identifier for the order (could be alternative to id)
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const request = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, params);
+        let wallet = 'W001'; // todo check if it is mandatory
+        [ wallet, params ] = this.handleOptionAndParams (params, 'editOrder', 'wallet', wallet);
+        request['wallet'] = wallet;
+        const response = await this.privatePostV1SwapTradeEditOrder (request);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data);
+    }
+
+    /**
+     * @method
+     * @name bydfi#editOrders
+     * @description edit a list of trade orders
+     * @see https://developers.bydfi.com/en/swap/trade#batch-order-modification
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
+        await this.loadMarkets ();
+        const length = orders.length;
+        if (length > 5) {
+            throw new BadRequest (this.id + ' editOrders() accepts a maximum of 5 orders');
+        }
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const id = this.safeString (rawOrder, 'id');
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        let wallet = 'W001'; // todo check if it is mandatory
+        [ wallet, params ] = this.handleOptionAndParams (params, 'editOrder', 'wallet', wallet);
+        const request: Dict = {
+            'wallet': wallet,
+            'editOrders': ordersRequests,
+        };
+        const response = await this.privatePostV1SwapTradeBatchEditOrder (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data);
+    }
+
+    createEditOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const request: Dict = {};
+        if ((id === undefined) && (clientOrderId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument or a clientOrderId parameter');
+        } else if (id !== undefined) {
+            request['orderId'] = id;
+        }
+        const market = this.market (symbol);
+        request['symbol'] = market['id'];
+        if (side !== undefined) {
+            request['side'] = side.toUpperCase ();
+        }
+        if (amount !== undefined) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        return this.extend (request, params);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
