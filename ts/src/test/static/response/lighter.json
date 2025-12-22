@@ -542,6 +542,181 @@
                     }
                 }
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "total": 2,
+                    "accounts": [
+                        {
+                            "code": 0,
+                            "account_type": 0,
+                            "index": 1077,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 1,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "12606.880799",
+                            "status": 1,
+                            "collateral": "9100.242706",
+                            "account_index": 1077,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [],
+                            "assets": [
+                                {
+                                    "symbol": "ETH",
+                                    "asset_id": 1,
+                                    "balance": "3.00000000",
+                                    "locked_balance": "0.00000000"
+                                },
+                                {
+                                    "symbol": "USDC",
+                                    "asset_id": 3,
+                                    "balance": "989.000000",
+                                    "locked_balance": "100.000000"
+                                }
+                            ],
+                            "total_asset_value": "15323.479477",
+                            "cross_asset_value": "15323.479477",
+                            "shares": []
+                        },
+                        {
+                            "code": 0,
+                            "account_type": 1,
+                            "index": 281474976710608,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "30.000000",
+                            "status": 0,
+                            "collateral": "30.000000",
+                            "account_index": 281474976710608,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [],
+                            "assets": [
+                                {
+                                    "symbol": "USDC",
+                                    "asset_id": 3,
+                                    "balance": "11.000000",
+                                    "locked_balance": "0.000000"
+                                }
+                            ],
+                            "total_asset_value": "30",
+                            "cross_asset_value": "30",
+                            "shares": []
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": 200,
+                        "total": 2,
+                        "accounts": [
+                            {
+                                "code": 0,
+                                "account_type": 0,
+                                "index": 1077,
+                                "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                                "cancel_all_time": 0,
+                                "total_order_count": 1,
+                                "total_isolated_order_count": 0,
+                                "pending_order_count": 0,
+                                "available_balance": "12606.880799",
+                                "status": 1,
+                                "collateral": "9100.242706",
+                                "account_index": 1077,
+                                "name": "",
+                                "description": "",
+                                "can_invite": true,
+                                "referral_points_percentage": "",
+                                "positions": [],
+                                "assets": [
+                                    {
+                                        "symbol": "ETH",
+                                        "asset_id": 1,
+                                        "balance": "3.00000000",
+                                        "locked_balance": "0.00000000"
+                                    },
+                                    {
+                                        "symbol": "USDC",
+                                        "asset_id": 3,
+                                        "balance": "989.000000",
+                                        "locked_balance": "100.000000"
+                                    }
+                                ],
+                                "total_asset_value": "15323.479477",
+                                "cross_asset_value": "15323.479477",
+                                "shares": []
+                            },
+                            {
+                                "code": 0,
+                                "account_type": 1,
+                                "index": 281474976710608,
+                                "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                                "cancel_all_time": 0,
+                                "total_order_count": 0,
+                                "total_isolated_order_count": 0,
+                                "pending_order_count": 0,
+                                "available_balance": "30.000000",
+                                "status": 0,
+                                "collateral": "30.000000",
+                                "account_index": 281474976710608,
+                                "name": "",
+                                "description": "",
+                                "can_invite": true,
+                                "referral_points_percentage": "",
+                                "positions": [],
+                                "assets": [
+                                    {
+                                        "symbol": "USDC",
+                                        "asset_id": 3,
+                                        "balance": "11.000000",
+                                        "locked_balance": "0.000000"
+                                    }
+                                ],
+                                "total_asset_value": "30",
+                                "cross_asset_value": "30",
+                                "shares": []
+                            }
+                        ]
+                    },
+                    "ETH": {
+                        "free": 3,
+                        "used": 0,
+                        "total": 3
+                    },
+                    "USDC": {
+                        "free": 900,
+                        "used": 100,
+                        "total": 1000
+                    },
+                    "free": {
+                        "ETH": 3,
+                        "USDC": 900
+                    },
+                    "used": {
+                        "ETH": 0,
+                        "USDC": 100
+                    },
+                    "total": {
+                        "ETH": 3,
+                        "USDC": 1000
+                    }
+                }
+            }
         ]
     }
 }

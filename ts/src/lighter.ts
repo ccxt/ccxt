@@ -2,7 +2,8 @@
 import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order } from './base/types.js';
+import Precise from './base/Precise.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ export default class lighter extends Exchange {
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchAllGreeks': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -1058,6 +1059,85 @@ export default class lighter extends Exchange {
             }
         }
         return this.parseFundingRates (result, symbols);
+    }
+
+    /**
+     * @method
+     * @name ligher#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.lighter.xyz/reference/account-1
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+     * @param {string} [params.value] fetch balance value, account index or l1 address
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        const accountIndex = this.handleOption ('createAuth', 'accountIndex');
+        const request: Dict = {
+            'by': this.safeString (params, 'by', 'index'),
+            'value': this.safeString (params, 'value', accountIndex),
+        };
+        const response = await this.publicGetAccount (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200",
+        //         "total": "1",
+        //         "accounts": [
+        //             {
+        //                 "code": "0",
+        //                 "account_type": "0",
+        //                 "index": "1077",
+        //                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time": "0",
+        //                 "total_order_count": "1",
+        //                 "total_isolated_order_count": "0",
+        //                 "pending_order_count": "0",
+        //                 "available_balance": "7996.489834",
+        //                 "status": "1",
+        //                 "collateral": "9000.000000",
+        //                 "account_index": "1077",
+        //                 "name": "",
+        //                 "description": "",
+        //                 "can_invite": true,
+        //                 "referral_points_percentage": "",
+        //                 "positions": [],
+        //                 "assets": [
+        //                     {
+        //                         "symbol": "ETH",
+        //                         "asset_id": "1",
+        //                         "balance": "3.00000000",
+        //                         "locked_balance": "0.00000000"
+        //                     },
+        //                     {
+        //                         "symbol": "USDC",
+        //                         "asset_id": "3",
+        //                         "balance": "1000.000000",
+        //                         "locked_balance": "0.000000"
+        //                     }
+        //                 ],
+        //                 "total_asset_value": "9536.789088",
+        //                 "cross_asset_value": "9536.789088",
+        //                 "shares": []
+        //             }
+        //         ]
+        //     }
+        //
+        const result: Dict = { 'info': response };
+        const accounts = this.safeList (response, 'accounts', []);
+        for (let i = 0; i < accounts.length; i++) {
+            const account = accounts[i];
+            const assets = this.safeList (account, 'assets', []);
+            for (let j = 0; j < assets.length; j++) {
+                const asset = assets[j];
+                const codeId = this.safeString (asset, 'symbol');
+                const code = this.safeCurrencyCode (codeId);
+                const balance = this.safeDict (result, code, this.account ());
+                balance['total'] = Precise.stringAdd (balance['total'], this.safeString (asset, 'balance'));
+                balance['used'] = Precise.stringAdd (balance['used'], this.safeString (asset, 'locked_balance'));
+                result[code] = balance;
+            }
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

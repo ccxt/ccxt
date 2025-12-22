@@ -73,8 +73,32 @@
             {
                 "description": "fetchFundingRates",
                 "method": "fetchFundingRates",
-                "url": "//mainnet.zklighter.elliot.ai/api/v1/funding-rates",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/funding-rates",
                 "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchBalance - by l1_address",
+                "method": "fetchBalance",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
             }
         ]
     }
