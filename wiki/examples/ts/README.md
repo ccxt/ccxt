@@ -20,6 +20,8 @@
 
 - [Custom Proxy Agent For Js](./examples/ts/custom-proxy-agent-for-js.md)
 
+- [Exchange Rate Limiter Rollingwindow](./examples/ts/exchange-rate-limiter-rollingWindow.md)
+
 - [Fetch Balance All Exchanges](./examples/ts/fetch-balance-all-exchanges.md)
 
 - [Fetch First Ohlcv Timestamp](./examples/ts/fetch-first-ohlcv-timestamp.md)

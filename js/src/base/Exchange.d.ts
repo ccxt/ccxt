@@ -145,6 +145,8 @@ export default class Exchange {
     tokenBucket: Dictionary<number>;
     throttler: any;
     enableRateLimit: boolean;
+    rollingWindowSize: number;
+    rateLimiterAlgorithm: string;
     httpExceptions: Dictionary<any>;
     limits: {
         amount?: MinMax;
@@ -754,7 +756,7 @@ export default class Exchange {
      * @param {string} clientOrderId client order Id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -793,7 +795,7 @@ export default class Exchange {
      * @param {string} clientOrderId client order Id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -805,7 +807,7 @@ export default class Exchange {
      * @param {string[]} clientOrderIds client order Ids
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrdersWithClientOrderIds(clientOrderIds: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
@@ -890,6 +892,7 @@ export default class Exchange {
     createStopLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
     createStopMarketOrder(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
     createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createSubAccount(name: string, params?: {}): Promise<{}>;
     safeCurrencyCode(currencyId: Str, currency?: Currency): Str;
     filterBySymbolSinceLimit(array: any, symbol?: Str, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;

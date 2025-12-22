@@ -381,7 +381,7 @@ func (this *Xt) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Xt) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -1072,7 +1072,7 @@ func (this *Xt) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[
  * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
  * @param {string} [symbols] a list of unified market symbols
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *Xt) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 
@@ -1105,7 +1105,7 @@ func (this *Xt) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Levera
  * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *Xt) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 
@@ -1179,7 +1179,7 @@ func (this *Xt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOption
  * @see https://doc.xt.com/#futures_quotesgetFundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Xt) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 
@@ -1207,7 +1207,7 @@ func (this *Xt) FetchFundingInterval(symbol string, options ...FetchFundingInter
  * @see https://doc.xt.com/#futures_quotesgetFundingRate
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Xt) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1237,7 +1237,7 @@ func (this *Xt) FetchFundingRate(symbol string, options ...FetchFundingRateOptio
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Xt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -1280,7 +1280,7 @@ func (this *Xt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]Fu
  * @see https://doc.xt.com/#futures_usergetPosition
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Xt) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1308,7 +1308,7 @@ func (this *Xt) FetchPosition(symbol string, options ...FetchPositionOptions) (P
  * @see https://doc.xt.com/#futures_usergetPosition
  * @param {string} [symbols] list of unified market symbols, not supported with xt
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Xt) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1344,7 +1344,7 @@ func (this *Xt) FetchPositions(options ...FetchPositionsOptions) ([]Position, er
  * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
  * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
  * @param {object} params extra parameters specific to the whitebit api endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Xt) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1416,7 +1416,7 @@ func (this *Xt) SetMarginMode(marginMode string, options ...SetMarginModeOptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.stopLoss] price to set a stop-loss on an open position
  * @param {float} [params.takeProfit] price to set a take-profit on an open position
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Xt) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
