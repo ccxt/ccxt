@@ -599,8 +599,6 @@ export default class bydfi extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        // todo handle with error when timeDelta is more than seven days
-        // todo add pagination support
         const market = this.market (symbol);
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -608,6 +606,11 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+        }
         let startTime = since;
         const numberOfCandles = limit ? limit : maxLimit;
         let until = undefined;
