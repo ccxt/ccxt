@@ -475,8 +475,8 @@ export default class xcoin extends Exchange {
                     '50316': OperationRejected, // No more than maximum MMP orders can be submitted at once
                     // Underlying Parameter Validation Error Codes
                     '60100': InsufficientFunds, // Insufficient available balance
-                    '60101': OperationFailed, // Your borrowing has exceeded your loan limit
-                    '60102': OperationFailed, // Borrowing exceeds the available amount in the current liquidity pool
+                    '60101': OperationRejected, // Your borrowing has exceeded your loan limit
+                    '60102': OperationRejected, // Borrowing exceeds the available amount in the current liquidity pool
                     '60107': OperationRejected, // Exceeded maximum number of open orders
                     '60108': InvalidOrder, // Limit order exceeds maximum order amount per order
                     '60109': InvalidOrder, // Limit order exceeds maximum order quantity per order
