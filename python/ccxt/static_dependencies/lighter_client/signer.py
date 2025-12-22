@@ -115,3 +115,11 @@ def decode_tx_info(result: SignedTxResponse) -> Union[Tuple[str, str, str, None]
     tx_hash_str = result.txHash.decode("utf-8") if result.txHash else None
 
     return tx_type, tx_info_str, tx_hash_str, None
+
+def decode_auth(result: StrOrErr) -> Union[Tuple[str, None], Tuple[None, str]]:
+    if result.err:
+        error = result.err.decode("utf-8")
+        return None, error
+
+    token = result.str.decode('utf-8') if result.str else None
+    return token, None
