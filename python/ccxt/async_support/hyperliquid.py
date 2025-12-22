@@ -1530,7 +1530,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'connectionId': hash,
         }
 
-    def action_hash(self, action, vaultAddress, nonce):
+    def action_hash(self, action, vaultAddress, nonce, expiresAfter=None):
         dataBinary = self.packb(action)
         dataHex = self.binary_to_base16(dataBinary)
         data = dataHex
@@ -1540,10 +1540,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         else:
             data += '01'
             data += vaultAddress
+        if expiresAfter is not None:
+            data += '00'
+            data += '00000' + self.int_to_base16(expiresAfter)
         return self.hash(self.base16_to_binary(data), 'keccak', 'binary')
 
-    def sign_l1_action(self, action, nonce, vaultAdress=None) -> object:
-        hash = self.action_hash(action, vaultAdress, nonce)
+    def sign_l1_action(self, action, nonce, vaultAdress=None, expiresAfter=None) -> object:
+        hash = self.action_hash(action, vaultAdress, nonce, expiresAfter)
         isTestnet = self.safe_bool(self.options, 'sandboxMode', False)
         phantomAgent = self.construct_phantom_agent(hash, isTestnet)
         # data: Dict = {
@@ -4069,6 +4072,32 @@ class hyperliquid(Exchange, ImplicitAPI):
             'weight': weight,
         }
         signature = self.sign_l1_action(action, nonce)
+        request['action'] = action
+        request['signature'] = signature
+        response = await self.privatePostExchange(self.extend(request, params))
+        return response
+
+    async def create_sub_account(self, name: str, params={}):
+        """
+        creates a sub-account under the main account
+        :param str name: the name of the sub-account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.expiresAfter]: time in ms after which the sub-account will expire
+        :returns dict: a response object
+        """
+        nonce = self.milliseconds()
+        request: dict = {
+            'nonce': nonce,
+        }
+        action: dict = {
+            'type': 'createSubAccount',
+            'name': name,
+        }
+        expiresAfter = self.safe_integer(params, 'expiresAfter')
+        if expiresAfter is not None:
+            params = self.omit(params, 'expiresAfter')
+            request['expiresAfter'] = expiresAfter
+        signature = self.sign_l1_action(action, nonce, None, expiresAfter)
         request['action'] = action
         request['signature'] = signature
         response = await self.privatePostExchange(self.extend(request, params))
