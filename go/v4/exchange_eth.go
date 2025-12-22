@@ -120,6 +120,13 @@ type EditOrderMessage struct {
 	Modifies []Modify `mapstructure:"modifies" msgpack:"modifies"`
 }
 
+// CreateSubAccount message
+
+type CreateSubAccountMessage struct {
+	Type string `mapstructure:"type" msgpack:"type"`
+	Name string `mapstructure:"name" msgpack:"name"`
+}
+
 // =====================================  Hyperliquid Structs ===================================== //
 
 func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain, messageTypes map[string][]apitypes.Type, messageData map[string]interface{}) (string, error) {
@@ -423,6 +430,19 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "createSubAccount":
+		var createSubAccountMsg CreateSubAccountMessage
+
+		err := mapstructure.Decode(converted, &createSubAccountMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(createSubAccountMsg)
 		if err != nil {
 			panic(err)
 		}
