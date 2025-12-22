@@ -1,13 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ArgumentsRequired, ExchangeError, NotSupported, PermissionDenied } from '../ccxt.js';
 import Exchange from './abstract/bydfi.js';
-// import { BadRequest } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported, PermissionDenied } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRateHistory, Int, int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, Int, int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,7 +53,7 @@ export default class bydfi extends Exchange {
                 'createMarketSellOrder': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': false,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
@@ -242,7 +241,7 @@ export default class bydfi extends Exchange {
                     'post': {
                         'v1/account/transfer': 1, // https://developers.bydfi.com/en/account#asset-transfer-between-accounts
                         'v1/swap/trade/place_order': 1, // done
-                        'v1/swap/trade/batch_place_order': 1, // https://developers.bydfi.com/en/swap/trade#batch-order-placement
+                        'v1/swap/trade/batch_place_order': 1, // done
                         'v1/swap/trade/edit_order': 1, // https://developers.bydfi.com/en/swap/trade#order-modification
                         'v1/swap/trade/batch_edit_order': 1, // https://developers.bydfi.com/en/swap/trade#batch-order-modification
                         'v1/swap/trade/cancel_all_order': 1, // https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
@@ -962,7 +961,8 @@ export default class bydfi extends Exchange {
         [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
         orderRequest = this.extend (orderRequest, { 'wallet': wallet });
         const response = await this.privatePostV1SwapTradePlaceOrder (orderRequest);
-        return this.parseOrder (response, market);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1067,6 +1067,45 @@ export default class bydfi extends Exchange {
             params = this.omit (params, 'triggerPriceType');
         }
         return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name bydfi#createOrders
+     * @description create a list of trade orders
+     * @see https://developers.bydfi.com/en/swap/trade#batch-order-placement
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const length = orders.length;
+        if (length > 5) {
+            throw new BadRequest (this.id + ' createOrders() accepts a maximum of 5 orders');
+        }
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        let wallet = 'W001'; // todo check if it is mandatory
+        [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
+        const request: Dict = {
+            'wallet': wallet,
+            'orders': ordersRequests,
+        };
+        const response = await this.privatePostV1SwapTradeBatchPlaceOrder (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
