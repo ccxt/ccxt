@@ -6454,6 +6454,12 @@ public partial class Exchange
         return await this.createOrderWs(symbol, "market", side, amount, null, query);
     }
 
+    public async virtual Task<object> createSubAccount(object name, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createSubAccount() is not supported yet")) ;
+    }
+
     public virtual object safeCurrencyCode(object currencyId, object currency = null)
     {
         currency = this.safeCurrency(currencyId, currency);
