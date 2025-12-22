@@ -6650,6 +6650,7 @@ unWatches information on multiple trades made by the user
 
 ##### Supported exchanges
 * [bybit](/exchanges/bybit.md#unwatchmytrades)
+* [hyperliquid](/exchanges/hyperliquid.md#unwatchmytrades)
 
 ---
 
@@ -6797,6 +6798,7 @@ unWatches information on multiple orders made by the user
 * [backpack](/exchanges/backpack.md#unwatchorders)
 * [bitmart](/exchanges/bitmart.md#unwatchorders)
 * [bybit](/exchanges/bybit.md#unwatchorders)
+* [hyperliquid](/exchanges/hyperliquid.md#unwatchorders)
 
 ---
 
