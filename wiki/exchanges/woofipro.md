@@ -57,9 +57,9 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -79,7 +79,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -99,7 +99,7 @@ retrieves data on all markets for woofipro
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -141,9 +141,9 @@ woofipro.fetchCurrencies ([params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -164,9 +164,9 @@ woofipro.fetchTrades (symbol[, since, limit, params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -185,9 +185,9 @@ woofipro.fetchFundingInterval (symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -206,9 +206,9 @@ woofipro.fetchFundingRate (symbol[, params])
 fetch the current funding rate for multiple markets
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -227,15 +227,15 @@ woofipro.fetchFundingRates (symbols[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -252,7 +252,7 @@ woofipro.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history  
 
@@ -276,9 +276,9 @@ woofipro.fetchFundingHistory ([symbol, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -296,9 +296,9 @@ woofipro.fetchTradingFees ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -320,7 +320,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -342,12 +342,12 @@ woofipro.fetchOHLCV (symbol, timeframe[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
 
 
 | Param | Type | Required | Description |
@@ -379,9 +379,9 @@ woofipro.createOrder (symbol, type, side, amount[, price, params])
 *contract only* create a list of trade orders
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -400,12 +400,12 @@ woofipro.createOrders (orders[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
 
 
 | Param | Type | Required | Description |
@@ -433,14 +433,14 @@ woofipro.editOrder (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
 
 
 | Param | Type | Required | Description |
@@ -463,12 +463,12 @@ woofipro.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
 
 
 | Param | Type | Required | Description |
@@ -490,12 +490,12 @@ woofipro.cancelOrders (ids[, symbol, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
 
 
 | Param | Type | Required | Description |
@@ -516,14 +516,14 @@ woofipro.cancelAllOrders (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
 
 
 | Param | Type | Required | Description |
@@ -546,12 +546,12 @@ woofipro.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
 
 | Param | Type | Required | Description |
@@ -578,12 +578,12 @@ woofipro.fetchOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
 
 | Param | Type | Required | Description |
@@ -610,12 +610,12 @@ woofipro.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-- https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+- https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
 
 | Param | Type | Required | Description |
@@ -642,9 +642,9 @@ woofipro.fetchClosedOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -666,9 +666,9 @@ woofipro.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -691,9 +691,9 @@ woofipro.fetchMyTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -711,9 +711,9 @@ woofipro.fetchBalance ([params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -734,9 +734,9 @@ woofipro.fetchLedger ([code, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -757,9 +757,9 @@ woofipro.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -780,9 +780,9 @@ woofipro.fetchWithdrawals (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -803,9 +803,9 @@ woofipro.fetchDepositsWithdrawals ([code, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -827,9 +827,9 @@ woofipro.withdraw (code, amount, address, tag[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -850,7 +850,7 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -870,9 +870,9 @@ woofipro.setLeverage ([leverage, symbol, params])
 fetch data on an open position
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -891,9 +891,9 @@ woofipro.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -912,9 +912,9 @@ woofipro.fetchPositions ([symbols, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -934,9 +934,9 @@ woofipro.watchOrderBook (symbol[, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -955,9 +955,9 @@ woofipro.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-tickers  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -976,9 +976,9 @@ woofipro.watchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -999,7 +999,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1021,9 +1021,9 @@ woofipro.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1044,12 +1044,12 @@ woofipro.watchTrades (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-- https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+- https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
+- https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
 
 
 | Param | Type | Required | Description |
@@ -1072,12 +1072,12 @@ woofipro.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-- https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+- https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
+- https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
 
 
 | Param | Type | Required | Description |
@@ -1102,7 +1102,7 @@ watch all open positions
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1123,9 +1123,9 @@ woofipro.watchPositions ([symbols, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>woofipro</code>](#woofipro)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance  
+**See**: https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

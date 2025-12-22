@@ -51,7 +51,7 @@ type IBaseExchange interface {
 	GetMarketsList() []MarketInterface
 	GetCurrency(currencyId string) Currency
 	GetCurrenciesList() []Currency
-
+	Throttle(cost interface{}) <-chan interface{}
 	// methods from base
 }
 

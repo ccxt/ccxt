@@ -158,6 +158,8 @@ class Transpiler {
     getPythonRegexes () {
 
         return [
+            // dict transpilation should be done at first
+            [ /[\(]typeof ([^\s\)]+) === 'object'[\)] && !Array\.isArray \(\1\)/g, 'isinstance($1, dict)' ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, 'isinstance($1, int)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
@@ -338,6 +340,7 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
+            [ /.market_or_None/g, '.market_or_null'],
             [ /\/\*\*/, '\"\"\"' ], // Doc strings
             [ / \*\//, '\"\"\"' ], // Doc strings
             [ /\[([^\[\]]*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
@@ -403,8 +406,8 @@ class Transpiler {
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
-            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1))" ],
-            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
+            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "(gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1)))" ],
+            [ /Array\.isArray\s*\(([^\)]+)\)/g, "(gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1)))" ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
@@ -772,7 +775,7 @@ class Transpiler {
             'math': 'math',
             'json.loads': 'json',
             'json.dumps': 'json',
-            'sys': 'sys',
+            'sys.': 'sys',
         }
 
         const imports = this.createPythonClassImports (baseClass, className, async)
@@ -851,6 +854,7 @@ class Transpiler {
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
         }
@@ -2149,8 +2153,8 @@ class Transpiler {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
-            py: './python/ccxt/test/base/',
-            php: './php/test/base/',
+            pyAsync: './python/ccxt/test/base/',
+            phpAsync: './php/test/base/',
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2168,8 +2172,8 @@ class Transpiler {
                 base: true,
                 name: testName,
                 tsFile: tsFile,
-                pyFileSync: baseFolders.py + unCamelCasedFileName + '.py',
-                phpFileSync: baseFolders.php + unCamelCasedFileName + '.php',
+                pyFileAsync : baseFolders.pyAsync  + unCamelCasedFileName + '.py',
+                phpFileAsync: baseFolders.phpAsync + unCamelCasedFileName + '.php',
             };
             // Add ArrayCache imports if the test uses cache classes
             if (tsContent.includes('ArrayCache') || tsContent.includes('ArrayCacheByTimestamp') || 
@@ -2402,16 +2406,6 @@ class Transpiler {
             fileConfig.push({"language": "python", "async": true})
         }
 
-        // @ts-expect-error
-        if (tests.base) {
-            fileConfig = []
-            if (this.buildPHP) {
-                fileConfig.push({ language: "php", async: false})
-            }
-            if (this.buildPython) {
-                fileConfig.push({ language: "python", async: false})
-            }
-        }
         const parserConfig = {
             'verbose': false,
             'python':{
@@ -2499,11 +2493,6 @@ class Transpiler {
             }
 
             const usesEqualsFunction = needsEquals[i];
-            // @ts-expect-error
-            if (tests.base) {
-                phpAsync = '';
-                pythonAsync = '';
-            }
 
             const imports: any[] = result[0].imports;
 
@@ -2537,8 +2526,12 @@ class Transpiler {
             let phpHeaderSync: string[] = []
             let phpHeaderAsync: string[] = []
 
-            phpHeaderAsync.push ('use React\\Async;');
-            phpHeaderAsync.push ('use React\\Promise;');
+            if (phpAsync.includes ('React\\') || phpAsync.includes ('Async\\')) {
+                phpHeaderAsync.push ('use React\\Async;');
+                phpHeaderAsync.push ('use React\\Promise;');
+            }
+
+            phpAsync = phpAsync.replace ('\\ccxt\\Exchange', '\\ccxt\\async\\Exchange');
 
             const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
             for (const propName of decimalProps) {
@@ -2549,7 +2542,7 @@ class Transpiler {
             }
             if (pythonAsync.match (/\sccxt\./)) {
                 pythonHeaderSync.push ('import ccxt  # noqa: F402')
-                pythonHeaderAsync.push ('import ccxt  # noqa: F402')
+                pythonHeaderAsync.push ('import ccxt.async_support as ccxt  # noqa: F402')
             }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
@@ -2596,21 +2589,21 @@ class Transpiler {
                     pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
                     pythonHeaderSync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
 
-                    // php
-                    if (!test.base) {
-                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
-                    } else {
-                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
-                    }
+                    // in php, we don't need to import this, as it's imported once in `tests_init.php`
+                    // phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
+                    // phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                 } else {
                     if (test.base) {
                         const phpLangSpec =  isLangSpec ? 'language_specific/' : '';
                         phpHeaderSync.push (`include_once __DIR__ . '/${phpLangSpec}${snake_case}.php';`)
+                        phpHeaderAsync.push (`include_once __DIR__ . '/${phpLangSpec}${snake_case}.php';`)
                         if (test.tsFile.includes('Exchange/base')) {
                             pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
+                            pythonHeaderAsync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
                         } else {
                             const pyLangSpec =  isLangSpec ? 'language_specific.' : '';
                             pythonHeaderSync.push (`from ccxt.test.base.${pyLangSpec}${snake_case} import ${snake_case}  # noqa E402`)
+                            pythonHeaderAsync.push (`from ccxt.test.base.${pyLangSpec}${snake_case} import ${snake_case}  # noqa E402`)
                         }
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)
@@ -2649,16 +2642,10 @@ class Transpiler {
             test.phpFileAsyncContent = test.phpPreambleAsync + phpAsync;
             test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
-            if (!test.base) {
-                if (test.phpFileAsync && this.buildPHP) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
-                if (test.pyFileAsync && this.buildPython) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
-            }
-            if (test.phpFileSync) {
-                if (test.phpFileSync && this.buildPHP) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
-            }
-            if (test.pyFileSync) {
-                if (test.pyFileSync && this.buildPython) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
-            }
+            if (test.phpFileAsync && this.buildPHP) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+            if (test.pyFileAsync && this.buildPython) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
+            if (test.phpFileSync && this.buildPHP) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
+            if (test.pyFileSync && this.buildPython) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
         }
     }
 
@@ -3115,6 +3102,7 @@ if (isMainEntry(metaFileUrl)) {
     const force = process.argv.includes ('--force')
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    const baseClassOnly = process.argv.includes ('--baseClass')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3130,7 +3118,10 @@ if (isMainEntry(metaFileUrl)) {
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
-    if (test) {
+
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods ()
+    } else if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()

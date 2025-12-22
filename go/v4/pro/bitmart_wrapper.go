@@ -28,7 +28,7 @@ func NewBitmart(userConfig map[string]interface{}) *Bitmart {
  * @see https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bitmart) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
     res := <- this.Core.WatchBalance(params...)
@@ -47,7 +47,7 @@ func (this *Bitmart) WatchBalance(params ...interface{}) (ccxt.Balances, error) 
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Bitmart) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
 
@@ -81,12 +81,13 @@ func (this *Bitmart) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
  * @method
  * @name bitmart#watchTradesForSymbols
  * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
  * @description get the list of most recent trades for a list of symbols
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Bitmart) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
 
@@ -118,13 +119,69 @@ func (this *Bitmart) WatchTradesForSymbols(symbols []string, options ...ccxt.Wat
 }
 /**
  * @method
+ * @name bitmart#unWatchTrades
+ * @description unWatches from the stream channel
+ * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+ * @param {string} symbol unified symbol of the market to fetch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ */
+func (this *Bitmart) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchTradesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchTrades(symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
+ * @name bitmart#unWatchTradesForSymbols
+ * @description unsubscribes from the trades channel
+ * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+ * @param {string[]} symbols unified symbol of the market to fetch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ */
+func (this *Bitmart) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchTradesForSymbolsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchTradesForSymbols(symbols, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
  * @name bitmart#watchTicker
  * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
 
@@ -152,7 +209,7 @@ func (this *Bitmart) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
 
@@ -179,13 +236,74 @@ func (this *Bitmart) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 }
 /**
  * @method
+ * @name bitmart#unWatchTicker
+ * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func (this *Bitmart) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchTickerOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchTicker(symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
+ * @name bitmart#unWatchTickers
+ * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+ * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+ * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func (this *Bitmart) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchTickersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchTickers(symbols, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
  * @name bitmart#watchBidsAsks
  * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {
 
@@ -220,7 +338,7 @@ func (this *Bitmart) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.T
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
 
@@ -254,6 +372,39 @@ func (this *Bitmart) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
         return nil, ccxt.CreateReturnError(res)
     }
     return ccxt.NewOrderArray(res), nil
+}
+/**
+ * @method
+ * @name bitmart#unWatchOrders
+ * @description unWatches information on multiple orders made by the user
+ * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Bitmart) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchOrders(symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
 }
 /**
  * @method
@@ -298,6 +449,38 @@ func (this *Bitmart) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]cc
         return nil, ccxt.CreateReturnError(res)
     }
     return ccxt.NewPositionArray(res), nil
+}
+/**
+ * @method
+ * @name bitmart#unWatchPositions
+ * @description unWatches all open positions
+ * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} status of the unwatch request
+ */
+func (this *Bitmart) UnWatchPositions(options ...ccxt.UnWatchPositionsOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchPositionsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchPositions(symbols, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
 }
 /**
  * @method
@@ -347,6 +530,40 @@ func (this *Bitmart) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions
 }
 /**
  * @method
+ * @name bitmart#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
+ * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
+func (this *Bitmart) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var timeframe interface{} = nil
+    if opts.Timeframe != nil {
+        timeframe = *opts.Timeframe
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchOHLCV(symbol, timeframe, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
  * @name bitmart#watchOrderBook
  * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
  * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
@@ -356,7 +573,7 @@ func (this *Bitmart) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.speed] *futures only* '100ms' or '200ms'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bitmart) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -383,6 +600,35 @@ func (this *Bitmart) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 }
 /**
  * @method
+ * @name bitmart#unWatchOrderBook
+ * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+ * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+ * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
+ * @param {string} symbol unified array of symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ */
+func (this *Bitmart) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchOrderBookOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchOrderBook(symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
  * @name bitmart#watchOrderBookForSymbols
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
@@ -390,7 +636,7 @@ func (this *Bitmart) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bitmart) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
 
@@ -414,6 +660,34 @@ func (this *Bitmart) WatchOrderBookForSymbols(symbols []string, options ...ccxt.
         return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
     }
     return ccxt.NewOrderBookFromWs(res), nil
+}
+/**
+ * @method
+ * @name bitmart#unWatchOrderBookForSymbols
+ * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+ * @param {string[]} symbols unified array of symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ */
+func (this *Bitmart) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchOrderBookForSymbolsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchOrderBookForSymbols(symbols, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
 }
 // missing typed methods from base
 //nolint
@@ -593,15 +867,7 @@ func (this *Bitmart) FetchTradingFeesWs(params ...interface{}) (ccxt.TradingFees
 func (this *Bitmart) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
 func (this *Bitmart) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
 func (this *Bitmart) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
-func (this *Bitmart) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
 func (this *Bitmart) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
-func (this *Bitmart) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
-func (this *Bitmart) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
-func (this *Bitmart) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
-func (this *Bitmart) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
-func (this *Bitmart) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
-func (this *Bitmart) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
-func (this *Bitmart) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
 func (this *Bitmart) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
 func (this *Bitmart) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
 func (this *Bitmart) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}

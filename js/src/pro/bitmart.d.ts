@@ -12,7 +12,7 @@ export default class bitmart extends bitmartRest {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any, subscribeHash: any): void;
@@ -28,21 +28,44 @@ export default class bitmart extends bitmartRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name bitmart#watchTradesForSymbols
      * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
      * @description get the list of most recent trades for a list of symbols
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
+     * @name bitmart#unWatchTrades
+     * @description unWatches from the stream channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name bitmart#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     getParamsForMultipleSub(methodName: string, symbols: string[], limit?: Int, params?: {}): any[];
     /**
      * @method
@@ -52,7 +75,7 @@ export default class bitmart extends bitmartRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
@@ -63,9 +86,31 @@ export default class bitmart extends bitmartRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    /**
+     * @method
+     * @name bitmart#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name bitmart#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
      * @name bitmart#watchBidsAsks
@@ -74,7 +119,7 @@ export default class bitmart extends bitmartRest {
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
@@ -89,9 +134,20 @@ export default class bitmart extends bitmartRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name bitmart#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
     parseWsOrder(order: Dict, market?: Market): Order;
     parseWsOrderStatus(statusId: any): string;
@@ -108,6 +164,16 @@ export default class bitmart extends bitmartRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    /**
+     * @method
+     * @name bitmart#unWatchPositions
+     * @description unWatches all open positions
+     * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
     handleTrade(client: Client, message: any): void;
@@ -129,6 +195,18 @@ export default class bitmart extends bitmartRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    /**
+     * @method
+     * @name bitmart#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method
@@ -141,9 +219,21 @@ export default class bitmart extends bitmartRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.speed] *futures only* '100ms' or '200ms'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    /**
+     * @method
+     * @name bitmart#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
@@ -157,12 +247,33 @@ export default class bitmart extends bitmartRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    /**
+     * @method
+     * @name bitmart#unWatchOrderBookForSymbols
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     authenticate(type: any, params?: {}): Promise<any>;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
+    handleUnSubscription(client: Client, message: any): void;
+    getUnSubParams(messageTopic: any): {
+        topic: string;
+        symbols: any[];
+        subHash: string;
+        symbolsAndTimeframes: any[];
+        subHashIsPrefix: boolean;
+    };
+    parseTopic(topic: any): string;
+    parseMarketType(marketType: string): string;
     handleMessage(client: Client, message: any): void;
 }

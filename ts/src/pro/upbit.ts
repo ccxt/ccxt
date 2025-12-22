@@ -37,11 +37,13 @@ export default class upbit extends upbitRest {
         });
     }
 
-    async watchPublic (symbol: string, channel, params = {}) {
+    async watchPublicMultiple (symbols: Strings, channel, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const marketId = market['id'];
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
         const url = this.implodeParams (this.urls['api']['ws'], {
             'hostname': this.hostname,
         });
@@ -51,16 +53,18 @@ export default class upbit extends upbitRest {
             client.subscriptions[subscriptionsKey] = {};
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
-        let messageHash = channel;
-        const request: Dict = {
-            'type': channel,
-        };
-        if (symbol !== undefined) {
-            messageHash = channel + ':' + symbol;
-            request['codes'] = [ marketId ];
-        }
-        if (!(messageHash in subscriptions)) {
-            subscriptions[messageHash] = request;
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const marketId = marketIds[i];
+            const symbol = symbols[i];
+            const messageHash = channel + ':' + symbol;
+            messageHashes.push (messageHash);
+            if (!(messageHash in subscriptions)) {
+                subscriptions[messageHash] = {
+                    'type': channel,
+                    'codes': [ marketId ],
+                };
+            }
         }
         const finalMessage = [
             {
@@ -72,35 +76,7 @@ export default class upbit extends upbitRest {
             const key = channelKeys[i];
             finalMessage.push (subscriptions[key]);
         }
-        return await this.watch (url, messageHash, finalMessage, messageHash);
-    }
-
-    async watchPublicMultiple (symbols: Strings, channel, params = {}) {
-        await this.loadMarkets ();
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        symbols = this.marketSymbols (symbols);
-        const marketIds = this.marketIds (symbols);
-        const url = this.implodeParams (this.urls['api']['ws'], {
-            'hostname': this.hostname,
-        });
-        const messageHashes = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            messageHashes.push (channel + ':' + marketIds[i]);
-        }
-        const request = [
-            {
-                'ticket': this.uuid (),
-            },
-            {
-                'type': channel,
-                'codes': marketIds,
-                // 'isOnlySnapshot': false,
-                // 'isOnlyRealtime': false,
-            },
-        ];
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, finalMessage, messageHashes);
     }
 
     /**
@@ -110,10 +86,10 @@ export default class upbit extends upbitRest {
      * @see https://global-docs.upbit.com/reference/websocket-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        return await this.watchPublic (symbol, 'ticker');
+        return await this.watchPublicMultiple ([ symbol ], 'ticker');
     }
 
     /**
@@ -123,7 +99,7 @@ export default class upbit extends upbitRest {
      * @see https://global-docs.upbit.com/reference/websocket-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         const newTickers = await this.watchPublicMultiple (symbols, 'ticker');
@@ -144,7 +120,7 @@ export default class upbit extends upbitRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
@@ -159,40 +135,10 @@ export default class upbit extends upbitRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
-        const channel = 'trade';
-        const messageHashes = [];
-        const url = this.implodeParams (this.urls['api']['ws'], {
-            'hostname': this.hostname,
-        });
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
-                const marketId = market['id'];
-                const symbol = market['symbol'];
-                this.options[channel] = this.safeValue (this.options, channel, {});
-                this.options[channel][symbol] = true;
-                messageHashes.push (channel + ':' + marketId);
-            }
-        }
-        const optionSymbols = Object.keys (this.options[channel]);
-        const marketIds = this.marketIds (optionSymbols);
-        const request = [
-            {
-                'ticket': this.uuid (),
-            },
-            {
-                'type': channel,
-                'codes': marketIds,
-                // 'isOnlySnapshot': false,
-                // 'isOnlyRealtime': false,
-            },
-        ];
-        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const trades = await this.watchPublicMultiple (symbols, 'trade');
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -209,10 +155,10 @@ export default class upbit extends upbitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        const orderbook = await this.watchPublic (symbol, 'orderbook');
+        const orderbook = await this.watchPublicMultiple ([ symbol ], 'orderbook');
         return orderbook.limit ();
     }
 
@@ -227,14 +173,14 @@ export default class upbit extends upbitRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
+     * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
     async watchOHLCV (symbol: string, timeframe: string = '1s', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (timeframe !== '1s') {
             throw new NotSupported (this.id + ' watchOHLCV does not support' + timeframe + ' candle.');
         }
         const timeFrameOHLCV = 'candle.' + timeframe;
-        return await this.watchPublic (symbol, timeFrameOHLCV);
+        return await this.watchPublicMultiple ([ symbol ], timeFrameOHLCV);
     }
 
     handleTicker (client: Client, message) {
@@ -274,11 +220,10 @@ export default class upbit extends upbitRest {
         //   "acc_trade_price_24h": 2.5955306323568927,
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
-        const marketId = this.safeString (message, 'code');
-        const messageHash = 'ticker:' + marketId;
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
+        const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
     }
 
@@ -333,7 +278,7 @@ export default class upbit extends upbitRest {
         const datetime = this.iso8601 (timestamp);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = datetime;
-        const messageHash = 'orderbook:' + marketId;
+        const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
@@ -361,8 +306,7 @@ export default class upbit extends upbitRest {
             this.trades[symbol] = stored;
         }
         stored.append (trade);
-        const marketId = this.safeString (message, 'code');
-        const messageHash = 'trade:' + marketId;
+        const messageHash = 'trade:' + symbol;
         client.resolve (stored, messageHash);
     }
 
@@ -382,7 +326,8 @@ export default class upbit extends upbitRest {
         //     stream_type: 'REALTIME'
         //   }
         const marketId = this.safeString (message, 'code');
-        const messageHash = 'candle.1s:' + marketId;
+        const symbol = this.safeSymbol (marketId, undefined);
+        const messageHash = 'candle.1s:' + symbol;
         const ohlcv = this.parseOHLCV (message);
         client.resolve (ohlcv, messageHash);
     }
@@ -470,7 +415,7 @@ export default class upbit extends upbitRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -492,7 +437,7 @@ export default class upbit extends upbitRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -683,7 +628,7 @@ export default class upbit extends upbitRest {
      * @see https://global-docs.upbit.com/reference/websocket-myasset
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();

@@ -156,6 +156,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("spotV2PublicGetMarketKline",parameters);
     }
 
+    public async Task<object> spotV2PublicGetTickerPrice (object parameters = null)
+    {
+        return await this.callAsync ("spotV2PublicGetTickerPrice",parameters);
+    }
+
     public async Task<object> spotV3PrivateGetGetAssetTransfer (object parameters = null)
     {
         return await this.callAsync ("spotV3PrivateGetGetAssetTransfer",parameters);

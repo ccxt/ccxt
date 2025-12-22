@@ -608,7 +608,7 @@ public partial class xt : ccxt.xt
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} params extra parameters specific to the kucoin api endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -635,7 +635,7 @@ public partial class xt : ccxt.xt
      * @see https://doc.xt.com/#websocket_privatebalanceChange
      * @see https://doc.xt.com/#futures_user_websocket_v2balance
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -1559,13 +1559,24 @@ public partial class xt : ccxt.xt
         //         method: 'unsubscribe'
         //     }
         //
-        object method = this.safeStringLower(message, "method");
-        if (isTrue(isEqual(method, "unsubscribe")))
+        //     {
+        //         code: 0,
+        //         msg: 'success',
+        //         id: '1764032903806ticker@btc_usdt',
+        //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        //     }
+        //
+        object id = this.safeString(message, "id");
+        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        object unsubscribe = false;
+        if (isTrue(!isEqual(id, null)))
         {
-            object id = this.safeString(message, "id");
-            object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-            object subscription = this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
-            this.handleUnSubscription(client as WebSocketClient, subscription);
+            object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
+            unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            if (isTrue(unsubscribe))
+            {
+                this.handleUnSubscription(client as WebSocketClient, subscription);
+            }
         }
         return message;
     }

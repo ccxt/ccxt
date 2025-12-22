@@ -17,6 +17,9 @@ interface Exchange {
     publicGetDeepcoinMarketTrades (params?: {}): Promise<implicitReturnType>;
     publicGetDeepcoinMarketMarkPriceCandles (params?: {}): Promise<implicitReturnType>;
     publicGetDeepcoinMarketStepMargin (params?: {}): Promise<implicitReturnType>;
+    publicGetDeepcoinTradeFundingRate (params?: {}): Promise<implicitReturnType>;
+    publicGetDeepcoinTradeFundRateCurrentFundingRate (params?: {}): Promise<implicitReturnType>;
+    publicGetDeepcoinTradeFundRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetDeepcoinAccountBalances (params?: {}): Promise<implicitReturnType>;
     privateGetDeepcoinAccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetDeepcoinAccountPositions (params?: {}): Promise<implicitReturnType>;
@@ -25,9 +28,6 @@ interface Exchange {
     privateGetDeepcoinTradeFinishOrderByID (params?: {}): Promise<implicitReturnType>;
     privateGetDeepcoinTradeOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetDeepcoinTradeV2OrdersPending (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinTradeFundingRate (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinTradeFundRateCurrentFundingRate (params?: {}): Promise<implicitReturnType>;
-    privateGetDeepcoinTradeFundRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetDeepcoinTradeTriggerOrdersPending (params?: {}): Promise<implicitReturnType>;
     privateGetDeepcoinTradeTriggerOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetDeepcoinCopytradingSupportContracts (params?: {}): Promise<implicitReturnType>;

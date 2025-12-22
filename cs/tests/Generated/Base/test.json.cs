@@ -22,19 +22,5 @@ public partial class BaseTest
             object list = new List<object>() {1, 2};
             object listJson = exchange.json(list);
             Assert(isEqual(listJson, "[1,2]"));
-            Assert("GO_SKIP_START");
-            try
-            {
-                throw new BadRequest ((string)"some error") ;
-            } catch(Exception e)
-            {
-                object errString = exchange.json(e);
-                Assert(isEqual(errString, "{\"name\":\"BadRequest\"}"));
-            }
-            Assert("GO_SKIP_END");
-            // Test: json a string
-            object str = "ccxt, rocks!";
-            object serializedString = exchange.json(str);
-            Assert(isEqual(serializedString, "\"ccxt, rocks!\""));
         }
 }

@@ -15,6 +15,29 @@
     ],
     "outputType": "json",
     "methods": {
+        "createSubAccount": [
+            {
+                "description": "create subAccount using expiresAfter",
+                "method": "createSubAccount",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "example124",
+                    {
+                        "expiresAfter": 1766515399000
+                    }
+                ],
+                "output": "{\"nonce\":1766345101913,\"expiresAfter\":1766515399000,\"action\":{\"type\":\"createSubAccount\",\"name\":\"example124\"},\"signature\":{\"r\":\"0xdaffc61e78dcb3fce3622c4fa53eaf660b007e939b9a2b31402d8b59c86dabe6\",\"s\":\"0x11534d5e109dfb1009251d0747dc4068bc45b14b5dde8ac727db1da297f0e8a6\",\"v\":28}}"
+            },
+            {
+                "description": "creates subaccount",
+                "method": "createSubAccount",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "test1"
+                ],
+                "output": "{\"nonce\":1766238232898,\"action\":{\"type\":\"createSubAccount\",\"name\":\"test1\"},\"signature\":{\"r\":\"0x3c3850de88df6a8b873b705df22e459c5a8b3807331e7a93bf230e7b7e2f0d6a\",\"s\":\"0x79e8039886b8ee9dbaf317b57c6be5c486d7eedfa499ee1d70696827851b132b\",\"v\":28}}"
+            }
+        ],
         "createOrderWithTakeProfitAndStopLoss": [
             {
                 "description": "create order with tp and sl",
@@ -64,7 +87,7 @@
                 "method": "fetchCurrencies",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [],
-                "output": "{\"type\":\"meta\"}"
+                "output": "{\"type\":\"spotMeta\"}"
             }
         ],
         "fetchTickers": [
@@ -894,6 +917,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "open order using a non usdc hip3 market",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "output": "{\"type\":\"frontendOpenOrders\",\"user\":\"wallet\",\"dex\":\"flx\"}"
+            },
+            {
                 "description": "fetch hip3 open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.hyperliquid.xyz/info",
@@ -1073,6 +1110,27 @@
             }
         ],
         "fetchPositions": [
+            {
+                "description": "fetch positions empty array",
+                "method": "fetchPositions",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    []
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"wallet\"}"
+            },
+            {
+                "description": "fetch hip3 positions",
+                "method": "fetchPositions",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "output": "{\"type\":\"clearinghouseState\",\"user\":\"wallet\",\"dex\":\"flx\"}"
+            },
             {
                 "description": "fetchPositions",
                 "method": "fetchPositions",

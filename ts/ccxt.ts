@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.21';
+const version = '4.5.29';
 
 (Exchange as any).ccxtVersion = version
 
@@ -80,6 +80,7 @@ import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
+import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
@@ -153,6 +154,7 @@ import woofipro from  './src/woofipro.js'
 import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
+import zebpay from  './src/zebpay.js'
 import zonda from  './src/zonda.js'
 
 
@@ -180,6 +182,7 @@ import bittradePro from  './src/pro/bittrade.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
 import blofinPro from  './src/pro/blofin.js'
+import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
@@ -268,6 +271,7 @@ const exchanges = {
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
     'btcturk':                btcturk,
+    'bullish':                bullish,
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
@@ -341,6 +345,7 @@ const exchanges = {
     'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
+    'zebpay':                 zebpay,
     'zonda':                  zonda,
 }
 
@@ -368,6 +373,7 @@ const pro = {
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
     'blofin':                 blofinPro,
+    'bullish':                bullishPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
@@ -598,6 +604,7 @@ export {
     btcbox,
     btcmarkets,
     btcturk,
+    bullish,
     bybit,
     cex,
     coinbase,
@@ -671,6 +678,7 @@ export {
     xt,
     yobit,
     zaif,
+    zebpay,
     zonda,    
 }
 

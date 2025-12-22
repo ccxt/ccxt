@@ -191,6 +191,40 @@ Alternatively, you can use the functions `createMarketBuyOrderWithCost`/ `create
   print(market['contractSize'])
   ```
 
+  ## Why am I getting an error that says "must be greater than minimum amount precision of 1"?
+  This is a common error that happens when creating orders for contract markets. This error happens when the exchange is expecting a natural number of contracts (1,2,3, etc) in the amount argument of createOrder.
+  
+  Each contract is worth a certain amount of the base asset, determined by the contractSize. You can retrieve the contractSize from a symbols market structure like this:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  print(market['contractSize'])
+  ```
+
+  If you create an order with `amount = 1`, the amount of the base asset that is used for the order will vary depending on the symbols `contractSize`.
+
+  Below is a formula and example to find the number of `contracts` that you should use for the amount argument if you want to use 0.5 of the base asset:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  # Converting a 0.5 base amount to the number of contracts:
+  # Formula: contracts = (base amount / contract size)
+  contracts = round(0.5 / market['contractSize'])
+  ```
+
+  Here is an example of finding the base amount that will be used with an amount argument of 1 contract:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  # Finding the base amount that will be used with 1 contract:
+  # Formula: base amount = (contracts * contract size)
+  contracts = 1
+  base_amount = (contracts * market['contractSize'])
+  ```
+
   ## How to place a reduceOnly order?
   A reduceOnly order is a type of order that can only reduce a position, not increase it. To place a reduceOnly order, you typically use the createOrder method with a reduceOnly parameter set to true. This ensures that the order will only execute if it decreases the size of an open position, and it will either partially fill or not fill at all if executing it would increase the position size.
 
