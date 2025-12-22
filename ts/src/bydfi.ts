@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ArgumentsRequired } from '../ccxt.js';
+import { ArgumentsRequired, NotSupported } from '../ccxt.js';
 import Exchange from './abstract/bydfi.js';
 // import { BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -56,15 +56,15 @@ export default class bydfi extends Exchange {
                 'createOrder': true,
                 'createOrders': false,
                 'createOrderWithTakeProfitAndStopLoss': false,
-                'createPostOnlyOrder': false,
-                'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
-                'createStopLossOrder': false,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopLossOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
-                'createTakeProfitOrder': false,
+                'createTakeProfitOrder': true,
                 'createTrailingAmountOrder': false,
-                'createTrailingPercentOrder': false,
+                'createTrailingPercentOrder': true,
                 'createTriggerOrder': false,
                 'deposit': false,
                 'editOrder': 'emulated',
@@ -241,7 +241,7 @@ export default class bydfi extends Exchange {
                     },
                     'post': {
                         'v1/account/transfer': 1, // https://developers.bydfi.com/en/account#asset-transfer-between-accounts
-                        'v1/swap/trade/place_order': 1, // https://developers.bydfi.com/en/swap/trade#placing-an-order
+                        'v1/swap/trade/place_order': 1, // done
                         'v1/swap/trade/batch_place_order': 1, // https://developers.bydfi.com/en/swap/trade#batch-order-placement
                         'v1/swap/trade/edit_order': 1, // https://developers.bydfi.com/en/swap/trade#order-modification
                         'v1/swap/trade/batch_edit_order': 1, // https://developers.bydfi.com/en/swap/trade#batch-order-modification
@@ -280,6 +280,12 @@ export default class bydfi extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                'timeInForce': {
+                    'GTC': 'GTC', // Good Till Cancelled
+                    'FOK': 'FOK', // Fill Or Kill
+                    'IOC': 'IOC', // Immediate Or Cancel
+                    'PO': 'POST_ONLY',   // Post Only
+                },
             },
         });
     }
@@ -919,6 +925,146 @@ export default class bydfi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    /**
+     * @method
+     * @name bydfi#createOrder
+     * @description create a trade order
+     * @see https://developers.bydfi.com/en/swap/trade#placing-an-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @param {bool} [params.hedged] true for hedged mode, false for one way mode, default is false
+     * @param {string} [params.clientOrderId] Custom order ID, must be unique for open orders
+     * @param {string} [params.timeInForce] 'GTC' (Good Till Cancelled), 'FOK' (Fill Or Kill), 'IOC' (Immediate Or Cancel), 'PO' (Post Only)
+     * @param {bool} [params.postOnly] true or false, whether the order is post-only
+     * @param {bool} [params.reduceOnly] true or false, true or false whether the order is reduce-only
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
+     * @param {float} [params.trailingTriggerPrice] the price to activate a trailing order, default uses the price argument or market price if price is not provided
+     * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {string} [params.triggerPriceType] 'MARK_PRICE' or 'CONTRACT_PRICE', default is 'CONTRACT_PRICE', the price type used to trigger stop orders
+     * @param {bool} [params.closePosition] true or false, whether to close all positions after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity;
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let wallet = 'W001'; // todo check if it is mandatory
+        [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
+        orderRequest = this.extend (orderRequest, { 'wallet': wallet });
+        const response = await this.privatePostV1SwapTradePlaceOrder (orderRequest);
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            // 'positionSide': STRING Position direction, not required in single position mode, default and can only be BOTH; required in dual position mode, and can only choose LONG or SHORT
+            // 'type': STRING Order type LIMIT / MARKET / STOP / TAKE_PROFIT / STOP_MARKET / TAKE_PROFIT_MARKET / TRAILING_STOP_MARKET
+            // 'reduceOnly': BOOL true, false; defaults to false in non-dual mode; not accepted in dual mode; not supported when using closePosition.
+            // 'quantity': DECIMAL Order quantity, not supported with closePosition.
+            // 'price': DECIMAL Order price
+            // 'clientOrderId': STRING User-defined order number, must not be repeated in pending orders. If blank, the system will assign automatically
+            // 'stopPrice': DECIMAL Trigger price, only required for STOP, STOP_MARKET, TAKE_PROFIT, TAKE_PROFIT_MARKET
+            // 'closePosition': BOOL true, false; all positions closed after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity; has a self-closing effect, not used with reduceOnly
+            // 'activationPrice': DECIMAL Trailing stop activation price, required for TRAILING_STOP_MARKET, default to current market price upon order (supports different workingType)
+            // 'callbackRate': DECIMAL Trailing stop callback rate, can range from [0.1, 5], where 1 represents 1%, only required for TRAILING_STOP_MARKET
+            // 'timeInForce': STRING Validity method GTC / FOK / POST_ONLY / IOC / TRAILING_STOP
+            // 'workingType': STRING stopPrice trigger type: MARK_PRICE(marking price), CONTRACT_PRICE(latest contract price). Default CONTRACT_PRICE
+        };
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const isStopLossOrder = (stopLossPrice !== undefined);
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isTakeProfitOrder = (takeProfitPrice !== undefined);
+        const trailingPercent = this.safeString (params, 'trailingPercent');
+        const isTailingStopOrder = (trailingPercent !== undefined);
+        let stopPrice = undefined;
+        if (isStopLossOrder || isTakeProfitOrder) {
+            stopPrice = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        } else if (isTailingStopOrder) {
+            params = this.omit (params, [ 'trailingPercent' ]);
+            request['callbackRate'] = trailingPercent;
+            let trailingTriggerPrice = this.numberToString (price);
+            [ trailingTriggerPrice, params ] = this.handleParamString (params, 'trailingTriggerPrice', trailingTriggerPrice);
+            if (trailingTriggerPrice !== undefined) {
+                request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+                params = this.omit (params, [ 'trailingTriggerPrice' ]);
+            }
+        }
+        type = type.toUpperCase ();
+        const isMarketOrder = ((type === 'MARKET') || (type === 'STOP_MARKET') || (type === 'TAKE_PROFIT_MARKET') || (type === 'TRAILING_STOP_MARKET'));
+        if (isMarketOrder) {
+            if (type === 'MARKET') {
+                if (isStopLossOrder) {
+                    type = 'STOP_MARKET';
+                } else if (isTakeProfitOrder) {
+                    type = 'TAKE_PROFIT_MARKET';
+                } else if (isTailingStopOrder) {
+                    type = 'TRAILING_STOP_MARKET';
+                }
+            }
+        } else {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+            if (isStopLossOrder) {
+                type = 'STOP';
+            } else if (isTakeProfitOrder) {
+                type = 'TAKE_PROFIT';
+            }
+        }
+        request['type'] = type;
+        let hedged = false;
+        [ hedged, params ] = this.handleOptionAndParams (params, 'createOrder', 'hedged', hedged);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        if (hedged) {
+            params = this.omit (params, 'reduceOnly');
+            if (side === 'buy') {
+                request['positionSide'] = reduceOnly ? 'SHORT' : 'LONG';
+            } else if (side === 'sell') {
+                request['positionSide'] = reduceOnly ? 'LONG' : 'SHORT';
+            }
+        }
+        const closePosition = this.safeBool (params, 'closePosition', false);
+        if (!closePosition) {
+            params = this.omit (params, 'closePosition');
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        } else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
+            throw new NotSupported (this.id + ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
+        } else if (reduceOnly) {
+            throw new NotSupported (this.id + ' createOrder() closePosition cannot be used with reduceOnly');
+        }
+        let timeInForce = this.handleTimeInForce (params);
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POST_ONLY', params);
+        if (postOnly) {
+            timeInForce = 'POST_ONLY';
+        }
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+            params = this.omit (params, 'timeInForce');
+        }
+        const workingType = this.safeString (params, 'triggerPriceType');
+        if (workingType !== undefined) {
+            if ((type === 'MARKET') || (type === 'LIMIT')) {
+                throw new NotSupported (this.id + ' createOrder() triggerPriceType is only supported for stopLoss, takeProfit and trailingStop orders');
+            }
+            request['workingType'] = workingType;
+            params = this.omit (params, 'triggerPriceType');
+        }
+        return this.extend (request, params);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
