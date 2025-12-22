@@ -7,7 +7,7 @@ import (
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
-func TestThrottlerPerformanceHelper(exchange *ccxt.Exchange, numRequests interface{}) <-chan interface{} {
+func TestThrottlerPerformanceHelper(exchange ccxt.IExchange, numRequests interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 	go func() interface{} {
 		defer close(ch)
@@ -36,26 +36,26 @@ func TestThrottlerPerformanceHelper(exchange *ccxt.Exchange, numRequests interfa
 
 // Synchronous version of TestThrottlerPerformance for when we need immediate output
 func TestThrottlerPerformance() {
-	exchange1 := ccxt.NewBinance(map[string]interface{}{
+	exchange1 := ccxt.CreateExchange("binance", map[string]interface{}{
 		"enableRateLimit":      true,
 		"rateLimiterAlgorithm": "rollingWindow",
 	})
 
-	rollingWindowTime := (<-TestThrottlerPerformanceHelper(&exchange1.Exchange, 100))
+	rollingWindowTime := (<-TestThrottlerPerformanceHelper(exchange1, 100))
 	PanicOnError(rollingWindowTime)
-	exchange2 := ccxt.NewBinance(map[string]interface{}{
+	exchange2 := ccxt.CreateExchange("binance", map[string]interface{}{
 		"enableRateLimit":      true,
 		"rateLimiterAlgorithm": "leakyBucket",
 	})
 
-	leakyBucketTime := (<-TestThrottlerPerformanceHelper(&exchange2.Exchange, 20))
+	leakyBucketTime := (<-TestThrottlerPerformanceHelper(exchange2, 20))
 	PanicOnError(leakyBucketTime)
-	exchange3 := ccxt.NewBinance(map[string]interface{}{
+	exchange3 := ccxt.CreateExchange("binance", map[string]interface{}{
 		"enableRateLimit":   true,
 		"rollingWindowSize": 0,
 	})
 
-	rollingWindow0Time := (<-TestThrottlerPerformanceHelper(&exchange3.Exchange, 20))
+	rollingWindow0Time := (<-TestThrottlerPerformanceHelper(exchange3, 20))
 	PanicOnError(rollingWindow0Time)
 	var rollingWindowTimeString interface{} = ToString(rollingWindowTime)
 	var leakyBucketTimeString interface{} = ToString(leakyBucketTime)
