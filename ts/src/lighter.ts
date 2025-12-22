@@ -3,7 +3,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -101,7 +101,7 @@ export default class lighter extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -1072,6 +1072,7 @@ export default class lighter extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
         const accountIndex = this.handleOption ('createAuth', 'accountIndex');
         const request: Dict = {
             'by': this.safeString (params, 'by', 'index'),
@@ -1138,6 +1139,150 @@ export default class lighter extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchPositions
+     * @description fetch all open positions
+     * @see https://apidocs.lighter.xyz/reference/account-1
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+     * @param {string} [params.value] fetch balance value, account index or l1 address
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const accountIndex = this.handleOption ('createAuth', 'accountIndex');
+        const request: Dict = {
+            'by': this.safeString (params, 'by', 'index'),
+            'value': this.safeString (params, 'value', accountIndex),
+        };
+        const response = await this.publicGetAccount (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "total": 2,
+        //         "accounts": [
+        //             {
+        //                 "code": 0,
+        //                 "account_type": 0,
+        //                 "index": 1077,
+        //                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time": 0,
+        //                 "total_order_count": 0,
+        //                 "total_isolated_order_count": 0,
+        //                 "pending_order_count": 0,
+        //                 "available_balance": "12582.743947",
+        //                 "status": 1,
+        //                 "collateral": "9100.242706",
+        //                 "account_index": 1077,
+        //                 "name": "",
+        //                 "description": "",
+        //                 "can_invite": true,
+        //                 "referral_points_percentage": "",
+        //                 "positions": [
+        //                     {
+        //                         "market_id": 0,
+        //                         "symbol": "ETH",
+        //                         "initial_margin_fraction": "5.00",
+        //                         "open_order_count": 0,
+        //                         "pending_order_count": 0,
+        //                         "position_tied_order_count": 0,
+        //                         "sign": 1,
+        //                         "position": "18.0193",
+        //                         "avg_entry_price": "2669.84",
+        //                         "position_value": "54306.566340",
+        //                         "unrealized_pnl": "6197.829558",
+        //                         "realized_pnl": "0.000000",
+        //                         "liquidation_price": "2191.1107231380406",
+        //                         "margin_mode": 0,
+        //                         "allocated_margin": "0.000000"
+        //                     }
+        //                 ],
+        //                 "assets": [],
+        //                 "total_asset_value": "15298.072264000002",
+        //                 "cross_asset_value": "15298.072264000002",
+        //                 "shares": []
+        //             }
+        //         ]
+        //     }
+        //
+        const allPositions = [];
+        const accounts = this.safeList (response, 'accounts', []);
+        for (let i = 0; i < accounts.length; i++) {
+            const account = accounts[i];
+            const positions = this.safeList (account, 'positions', []);
+            for (let j = 0; j < positions.length; j++) {
+                allPositions.push (positions[j]);
+            }
+        }
+        return this.parsePositions (allPositions, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "market_id": 0,
+        //         "symbol": "ETH",
+        //         "initial_margin_fraction": "5.00",
+        //         "open_order_count": 0,
+        //         "pending_order_count": 0,
+        //         "position_tied_order_count": 0,
+        //         "sign": 1,
+        //         "position": "18.0193",
+        //         "avg_entry_price": "2669.84",
+        //         "position_value": "54306.566340",
+        //         "unrealized_pnl": "6197.829558",
+        //         "realized_pnl": "0.000000",
+        //         "liquidation_price": "2191.1107231380406",
+        //         "margin_mode": 0,
+        //         "allocated_margin": "0.000000"
+        //     }
+        //
+        const marketId = this.safeString (position, 'market_id');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const sign = this.safeInteger (position, 'sign');
+        let side = undefined;
+        if (sign !== undefined) {
+            side = (sign === 1) ? 'long' : 'short';
+        }
+        const marginModeId = this.safeInteger (position, 'margin_mode');
+        let marginMode = undefined;
+        if (marginModeId !== undefined) {
+            marginMode = (marginModeId === 0) ? 'cross' : 'isolated';
+        }
+        const imf = this.safeNumber (position, 'initial_margin_fraction');
+        let leverage = undefined;
+        if (imf !== undefined && imf > 0) {
+            leverage = 100 / imf;
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'isolated': (marginMode === 'isolated'),
+            'hedged': undefined,
+            'side': side,
+            'contracts': this.safeNumber (position, 'position'),
+            'contractSize': undefined,
+            'entryPrice': this.safeNumber (position, 'avg_entry_price'),
+            'markPrice': undefined,
+            'notional': this.safeNumber (position, 'position_value'),
+            'leverage': leverage,
+            'collateral': this.safeNumber (position, 'allocated_margin'),
+            'initialMargin': undefined,
+            'maintenanceMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
+            'marginMode': marginMode,
+            'percentage': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

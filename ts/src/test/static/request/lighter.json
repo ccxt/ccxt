@@ -100,6 +100,32 @@
                     }
                 ]
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    null,
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchPositions - by l1_address",
+                "method": "fetchPositions",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    null,
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
         ]
     }
 }
