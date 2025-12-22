@@ -608,7 +608,7 @@ public partial class xt : ccxt.xt
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} params extra parameters specific to the kucoin api endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -635,7 +635,7 @@ public partial class xt : ccxt.xt
      * @see https://doc.xt.com/#websocket_privatebalanceChange
      * @see https://doc.xt.com/#futures_user_websocket_v2balance
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
