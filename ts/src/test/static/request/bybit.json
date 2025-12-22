@@ -37,6 +37,107 @@
         ],
         "createOrder": [
             {
+                "description": "takeProfit limit order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.1,
+                    10000,
+                    {
+                        "takeProfitPrice": 10000
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"10000\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":1,\"triggerPrice\":\"10000\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "sl limit order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.1,
+                    4000,
+                    {
+                        "stopLossPrice": 4000
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"4000\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":2,\"triggerPrice\":\"4000\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "sl market order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "stopLossPrice": 4000
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"0.1\",\"triggerDirection\":2,\"triggerPrice\":\"4000\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "protective oco order - limit",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/position/trading-stop",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "takeProfitLimitPrice": 80000,
+                        "stopLossPrice": 100000,
+                        "stopLossLimitPrice": 100123
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"100000\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"100123\",\"slSize\":\"0.001\",\"takeProfit\":\"80123\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"80000\",\"tpSize\":\"0.001\",\"tpslMode\":\"Partial\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "protective oco order - market with amount",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/position/trading-stop",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "stopLossPrice": 100000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"100000\",\"slOrderType\":\"Market\",\"slSize\":\"0.001\",\"takeProfit\":\"80123\",\"tpOrderType\":\"Market\",\"tpSize\":\"0.001\",\"tpslMode\":\"Partial\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "protective oco order - market without amount",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/position/trading-stop",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.0,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "stopLossPrice": 100000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"100000\",\"slOrderType\":\"Market\",\"takeProfit\":\"80123\",\"tpOrderType\":\"Market\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+            },
+            {
                 "description": "spot order with sl type 3",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
@@ -278,40 +379,42 @@
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"51\",\"triggerDirection\":2,\"triggerPrice\":\"56\",\"reduceOnly\":true}"
             },
+            
             {
-                "description": "Swap limit sell with stopLossPrice(Type2)",
+                "description": "swap limit sell stopLossPrice",
                 "method": "createOrder",
-                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "url": "https://api.bybit.com/v5/order/create",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "limit",
-                  "sell",
-                  1,
-                  81000,
-                  {
-                    "stopLossPrice": 82000
-                  }
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    81000,
+                    {
+                        "stopLossPrice": 82000
+                    }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"82000\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"81000\",\"slSize\":\"1\",\"category\":\"linear\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"81000\",\"category\":\"linear\",\"qty\":\"0.001\",\"triggerDirection\":2,\"triggerPrice\":\"82000\",\"reduceOnly\":true}"
             },
             {
-                "description": "Swap limit sell with takeProfitPrice(Type2)",
+                "description": "swap limit sell takeProfitPrice",
                 "method": "createOrder",
-                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "url": "https://api.bybit.com/v5/order/create",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "limit",
-                  "sell",
-                  1,
-                  99000,
-                  {
-                    "takeProfitPrice": 98000
-                  }
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    99000,
+                    {
+                        "takeProfitPrice": 98000
+                    }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"takeProfit\":\"98000\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"99000\",\"tpSize\":\"1\",\"category\":\"linear\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"99000\",\"category\":\"linear\",\"qty\":\"0.001\",\"triggerDirection\":1,\"triggerPrice\":\"98000\",\"reduceOnly\":true}"
             },
             {
-                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode full",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap market sell with stopLossPrice(Type2) and tpslMode full",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -328,7 +431,8 @@
                 "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode full",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap market sell with takeProfitPrice(Type2) and tpslMode full",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -345,7 +449,8 @@
                 "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with stopLossPrice(Type2) and tpslMode partial",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap market sell with stopLossPrice(Type2) and tpslMode partial",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [
@@ -362,7 +467,8 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slSize\":\"1\",\"category\":\"linear\"}"
             },
             {
-                "description": "Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
+                "disabled": true,
+                "description": "[disabled, bcz endpoint changed] Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
                 "input": [

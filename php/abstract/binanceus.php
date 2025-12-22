@@ -1675,6 +1675,12 @@ abstract class binanceus extends \ccxt\binance {
     public function fapipublic_get_insurancebalance($params = array()) {
         return $this->request('insuranceBalance', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapipublic_get_symboladlrisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapipublic_get_tradingschedule($params = array()) {
+        return $this->request('tradingSchedule', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function fapidata_get_delivery_price($params = array()) {
         return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1743,9 +1749,6 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapiprivate_get_apitradingstatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function fapiprivate_get_symboladlrisk($params = array()) {
-        return $this->request('symbolAdlRisk', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_get_multiassetsmargin($params = array()) {
         return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
@@ -1821,6 +1824,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapiprivate_get_allalgoorders($params = array()) {
         return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiprivate_get_stock_contract($params = array()) {
+        return $this->request('stock/contract', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 50));
     }
     public function fapiprivate_post_batchorders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
@@ -4159,6 +4165,12 @@ abstract class binanceus extends \ccxt\binance {
     public function fapiPublicGetInsuranceBalance($params = array()) {
         return $this->request('insuranceBalance', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapiPublicGetSymbolAdlRisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPublicGetTradingSchedule($params = array()) {
+        return $this->request('tradingSchedule', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function fapiDataGetDeliveryPrice($params = array()) {
         return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -4227,9 +4239,6 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapiPrivateGetApiTradingStatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function fapiPrivateGetSymbolAdlRisk($params = array()) {
-        return $this->request('symbolAdlRisk', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetMultiAssetsMargin($params = array()) {
         return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 30));
@@ -4305,6 +4314,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapiPrivateGetAllAlgoOrders($params = array()) {
         return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiPrivateGetStockContract($params = array()) {
+        return $this->request('stock/contract', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 50));
     }
     public function fapiPrivatePostBatchOrders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));

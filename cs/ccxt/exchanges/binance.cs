@@ -877,6 +877,8 @@ public partial class binance : Exchange
                         { "lvtKlines", 1 },
                         { "convert/exchangeInfo", 4 },
                         { "insuranceBalance", 1 },
+                        { "symbolAdlRisk", 1 },
+                        { "tradingSchedule", 5 },
                     } },
                 } },
                 { "fapiData", new Dictionary<string, object>() {
@@ -914,7 +916,6 @@ public partial class binance : Exchange
                         { "commissionRate", 20 },
                         { "rateLimit/order", 1 },
                         { "apiTradingStatus", 1 },
-                        { "symbolAdlRisk", 1 },
                         { "multiAssetsMargin", 30 },
                         { "apiReferral/ifNewUser", 1 },
                         { "apiReferral/customization", 1 },
@@ -943,6 +944,7 @@ public partial class binance : Exchange
                             { "noSymbol", 40 },
                         } },
                         { "allAlgoOrders", 5 },
+                        { "stock/contract", 50 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "batchOrders", 5 },
@@ -2538,8 +2540,10 @@ public partial class binance : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "has no operation privilege", typeof(PermissionDenied) },
                     { "MAX_POSITION", typeof(BadRequest) },
+                    { "PERCENT_PRICE_BY_SIDE", typeof(InvalidOrder) },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         });
     }
 
@@ -3748,7 +3752,7 @@ public partial class binance : Exchange
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
      * @param {string} [params.subType] 'linear' or 'inverse'
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -4034,7 +4038,7 @@ public partial class binance : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -4313,7 +4317,7 @@ public partial class binance : Exchange
      * @description the latest known information on the availability of the exchange API
      * @see https://developers.binance.com/docs/wallet/others/system-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     public async override Task<object> fetchStatus(object parameters = null)
     {
@@ -4350,7 +4354,7 @@ public partial class binance : Exchange
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -4400,7 +4404,7 @@ public partial class binance : Exchange
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -4535,7 +4539,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -4613,7 +4617,7 @@ public partial class binance : Exchange
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
     {
@@ -4658,7 +4662,7 @@ public partial class binance : Exchange
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
@@ -5213,7 +5217,7 @@ public partial class binance : Exchange
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -5353,7 +5357,7 @@ public partial class binance : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> editSpotOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -5611,7 +5615,7 @@ public partial class binance : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> editContractOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -5694,7 +5698,7 @@ public partial class binance : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -5722,7 +5726,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Multiple-Orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrders(object orders, object parameters = null)
     {
@@ -5825,6 +5829,19 @@ public partial class binance : Exchange
             { "EXPIRED_IN_MATCH", "expired" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseOrderType(object type)
+    {
+        object types = new Dictionary<string, object>() {
+            { "limit_maker", "limit" },
+            { "stop", "limit" },
+            { "stop_market", "market" },
+            { "take_profit", "limit" },
+            { "take_profit_market", "market" },
+            { "trailing_stop_market", "market" },
+        };
+        return this.safeString(types, type, type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -6392,7 +6409,7 @@ public partial class binance : Exchange
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         object cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
         cost = this.safeString(order, "cumBase", cost);
-        object type = this.safeStringLower(order, "type");
+        object type = this.safeStringLower2(order, "type", "orderType");
         object side = this.safeStringLower(order, "side");
         object fills = this.safeList(order, "fills", new List<object>() {});
         object timeInForce = this.safeString(order, "timeInForce");
@@ -6402,10 +6419,6 @@ public partial class binance : Exchange
             timeInForce = "PO";
         }
         object postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
-        if (isTrue(isEqual(type, "limit_maker")))
-        {
-            type = "limit";
-        }
         object stopPriceString = this.safeString2(order, "stopPrice", "triggerPrice");
         object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         object feeCost = this.safeNumber(order, "fee");
@@ -6427,7 +6440,7 @@ public partial class binance : Exchange
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "symbol", symbol },
-            { "type", type },
+            { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
@@ -6454,7 +6467,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -6571,7 +6584,7 @@ public partial class binance : Exchange
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -7099,7 +7112,7 @@ public partial class binance : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
@@ -7124,7 +7137,7 @@ public partial class binance : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -7149,7 +7162,7 @@ public partial class binance : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -7182,7 +7195,7 @@ public partial class binance : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch a trigger or conditional order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -7299,7 +7312,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7606,7 +7619,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account conditional orders
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7731,7 +7744,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
@@ -7966,7 +7979,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8000,7 +8013,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8034,7 +8047,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8071,7 +8084,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to cancel a portfolio margin account conditional order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -8209,7 +8222,7 @@ public partial class binance : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to cancel portfolio margin account conditional orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -8316,7 +8329,7 @@ public partial class binance : Exchange
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @param {int[]} [params.recvWindow]
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
@@ -8402,7 +8415,7 @@ public partial class binance : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8443,7 +8456,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8696,7 +8709,7 @@ public partial class binance : Exchange
      * @param {int} [limit] the maximum number of dust trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'margin', default spot
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async virtual Task<object> fetchMyDustTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8857,7 +8870,7 @@ public partial class binance : Exchange
      * @param {bool} [params.fiat] if true, only fiat deposits will be returned
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8940,7 +8953,7 @@ public partial class binance : Exchange
      * @param {bool} [params.fiat] if true, only fiat withdrawals will be returned
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9341,7 +9354,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] exchange specific transfer type
      * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -9464,7 +9477,7 @@ public partial class binance : Exchange
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.internal] default false, when true will fetch pay trade history
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9548,7 +9561,7 @@ public partial class binance : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] network for fetch deposit address
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -9624,7 +9637,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
      * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
     {
@@ -9743,7 +9756,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
      * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -9877,7 +9890,7 @@ public partial class binance : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -9954,7 +9967,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -10035,7 +10048,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -10230,7 +10243,7 @@ public partial class binance : Exchange
      * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} params.recvWindow
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=futures-transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
     public async virtual Task<object> futuresTransfer(object code, object amount, object type, object parameters = null)
     {
@@ -10263,7 +10276,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -10311,12 +10324,12 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Rate-History-of-Perpetual-Futures
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -10409,7 +10422,7 @@ public partial class binance : Exchange
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -11153,7 +11166,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
@@ -11287,7 +11300,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -11335,7 +11348,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async virtual Task<object> fetchOptionPositions(object symbols = null, object parameters = null)
     {
@@ -11468,7 +11481,7 @@ public partial class binance : Exchange
      * @param {object} [params.params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
      * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -11772,7 +11785,7 @@ public partial class binance : Exchange
      * @param {int} [params.until] timestamp in ms of the latest funding history entry
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -12073,7 +12086,7 @@ public partial class binance : Exchange
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
     {
@@ -12170,7 +12183,7 @@ public partial class binance : Exchange
      * @param {int} [since] timestamp in ms
      * @param {int} [limit] number of records, default 100, max 100
      * @param {object} [params] exchange specific params
-     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -12375,7 +12388,7 @@ public partial class binance : Exchange
      * @param {string} id the identification number of the ledger entry
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
     public async override Task<object> fetchLedgerEntry(object id, object code = null, object parameters = null)
     {
@@ -12428,7 +12441,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -13126,7 +13139,7 @@ public partial class binance : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -13143,7 +13156,7 @@ public partial class binance : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -13158,7 +13171,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
     {
@@ -13193,7 +13206,7 @@ public partial class binance : Exchange
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
-     * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+     * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
     public async override Task<object> fetchIsolatedBorrowRate(object symbol, object parameters = null)
     {
@@ -13215,7 +13228,7 @@ public partial class binance : Exchange
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async override Task<object> fetchIsolatedBorrowRates(object parameters = null)
     {
@@ -13261,9 +13274,9 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
      * @param {string} code unified currency code
      * @param {int} [since] timestamp for the earliest borrow rate
-     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
     {
@@ -13473,7 +13486,7 @@ public partial class binance : Exchange
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the borrow interest in a portfolio margin account
-     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -13586,7 +13599,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
      * @param {string} [params.repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
      * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayCrossMargin(object code, object amount, object parameters = null)
     {
@@ -13633,7 +13646,7 @@ public partial class binance : Exchange
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
@@ -13668,7 +13681,7 @@ public partial class binance : Exchange
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
     {
@@ -13711,7 +13724,7 @@ public partial class binance : Exchange
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
@@ -13780,7 +13793,7 @@ public partial class binance : Exchange
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
@@ -13863,7 +13876,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
@@ -13981,7 +13994,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
      * @param {string} [params.type] "spot"
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -14248,7 +14261,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     public async override Task<object> fetchGreeks(object symbol, object parameters = null)
     {
@@ -14286,7 +14299,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
     {
@@ -14441,7 +14454,7 @@ public partial class binance : Exchange
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
     {
@@ -14485,7 +14498,7 @@ public partial class binance : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
     {
@@ -14543,7 +14556,7 @@ public partial class binance : Exchange
      * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     public async override Task<object> fetchOption(object symbol, object parameters = null)
     {
@@ -14641,7 +14654,7 @@ public partial class binance : Exchange
      * @param {int} [limit] the maximum amount of changes to fetch
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
-     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
     {
@@ -14772,7 +14785,7 @@ public partial class binance : Exchange
      * @param {float} amount how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -14813,7 +14826,7 @@ public partial class binance : Exchange
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -14850,7 +14863,7 @@ public partial class binance : Exchange
      * @param {string} id the id of the trade that you want to fetch
      * @param {string} [code] the unified currency code of the conversion trade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
@@ -14907,7 +14920,7 @@ public partial class binance : Exchange
      * @param {int} [limit] the maximum number of conversion structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
-     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -15067,7 +15080,7 @@ public partial class binance : Exchange
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
     {
@@ -15121,7 +15134,7 @@ public partial class binance : Exchange
      * @param {int} [limit] the maximum number of long short ratio structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
-     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {

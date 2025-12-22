@@ -1132,6 +1132,11 @@ public partial class Exchange
         var res = await this.createStopMarketOrderWs(symbol, side, amount, triggerPrice, parameters);
         return new Order(res);
     }
+    public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSubAccount(name, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
@@ -1388,4 +1393,5 @@ public class  Woofipro: woofipro { public Woofipro(object args = null) : base(ar
 public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
+public class  Zebpay: zebpay { public Zebpay(object args = null) : base(args) { } }
 public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

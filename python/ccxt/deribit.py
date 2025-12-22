@@ -692,7 +692,7 @@ class deribit(Exchange, ImplicitAPI):
         https://docs.deribit.com/#public-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         response = self.publicGetStatus(params)
         #
@@ -725,7 +725,7 @@ class deribit(Exchange, ImplicitAPI):
         https://docs.deribit.com/#private-get_subaccounts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         self.load_markets()
         response = self.privateGetGetSubaccounts(params)
@@ -1045,7 +1045,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.code]: unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         code = self.safe_string(params, 'code')
@@ -1112,7 +1112,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1151,7 +1151,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1272,7 +1272,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1320,7 +1320,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.code]: *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1555,7 +1555,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1612,7 +1612,7 @@ class deribit(Exchange, ImplicitAPI):
         https://docs.deribit.com/#private-get_account_summary
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         code = self.code_from_options('fetchTradingFees', params)
@@ -1727,7 +1727,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1909,7 +1909,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1965,7 +1965,7 @@ class deribit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.trigger]: the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
         :param float [params.trailingAmount]: the quote amount to trail away from the current market price
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2123,7 +2123,7 @@ class deribit(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.trailingAmount]: the quote amount to trail away from the current market price
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
@@ -2160,7 +2160,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by deribit cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -2179,7 +2179,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -2217,7 +2217,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -2246,7 +2246,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -2279,7 +2279,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -2335,7 +2335,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -2409,7 +2409,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
@@ -2455,7 +2455,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
@@ -2645,7 +2645,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2693,7 +2693,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str [params.currency]: currency code filter for positions
         :param str [params.kind]: market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
         :param int [params.subaccount_id]: the user id for the subaccount
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         code = self.safe_string(params, 'currency')
@@ -2743,7 +2743,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `volatility history objects <https://docs.ccxt.com/#/?id=volatility-structure>`
+        :returns dict[]: a list of `volatility history objects <https://docs.ccxt.com/?id=volatility-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2805,7 +2805,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a currency code argument')
@@ -2866,7 +2866,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2956,7 +2956,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -3008,7 +3008,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
         response = self.publicGetGetCurrencies(params)
@@ -3047,7 +3047,7 @@ class deribit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.start_timestamp]: fetch funding rate starting from self timestamp
         :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3082,7 +3082,7 @@ class deribit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: fetch funding rate ending at self timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3192,7 +3192,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the deribit api endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
         self.load_markets()
         paginate = False
@@ -3263,7 +3263,7 @@ class deribit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the deribit api endpoint
-        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyLiquidations() requires a symbol argument')
@@ -3342,7 +3342,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
+        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3473,7 +3473,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        :returns dict: an `option chain structure <https://docs.ccxt.com/?id=option-chain-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3525,7 +3525,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str code: base currency to fetch an option chain for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `option chain structures <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        :returns dict: a list of `option chain structures <https://docs.ccxt.com/?id=option-chain-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -3626,7 +3626,7 @@ class deribit(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)

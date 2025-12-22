@@ -253,7 +253,7 @@ export default class bybit extends bybitRest {
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
@@ -298,7 +298,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
      * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
@@ -331,7 +331,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
@@ -367,7 +367,7 @@ export default class bybit extends bybitRest {
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
@@ -394,7 +394,7 @@ export default class bybit extends bybitRest {
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
@@ -428,7 +428,7 @@ export default class bybit extends bybitRest {
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -458,7 +458,7 @@ export default class bybit extends bybitRest {
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
      * @param {string[]} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -535,7 +535,7 @@ export default class bybit extends bybitRest {
         // spot
         //     {
         //         "topic": "tickers.BTCUSDT",
-        //         "ts": 1673853746003,
+        //         "ts": 1673853746002,
         //         "type": "snapshot",
         //         "cs": 2588407389,
         //         "data": {
@@ -617,7 +617,7 @@ export default class bybit extends bybitRest {
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
@@ -854,7 +854,7 @@ export default class bybit extends bybitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -868,7 +868,7 @@ export default class bybit extends bybitRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -918,7 +918,7 @@ export default class bybit extends bybitRest {
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -956,7 +956,7 @@ export default class bybit extends bybitRest {
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -1056,7 +1056,7 @@ export default class bybit extends bybitRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
@@ -1071,7 +1071,7 @@ export default class bybit extends bybitRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -1279,7 +1279,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @param {boolean} [params.executionFast] use fast execution
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const method = 'watchMyTrades';
@@ -1319,7 +1319,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @param {boolean} [params.executionFast] use fast execution
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
         const method = 'watchMyTrades';
@@ -1794,7 +1794,7 @@ export default class bybit extends bybitRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -1827,7 +1827,7 @@ export default class bybit extends bybitRest {
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
@@ -1998,7 +1998,7 @@ export default class bybit extends bybitRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();

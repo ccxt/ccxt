@@ -775,7 +775,7 @@ class Transpiler {
             'math': 'math',
             'json.loads': 'json',
             'json.dumps': 'json',
-            'sys': 'sys',
+            'sys.': 'sys',
         }
 
         const imports = this.createPythonClassImports (baseClass, className, async)
@@ -3102,6 +3102,7 @@ if (isMainEntry(metaFileUrl)) {
     const force = process.argv.includes ('--force')
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    const baseClassOnly = process.argv.includes ('--baseClass')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3117,7 +3118,10 @@ if (isMainEntry(metaFileUrl)) {
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
-    if (test) {
+
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods ()
+    } else if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()

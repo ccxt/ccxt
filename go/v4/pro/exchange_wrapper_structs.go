@@ -989,6 +989,10 @@ type CreateStopMarketOrderWsOptionsStruct = ccxt.CreateStopMarketOrderWsOptionsS
 type CreateStopMarketOrderWsOptions = ccxt.CreateStopMarketOrderWsOptions
 var WithCreateStopMarketOrderWsParams = ccxt.WithCreateStopMarketOrderWsParams
 
+type CreateSubAccountOptionsStruct = ccxt.CreateSubAccountOptionsStruct
+type CreateSubAccountOptions = ccxt.CreateSubAccountOptions
+var WithCreateSubAccountParams = ccxt.WithCreateSubAccountParams
+
 type FetchLastPricesOptionsStruct = ccxt.FetchLastPricesOptionsStruct
 type FetchLastPricesOptions = ccxt.FetchLastPricesOptions
 var WithFetchLastPricesSymbols = ccxt.WithFetchLastPricesSymbols

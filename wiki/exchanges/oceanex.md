@@ -51,7 +51,7 @@ oceanex.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#ticker-post  
 
@@ -72,7 +72,7 @@ oceanex.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#multiple-tickers-post  
 
@@ -93,7 +93,7 @@ oceanex.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://api.oceanex.pro/doc/v1/#order-book-post  
 
@@ -115,7 +115,7 @@ oceanex.fetchOrderBook (symbol[, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbol
+**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbol
 
 **See**: https://api.oceanex.pro/doc/v1/#multiple-order-books-post  
 
@@ -137,7 +137,7 @@ oceanex.fetchOrderBooks (symbols[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api.oceanex.pro/doc/v1/#trades-post  
 
@@ -180,7 +180,7 @@ oceanex.fetchTime ([params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://api.oceanex.pro/doc/v1/#trading-fees-post  
 
@@ -200,7 +200,7 @@ oceanex.fetchTradingFees ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#account-info-post  
 
@@ -220,7 +220,7 @@ oceanex.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#new-order-post  
 
@@ -245,7 +245,7 @@ oceanex.createOrder (symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#order-status-get  
 
@@ -267,7 +267,7 @@ oceanex.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#order-status-get  
 
@@ -290,7 +290,7 @@ oceanex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#order-status-get  
 
@@ -313,7 +313,7 @@ oceanex.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#order-status-with-filters-post  
 
@@ -360,7 +360,7 @@ oceanex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#cancel-order-post  
 
@@ -382,7 +382,7 @@ oceanex.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#cancel-multiple-orders-post  
 
@@ -404,7 +404,7 @@ oceanex.cancelOrders (ids, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api.oceanex.pro/doc/v1/#cancel-all-orders-post  
 
@@ -425,7 +425,7 @@ oceanex.cancelAllOrders (symbol[, params])
 fetch the deposit addresses for a currency associated with this account
 
 **Kind**: instance method of [<code>oceanex</code>](#oceanex)  
-**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/#/?id=address-structure), indexed by the network
+**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/?id=address-structure), indexed by the network
 
 **See**: https://api.oceanex.pro/doc/v1/#deposit-addresses-post  
 

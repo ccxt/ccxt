@@ -28,7 +28,7 @@ func NewCoinbaseinternational(userConfig map[string]interface{}) *Coinbaseintern
  * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Coinbaseinternational) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRateOptions) (ccxt.FundingRate, error) {
 
@@ -55,7 +55,7 @@ func (this *Coinbaseinternational) WatchFundingRate(symbol string, options ...cc
  * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
  * @param {string[]} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+ * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
  */
 func (this *Coinbaseinternational) WatchFundingRates(symbols []string, options ...ccxt.WatchFundingRatesOptions) (ccxt.FundingRates, error) {
 
@@ -83,7 +83,7 @@ func (this *Coinbaseinternational) WatchFundingRates(symbols []string, options .
  * @param {string} [symbol] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coinbaseinternational) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
 
@@ -111,7 +111,7 @@ func (this *Coinbaseinternational) WatchTicker(symbol string, options ...ccxt.Wa
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coinbaseinternational) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
 
@@ -190,7 +190,7 @@ func (this *Coinbaseinternational) WatchOHLCV(symbol string, options ...ccxt.Wat
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Coinbaseinternational) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
 
@@ -228,7 +228,7 @@ func (this *Coinbaseinternational) WatchTrades(symbol string, options ...ccxt.Wa
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Coinbaseinternational) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
 
@@ -266,7 +266,7 @@ func (this *Coinbaseinternational) WatchTradesForSymbols(symbols []string, optio
  * @param {string[]} symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Coinbaseinternational) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
