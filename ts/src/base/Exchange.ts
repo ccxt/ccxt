@@ -2308,7 +2308,7 @@ export default class Exchange {
          * @returns {bool | undefined}
          */
         const value = this.safeValue (dictionary, key, defaultValue);
-        if (typeof value === 'boolean') {
+        if (value === true || value === false) {
             return value;
         }
         return defaultValue;
