@@ -5619,6 +5619,10 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function create_sub_account(string $name, $params = array ()) {
+        throw new NotSupported($this->id . ' createSubAccount() is not supported yet');
+    }
+
     public function safe_currency_code(?string $currencyId, ?array $currency = null) {
         $currency = $this->safe_currency($currencyId, $currency);
         return $currency['code'];
