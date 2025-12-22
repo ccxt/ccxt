@@ -2140,5 +2140,12 @@
     },
     "zebpay": {
         "skip": "ip whitelist required"
+    },
+    "bydfi": {
+        "skipMethods": {
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
     }
 }
