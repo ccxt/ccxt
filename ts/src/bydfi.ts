@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ArgumentsRequired, NotSupported } from '../ccxt.js';
+import { ArgumentsRequired, ExchangeError, NotSupported, PermissionDenied } from '../ccxt.js';
 import Exchange from './abstract/bydfi.js';
 // import { BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, Int, int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -272,7 +272,9 @@ export default class bydfi extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    'Requires transaction permissions': PermissionDenied, // {"code":101107,"message":"Requires transaction permissions"}
                     // {"code":600,"message":"The parameter 'startTime' is missing"}
+                    // {"code":101001,"message":"Apikey doesn't exist!"}
                 },
                 'broad': {
                 },
@@ -1070,11 +1072,59 @@ export default class bydfi extends Exchange {
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api];
         let endpoint = '/' + path;
-        const query = this.urlencode (params);
-        if (query.length !== 0) {
-            endpoint += '?' + query;
+        let query = '';
+        if (method === 'GET') {
+            query = this.urlencode (params);
+            if (query.length !== 0) {
+                endpoint += '?' + query;
+            }
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();
+            if (method === 'GET') {
+                const payload = this.apiKey + timestamp + query;
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+                headers = {
+                    'X-API-KEY': this.apiKey,
+                    'X-API-TIMESTAMP': timestamp,
+                    'X-API-SIGNATURE': signature,
+                };
+            } else {
+                body = this.json (params);
+                const payload = this.apiKey + timestamp + body;
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-API-KEY': this.apiKey,
+                    'X-API-TIMESTAMP': timestamp,
+                    'X-API-SIGNATURE': signature,
+                };
+            }
         }
         url += endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        //     {
+        //         "code": 101107,
+        //         "message": "Requires transaction permissions"
+        //     }
+        //
+        const code = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if (code !== '200') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }
