@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported, PermissionD
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -120,7 +120,7 @@ export default class bydfi extends Exchange {
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
@@ -177,7 +177,7 @@ export default class bydfi extends Exchange {
                 'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': false,
@@ -226,7 +226,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/position_history': 1, // https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
                         'v1/swap/trade/positions': 1, // done
                         'v1/swap/account/balance': 1, // https://developers.bydfi.com/en/swap/user#asset-query
-                        'v1/swap/user_data/assets_margin': 1, // https://developers.bydfi.com/en/swap/user#margin-mode-query
+                        'v1/swap/user_data/assets_margin': 1, // done
                         'v1/swap/user_data/position_side/dual': 1, // https://developers.bydfi.com/en/swap/user#get-position-mode
                         'v1/agent/teams': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
                         'v1/agent/agent_links': 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
@@ -247,7 +247,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/cancel_all_order': 1, // done
                         'v1/swap/trade/leverage': 1, // done
                         'v1/swap/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/swap/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/swap/user_data/margin_type': 1, // https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
+                        'v1/swap/user_data/margin_type': 1, // done
                         'v1/swap/user_data/position_side/dual': 1, // https://developers.bydfi.com/en/swap/user#change-position-mode-dual
                         'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
@@ -277,6 +277,8 @@ export default class bydfi extends Exchange {
                     // {"code":101001,"message":"Apikey doesn't exist!"}
                     // {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
                     // {"code":100036,"message":"Position does not exist"}
+                    // {"code":600,"message":"The marginType cannot be empty;"}
+                    // {"code":600,"message":"Param error!"}
                 },
                 'broad': {
                 },
@@ -1666,6 +1668,90 @@ export default class bydfi extends Exchange {
             'SELL': 'short',
         };
         return this.safeString (sides, side, side);
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchMarginMode
+     * @description fetches the margin mode of a trading pair
+     * @see https://developers.bydfi.com/en/swap/user#margin-mode-query
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'contractType', contractType);
+        let wallet = 'W001';
+        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'wallet', wallet);
+        const request: Dict = {
+            'contractType': contractType,
+            'symbol': market['id'],
+            'wallet': wallet,
+        };
+        const response = await this.privateGetV1SwapUserDataAssetsMargin (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "wallet": "W001",
+        //             "symbol": "ETH-USDC",
+        //             "marginType": "CROSS"
+        //         },
+        //         "success": true
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
+    }
+
+    parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'symbol');
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (marginMode, 'marginType'),
+        } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name bydfi#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'contractType', contractType);
+        let wallet = 'W001';
+        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'wallet', wallet);
+        const request: Dict = {
+            'contractType': contractType,
+            'symbol': market['id'],
+            'marginType': marginMode.toUpperCase (),
+            'wallet': wallet,
+        };
+        return await this.privatePostV1SwapUserDataMarginType (this.extend (request, params));
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
