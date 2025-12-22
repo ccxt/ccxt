@@ -378,6 +378,10 @@ function createJavaHeader(exchange: Exchange, parent: string){
     const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
     const namespace = `package io.github.ccxt.api;\n${parentImport};`;
     const constructor = [
+        `${IDEN}public ${capitalize(exchange.id)}Api () {`,
+        `${IDEN}${IDEN}super();`,
+        `${IDEN}}`,
+        '',
         `${IDEN}public ${capitalize(exchange.id)}Api (Object options) {`,
         `${IDEN}${IDEN}super(options);`,
         `${IDEN}}`,
