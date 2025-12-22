@@ -6431,6 +6431,9 @@ export default class Exchange {
         const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
     }
+    async createSubAccount(name, params = {}) {
+        throw new NotSupported(this.id + ' createSubAccount() is not supported yet');
+    }
     safeCurrencyCode(currencyId, currency = undefined) {
         currency = this.safeCurrency(currencyId, currency);
         return currency['code'];

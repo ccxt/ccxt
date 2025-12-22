@@ -613,6 +613,26 @@ closes open positions for a market
 
 ---
 
+<a name="createAccount" id="createaccount"></a>
+
+## createAccount
+creates a sub-account under the main account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| name | <code>string</code> | Yes | the name of the sub-account |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the sub-account will expire |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#createaccount)
+
+---
+
 <a name="createConvertTrade" id="createconverttrade"></a>
 
 ## createConvertTrade

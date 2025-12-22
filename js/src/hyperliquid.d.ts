@@ -188,8 +188,8 @@ export default class hyperliquid extends Exchange {
         source: string;
         connectionId: any;
     };
-    actionHash(action: any, vaultAddress: any, nonce: any): any;
-    signL1Action(action: any, nonce: any, vaultAdress?: any): object;
+    actionHash(action: any, vaultAddress: any, nonce: any, expiresAfter?: any): any;
+    signL1Action(action: any, nonce: any, vaultAdress?: any, expiresAfter?: any): object;
     signUserSignedAction(messageTypes: any, message: any): {
         r: string;
         s: string;
@@ -685,6 +685,16 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     reserveRequestWeight(weight: Num, params?: {}): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#createAccount
+     * @description creates a sub-account under the main account
+     * @param {string} name the name of the sub-account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
+     * @returns {object} a response object
+     */
+    createSubAccount(name: string, params?: {}): Promise<any>;
     extractTypeFromDelta(data?: any[]): any[];
     formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];
