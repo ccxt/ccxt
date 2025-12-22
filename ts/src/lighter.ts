@@ -1290,6 +1290,9 @@ export default class lighter extends Exchange {
         }
         if (Object.keys (params).length) {
             if (method === 'POST') {
+                headers = {
+                    'Content-Type': 'multipart/form-data',
+                };
                 body = params;
             } else {
                 url += '?' + this.rawencode (params);
