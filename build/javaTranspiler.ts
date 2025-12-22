@@ -758,12 +758,12 @@ class NewTranspiler {
         // // WS fixes
         // baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
 
-        const javaDelimiter = '// ' + delimiter
+        const javaDelimiter = '// ' + delimiter + '\n';
         const restOfFile = '([^\n]*\n)+'
         const parts = baseClass.split (javaDelimiter)
         if (parts.length > 1) {
             log.magenta ('→', (javaExchangeBase as any).yellow)
-            replaceInFile(javaExchangeBase, new RegExp(delimiter + restOfFile), javaDelimiter + '\n' + parts[1].trim() + '\n')
+            replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + parts[1].trim() + '\n')
         }
     }
 
