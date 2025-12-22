@@ -306,7 +306,7 @@ export default class lighter extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false); // default false
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
@@ -332,14 +332,10 @@ export default class lighter extends Exchange {
         } else {
             request['is_ask'] = 1;
         }
-        if (reduceOnly !== undefined) {
-            request['reduce_only'] = reduceOnly;
-        } else {
-            request['reduce_only'] = false;
-        }
+        request['reduce_only'] = (reduceOnly) ? 1 : 0;
         request['client_order_index'] = 0;
-        request['base_amount'] = amount;
-        request['avg_execution_price'] = price;
+        request['base_amount'] = this.parseToInt (amount);
+        request['avg_execution_price'] = this.parseToInt (price);
         // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         // const stopLoss = this.safeValue (params, 'stopLoss');
         // const takeProfit = this.safeValue (params, 'takeProfit');
@@ -591,7 +587,7 @@ export default class lighter extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'market_id');
+            const id = this.safeInteger (market, 'market_id');
             const baseId = this.safeString (market, 'symbol');
             const quoteId = 'USDC';
             const settleId = 'USDC';

@@ -5,12 +5,18 @@ import (
 	"math/big"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/mitchellh/mapstructure"
 	"github.com/vmihailenco/msgpack/v5"
+
+	"github.com/elliottech/lighter-go/client"
+	"github.com/elliottech/lighter-go/client/http"
+	"github.com/elliottech/lighter-go/types"
+	// "github.com/elliottech/lighter-go/types/txtypes"
 )
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -428,5 +434,88 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 		return packed
 	}
+	return nil
+}
+
+// it's necessary to load lighter library in python
+// we create client with the given api credential in this function
+func (this *Exchange) LoadLighterLibrary(path interface{}, chainId interface{}, privateKey interface{}, apiKeyIndex interface{}, accountIndex interface{}) interface{} {
+	return this.loadLighterLibrary(path.(string), uint32(chainId.(int)), privateKey.(string), uint8(apiKeyIndex.(float64)), int64(accountIndex.(float64)))
+}
+
+func (this *Exchange) loadLighterLibrary(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) interface{} {
+	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public")).(string)
+
+	httpClient := http.NewClient(url)
+
+	txClient, err := client.CreateClient(httpClient, privateKey, chainId, apiKeyIndex, accountIndex)
+	if err != nil {
+		panic(err)
+	}
+	return txClient
+}
+
+func (this *Exchange) SignAndCreateLighterOrder(signer interface{}, request interface{}) interface{} {
+	return this.signAndCreateLighterOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) signAndCreateLighterOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	marketIndex := int16(request["market_index"].(int64))
+	clientOrderIndex := int64(request["client_order_index"].(int))
+	baseAmount := request["base_amount"].(int64)
+	price := uint32(request["avg_execution_price"].(int64))
+	isAsk := uint8(request["is_ask"].(int))
+	orderType := uint8(request["order_type"].(int))
+	timeInForce := uint8(request["time_in_force"].(int))
+	reduceOnly := uint8(request["reduce_only"].(int))
+	// triggerPrice := uint32(request["trigger_price"]).(int64))
+	triggerPrice := uint32(0)
+	orderExpiry := int64(request["order_expiry"].(int))
+	nonce := request["nonce"].(int64)
+
+	if orderExpiry == -1 {
+		orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
+	}
+
+	tx := &types.CreateOrderTxReq{
+		MarketIndex:      marketIndex,
+		ClientOrderIndex: clientOrderIndex,
+		BaseAmount:       baseAmount,
+		Price:            price,
+		IsAsk:            isAsk,
+		Type:             orderType,
+		TimeInForce:      timeInForce,
+		ReduceOnly:       reduceOnly,
+		TriggerPrice:     triggerPrice,
+		OrderExpiry:      orderExpiry,
+	}
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCreateOrderTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	fmt.Println(txInfo.GetTxType(), txInfoStr, res, GetValue(res, 0), GetValue(res, 1))
+
+	return res
+}
+
+func (this *Exchange) CreateLighterAuth(signer interface{}, request interface{}) interface{} {
+	return this.createLighterAuth(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) createLighterAuth(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
 	return nil
 }

@@ -722,15 +722,16 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async unWatchLiquidations (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'channel': 'trade/' + market['id'],
-        };
-        const messageHash = this.getMessageHash ('unsubscribe', symbol);
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
-    }
+    // TODO: check UnWatchLiquidationsOptions in go
+    // async unWatchLiquidations (symbol: string, params = {}): Promise<any> {
+    //     await this.loadMarkets ();
+    //     const market = this.market (symbol);
+    //     const request: Dict = {
+    //         'channel': 'trade/' + market['id'],
+    //     };
+    //     const messageHash = this.getMessageHash ('unsubscribe', symbol);
+    //     return await this.unsubscribePublic (messageHash, this.extend (request, params));
+    // }
 
     handleErrorMessage (client, message) {
         //
