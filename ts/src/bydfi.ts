@@ -170,7 +170,7 @@ export default class bydfi extends Exchange {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
@@ -217,7 +217,7 @@ export default class bydfi extends Exchange {
                         'v1/account/assets': 1, // done
                         'v1/account/transfer_records': 1, // done
                         'v1/spot/deposit_records': 1, // done
-                        'v1/spot/withdraw_records': 1, // https://developers.bydfi.com/en/spot/account#query-withdrawal-records
+                        'v1/spot/withdraw_records': 1, // done
                         'v1/swap/trade/open_order': 1, // done
                         'v1/swap/trade/plan_order': 1, // done
                         'v1/swap/trade/leverage': 1, // done
@@ -2176,8 +2176,28 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchTransactionsHelper ('deposit', code, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://developers.bydfi.com/en/spot/account#query-withdrawal-records
+     * @param {string} code unified currency code (mandatory)
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
+    }
+
+    async fetchTransactionsHelper (type, code, since, limit, params) {
+        const methodName = (type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2186,7 +2206,7 @@ export default class bydfi extends Exchange {
             const maxLimit = 50;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', currency['code'], since, limit, params, maxLimit, true);
+            const paginatedResponse = await this.fetchPaginatedCallDynamic (methodName, currency['code'], since, limit, params, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
         const request: Dict = {
@@ -2220,31 +2240,39 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1SpotDepositRecords (this.extend (request, params));
-        //
-        //     {
-        //         "code": 200,
-        //         "message": "success",
-        //         "data": [
-        //             {
-        //                 "orderId": "1208864446987255809",
-        //                 "asset": "USDC",
-        //                 "amount": "200",
-        //                 "status": "SUCCESS",
-        //                 "txId": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
-        //                 "network": "ETH",
-        //                 "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
-        //                 "addressTag": null,
-        //                 "finishTime": 1766145475000,
-        //                 "createTime": 1766145344000
-        //             }
-        //         ],
-        //         "success": true
-        //     }
-        //
+        let response = undefined;
+        if (type === 'deposit') {
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": [
+            //             {
+            //                 "orderId": "1208864446987255809",
+            //                 "asset": "USDC",
+            //                 "amount": "200",
+            //                 "status": "SUCCESS",
+            //                 "txId": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
+            //                 "network": "ETH",
+            //                 "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
+            //                 "addressTag": null,
+            //                 "finishTime": 1766145475000,
+            //                 "createTime": 1766145344000
+            //             }
+            //         ],
+            //         "success": true
+            //     }
+            //
+            response = await this.privateGetV1SpotDepositRecords (this.extend (request, params));
+        } else {
+            //
+            // todo check after
+            //
+            response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, params));
+        }
         const data = this.safeList (response, 'data', []);
         const transactionParams: Dict = {
-            'type': 'deposit',
+            'type': type,
         };
         params = this.extend (params, transactionParams);
         return this.parseTransactions (data, currency, since, limit, params);
