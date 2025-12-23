@@ -396,11 +396,12 @@ export default class bydfi extends Exchange {
         const marketMinQty = this.safeString (market, 'marketMinQty');
         const limitMinQty = this.safeString (market, 'limitMinQty');
         const minAmountString = Precise.stringMin (marketMinQty, limitMinQty); // todo: check which one is correct
+        const contractSize = this.safeString (market, 'contractFactor');
         const pricePrecision = this.parsePrecision (this.safeString (market, 'priceOrderPrecision'));
-        const amountPrecision = this.parsePrecision (this.safeString (market, 'volumePrecision'));
+        const rawAmountPrecision = this.parsePrecision (this.safeString (market, 'volumePrecision'));
+        const amountPrecision = Precise.stringDiv (rawAmountPrecision, contractSize);
         const taker = this.safeNumber (market, 'feeRateTaker');
         const maker = this.safeNumber (market, 'feeRateMaker');
-        const contractSize = this.safeNumber (market, 'contractFactor');
         const maxLeverage = this.safeNumber (market, 'maxLeverageLevel');
         const status = this.safeString (market, 'status');
         return this.safeMarketStructure ({
@@ -424,14 +425,14 @@ export default class bydfi extends Exchange {
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
-            'contractSize': contractSize,
+            'contractSize': this.parseNumber (contractSize),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
+                'amount': this.parseNumber (amountPrecision),
+                'price': this.parseNumber (pricePrecision),
             },
             'limits': {
                 'leverage': {
@@ -1358,6 +1359,50 @@ export default class bydfi extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bydfi#fetchOpenOrder
+     * @description fetch an open order by the id
+     * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
+     * @param {string} id order id (mandatory if params.clientOrderId is not provided)
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] true or false, whether to fetch conditional orders only
+     * @param {string} [params.clientOrderId] a unique identifier for the order (could be alternative to id)
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if ((id === undefined) && (clientOrderId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires an id argument or a clientOrderId parameter');
+        } else if (id !== undefined) {
+            request['orderId'] = id;
+        }
+        let wallet = 'W001';
+        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchOpenOrder', 'wallet', wallet);
+        request['wallet'] = wallet;
+        let response = undefined;
+        let trigger = false;
+        [ trigger, params ] = this.handleOptionAndParams (params, 'fetchOpenOrder', 'trigger', trigger);
+        if (!trigger) {
+            response = await this.privateGetV1SwapTradeOpenOrder (this.extend (request, params));
+        } else {
+            response = await this.privateGetV1SwapTradePlanOrder (this.extend (request, params));
+        }
+        const data = this.safeList (response, 'data', []);
+        const order = this.safeDict (data, 0, {});
+        return this.parseOrder (order, market);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
@@ -1847,8 +1892,9 @@ export default class bydfi extends Exchange {
         let url = this.urls['api'][api];
         let endpoint = '/' + path;
         let query = '';
+        const sortedParams = this.keysort (params);
         if (method === 'GET') {
-            query = this.urlencode (params);
+            query = this.urlencode (sortedParams);
             if (query.length !== 0) {
                 endpoint += '?' + query;
             }
@@ -1865,7 +1911,7 @@ export default class bydfi extends Exchange {
                     'X-API-SIGNATURE': signature,
                 };
             } else {
-                body = this.json (params);
+                body = this.json (sortedParams);
                 const payload = this.apiKey + timestamp + body;
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
                 headers = {
