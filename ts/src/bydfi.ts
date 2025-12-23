@@ -78,7 +78,7 @@ export default class bydfi extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchCanceledAndClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
@@ -221,7 +221,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/open_order': 1, // done
                         'v1/swap/trade/plan_order': 1, // done
                         'v1/swap/trade/leverage': 1, // done
-                        'v1/swap/trade/history_order': 1, // https://developers.bydfi.com/en/swap/trade#historical-orders-query
+                        'v1/swap/trade/history_order': 1, // done
                         'v1/swap/trade/history_trade': 1, // https://developers.bydfi.com/en/swap/trade#historical-trades-query
                         'v1/swap/trade/position_history': 1, // https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
                         'v1/swap/trade/positions': 1, // done
@@ -297,7 +297,7 @@ export default class bydfi extends Exchange {
                     'GTC': 'GTC', // Good Till Cancelled
                     'FOK': 'FOK', // Fill Or Kill
                     'IOC': 'IOC', // Immediate Or Cancel
-                    'PO': 'POST_ONLY',   // Post Only
+                    'PO': 'POST_ONLY', // Post Only
                 },
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1419,8 +1419,129 @@ export default class bydfi extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    /**
+     * @method
+     * @name bydfi#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled and closed orders made by the user
+     * @see https://developers.bydfi.com/en/swap/trade#historical-orders-query
+     * @param {string} symbol unified market symbol of the closed orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of closed orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest order
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.wallet] The unique code of a sub-wallet
+     * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const paginate = this.safeBool (params, 'paginate', false);
+        if (paginate) {
+            const maxLimit = 500;
+            params = this.omit (params, 'paginate');
+            params = this.extend (params, { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit, true);
+            return this.sortBy (paginatedResponse, 'timestamp');
+        }
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'contractType', contractType);
+        const request: Dict = {
+            'contractType': contractType,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        params = this.handleSinceAndUntil (since, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV1SwapTradeHistoryOrder (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "orderId": "7408919189505597440",
+        //                 "orderType": "MARKET",
+        //                 "symbol": "ETH-USDC",
+        //                 "origQty": "1",
+        //                 "side": "BUY",
+        //                 "positionSide": "BOTH",
+        //                 "positionAvgPrice": null,
+        //                 "positionVolume": null,
+        //                 "positionType": null,
+        //                 "reduceOnly": false,
+        //                 "closePosition": false,
+        //                 "action": null,
+        //                 "price": "3032.45",
+        //                 "avgPrice": "3032.45",
+        //                 "brkPrice": null,
+        //                 "dealVolume": null,
+        //                 "status": "2",
+        //                 "wallet": "W001",
+        //                 "alias": null,
+        //                 "contractId": null,
+        //                 "mtime": "1766423985842",
+        //                 "ctime": "1766423985840",
+        //                 "fixedPrice": null,
+        //                 "direction": null,
+        //                 "triggerPrice": null,
+        //                 "priceType": null,
+        //                 "basePrecision": "8",
+        //                 "baseShowPrecision": "2",
+        //                 "strategyType": null,
+        //                 "leverageLevel": 1,
+        //                 "marginType": "CROSS",
+        //                 "remark": null,
+        //                 "callbackRate": null,
+        //                 "activationPrice": null
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    handleSinceAndUntil (since: Int = undefined, params = {}): Dict {
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        const now = this.milliseconds ();
+        const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
+        let startTime = since;
+        if (startTime === undefined) {
+            if (until === undefined) {
+                // both since and until are undefined
+                startTime = now - sevenDays;
+                until = now;
+            } else {
+                // since is undefined but until is defined
+                startTime = until - sevenDays;
+            }
+        } else if (until === undefined) {
+            // until is undefined but since is defined
+            const delta = now - startTime;
+            if (delta > sevenDays) {
+                until = startTime + sevenDays;
+            } else {
+                until = now;
+            }
+        }
+        const request: Dict = {
+            'startTime': startTime,
+            'endTime': until,
+        };
+        return this.extend (request, params);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // createOrder, fetchOpenOrders, fetchOpenOrder
         //     {
         //         "wallet": "W001",
         //         "symbol": "ETH-USDT",
@@ -1445,11 +1566,49 @@ export default class bydfi extends Exchange {
         //         "updateTime": "1766413633370"
         //     }
         //
+        // fetchCanceledAndClosedOrders
+        //     {
+        //         "orderId": "7408919189505597440",
+        //         "orderType": "MARKET",
+        //         "symbol": "ETH-USDC",
+        //         "origQty": "1",
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "positionAvgPrice": null,
+        //         "positionVolume": null,
+        //         "positionType": null,
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "action": null,
+        //         "price": "3032.45",
+        //         "avgPrice": "3032.45",
+        //         "brkPrice": null,
+        //         "dealVolume": null,
+        //         "status": "2",
+        //         "wallet": "W001",
+        //         "alias": null,
+        //         "contractId": null,
+        //         "mtime": "1766423985842",
+        //         "ctime": "1766423985840",
+        //         "fixedPrice": null,
+        //         "direction": null,
+        //         "triggerPrice": null,
+        //         "priceType": null,
+        //         "basePrecision": "8",
+        //         "baseShowPrecision": "2",
+        //         "strategyType": null,
+        //         "leverageLevel": 1,
+        //         "marginType": "CROSS",
+        //         "remark": null,
+        //         "callbackRate": null,
+        //         "activationPrice": null
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (order, 'createTime');
+        const timestamp = this.safeInteger2 (order, 'createTime', 'ctime');
         const rawType = this.safeString (order, 'orderType');
-        const stopPrice = this.safeString2 (order, 'stopPrice', 'activatePrice');
+        const stopPrice = this.safeStringN (order, [ 'stopPrice', 'activatePrice', 'triggerPrice' ]);
         const isStopLossOrder = (rawType === 'STOP') || (rawType === 'STOP_MARKET') || (rawType === 'TRAILING_STOP_MARKET');
         const isTakeProfitOrder = (rawType === 'TAKE_PROFIT') || (rawType === 'TAKE_PROFIT_MARKET');
         const rawTimeInForce = this.safeString (order, 'timeInForce');
@@ -1468,12 +1627,13 @@ export default class bydfi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
+            'lastUpdateTimestamp': this.safeInteger2 (order, 'updateTime', 'mtime'),
             'status': this.parseOrderStatus (rawStatus),
             'symbol': market['symbol'],
             'type': this.parseOrderType (rawType),
             'timeInForce': timeInForce,
             'postOnly': timeInForce === 'PO',
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeString (order, 'price'),
             'triggerPrice': stopPrice,
@@ -1521,7 +1681,10 @@ export default class bydfi extends Exchange {
             'EXPIRED': 'canceled',
             'PART_FILLED_CANCELLED': 'canceled',
             'CANCELED': 'canceled',
+            '2': 'closed',
+            '4': 'canceled',
         };
+        // todo check other status codes
         return this.safeString (statuses, status, status);
     }
 
