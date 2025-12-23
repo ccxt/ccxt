@@ -283,6 +283,7 @@ export default class bydfi extends Exchange {
                     // {"code":102002,"message":"The current account does not support transfer of this currency"}
                     // {"code":600,"message":"The parameter 'startTime' should be of type 'Long'"}
                     // {"code":500,"message":"transfer failed","success":false}
+                    // {"code":102001,"message":"Unsupported transfer type"}
                 },
                 'broad': {
                 },
@@ -1737,6 +1738,10 @@ export default class bydfi extends Exchange {
         const isTakeProfitOrder = (rawType === 'TAKE_PROFIT') || (rawType === 'TAKE_PROFIT_MARKET');
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseOrderTimeInForce (rawTimeInForce);
+        let postOnly = undefined;
+        if (timeInForce === 'PO') {
+            postOnly = true;
+        }
         const rawStatus = this.safeString (order, 'status');
         const fee = {};
         const quoteFee = this.safeNumber (order, 'quoteFee');
@@ -1756,7 +1761,7 @@ export default class bydfi extends Exchange {
             'symbol': market['symbol'],
             'type': this.parseOrderType (rawType),
             'timeInForce': timeInForce,
-            'postOnly': timeInForce === 'PO',
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeString (order, 'price'),
@@ -2281,7 +2286,7 @@ export default class bydfi extends Exchange {
      */
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         if (symbol !== undefined) {
-            throw new BadRequest (this.id + ' setPositionMode() does not accept a symbol argument. The position mode is set identically for all markets with same settle currency');
+            throw new NotSupported (this.id + ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency');
         }
         await this.loadMarkets ();
         const positionType = hedged ? 'HEDGE' : 'ONEWAY';
