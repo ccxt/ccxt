@@ -416,6 +416,7 @@ export default class bydfi extends Exchange {
         const pricePrecision = this.parsePrecision (this.safeString (market, 'priceOrderPrecision'));
         const rawAmountPrecision = this.parsePrecision (this.safeString (market, 'volumePrecision'));
         const amountPrecision = Precise.stringDiv (rawAmountPrecision, contractSize);
+        const basePrecision = this.parsePrecision (this.safeString (market, 'basePrecision'));
         const taker = this.safeNumber (market, 'feeRateTaker');
         const maker = this.safeNumber (market, 'feeRateMaker');
         const maxLeverage = this.safeNumber (market, 'maxLeverageLevel');
@@ -449,6 +450,7 @@ export default class bydfi extends Exchange {
             'precision': {
                 'amount': this.parseNumber (amountPrecision),
                 'price': this.parseNumber (pricePrecision),
+                'base': this.parseNumber (basePrecision),
             },
             'limits': {
                 'leverage': {
