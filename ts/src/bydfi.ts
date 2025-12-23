@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bydfi.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported, PermissionDenied } from '../ccxt.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -271,21 +271,25 @@ export default class bydfi extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '101001': AuthenticationError, // {"code":101001,"message":"Apikey doesn't exist!"}
+                    '101103': AuthenticationError, // {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
+                    '102001': BadRequest, // {"code":102001,"message":"Unsupported transfer type"}
+                    '102002': PermissionDenied, // {"code":102002,"message":"The current account does not support transfer of this currency"}
+                    '401': AuthenticationError, // 401 Unauthorized – Invalid API Key
+                    '500': ExchangeError, // 500 Internal Error
+                    '501': ExchangeError, // 501 System Busy
+                    '506': ExchangeError, // 506 Unknown Request Origin
+                    '510': RateLimitExceeded, // 510 Requests Too Frequent
+                    '511': AuthenticationError, // 511 Access to the Interface is Forbidden
+                    '513': BadRequest, // 513 Invalid Request
+                    '514': BadRequest, // 514 Duplicate Request
+                    '600': BadRequest, // 600 Parameter Error
+                    'Position does not exist': BadRequest, // {"code":100036,"message":"Position does not exist"}
                     'Requires transaction permissions': PermissionDenied, // {"code":101107,"message":"Requires transaction permissions"}
-                    // {"code":600,"message":"must have price, stop price and working type;param exception;"}
-                    // {"code":600,"message":"The parameter 'startTime' is missing"}
-                    // {"code":101001,"message":"Apikey doesn't exist!"}
-                    // {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
-                    // {"code":100036,"message":"Position does not exist"}
-                    // {"code":600,"message":"The marginType cannot be empty;"}
-                    // {"code":600,"message":"Param error!"}
-                    // {"code":600,"message":"The settleCoin cannot be empty;"}
-                    // {"code":102002,"message":"The current account does not support transfer of this currency"}
-                    // {"code":600,"message":"The parameter 'startTime' should be of type 'Long'"}
-                    // {"code":500,"message":"transfer failed","success":false}
-                    // {"code":102001,"message":"Unsupported transfer type"}
+                    'transfer failed': InsufficientFunds, // {"code":500,"message":"transfer failed","success":false}
                 },
                 'broad': {
+                    'is missing': ArgumentsRequired, // {"code":600,"message":"The parameter 'startTime' is missing"}
                 },
             },
             'commonCurrencies': {
