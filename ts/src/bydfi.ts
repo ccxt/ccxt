@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported, PermissionD
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Balances, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -214,7 +214,7 @@ export default class bydfi extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'v1/account/assets': 1, // https://developers.bydfi.com/en/account
+                        'v1/account/assets': 1, // done
                         'v1/account/transfer_records': 1, // https://developers.bydfi.com/en/account#query-wallet-transfer-records
                         'v1/spot/deposit_records': 1, // https://developers.bydfi.com/en/spot/account#query-deposit-records
                         'v1/spot/withdraw_records': 1, // https://developers.bydfi.com/en/spot/account#query-withdrawal-records
@@ -225,7 +225,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/history_trade': 1, // https://developers.bydfi.com/en/swap/trade#historical-trades-query
                         'v1/swap/trade/position_history': 1, // https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
                         'v1/swap/trade/positions': 1, // done
-                        'v1/swap/account/balance': 1, // https://developers.bydfi.com/en/swap/user#asset-query
+                        'v1/swap/account/balance': 1, // done
                         'v1/swap/user_data/assets_margin': 1, // done
                         'v1/swap/user_data/position_side/dual': 1, // done
                         'v1/agent/teams': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
@@ -292,6 +292,11 @@ export default class bydfi extends Exchange {
                     'FOK': 'FOK', // Fill Or Kill
                     'IOC': 'IOC', // Immediate Or Cancel
                     'PO': 'POST_ONLY',   // Post Only
+                },
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'swap': 'SWAP',
+                    'funding': 'FUND',
                 },
             },
         });
@@ -1886,6 +1891,102 @@ export default class bydfi extends Exchange {
             'info': response,
             'hedged': hedged,
         };
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://developers.bydfi.com/en/account#asset-inquiry
+     * @see https://developers.bydfi.com/en/swap/user#asset-query
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountType] the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding' (default is 'spot')
+     * @param {string} [params.wallet] *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @param {string} [params.asset] currency id for the balance to fetch
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let accountType = 'spot';
+        [ accountType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'accountType', 'type', accountType);
+        const request: Dict = {};
+        let response = undefined;
+        if (accountType !== 'swap') {
+            const options = this.safeDict (this.options, 'accountsByType', {});
+            const parsedAccountType = this.safeString (options, accountType, accountType);
+            request['walletType'] = parsedAccountType;
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": [
+            //             {
+            //                 "walletType": "spot",
+            //                 "asset": "USDC",
+            //                 "total": "100",
+            //                 "available": "100",
+            //                 "frozen": "0"
+            //             }
+            //         ],
+            //         "success": true
+            //     }
+            //
+            response = await this.privateGetV1AccountAssets (this.extend (request, params));
+        } else {
+            let wallet = 'W001';
+            [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet', wallet);
+            request['wallet'] = wallet;
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": [
+            //             {
+            //                 "wallet": "W001",
+            //                 "asset": "USDT",
+            //                 "balance": "0",
+            //                 "frozen": "0",
+            //                 "positionMargin": "0",
+            //                 "availableBalance": "0",
+            //                 "canWithdrawAmount": "0",
+            //                 "bonusAmount": "0"
+            //             },
+            //             {
+            //                 "wallet": "W001",
+            //                 "asset": "USDC",
+            //                 "balance": "99.99505828",
+            //                 "frozen": "4.0024",
+            //                 "positionMargin": "2.95342",
+            //                 "availableBalance": "92.96020828",
+            //                 "canWithdrawAmount": "92.96020828",
+            //                 "bonusAmount": "0"
+            //             }
+            //         ],
+            //         "success": true
+            //     }
+            response = await this.privateGetV1SwapAccountBalance (this.extend (request, params));
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseBalance (data);
+    }
+
+    parseBalance (response): Balances {
+        const timestamp = this.milliseconds ();
+        const result: Dict = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const symbol = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (symbol);
+            const account = this.account ();
+            account['total'] = this.safeString2 (balance, 'total', 'balance');
+            account['free'] = this.safeString2 (balance, 'available', 'availableBalance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
