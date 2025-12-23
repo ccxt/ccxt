@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported, PermissionD
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Ticker, Tickers } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TransferEntry, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -180,7 +180,7 @@ export default class bydfi extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true,
                 'watchMyLiquidationsForSymbols': false,
                 'withdraw': false,
                 'ws': true,
@@ -239,7 +239,7 @@ export default class bydfi extends Exchange {
                         'v1/agent/internal_withdrawal_status': 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
-                        'v1/account/transfer': 1, // https://developers.bydfi.com/en/account#asset-transfer-between-accounts
+                        'v1/account/transfer': 1, // done
                         'v1/swap/trade/place_order': 1, // done
                         'v1/swap/trade/batch_place_order': 1, // done
                         'v1/swap/trade/edit_order': 1, // done
@@ -1987,6 +1987,68 @@ export default class bydfi extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name budfi#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount 'spot', 'funding', or 'swap'
+     * @param {string} toAccount 'spot', 'funding', or 'swap'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request: Dict = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'fromType': fromId,
+            'toType': toId,
+        };
+        const response = await this.privatePostV1AccountTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "success": true
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            const timestamp = this.milliseconds ();
+            transfer['timestamp'] = timestamp;
+            transfer['datetime'] = this.iso8601 (timestamp);
+            transfer['currency'] = code;
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const success = this.safeBool (transfer, 'success');
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': success ? 'ok' : 'failed',
+        };
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
