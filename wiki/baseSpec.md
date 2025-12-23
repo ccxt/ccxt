@@ -5,7 +5,7 @@
 add margin
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -42,7 +42,7 @@ add margin
 create a loan to borrow margin
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 
 | Param | Type | Required | Description |
@@ -69,7 +69,7 @@ create a loan to borrow margin
 create a loan to borrow margin
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 
 | Param | Type | Required | Description |
@@ -96,7 +96,7 @@ create a loan to borrow margin
 create a loan to borrow margin
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 
 | Param | Type | Required | Description |
@@ -138,7 +138,7 @@ Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
 cancel all open orders in a market
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -246,7 +246,7 @@ dead man's switch, cancel all orders after the given timeout
 cancel all open orders in a market
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -269,7 +269,7 @@ cancel all open orders in a market
 cancels an open order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -387,7 +387,7 @@ cancels an open order
 cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -417,7 +417,7 @@ cancel multiple orders
 cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -477,7 +477,7 @@ cancel multiple orders
 cancel multiple orders for multiple symbols
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -520,7 +520,7 @@ build the request payload for cancelling multiple orders
 cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -543,7 +543,7 @@ cancel multiple orders
 closes all open positions for a market type
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -565,7 +565,7 @@ closes all open positions for a market type
 closes open positions for a market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -598,7 +598,7 @@ closes open positions for a market
 closes open positions for a market
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - [a list of position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - [a list of position structures](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -613,13 +613,33 @@ closes open positions for a market
 
 ---
 
+<a name="createAccount" id="createaccount"></a>
+
+## createAccount
+creates a sub-account under the main account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| name | <code>string</code> | Yes | the name of the sub-account |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the sub-account will expire |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#createaccount)
+
+---
+
 <a name="createConvertTrade" id="createconverttrade"></a>
 
 ## createConvertTrade
 convert from one currency to another
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 
 | Param | Type | Required | Description |
@@ -648,7 +668,7 @@ convert from one currency to another
 create a currency deposit address
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -705,7 +725,7 @@ create gift code
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -725,7 +745,7 @@ create a market sell order by providing the symbol and cost
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -771,7 +791,7 @@ create a market buy order by providing the symbol and cost
 create a market order by providing the symbol, side and cost
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -799,7 +819,7 @@ create a market order by providing the symbol, side and cost
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -827,7 +847,7 @@ create a market sell order by providing the symbol and cost
 create a trade order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -951,7 +971,7 @@ create a trade order
 *swap markets only* create an order with a stop loss or take profit attached (type 3)
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -976,7 +996,7 @@ create a trade order
 create a trade order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1009,7 +1029,7 @@ create a trade order
 create a list of trade orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1058,7 +1078,7 @@ create a list of trade orders
 create a list of trade orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Description |
@@ -1076,7 +1096,7 @@ create a list of trade orders
 create a list of trade orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1096,7 +1116,7 @@ create a list of trade orders
 create a trade order on spot market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1125,7 +1145,7 @@ create a trade order on spot market
 create a trade order on swap market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1161,7 +1181,7 @@ create a trade order on swap market
 create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1186,7 +1206,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1233,7 +1253,7 @@ creates a value
 make a deposit
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -1255,7 +1275,7 @@ make a deposit
 edit a trade order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1280,7 +1300,7 @@ edit a trade order
 edit a trade order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1341,7 +1361,7 @@ edit a trade order
 edit a trade order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1373,7 +1393,7 @@ edit a trade order
 edit a list of trade orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1384,6 +1404,7 @@ edit a list of trade orders
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#editorders)
 * [bybit](/exchanges/bybit.md#editorders)
+* [coinex](/exchanges/coinex.md#editorders)
 * [hibachi](/exchanges/hibachi.md#editorders)
 * [hyperliquid](/exchanges/hyperliquid.md#editorders)
 
@@ -1414,7 +1435,7 @@ enables or disables demo trading mode
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -1432,7 +1453,7 @@ query for balance and get the amount of funds available for trading or funds loc
 fetch all the accounts by a type and marginModeassociated with a profile
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 
 | Param | Type | Required | Description |
@@ -1453,7 +1474,7 @@ fetch all the accounts by a type and marginModeassociated with a profile
 fetch all the accounts associated with a profile
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 
 | Param | Type | Required | Description |
@@ -1491,7 +1512,7 @@ fetch all the accounts associated with a profile
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 
 | Param | Type | Required | Description |
@@ -1513,7 +1534,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -1630,7 +1651,7 @@ query for balance and get the amount of funds available for trading or funds loc
 fetch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -1654,7 +1675,7 @@ fetch balance and get the amount of funds available for trading or funds locked 
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -1683,7 +1704,7 @@ fetches the bid and ask price and volume for multiple markets
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 
 | Param | Type | Required | Description |
@@ -1715,7 +1736,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) indexed by the market symbol
+**Returns**: <code>object</code> - a dictionary of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure) indexed by the market symbol
 
 
 | Param | Type | Required | Description |
@@ -1739,14 +1760,14 @@ retrieves a history of a multiple currencies borrow interest rate at specific ti
 retrieves a history of a currencies borrow interest rate at specific time slots
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | timestamp for the earliest borrow rate |
-| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) to retrieve |
+| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure) to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
@@ -1764,7 +1785,7 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1797,7 +1818,7 @@ fetches information on multiple canceled orders made by the user
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1839,7 +1860,7 @@ fetches information on multiple canceled orders made by the user
 fetch an open order by it's id
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1862,7 +1883,7 @@ fetch an open order by it's id
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1948,7 +1969,7 @@ fetches information on multiple closed orders made by the user
 fetch closed orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1992,7 +2013,7 @@ fetches all available currencies that can be converted
 fetch a quote for converting from one currency to another
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 
 | Param | Type | Required | Description |
@@ -2021,7 +2042,7 @@ fetch a quote for converting from one currency to another
 fetch the data for a conversion trade
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 
 | Param | Type | Required | Description |
@@ -2045,7 +2066,7 @@ fetch the data for a conversion trade
 fetch the users history of conversion trades
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/?id=conversion-structure)
 
 
 | Param | Type | Required | Description |
@@ -2073,7 +2094,7 @@ fetch the users history of conversion trades
 fetch the rate of interest to borrow a currency for margin trading
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -2097,7 +2118,7 @@ fetch the rate of interest to borrow a currency for margin trading
 fetch the borrow interest rates of all currencies
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>object</code> - a list of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -2214,7 +2235,7 @@ fetches all available currencies on an exchange
 fetch information on a deposit
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -2241,7 +2262,7 @@ fetch information on a deposit
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -2318,18 +2339,20 @@ fetch the deposit address for a currency associated with this account
 <a name="fetchDepositAddresses" id="fetchdepositaddresses"></a>
 
 ## fetchDepositAddresses
-fetch deposit addresses for multiple currencies and chain types
+fetch deposit addresses for multiple currencies (when available)
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by currency code
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified currency codes, default is undefined |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes, default is undefined (all currencies) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountId | <code>string</code> | No | account ID to fetch deposit addresses for |
 
 ##### Supported exchanges
+* [coinbase](/exchanges/coinbase.md#fetchdepositaddresses)
 * [coinone](/exchanges/coinone.md#fetchdepositaddresses)
 * [deepcoin](/exchanges/deepcoin.md#fetchdepositaddresses)
 * [hollaex](/exchanges/hollaex.md#fetchdepositaddresses)
@@ -2347,7 +2370,7 @@ fetch deposit addresses for multiple currencies and chain types
 fetch the deposit addresses for a currency associated with this account
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/#/?id=address-structure), indexed by the network
+**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/?id=address-structure), indexed by the network
 
 
 | Param | Type | Required | Description |
@@ -2376,7 +2399,7 @@ fetch the deposit addresses for a currency associated with this account
 fetch the deposit id for a fiat currency associated with this account
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [deposit id structure](https://docs.ccxt.com/#/?id=deposit-id-structure)
+**Returns**: <code>object</code> - a [deposit id structure](https://docs.ccxt.com/?id=deposit-id-structure)
 
 
 | Param | Type | Required | Description |
@@ -2395,7 +2418,7 @@ fetch the deposit id for a fiat currency associated with this account
 fetch the deposit id for a fiat currency associated with this account
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an array of [deposit id structures](https://docs.ccxt.com/#/?id=deposit-id-structure)
+**Returns**: <code>object</code> - an array of [deposit id structures](https://docs.ccxt.com/?id=deposit-id-structure)
 
 
 | Param | Type | Required | Description |
@@ -2432,7 +2455,7 @@ fetch deposit methods for a currency associated with this account
 fetch the fee for deposits and withdrawals
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -2454,7 +2477,7 @@ fetch the fee for deposits and withdrawals
 fetch deposit and withdraw fees
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -2501,7 +2524,7 @@ fetch deposit and withdraw fees
 fetch all deposits made to an account
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -2585,7 +2608,7 @@ fetch all deposits made to an account
 fetch history of deposits and withdrawals
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -2630,7 +2653,7 @@ fetch history of deposits and withdrawals
 fetch all deposits made to an account
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -2651,7 +2674,7 @@ fetch all deposits made to an account
 fetches information on multiple orders made by the user *classic accounts only*
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 
 | Param | Type | Required | Description |
@@ -2699,7 +2722,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 fetch the current funding rate interval
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -2728,7 +2751,7 @@ fetch the current funding rate interval
 fetch the funding rate interval for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -2749,7 +2772,7 @@ fetch the funding rate interval for multiple markets
 fetch the deposit and withdrawal limits for a currency
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [funding limits structure](https://docs.ccxt.com/#/?id=funding-limits-structure)
+**Returns**: <code>object</code> - a [funding limits structure](https://docs.ccxt.com/?id=funding-limits-structure)
 
 
 | Param | Type | Required | Description |
@@ -2768,7 +2791,7 @@ fetch the deposit and withdrawal limits for a currency
 fetch the current funding rate
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -2819,14 +2842,14 @@ fetch the current funding rate
 fetches historical funding rate prices
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -2880,7 +2903,7 @@ fetches historical funding rate prices
 fetch the funding rate for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
 
 
 | Param | Type | Required | Description |
@@ -2922,7 +2945,7 @@ fetch the funding rate for multiple markets
 fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 
 | Param | Type | Required | Description |
@@ -2965,7 +2988,7 @@ retrieves data on all hip3 markets for hyperliquid
 fetch the rate of interest to borrow a currency for margin trading
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [isolated borrow rate structure](https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure)
+**Returns**: <code>object</code> - an [isolated borrow rate structure](https://docs.ccxt.com/?id=isolated-borrow-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -2988,7 +3011,7 @@ fetch the rate of interest to borrow a currency for margin trading
 fetch the borrow interest rates of all currencies
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -3010,7 +3033,7 @@ fetch the borrow interest rates of all currencies
 fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -3053,7 +3076,7 @@ fetches the last price for multiple markets
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 
 | Param | Type | Required | Description |
@@ -3114,7 +3137,7 @@ fetch the history of changes, actions done by the user or operations that altere
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 
 | Param | Type | Required | Description |
@@ -3134,7 +3157,7 @@ fetch the history of changes, actions done by the user or operations that altere
 fetch the set leverage for a market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 
 | Param | Type | Required | Description |
@@ -3174,7 +3197,7 @@ fetch the set leverage for a market
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -3206,7 +3229,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 fetch the set leverage for all contract markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
 
 
 | Param | Type | Required | Description |
@@ -3231,7 +3254,7 @@ fetch the set leverage for all contract markets
 retrieves the public liquidations of a trading pair
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 
 | Param | Type | Required | Description |
@@ -3259,7 +3282,7 @@ retrieves the public liquidations of a trading pair
 fetches the long short ratio history for a unified market symbol
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/?id=long-short-ratio-structure)
 
 
 | Param | Type | Required | Description |
@@ -3285,7 +3308,7 @@ fetches the long short ratio history for a unified market symbol
 fetches the history of margin added or reduced from contract isolated positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/?id=margin-loan-structure)
 
 
 | Param | Type | Required | Description |
@@ -3310,7 +3333,7 @@ fetches the history of margin added or reduced from contract isolated positions
 fetches the margin mode of a specific symbol
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
 
 | Param | Type | Required | Description |
@@ -3337,7 +3360,7 @@ fetches the margin mode of a specific symbol
 fetches the set margin mode of the user
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/?id=margin-mode-structure)
 
 
 | Param | Type | Required | Description |
@@ -3358,7 +3381,7 @@ fetches the set margin mode of the user
 fetches mark price for the market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -3385,7 +3408,7 @@ fetches mark price for the market
 fetches mark prices for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -3408,7 +3431,7 @@ fetches mark prices for multiple markets
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 
 | Param | Type | Required | Description |
@@ -3568,7 +3591,7 @@ retrieves data on all markets for bitvavo
 fetch all dust trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -3590,7 +3613,7 @@ fetch all dust trades made by the user
 retrieves the users liquidated positions
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 
 | Param | Type | Required | Description |
@@ -3645,7 +3668,7 @@ fetches historical settlement records of the user
 fetch all trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -3756,7 +3779,7 @@ fetch all trades made by the user
 fetch all trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -3912,7 +3935,7 @@ query historical candlestick data containing the open, high, low, and close pric
 retrieves the open interest of a contract trading pair
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 
 | Param | Type | Required | Description |
@@ -3948,7 +3971,7 @@ retrieves the open interest of a contract trading pair
 Retrieves the open interest history of a currency
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an array of [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an array of [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 
 | Param | Type | Required | Description |
@@ -3976,7 +3999,7 @@ Retrieves the open interest history of a currency
 Retrieves the open interest for a list of symbols
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 
 | Param | Type | Required | Description |
@@ -3999,7 +4022,7 @@ Retrieves the open interest for a list of symbols
 fetch an open order by it's id
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4026,7 +4049,7 @@ fetch an open order by it's id
 fetch all unfilled currently open orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4145,7 +4168,7 @@ fetch all unfilled currently open orders
 fetch all unfilled currently open orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4169,7 +4192,7 @@ fetch all unfilled currently open orders
 fetches option data that is commonly found in an option chain
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
 
 
 | Param | Type | Required | Description |
@@ -4193,7 +4216,7 @@ fetches option data that is commonly found in an option chain
 fetches data for an underlying asset that is commonly found in an option chain
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/?id=option-chain-structure)
 
 
 | Param | Type | Required | Description |
@@ -4215,7 +4238,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 fetch data on open options positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -4234,7 +4257,7 @@ fetch data on open options positions
 fetches information on an order made by the user
 
 **Kind**: instance   
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4457,7 +4480,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -4478,7 +4501,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbol
+**Returns**: <code>object</code> - a dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbol
 
 
 | Param | Type | Required | Description |
@@ -4503,7 +4526,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 fetches information on an order made by the user *classic accounts only*
 
 **Kind**: instance   
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4523,7 +4546,7 @@ fetches information on an order made by the user *classic accounts only*
 fetch all the trades made from a single order
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -4576,7 +4599,7 @@ fetch all the trades made from a single order
 fetches information on an order made by the user
 
 **Kind**: instance   
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4599,7 +4622,7 @@ fetches information on an order made by the user
 fetches information on multiple orders made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4672,7 +4695,7 @@ fetches information on multiple orders made by the user
 fetch orders by the list of order id
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4692,7 +4715,7 @@ fetch orders by the list of order id
 fetch a list of orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4718,7 +4741,7 @@ fetch a list of orders
 fetches information on multiple orders made by the user *classic accounts only*
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4746,7 +4769,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 fetches information on multiple orders made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4773,7 +4796,7 @@ fetches information on multiple orders made by the user
 Fetch details for a specific portfolio by UUID
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;any&gt;</code> - An account structure <https://docs.ccxt.com/#/?id=account-structure>
+**Returns**: <code>Array&lt;any&gt;</code> - An account structure <https://docs.ccxt.com/?id=account-structure>
 
 
 | Param | Type | Required | Description |
@@ -4792,7 +4815,7 @@ Fetch details for a specific portfolio by UUID
 fetch all the portfolios
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 
 | Param | Type | Required | Description |
@@ -4810,7 +4833,7 @@ fetch all the portfolios
 fetch data on an open position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -4857,7 +4880,7 @@ fetch data on an open position
 fetches historical positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -4908,7 +4931,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 fetch data on an open position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -4927,7 +4950,7 @@ fetch data on an open position
 fetch all open positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -4993,7 +5016,7 @@ fetch all open positions
 fetch all open positions for specific symbol
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -5015,7 +5038,7 @@ fetch all open positions for specific symbol
 fetches historical positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -5044,7 +5067,7 @@ fetches historical positions
 fetch all open positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -5065,7 +5088,7 @@ fetch all open positions
 fetches historical settlement records
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/#/?id=settlement-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
 
 
 | Param | Type | Required | Description |
@@ -5110,7 +5133,7 @@ retrieves data on all spot markets for hyperliquid
 the latest known information on the availability of the exchange API
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 
 | Param | Type | Required | Description |
@@ -5172,7 +5195,7 @@ retrieves data on all swap markets for hyperliquid
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -5280,7 +5303,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -5303,7 +5326,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -5476,7 +5499,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -5595,7 +5618,7 @@ get the list of most recent trades for a particular symbol
 fetch all trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -5618,7 +5641,7 @@ fetch all trades made by the user
 fetch the trading fees for a market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -5667,7 +5690,7 @@ fetch the trading fees for a market
 fetch the trading fees for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -5728,7 +5751,7 @@ fetch the trading fees for multiple markets
 fetch the trading fees for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -5746,7 +5769,7 @@ fetch the trading fees for multiple markets
 fetch the trading limits for a market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [trading limits structure](https://docs.ccxt.com/#/?id=trading-limits-structure)
+**Returns**: <code>object</code> - a [trading limits structure](https://docs.ccxt.com/?id=trading-limits-structure)
 
 
 | Param | Type | Required | Description |
@@ -5765,7 +5788,7 @@ fetch the trading limits for a market
 please use fetchDepositWithdrawFee instead
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -5787,7 +5810,7 @@ please use fetchDepositWithdrawFee instead
 please use fetchDepositWithdrawFees instead
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -5813,7 +5836,7 @@ please use fetchDepositWithdrawFees instead
 Fetch all transactions (deposits and withdrawals) made from an account.
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -5836,7 +5859,7 @@ Fetch all transactions (deposits and withdrawals) made from an account.
 fetches a transfer
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -5856,7 +5879,7 @@ fetches a transfer
 fetch a history of internal transfers made on an account
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -5898,7 +5921,7 @@ fetch a history of internal transfers made on an account
 fetches the market ids of underlying assets for a specific contract market type
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [underlying assets](https://docs.ccxt.com/#/?id=underlying-assets-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [underlying assets](https://docs.ccxt.com/?id=underlying-assets-structure)
 
 
 | Param | Type | Required | Description |
@@ -5918,7 +5941,7 @@ fetches the market ids of underlying assets for a specific contract market type
 fetch the historical volatility of an option market based on an underlying asset
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [volatility history objects](https://docs.ccxt.com/#/?id=volatility-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [volatility history objects](https://docs.ccxt.com/?id=volatility-structure)
 
 
 | Param | Type | Required | Description |
@@ -5939,7 +5962,7 @@ fetch the historical volatility of an option market based on an underlying asset
 fetch data on a currency withdrawal via the withdrawal id
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -5965,7 +5988,7 @@ fetch data on a currency withdrawal via the withdrawal id
 fetch all withdrawals made from an account
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -6049,7 +6072,7 @@ fetch all withdrawals made from an account
 fetch all withdrawals made from an account
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -6167,7 +6190,7 @@ redeem gift code
 remove margin from a position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -6203,7 +6226,7 @@ remove margin from a position
 repay borrowed margin and interest
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 
 | Param | Type | Required | Description |
@@ -6232,7 +6255,7 @@ repay borrowed margin and interest
 repay borrowed margin and interest
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 
 | Param | Type | Required | Description |
@@ -6258,7 +6281,7 @@ repay borrowed margin and interest
 repay borrowed margin and interest
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 
 | Param | Type | Required | Description |
@@ -6357,7 +6380,7 @@ set the level of leverage for a market
 Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -6492,7 +6515,7 @@ sign in, must be called prior to using other authenticated methods
 transfer currency internally between wallets on the same account
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -6557,7 +6580,7 @@ transfer currency internally between wallets on the same account
 transfer from spot wallet to futures wallet
 
 **Kind**: instance   
-**Returns**: a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -6578,7 +6601,7 @@ transfer from spot wallet to futures wallet
 unWatches best bid & ask for symbols
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -6599,7 +6622,7 @@ unWatches best bid & ask for symbols
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -6618,7 +6641,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -6637,7 +6660,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 unWatches information on multiple trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -6649,6 +6672,7 @@ unWatches information on multiple trades made by the user
 
 ##### Supported exchanges
 * [bybit](/exchanges/bybit.md#unwatchmytrades)
+* [hyperliquid](/exchanges/hyperliquid.md#unwatchmytrades)
 
 ---
 
@@ -6673,6 +6697,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [bingx](/exchanges/bingx.md#unwatchohlcv)
 * [bitfinex](/exchanges/bitfinex.md#unwatchohlcv)
 * [bitget](/exchanges/bitget.md#unwatchohlcv)
+* [bitmart](/exchanges/bitmart.md#unwatchohlcv)
 * [bybit](/exchanges/bybit.md#unwatchohlcv)
 * [coincatch](/exchanges/coincatch.md#unwatchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#unwatchohlcv)
@@ -6717,7 +6742,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -6730,6 +6755,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 * [binance](/exchanges/binance.md#unwatchorderbook)
 * [bingx](/exchanges/bingx.md#unwatchorderbook)
 * [bitget](/exchanges/bitget.md#unwatchorderbook)
+* [bitmart](/exchanges/bitmart.md#unwatchorderbook)
 * [bybit](/exchanges/bybit.md#unwatchorderbook)
 * [coincatch](/exchanges/coincatch.md#unwatchorderbook)
 * [cryptocom](/exchanges/cryptocom.md#unwatchorderbook)
@@ -6754,7 +6780,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -6766,6 +6792,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchorderbookforsymbols)
 * [binance](/exchanges/binance.md#unwatchorderbookforsymbols)
+* [bitmart](/exchanges/bitmart.md#unwatchorderbookforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchorderbookforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchorderbookforsymbols)
 * [defx](/exchanges/defx.md#unwatchorderbookforsymbols)
@@ -6781,7 +6808,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 unWatches information on multiple orders made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -6791,7 +6818,9 @@ unWatches information on multiple orders made by the user
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchorders)
+* [bitmart](/exchanges/bitmart.md#unwatchorders)
 * [bybit](/exchanges/bybit.md#unwatchorders)
+* [hyperliquid](/exchanges/hyperliquid.md#unwatchorders)
 
 ---
 
@@ -6811,6 +6840,7 @@ unWatches from the stream channel
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchpositions)
+* [bitmart](/exchanges/bitmart.md#unwatchpositions)
 * [bybit](/exchanges/bybit.md#unwatchpositions)
 
 ---
@@ -6821,7 +6851,7 @@ unWatches from the stream channel
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -6835,6 +6865,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 * [bingx](/exchanges/bingx.md#unwatchticker)
 * [bitfinex](/exchanges/bitfinex.md#unwatchticker)
 * [bitget](/exchanges/bitget.md#unwatchticker)
+* [bitmart](/exchanges/bitmart.md#unwatchticker)
 * [bybit](/exchanges/bybit.md#unwatchticker)
 * [coincatch](/exchanges/coincatch.md#unwatchticker)
 * [cryptocom](/exchanges/cryptocom.md#unwatchticker)
@@ -6854,7 +6885,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -6865,6 +6896,7 @@ watches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchtickers)
 * [binance](/exchanges/binance.md#unwatchtickers)
+* [bitmart](/exchanges/bitmart.md#unwatchtickers)
 * [bybit](/exchanges/bybit.md#unwatchtickers)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtickers)
 * [defx](/exchanges/defx.md#unwatchtickers)
@@ -6881,7 +6913,7 @@ watches a price ticker, a statistical calculation with the information calculate
 unWatches from the stream channel
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -6895,6 +6927,7 @@ unWatches from the stream channel
 * [bingx](/exchanges/bingx.md#unwatchtrades)
 * [bitfinex](/exchanges/bitfinex.md#unwatchtrades)
 * [bitget](/exchanges/bitget.md#unwatchtrades)
+* [bitmart](/exchanges/bitmart.md#unwatchtrades)
 * [bybit](/exchanges/bybit.md#unwatchtrades)
 * [coincatch](/exchanges/coincatch.md#unwatchtrades)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtrades)
@@ -6919,7 +6952,7 @@ unWatches from the stream channel
 unWatches from the stream channel
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -6930,6 +6963,7 @@ unWatches from the stream channel
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchtradesforsymbols)
 * [binance](/exchanges/binance.md#unwatchtradesforsymbols)
+* [bitmart](/exchanges/bitmart.md#unwatchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtradesforsymbols)
 * [defx](/exchanges/defx.md#unwatchtradesforsymbols)
@@ -6983,7 +7017,7 @@ verify gift code
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -7042,7 +7076,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 watches best bid & ask for symbols
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7081,7 +7115,7 @@ watches best bid & ask for symbols
 watch the current funding rate
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -7100,7 +7134,7 @@ watch the current funding rate
 watch the funding rate for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [funding rates structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>object</code> - a dictionary of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
 
 
 | Param | Type | Required | Description |
@@ -7165,7 +7199,7 @@ watch the public liquidations of a trading pair
 watches a mark price for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7186,7 +7220,7 @@ watches a mark price for a specific market
 watches the mark price for all markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7252,7 +7286,7 @@ watch the private liquidations of a trading pair
 watches information on multiple trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -7309,7 +7343,7 @@ watches information on multiple trades made by the user
 watches information on multiple trades made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -7424,7 +7458,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -7500,7 +7534,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -7539,7 +7573,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 watches information on multiple orders made by the user
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -7607,7 +7641,7 @@ watches information on multiple orders made by the user
 watches information on multiple orders made by the user across multiple symbols
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
 
 
 | Param | Type | Required | Description |
@@ -7692,7 +7726,7 @@ watch all open positions
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7759,7 +7793,7 @@ watches a price ticker, a statistical calculation with the information calculate
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7810,7 +7844,7 @@ watches a price ticker, a statistical calculation with the information calculate
 watches information on multiple trades made in a market
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -7886,7 +7920,7 @@ watches information on multiple trades made in a market
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -7929,7 +7963,7 @@ get the list of most recent trades for a list of symbols
 make a withdrawal
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -8021,7 +8055,7 @@ make a withdrawal
 make a withdrawal
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |

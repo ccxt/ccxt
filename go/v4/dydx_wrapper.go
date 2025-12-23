@@ -67,7 +67,7 @@ func (this *Dydx) FetchMarkets(params ...interface{}) ([]MarketInterface, error)
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Dydx) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -152,10 +152,10 @@ func (this *Dydx) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
  * @see https://docs.dydx.xyz/indexer-client/http#get-historical-funding
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Dydx) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -199,7 +199,7 @@ func (this *Dydx) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -236,7 +236,7 @@ func (this *Dydx) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -283,7 +283,7 @@ func (this *Dydx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -330,7 +330,7 @@ func (this *Dydx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -375,7 +375,7 @@ func (this *Dydx) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Dydx) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -405,7 +405,7 @@ func (this *Dydx) FetchPosition(symbol string, options ...FetchPositionOptions) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Dydx) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -465,7 +465,7 @@ func (this *Dydx) FetchLatestBlockHeight(params ...interface{}) (float64, error)
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
  * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
  * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -505,7 +505,7 @@ func (this *Dydx) CreateOrder(symbol string, typeVar string, side string, amount
  * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
  * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
  * @param {int} [params.subAccountId] sub account id, default is 0
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -540,7 +540,7 @@ func (this *Dydx) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
  * @param {int} [params.subAccountId] sub account id, default is 0
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Dydx) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -574,7 +574,7 @@ func (this *Dydx) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Dydx) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -611,7 +611,7 @@ func (this *Dydx) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *Dydx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -657,7 +657,7 @@ func (this *Dydx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, err
  * @param {string} toAccount account to transfer to *subaccount, address*
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address for order
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Dydx) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -689,7 +689,7 @@ func (this *Dydx) Transfer(code string, amount float64, fromAccount string, toAc
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Dydx) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -734,7 +734,7 @@ func (this *Dydx) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEn
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Dydx) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -771,7 +771,7 @@ func (this *Dydx) Withdraw(code string, amount float64, address string, options 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Dydx) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -818,7 +818,7 @@ func (this *Dydx) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Dydx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -865,7 +865,7 @@ func (this *Dydx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Dydx) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 
@@ -941,7 +941,7 @@ func (this *Dydx) FetchTransactionsHelper(options ...FetchTransactionsHelperOpti
  * @see https://docs.dydx.xyz/indexer-client/http#get-subaccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Dydx) FetchAccounts(params ...interface{}) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
@@ -957,7 +957,7 @@ func (this *Dydx) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.dydx.xyz/indexer-client/http#get-subaccount
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Dydx) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)

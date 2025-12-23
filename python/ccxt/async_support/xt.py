@@ -61,6 +61,7 @@ class xt(Exchange, ImplicitAPI):
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowInterest': False,
@@ -85,6 +86,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': False,
                 'fetchLedger': True,
@@ -99,6 +101,8 @@ class xt(Exchange, ImplicitAPI):
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
@@ -122,6 +126,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -2332,7 +2337,7 @@ class xt(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3965,7 +3970,7 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: amount of margin to add
         :param dict params: extra parameters specific to the xt api endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'ADD', params)
 
@@ -3979,7 +3984,7 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the xt api endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 
@@ -4033,7 +4038,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str [symbols]: a list of unified market symbols
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
         await self.load_markets()
         subType = None
@@ -4110,7 +4115,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -4268,7 +4273,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         return await self.fetch_funding_rate(symbol, params)
 
@@ -4280,7 +4285,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -4358,7 +4363,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: the starting timestamp in milliseconds
         :param int [limit]: the number of entries to return
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -4442,7 +4447,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market the position is held in
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -4499,7 +4504,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str [symbols]: list of unified market symbols, not supported with xt
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         subType = None
@@ -4605,7 +4610,7 @@ class xt(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from -  spot, swap, leverage, finance
         :param str toAccount: account to transfer to - spot, swap, leverage, finance
         :param dict params: extra parameters specific to the whitebit api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -4713,7 +4718,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopLoss]: price to set a stop-loss on an open position
         :param float [params.takeProfit]: price to set a take-profit on an open position
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')

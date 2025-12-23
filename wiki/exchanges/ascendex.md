@@ -109,7 +109,7 @@ ascendex.fetchTime ([params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 
 | Param | Type | Required | Description |
@@ -128,7 +128,7 @@ ascendex.fetchAccounts ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -155,7 +155,7 @@ ascendex.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -176,7 +176,7 @@ ascendex.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -196,7 +196,7 @@ ascendex.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -245,7 +245,7 @@ ascendex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#market-trades  
 
@@ -268,7 +268,7 @@ ascendex.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -287,7 +287,7 @@ ascendex.fetchTradingFees ([params])
 create a trade order on the exchange
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: [An order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: [An order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -323,7 +323,7 @@ ascendex.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -351,7 +351,7 @@ ascendex.createOrders (orders[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -377,7 +377,7 @@ ascendex.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -404,7 +404,7 @@ ascendex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -432,7 +432,7 @@ ascendex.fetchClosedOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -458,7 +458,7 @@ ascendex.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list with a single [order structure](https://docs.ccxt.com/#/?id=order-structure) with the response assigned to the info property
+**Returns**: <code>Array&lt;object&gt;</code> - a list with a single [order structure](https://docs.ccxt.com/?id=order-structure) with the response assigned to the info property
 
 **See**
 
@@ -483,7 +483,7 @@ ascendex.cancelAllOrders (symbol[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses  
 
@@ -505,7 +505,7 @@ ascendex.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -527,7 +527,7 @@ ascendex.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -549,7 +549,7 @@ ascendex.fetchWithdrawals (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -571,7 +571,7 @@ ascendex.fetchDepositsWithdrawals ([code, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -591,7 +591,7 @@ ascendex.fetchPositions (symbols[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
 
 
 | Param | Type | Required | Description |
@@ -611,7 +611,7 @@ ascendex.fetchFundingRates (symbols[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -632,7 +632,7 @@ ascendex.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -697,7 +697,7 @@ ascendex.setMarginMode (marginMode, symbol[, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -717,7 +717,7 @@ ascendex.fetchLeverageTiers (symbols[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#list-all-assets  
 
@@ -738,7 +738,7 @@ ascendex.fetchDepositWithdrawFees (codes[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -761,7 +761,7 @@ ascendex.transfer (code, amount, fromAccount, toAccount[, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history  
 
@@ -785,7 +785,7 @@ ascendex.fetchFundingHistory ([symbol, since, limit, params])
 fetches the set margin mode of the user
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/?id=margin-mode-structure)
 
 **See**: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position  
 
@@ -806,7 +806,7 @@ ascendex.fetchMarginModes ([symbols, params])
 fetch the set leverage for all contract markets
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position  
 
@@ -851,7 +851,7 @@ ascendex.watchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#channel-market-trades  
 
@@ -874,7 +874,7 @@ ascendex.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#channel-market-trades  
 
@@ -898,7 +898,7 @@ ascendex.watchTradesForSymbols (symbols[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates  
 
@@ -920,7 +920,7 @@ ascendex.watchOrderBook (symbol[, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance  
 
@@ -940,7 +940,7 @@ ascendex.watchBalance ([params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance  
 

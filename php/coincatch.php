@@ -669,7 +669,7 @@ class coincatch extends Exchange {
          *
          * @param {string[]} [$codes] list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
         $this->load_markets();
         $response = $this->publicGetApiSpotV1PublicCurrencies ($params);
@@ -1056,7 +1056,7 @@ class coincatch extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1140,7 +1140,7 @@ class coincatch extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' (default 'spot')
          * @param {string} [$params->productType] 'umcbl' or 'dmcbl' (default 'umcbl') - USDT perpetual contract or Universal margin perpetual contract
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $methodName = 'fetchTickers';
         $this->load_markets();
@@ -1315,7 +1315,7 @@ class coincatch extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return (maximum and default value is 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->precision] 'scale0' (default), 'scale1', 'scale2' or 'scale3' - price accuracy, according to the selected accuracy step size to return the cumulative depth
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $methodName = 'fetchOrderBook';
@@ -1486,7 +1486,7 @@ class coincatch extends Exchange {
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest entry to fetch
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $methodName = 'fetchTrades';
         $this->load_markets();
@@ -1655,7 +1655,7 @@ class coincatch extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1726,7 +1726,7 @@ class coincatch extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->pageNo] the page number to fetch
          * @param {bool} [$params->nextPage] whether to query the next page (default false)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -1785,7 +1785,7 @@ class coincatch extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
          * @param {string} [$params->productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl')
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $methodName = 'fetchBalance';
@@ -1914,7 +1914,7 @@ class coincatch extends Exchange {
          * @param {string} $toAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique id for the transfer
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1987,7 +1987,7 @@ class coincatch extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] network for fetch deposit address
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2060,7 +2060,7 @@ class coincatch extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch transfers for (default time now)
          * @param {int} [$params->pageNo] pageNo default 1
          * @param {int} [$params->pageSize] pageSize (default 20, max 100)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         $methodName = 'fetchDeposits';
         $this->load_markets();
@@ -2124,7 +2124,7 @@ class coincatch extends Exchange {
          * @param {string} [$params->clientOid] clientOid
          * @param {string} [$params->orderId] The $response orderId
          * @param {string} [$params->idLessThan] Requests the content on the page before this ID (older $data), the value input should be the orderId of the corresponding interface.
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $methodName = 'fetchWithdrawals';
         $this->load_markets();
@@ -2166,7 +2166,7 @@ class coincatch extends Exchange {
          * @param {string} $params->network network for withdraw (mandatory)
          * @param {string} [$params->remark] remark
          * @param {string} [$params->clientOid] custom id
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -2289,7 +2289,7 @@ class coincatch extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $methodName = 'createMarketBuyOrderWithCost';
@@ -2323,7 +2323,7 @@ class coincatch extends Exchange {
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [$params->clientOrderId] a unique id for the order - is mandatory for swap
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $params['methodName'] = $this->safe_string($params, 'methodName', 'createOrder');
@@ -2355,7 +2355,7 @@ class coincatch extends Exchange {
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [$params->clientOrderId] a unique id for the order (max length 40)
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $params['methodName'] = $this->safe_string($params, 'methodName', 'createSpotOrder');
@@ -2528,7 +2528,7 @@ class coincatch extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $params['methodName'] = $this->safe_string($params, 'methodName', 'createSwapOrder');
         $this->load_markets();
@@ -2653,22 +2653,22 @@ class coincatch extends Exchange {
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $requestTriggerPrice = null;
-        $takeProfitParams = $this->safe_dict($params, 'takeProfit');
-        $stopLossParams = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $isTrigger = ($triggerPrice !== null);
         $trailingPercent = $this->safe_string($params, 'trailingPercent');
         $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice');
         $hasTPPrice = ($takeProfitPrice !== null);
         $hasSLPrice = ($stopLossPrice !== null);
-        $hasTPParams = ($takeProfitParams !== null);
-        if ($hasTPParams && !$hasTPPrice) {
-            $takeProfitPrice = $this->safe_string($takeProfitParams, 'triggerPrice');
+        $hasTakeProfit = ($takeProfit !== null);
+        if ($hasTakeProfit && !$hasTPPrice) {
+            $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice');
             $hasTPPrice = ($takeProfitPrice !== null);
         }
-        $hasSLParams = ($stopLossParams !== null);
-        if ($hasSLParams && !$hasSLPrice) {
-            $stopLossPrice = $this->safe_string($stopLossParams, 'triggerPrice');
+        $hasStopLoss = ($stopLoss !== null);
+        if ($hasStopLoss && !$hasSLPrice) {
+            $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice');
             $hasSLPrice = ($stopLossPrice !== null);
         }
         $hasBothTPAndSL = $hasTPPrice && $hasSLPrice;
@@ -2739,7 +2739,7 @@ class coincatch extends Exchange {
          * @param {float} [$takeProfit] the take profit $price, in units of the quote currency
          * @param {float} [$stopLoss] the stop loss $price, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $methodName = 'createOrderWithTakeProfitAndStopLoss';
         $this->load_markets();
@@ -2769,7 +2769,7 @@ class coincatch extends Exchange {
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params (max 50 entries)
          * @param {array} [$params] extra parameters specific to the api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         // same $symbol for all $orders
@@ -2907,7 +2907,7 @@ class coincatch extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $methodName = 'editOrder';
         // only trigger, stop-looss or take-profit orders can be edited
@@ -2939,7 +2939,7 @@ class coincatch extends Exchange {
          * @param {string} [$params->clientOrderId] a unique $id for the order that can be used alternative for the $id
          * @param {string} $params->triggerPrice *mandatory* the $price that the order is to be triggered at
          * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $methodName = 'editSpotOrder';
@@ -3008,7 +3008,7 @@ class coincatch extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entry for (default 'spot')
          * @param {string} [$params->clientOrderId] a unique $id for the $order that can be used alternative for the $id
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $methodName = 'fetchOrder';
         // for non-trigger orders only
@@ -3146,7 +3146,7 @@ class coincatch extends Exchange {
          * @param {string} [$params->productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the $market to fetch entries for (default 'umcbl')
          * @param {string} [$params->marginCoin] *swap only* the margin coin of the $market to fetch entries for
          * @param {string} [$params->isPlan] *swap trigger only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $methodName = 'fetchOpenOrders';
         $this->load_markets();
@@ -3180,7 +3180,7 @@ class coincatch extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if fetching trigger orders (default false)
          * @param {string} [$params->lastEndId] *for trigger orders only* the last order id to fetch entries after
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $methodName = 'fetchOpenSpotOrders';
@@ -3285,7 +3285,7 @@ class coincatch extends Exchange {
          * @param {string} [$params->isPlan] 'plan' or 'profit_loss' ('plan' (default) for trigger ($plan) orders, 'profit_loss' for stop-loss and take-profit orders)
          * @param {string} [$params->productType] 'umcbl' or 'dmcbl' - the product type of the $market to fetch entries for (default 'umcbl')
          * @param {string} [$params->marginCoin] the margin coin of the $market to fetch entries for
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $methodName = 'fetchOpenSwapOrders';
@@ -3419,7 +3419,7 @@ class coincatch extends Exchange {
          * @param {string} [$params->isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entries for (default 'spot')
          * @param {string} [$params->productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the $market to fetch entries for (default 'umcbl')
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $methodName = 'fetchCanceledAndClosedOrders';
         $this->load_markets();
@@ -3454,7 +3454,7 @@ class coincatch extends Exchange {
          * @param {int} [$params->until] *for trigger orders only* the latest time in ms to fetch orders for
          * @param {boolean} [$params->trigger] true if fetching trigger orders (default false)
          * @param {string} [$params->lastEndId] *for trigger orders only* the last order id to fetch entries after
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $methodName = 'fetchCanceledAndClosedSpotOrders';
         list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
@@ -3600,7 +3600,7 @@ class coincatch extends Exchange {
          * @param {boolean} [$params->trigger] true if fetching trigger orders (default false)
          * @param {string} [$params->isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger ($plan) orders, 'profit_loss' for stop-loss and take-profit orders)
          * @param {string} [$params->productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the $market to fetch entries for (default 'umcbl')
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $methodName = 'fetchCanceledAndClosedSwapOrders';
         list($methodName, $params) = $this->handle_param_string($params, 'methodName', $methodName);
@@ -3756,7 +3756,7 @@ class coincatch extends Exchange {
          * @param {bool} [$params->trigger] true for canceling a $trigger order (default false)
          * @param {bool} [$params->stop] *swap only* an alternative for $trigger param
          * @param {string} [$params->planType] *swap $trigger only* the type of the plan order to cancel => 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $methodName = 'cancelOrder';
         if ($symbol === null) {
@@ -3946,7 +3946,7 @@ class coincatch extends Exchange {
          * @param {string} $symbol *is mandatory* unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $methodName = 'cancelOrders';
         // only non-trigger and not tp/sl orders can be canceled via cancelOrders
@@ -4476,7 +4476,7 @@ class coincatch extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $methodName = 'fetchOrderTrades';
         if ($symbol === null) {
@@ -4497,7 +4497,7 @@ class coincatch extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4693,7 +4693,7 @@ class coincatch extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4876,7 +4876,7 @@ class coincatch extends Exchange {
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
          */
         $params['methodName'] = 'reduceMargin';
         return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
@@ -4892,7 +4892,7 @@ class coincatch extends Exchange {
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
          */
         $params['methodName'] = 'addMargin';
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
@@ -4907,7 +4907,7 @@ class coincatch extends Exchange {
          * @param {string} $symbol unified market $symbol of the market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string}  [$params->side] 'long' or 'short' *for non-hedged $position mode only* (default 'long')
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         $methodName = 'fetchPosition';
         $side = 'long';
@@ -4934,7 +4934,7 @@ class coincatch extends Exchange {
          * fetch all open positions for specific $symbol
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4988,7 +4988,7 @@ class coincatch extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->productType] 'umcbl' or 'dmcbl' (default 'umcbl' if $symbols are not provided)
          * @param {string} [$params->marginCoin] the settle $currency of the positions, needs to match the $productType
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $methodName = 'fetchPositions';
         $this->load_markets();
@@ -5175,7 +5175,7 @@ class coincatch extends Exchange {
          * @param {string} [$params->business] *swap only*
          * @param {string} [$params->lastEndId] *swap only*
          * @param {bool} [$params->next] *swap only*
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
          */
         $methodName = 'fetchLedger';
         $this->load_markets();

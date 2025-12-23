@@ -391,7 +391,7 @@ class hyperliquid extends Exchange {
             /**
              * the latest known information on the availability of the exchange API
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
             $request = array(
                 'type' => 'exchangeStatus',
@@ -1094,7 +1094,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @param {string} [$params->dex] for hip3 markets, the dex name, eg => 'xyz'
              * @param {string} [$params->subAccountAddress] sub $account user address
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
@@ -1188,7 +1188,7 @@ class hyperliquid extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1241,7 +1241,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap', by default fetches both
              * @param {boolean} [$params->hip3] set to true to fetch $hip3 markets only
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1533,7 +1533,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->user] wallet address that made trades
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchTrades', $params);
@@ -1622,7 +1622,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function action_hash($action, $vaultAddress, $nonce) {
+    public function action_hash($action, $vaultAddress, $nonce, $expiresAfter = null) {
         $dataBinary = $this->packb($action);
         $dataHex = bin2hex($dataBinary);
         $data = $dataHex;
@@ -1633,11 +1633,15 @@ class hyperliquid extends Exchange {
             $data .= '01';
             $data .= $vaultAddress;
         }
+        if ($expiresAfter !== null) {
+            $data .= '00';
+            $data .= '00000' . $this->int_to_base16($expiresAfter);
+        }
         return $this->hash($this->base16_to_binary($data), 'keccak', 'binary');
     }
 
-    public function sign_l1_action($action, $nonce, $vaultAdress = null): array {
-        $hash = $this->action_hash($action, $vaultAdress, $nonce);
+    public function sign_l1_action($action, $nonce, $vaultAdress = null, $expiresAfter = null): array {
+        $hash = $this->action_hash($action, $vaultAdress, $nonce, $expiresAfter);
         $isTestnet = $this->safe_bool($this->options, 'sandboxMode', false);
         $phantomAgent = $this->construct_phantom_agent($hash, $isTestnet);
         // $data = array(
@@ -1913,7 +1917,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->slippage] the slippage for market $order
              * @param {string} [$params->vaultAddress] the vault address for $order
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             list($order, $globalParams) = $this->parse_create_edit_order_args(null, $symbol, $type, $side, $amount, $price, $params);
@@ -1931,7 +1935,7 @@ class hyperliquid extends Exchange {
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->initialize_client());
@@ -2041,7 +2045,7 @@ class hyperliquid extends Exchange {
          * create a list of trade $orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->check_required_credentials();
         $defaultSlippage = $this->safe_string($this->options, 'defaultSlippage');
@@ -2083,11 +2087,12 @@ class hyperliquid extends Exchange {
             $orderParams['slippage'] = $slippage;
             $stopLoss = $this->safe_value($orderParams, 'stopLoss');
             $takeProfit = $this->safe_value($orderParams, 'takeProfit');
-            $isTrigger = ($stopLoss || $takeProfit);
+            $hasStopLoss = ($stopLoss !== null);
+            $hasTakeProfit = ($takeProfit !== null);
             $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
             $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
             $orderReq[] = $mainOrderObj;
-            if ($isTrigger) {
+            if ($hasStopLoss || $hasTakeProfit) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
@@ -2103,14 +2108,14 @@ class hyperliquid extends Exchange {
                 } else {
                     $triggerOrderSide = 'buy';
                 }
-                if ($takeProfit !== null) {
+                if ($hasTakeProfit) {
                     $orderObj = $this->create_order_request($symbol, $takeProfitOrderType, $triggerOrderSide, $amount, $takeProfitOrderLimitPrice, $this->extend($orderParams, array(
                         'takeProfitPrice' => $takeProfitOrderTriggerPrice,
                         'reduceOnly' => true,
                     )));
                     $orderReq[] = $orderObj;
                 }
-                if ($stopLoss !== null) {
+                if ($hasStopLoss) {
                     $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, $amount, $stopLossOrderLimitPrice, $this->extend($orderParams, array(
                         'stopLossPrice' => $stopLossOrderTriggerPrice,
                         'reduceOnly' => true,
@@ -2159,7 +2164,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address for order
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
             return $this->safe_dict($orders, 0);
@@ -2180,7 +2185,7 @@ class hyperliquid extends Exchange {
              * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $this->check_required_credentials();
             if ($symbol === null) {
@@ -2288,7 +2293,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structures~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -2542,7 +2547,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->clientOrderId] client $order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address for $order
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             if ($id === null) {
@@ -2563,7 +2568,7 @@ class hyperliquid extends Exchange {
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->initialize_client());
@@ -2661,10 +2666,10 @@ class hyperliquid extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -2739,7 +2744,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
              * @param {string} [$params->subAccountAddress] sub account user address
              * @param {string} [$params->dex] perp dex name. default is null
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchOpenOrders', $params);
@@ -2795,7 +2800,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of open $orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
@@ -2813,7 +2818,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of open $orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
@@ -2831,7 +2836,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of open $orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
@@ -2851,7 +2856,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->subAccountAddress] sub account user address
              * @param {string} [$params->dex] perp dex name. default is null
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
@@ -2900,7 +2905,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchOrder', $params);
@@ -3157,7 +3162,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest trade
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchMyTrades', $params);
@@ -3274,7 +3279,7 @@ class hyperliquid extends Exchange {
              * @param {string} $symbol unified market $symbol of the market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             return $this->safe_dict($positions, 0, array());
@@ -3317,7 +3322,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->subAccountAddress] sub account user address
              * @param {string} [$params->dex] perp dex name, eg => XYZ
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $userAddress = null;
@@ -3591,7 +3596,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
         }) ();
@@ -3609,7 +3614,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
         }) ();
@@ -3692,7 +3697,7 @@ class hyperliquid extends Exchange {
              * @param {string} $toAccount account to transfer to *swap, spot or address*
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address for order
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -3817,7 +3822,7 @@ class hyperliquid extends Exchange {
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] vault $address withdraw from
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -3933,7 +3938,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
             $userAddress = null;
@@ -4044,7 +4049,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $userAddress = null;
@@ -4141,7 +4146,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
              * @param {string} [$params->subAccountAddress] sub account user address
              * @param {string} [$params->vaultAddress] vault address
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $userAddress = null;
@@ -4208,7 +4213,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch $withdrawals for
              * @param {string} [$params->subAccountAddress] sub account user address
              * @param {string} [$params->vaultAddress] vault address
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $userAddress = null;
@@ -4267,7 +4272,7 @@ class hyperliquid extends Exchange {
              * Retrieves the open interest for a list of $symbols
              * @param {string[]} [$symbols] Unified CCXT market symbol
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -4282,7 +4287,7 @@ class hyperliquid extends Exchange {
              * retrieves the open interest of a contract trading pair
              * @param {string} $symbol unified CCXT market $symbol
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
              */
             $symbol = $this->symbol($symbol);
             Async\await($this->load_markets());
@@ -4335,7 +4340,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -4431,6 +4436,36 @@ class hyperliquid extends Exchange {
                 'weight' => $weight,
             );
             $signature = $this->sign_l1_action($action, $nonce);
+            $request['action'] = $action;
+            $request['signature'] = $signature;
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
+            return $response;
+        }) ();
+    }
+
+    public function create_sub_account(string $name, $params = array ()) {
+        return Async\async(function () use ($name, $params) {
+            /**
+             * creates a sub-account under the main account
+             * @param {string} $name the $name of the sub-account
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->expiresAfter] time in ms after which the sub-account will expire
+             * @return {array} a $response object
+             */
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+            );
+            $action = array(
+                'type' => 'createSubAccount',
+                'name' => $name,
+            );
+            $expiresAfter = $this->safe_integer($params, 'expiresAfter');
+            if ($expiresAfter !== null) {
+                $params = $this->omit($params, 'expiresAfter');
+                $request['expiresAfter'] = $expiresAfter;
+            }
+            $signature = $this->sign_l1_action($action, $nonce, null, $expiresAfter);
             $request['action'] = $action;
             $request['signature'] = $signature;
             $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
