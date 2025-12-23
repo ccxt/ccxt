@@ -2759,7 +2759,7 @@ export default class toobit extends Exchange {
             'address': address,
             'quantity': this.currencyToPrecision (currency['code'], amount),
             'network': networkCode,
-            'clientOrderId': this.uuid22 (),
+            'clientOrderId': this.nonce (),
         };
         if (tag !== undefined) {
             request['addressExt'] = tag;
