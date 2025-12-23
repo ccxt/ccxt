@@ -87,7 +87,7 @@ export default class coinbase extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': 'emulated',
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDepositMethodId': true,
                 'fetchDepositMethodIds': true,
@@ -5266,5 +5266,13 @@ export default class coinbase extends Exchange {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
         return undefined;
+    }
+
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        await this.loadMarkets ();
+        const request = this.prepareAccountRequest (undefined, params);
+        const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseDepositAddresses (data, codes, false, {});
     }
 }
