@@ -101,6 +101,32 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    "ETH/USDC:USDC",
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchPosition - by l1_address",
+                "method": "fetchPosition",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    "ETH/USDC:USDC",
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetchPositions",

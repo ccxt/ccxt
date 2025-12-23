@@ -99,7 +99,7 @@ export default class lighter extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
@@ -1135,6 +1135,22 @@ export default class lighter extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchPosition
+     * @description fetch data on an open position
+     * @see https://apidocs.lighter.xyz/reference/account-1
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+     * @param {string} [params.value] fetch balance value, account index or l1 address
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPosition (symbol: string, params = {}) {
+        const positions = await this.fetchPositions ([ symbol ], params);
+        return this.safeDict (positions, 0, {}) as Position;
     }
 
     /**

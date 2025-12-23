@@ -88,7 +88,7 @@
                 },
                 "parsedResponse": [
                     {
-                        "id": "0",
+                        "id": 0,
                         "symbol": "ETH/USDC:USDC",
                         "base": "ETH",
                         "quote": "USDC",
@@ -718,11 +718,118 @@
                 }
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "input": [
+                    "ETH/USDC:USDC",
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "total": 2,
+                    "accounts": [
+                        {
+                            "code": 0,
+                            "account_type": 0,
+                            "index": 1077,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "12582.743947",
+                            "status": 1,
+                            "collateral": "9100.242706",
+                            "account_index": 1077,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [
+                                {
+                                    "market_id": 0,
+                                    "symbol": "ETH",
+                                    "initial_margin_fraction": "5.00",
+                                    "open_order_count": 0,
+                                    "pending_order_count": 0,
+                                    "position_tied_order_count": 0,
+                                    "sign": 1,
+                                    "position": "18.0193",
+                                    "avg_entry_price": "2669.84",
+                                    "position_value": "54306.566340",
+                                    "unrealized_pnl": "6197.829558",
+                                    "realized_pnl": "0.000000",
+                                    "liquidation_price": "2191.1107231380406",
+                                    "margin_mode": 0,
+                                    "allocated_margin": "0.000000"
+                                }
+                            ],
+                            "assets": [],
+                            "total_asset_value": "15298.072264000002",
+                            "cross_asset_value": "15298.072264000002",
+                            "shares": []
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "market_id": 0,
+                        "symbol": "ETH",
+                        "initial_margin_fraction": "5.00",
+                        "open_order_count": 0,
+                        "pending_order_count": 0,
+                        "position_tied_order_count": 0,
+                        "sign": 1,
+                        "position": "18.0193",
+                        "avg_entry_price": "2669.84",
+                        "position_value": "54306.566340",
+                        "unrealized_pnl": "6197.829558",
+                        "realized_pnl": "0.000000",
+                        "liquidation_price": "2191.1107231380406",
+                        "margin_mode": 0,
+                        "allocated_margin": "0.000000"
+                    },
+                    "id": null,
+                    "symbol": "ETH/USDC:USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "isolated": false,
+                    "hedged": null,
+                    "side": "long",
+                    "contracts": 18.0193,
+                    "contractSize": 1,
+                    "entryPrice": 2669.84,
+                    "markPrice": null,
+                    "notional": 54306.56634,
+                    "leverage": 20,
+                    "collateral": 0,
+                    "initialMargin": null,
+                    "maintenanceMargin": null,
+                    "initialMarginPercentage": null,
+                    "maintenanceMarginPercentage": null,
+                    "unrealizedPnl": 6197.829558,
+                    "liquidationPrice": 2191.1107231380406,
+                    "marginMode": "cross",
+                    "percentage": null
+                }
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetchPositions",
                 "method": "fetchPositions",
-                "input": [],
+                "input": [
+                    null,
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ],
                 "httpResponse": {
                     "code": 200,
                     "total": 2,
@@ -809,7 +916,7 @@
                         "maintenanceMarginPercentage": null,
                         "unrealizedPnl": 6197.829558,
                         "liquidationPrice": 2191.1107231380406,
-                        "marginMode": 0,
+                        "marginMode": "cross",
                         "percentage": null
                     }
                 ]
