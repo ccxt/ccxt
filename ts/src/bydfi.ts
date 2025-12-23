@@ -165,7 +165,7 @@ export default class bydfi extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawAddresses': false,
@@ -215,7 +215,7 @@ export default class bydfi extends Exchange {
                 'private': {
                     'get': {
                         'v1/account/assets': 1, // done
-                        'v1/account/transfer_records': 1, // https://developers.bydfi.com/en/account#query-wallet-transfer-records
+                        'v1/account/transfer_records': 1, // done
                         'v1/spot/deposit_records': 1, // https://developers.bydfi.com/en/spot/account#query-deposit-records
                         'v1/spot/withdraw_records': 1, // https://developers.bydfi.com/en/spot/account#query-withdrawal-records
                         'v1/swap/trade/open_order': 1, // done
@@ -280,6 +280,9 @@ export default class bydfi extends Exchange {
                     // {"code":600,"message":"The marginType cannot be empty;"}
                     // {"code":600,"message":"Param error!"}
                     // {"code":600,"message":"The settleCoin cannot be empty;"}
+                    // {"code":102002,"message":"The current account does not support transfer of this currency"}
+                    // {"code":600,"message":"The parameter 'startTime' should be of type 'Long'"}
+                    // {"code":500,"message":"transfer failed","success":false}
                 },
                 'broad': {
                 },
@@ -297,6 +300,11 @@ export default class bydfi extends Exchange {
                     'spot': 'SPOT',
                     'swap': 'SWAP',
                     'funding': 'FUND',
+                },
+                'accountsById': {
+                    'SPOT': 'spot',
+                    'SWAP': 'swap',
+                    'FUND': 'funding',
                 },
             },
         });
@@ -1311,7 +1319,6 @@ export default class bydfi extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        // todo check with orderId
         await this.loadMarkets ();
         const market = this.market (symbol);
         let wallet = 'W001';
@@ -2036,19 +2043,101 @@ export default class bydfi extends Exchange {
         return transfer;
     }
 
+    /**
+     * @method
+     * @name bydfi#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://developers.bydfi.com/en/account#query-wallet-transfer-records
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const paginate = this.safeBool (params, 'paginate', false);
+        if (paginate) {
+            const maxLimit = 50;
+            params = this.omit (params, 'paginate');
+            params = this.extend (params, { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', currency['code'], since, limit, params, maxLimit, true);
+            return this.sortBy (paginatedResponse, 'timestamp');
+        }
+        const request: Dict = {
+            'asset': currency['id'],
+        };
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        if (until === undefined) {
+            until = this.milliseconds (); // exchange requires endTime
+        }
+        if (since === undefined) {
+            since = 1; // exchange requires startTime but allows any value
+        }
+        request['startTime'] = since;
+        request['endTime'] = until;
+        if (limit !== undefined) {
+            request['rows'] = limit;
+        }
+        const response = await this.privateGetV1AccountTransferRecords (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "orderId": "1209991065294581760",
+        //                 "txId": "6km5fRK83Gwdp43HA479DW1Colh2pKyS",
+        //                 "sourceWallet": "SPOT",
+        //                 "targetWallet": "SWAP",
+        //                 "asset": "USDC",
+        //                 "amount": "100",
+        //                 "status": "SUCCESS",
+        //                 "timestamp": 1766413950000
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransfers (data, currency, since, limit);
+    }
+
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        const success = this.safeBool (transfer, 'success');
+        const status = this.safeStringUpper2 (transfer, 'message', 'status');
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
+        const fromId = this.safeStringUpper (transfer, 'sourceWallet');
+        const toId = this.safeStringUpper (transfer, 'targetWallet');
+        const fromAccount = this.safeString (accountsById, fromId, fromId);
+        const toAccount = this.safeString (accountsById, toId, toId);
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const currencyId = this.safeString (transfer, 'asset');
         return {
             'info': transfer,
-            'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': undefined,
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': success ? 'ok' : 'failed',
+            'id': this.safeString (transfer, 'txId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.paraseTransferStatus (status),
         };
+    }
+
+    paraseTransferStatus (status: Str): Str {
+        const statuses = {
+            'SUCCESS': 'ok',
+            'WAIT': 'pending',
+            'FAILED': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
