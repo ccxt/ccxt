@@ -228,6 +228,7 @@ export default class xcoin extends Exchange {
                 },
                 'networksById': {
                     'trc': 'TRC20',
+                    'eth': 'ERC20',
                 },
             },
             'features': {
