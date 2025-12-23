@@ -98,7 +98,9 @@ public class Exchange {
     public Object fees = new HashMap<String, Object>();
     public Object requiredCredentials = new HashMap<String, Object>();
     public Object timeframes = new HashMap<String, Object>();
-    public double rateLimit;                               // 0.0 by default
+    public double rateLimit;
+    public double rollingWindowSize = 60000;
+    public String rateLimiterAlgorithm = "leakyBucket";                        // 0.0 by default
     public Object exceptions = new HashMap<String, Object>();
     public Object urls = new HashMap<String, Object>();
     public Object precision = new HashMap<String, Object>();
@@ -304,6 +306,10 @@ public class Exchange {
 
         var rateLimitTmp = SafeMethods.SafeFloat(extendedProperties, "rateLimit", -1.0);
         this.rateLimit = (rateLimitTmp != null) ? rateLimitTmp : -1.0;
+
+        this.rateLimiterAlgorithm = SafeMethods.SafeStringTyped(extendedProperties, "rateLimiterAlgorithm", this.rateLimiterAlgorithm);
+        this.rollingWindowSize = SafeMethods.SafeIntegerTyped(extendedProperties, "rollingWindowSize", this.rollingWindowSize);
+
 
         this.status = (Map<String, Object>) this.safeValue(extendedProperties, "status");
 
@@ -2411,6 +2417,7 @@ public Object describe()
                     put( "max", null );
                 }} );
             }} );
+            put( "rollingWindowSize", 60000 );
         }};
     }
 
@@ -3969,13 +3976,17 @@ public Object describe()
         {
             refillRate = Helpers.divide(1, this.rateLimit);
         }
+        Object useLeaky = Helpers.isTrue((Helpers.isEqual(this.rollingWindowSize, 0))) || Helpers.isTrue((Helpers.isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
+        Object algorithm = ((Helpers.isTrue(useLeaky))) ? "leakyBucket" : "rollingWindow";
         final Object finalRefillRate = refillRate;
         Object defaultBucket = new java.util.HashMap<String, Object>() {{
             put( "delay", 0.001 );
             put( "capacity", 1 );
             put( "cost", 1 );
-            put( "maxCapacity", Exchange.this.safeInteger(Exchange.this.options, "maxRequestsQueue", 1000) );
             put( "refillRate", finalRefillRate );
+            put( "algorithm", algorithm );
+            put( "windowSize", Exchange.this.rollingWindowSize );
+            put( "rateLimit", Exchange.this.rateLimit );
         }};
         Object existingBucket = ((Helpers.isTrue((Helpers.isEqual(this.tokenBucket, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);
@@ -6783,7 +6794,7 @@ public Object describe()
                     return (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
                 } catch(Exception e)
                 {
-                    if (Helpers.isTrue(e instanceof OperationFailed))
+                    if (Helpers.isTrue(Helpers.isInstance(e, OperationFailed.class)))
                     {
                         if (Helpers.isTrue(Helpers.isLessThan(i, retries)))
                         {
@@ -7949,7 +7960,7 @@ public Object describe()
      * @param {string} clientOrderId client order Id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
     {
@@ -8083,7 +8094,7 @@ public Object describe()
             * @param {float} trailingAmount the quote amount to trail away from the current market price
             * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object trailingAmount = Helpers.getArg(optionalArgs, 1, null);
@@ -8124,7 +8135,7 @@ public Object describe()
             * @param {float} trailingAmount the quote amount to trail away from the current market price
             * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object trailingAmount = Helpers.getArg(optionalArgs, 1, null);
@@ -8165,7 +8176,7 @@ public Object describe()
             * @param {float} trailingPercent the percent to trail away from the current market price
             * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object trailingPercent = Helpers.getArg(optionalArgs, 1, null);
@@ -8206,7 +8217,7 @@ public Object describe()
             * @param {float} trailingPercent the percent to trail away from the current market price
             * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object trailingPercent = Helpers.getArg(optionalArgs, 1, null);
@@ -8243,7 +8254,7 @@ public Object describe()
             * @param {string} side 'buy' or 'sell'
             * @param {float} cost how much you want to trade in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.has, "createMarketOrderWithCost")) || Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost")) && Helpers.isTrue(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"))))))
@@ -8267,7 +8278,7 @@ public Object describe()
             * @param {string} symbol unified symbol of the market to create an order in
             * @param {float} cost how much you want to trade in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.options, "createMarketBuyOrderRequiresPrice")) || Helpers.isTrue(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"))))
@@ -8291,7 +8302,7 @@ public Object describe()
             * @param {string} symbol unified symbol of the market to create an order in
             * @param {float} cost how much you want to trade in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.options, "createMarketSellOrderRequiresPrice")) || Helpers.isTrue(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"))))
@@ -8316,7 +8327,7 @@ public Object describe()
             * @param {string} side 'buy' or 'sell'
             * @param {float} cost how much you want to trade in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.has, "createMarketOrderWithCostWs")) || Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(this.has, "createMarketBuyOrderWithCostWs")) && Helpers.isTrue(Helpers.GetValue(this.has, "createMarketSellOrderWithCostWs"))))))
@@ -8344,7 +8355,7 @@ public Object describe()
             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
             * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object triggerPrice = Helpers.getArg(optionalArgs, 1, null);
@@ -8379,7 +8390,7 @@ public Object describe()
             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
             * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object triggerPrice = Helpers.getArg(optionalArgs, 1, null);
@@ -8414,7 +8425,7 @@ public Object describe()
             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
             * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object stopLossPrice = Helpers.getArg(optionalArgs, 1, null);
@@ -8449,7 +8460,7 @@ public Object describe()
             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
             * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object stopLossPrice = Helpers.getArg(optionalArgs, 1, null);
@@ -8484,7 +8495,7 @@ public Object describe()
             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
             * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object takeProfitPrice = Helpers.getArg(optionalArgs, 1, null);
@@ -8519,7 +8530,7 @@ public Object describe()
             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
             * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object takeProfitPrice = Helpers.getArg(optionalArgs, 1, null);
@@ -8563,7 +8574,7 @@ public Object describe()
             * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
             * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
             * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object takeProfit = Helpers.getArg(optionalArgs, 1, null);
@@ -8672,7 +8683,7 @@ public Object describe()
             * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
             * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
             * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+            * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object takeProfit = Helpers.getArg(optionalArgs, 1, null);
@@ -8741,7 +8752,7 @@ public Object describe()
      * @param {string} clientOrderId client order Id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
     {
@@ -8789,7 +8800,7 @@ public Object describe()
      * @param {string[]} clientOrderIds client order Ids
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelOrdersWithClientOrderIds(Object clientOrderIds, Object... optionalArgs)
     {
@@ -9997,6 +10008,17 @@ public Object describe()
 
     }
 
+    public java.util.concurrent.CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " createSubAccount() is not supported yet")) ;
+        });
+
+    }
+
     public Object safeCurrencyCode(Object currencyId, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
@@ -10878,7 +10900,7 @@ public Object describe()
         * @param {object} market ccxt market
         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
         * @param {int} [limit] limits the number of items in the response
-        * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+        * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
         */
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -10935,7 +10957,7 @@ public Object describe()
             * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
             * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
             * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+            * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
             */
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -11157,7 +11179,7 @@ public Object describe()
                     }
                 } catch(Exception e)
                 {
-                    if (Helpers.isTrue(e instanceof RateLimitExceeded))
+                    if (Helpers.isTrue(Helpers.isInstance(e, RateLimitExceeded.class)))
                     {
                         throw e;
                     }
@@ -11539,7 +11561,7 @@ public Object describe()
         * @param {object} market ccxt market
         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
         * @param {int} [limit] limits the number of items in the response
-        * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+        * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
         */
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -11829,7 +11851,7 @@ public Object describe()
             * @param {int} [since] timestamp in ms of the position
             * @param {int} [limit] the maximum amount of candles to fetch, default=1000
             * @param {object} params extra parameters specific to the exchange api endpoint
-            * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+            * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
             */
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
