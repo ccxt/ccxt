@@ -273,7 +273,7 @@ export default class bydfi extends Exchange {
                                 'IOC': true,
                                 'FOK': true,
                                 'PO': true,
-                                'GTC': true,
+                                'GTD': false,
                             },
                             'hedged': true,
                             'selfTradePrevention': false,
