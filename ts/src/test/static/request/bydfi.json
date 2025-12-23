@@ -7,6 +7,88 @@
     "options": {},
     "outputType": "json",
     "methods": {
+        "createPostOnlyOrder": [
+            {
+                "description": "Create post only order for non-hedged position mode",
+                "method": "createPostOnlyOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "limit",
+                    "buy",
+                    1,
+                    2000
+                ],
+                "output": "{\"price\":\"2000\",\"quantity\":\"1\",\"side\":\"BUY\",\"symbol\":\"ETH-USDC\",\"timeInForce\":\"POST_ONLY\",\"type\":\"LIMIT\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "createTakeProfitOrder": [
+            {
+                "description": "Create take profit order",
+                "method": "createTakeProfitOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    6000
+                ],
+                "output": "{\"quantity\":\"1\",\"side\":\"SELL\",\"stopPrice\":\"6000\",\"symbol\":\"ETH-USDC\",\"type\":\"TAKE_PROFIT_MARKET\",\"wallet\":\"W001\",\"workingType\":\"CONTRACT_PRICE\"}"
+            }
+        ],
+        "createStopLossOrder": [
+            {
+                "description": "Create stop loss order",
+                "method": "createStopLossOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    2000
+                ],
+                "output": "{\"quantity\":\"1\",\"side\":\"SELL\",\"stopPrice\":\"2000\",\"symbol\":\"ETH-USDC\",\"type\":\"STOP_MARKET\",\"wallet\":\"W001\",\"workingType\":\"CONTRACT_PRICE\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create reduceOnly order for hedged position",
+                "method": "createOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "hedged": true,
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"positionSide\":\"LONG\",\"quantity\":\"1\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"type\":\"MARKET\",\"wallet\":\"W001\"}"
+            },
+            {
+                "description": "Create order for hedged position",
+                "method": "createOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "hedged": true
+                    }
+                ],
+                "output": "{\"positionSide\":\"SHORT\",\"quantity\":\"1\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"type\":\"MARKET\",\"wallet\":\"W001\"}"
+            }
+        ],
         "fetchWithdrawals": [
             {
                 "description": "Fetch withdrawals",
