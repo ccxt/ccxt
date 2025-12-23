@@ -512,7 +512,7 @@ public class BaseTest {
     }
 
     public static String getRootDir() {
-        var prefix =FileSystems.getDefault().getPath("").toAbsolutePath();
+        var prefix = FileSystems.getDefault().getPath("").toAbsolutePath();
 //        var res = prefix + "/../../../../../" ;
 //        return res;
         if (prefix.endsWith("java")) {

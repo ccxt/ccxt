@@ -4,12 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.Signature;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -23,20 +19,31 @@ import javax.crypto.spec.SecretKeySpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-// import org.bouncycastle.asn1.ASN1Primitive;
-// import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-// import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-// import org.bouncycastle.crypto.signers.Ed25519Signer;
-// import org.bouncycastle.jce.ECNamedCurveTable;
-// import org.bouncycastle.jce.provider.BouncyCastleProvider;
+// import org.bouncycastle.asn1.sec.SECNamedCurves;
+// import org.bouncycastle.asn1.x9.X9ECParameters;
+// import org.bouncycastle.crypto.digests.SHA256Digest;
+// import org.bouncycastle.crypto.params.ECDomainParameters;
+// import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+// import org.bouncycastle.crypto.signers.ECDSASigner;
+// import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
+// import org.bouncycastle.math.ec.ECAlgorithms;
 // import org.bouncycastle.math.ec.ECPoint;
-// import org.bouncycastle.openssl.PEMKeyPair;
-// import org.bouncycastle.openssl.PEMParser;
-// import org.bouncycastle.util.encoders.Hex;
-// import org.bouncycastle.jcajce.provider.digest.Keccak;
+// import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve;
+// import org.bouncycastle.util.BigIntegers;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.Sign;
+import org.web3j.utils.Numeric;
 
 /**
- * Java port of the C# crypto helpers.  
  * All methods are public static, parameters are Object where appropriate.
  */
 @SuppressWarnings("unchecked")
@@ -247,7 +254,7 @@ public final class Crypto {
             String bin = toString(Hmac(token, secret, algorithm, "binary"));
             // Hmac(...,"binary") above returns byte[] in C#, here we returned hex/base64.
             // So call Hmac again but fetch raw bytes:
-            byte[] sig = hmacRaw("HS" + algorithm.substring(2), token, secret);
+            byte[] sig = hmacRaw(alg, token, secret);
             signatureB64Url = Base64ToBase64Url(BinaryToBase64(sig), true);
         }
 
@@ -323,23 +330,36 @@ public final class Crypto {
         }
     }
 
+
     private static PrivateKey readRSAPrivateKeyFromPem(String pem) throws Exception {
-        // if (!pem.contains("-----BEGIN")) {
-        //     // supports raw base64 body like C# code path
-        //     pem = "-----BEGIN PRIVATE KEY-----\n" + pem + "\n-----END PRIVATE KEY-----";
-        // }
-        // try (PEMParser parser = new PEMParser(new StringReader(pem))) {
-        //     Object o = parser.readObject();
-        //     if (o instanceof PEMKeyPair kp) {
-        //         PrivateKeyInfo pki = kp.getPrivateKeyInfo();
-        //         return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(pki.getEncoded()));
-        //     }
-        //     if (o instanceof PrivateKeyInfo pki) {
-        //         return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(pki.getEncoded()));
-        //     }
-        //     throw new IllegalArgumentException("Unsupported RSA PEM contents");
-        // }
-        throw new UnsupportedOperationException("RSA PEM parsing not implemented");
+        if (pem == null) throw new IllegalArgumentException("pem is null");
+
+        String p = pem.trim();
+        // Strip UTF-8 BOM if present
+        if (!p.isEmpty() && p.charAt(0) == '\uFEFF') p = p.substring(1);
+
+        byte[] der;
+
+        // Raw base64 support (assume it's PKCS#8 DER)
+        if (!p.contains("-----BEGIN")) {
+            der = Base64.getMimeDecoder().decode(p);
+            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(der));
+        }
+
+        if (p.contains("-----BEGIN PRIVATE KEY-----")) {
+            // PKCS#8
+            der = decodePemBody(p, "-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");
+            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(der));
+        }
+
+        if (p.contains("-----BEGIN RSA PRIVATE KEY-----")) {
+            // PKCS#1 -> wrap into PKCS#8
+            byte[] pkcs1 = decodePemBody(p, "-----BEGIN RSA PRIVATE KEY-----", "-----END RSA PRIVATE KEY-----");
+            byte[] pkcs8 = wrapPkcs1RsaToPkcs8(pkcs1);
+            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(pkcs8));
+        }
+
+        throw new IllegalArgumentException("Unsupported PEM type (expected PKCS#8 or PKCS#1 RSA private key).");
     }
 
     // ====================================================
@@ -348,63 +368,85 @@ public final class Crypto {
     // ====================================================
 
     public static Map<String, Object> Ecdsa(Object request, Object secret, Object curve, Object hash) {
-        throw new UnsupportedOperationException("ECDSA signing not implemented");
-        // String curveName = (curve == null) ? "secp256k1" : toString(curve);
-        // if (!curveName.equals("secp256k1") && !curveName.equals("p256")) {
-        //     throw new IllegalArgumentException("Only secp256k1 and p256 are supported");
-        // }
+        String curveName = (curve == null) ? "secp256k1" : toString(curve);
+        if (!curveName.equals("secp256k1") && !curveName.equals("p256")) {
+            throw new IllegalArgumentException("Only secp256k1 and p256 are supported");
+        }
 
-        // String hashName = (hash == null) ? null : toString(hash);
-        // byte[] msgHash;
+        if (curveName.equals("p256")) {
+            // web3j does not support P-256 compact signatures / recovery id (v)
+            throw new UnsupportedOperationException("web3j-only implementation supports secp256k1 only (p256 not supported)");
+        }
 
-        // // secret: hex string of private key (like C# using Hex.HexToBytes)
-        // byte[] secKey = hexToBytes(toString(secret));
+        byte[] msg = toBytes(request);
+        BigInteger privKey = toPrivateKey(secret);
 
-        // if (hashName != null) {
-        //     msgHash = (byte[]) Hash(toString(request), hashName, "binary"); // returns byte[]
-        // } else {
-        //     msgHash = hexToBytes(toString(request));
-        // }
+        if (hash != null) {
+            // msg = (byte[])Hash(msg, hash, "binary");
+            // for now assume sha256 check it later
+            if (hash != "sha256") {
+                throw new IllegalArgumentException("Only sha256 is supported for now");
+            }
+            msg = sha256(msg);
+        } else {
 
-        // try {
-        //     Signature signer;
-        //     KeyPair kp;
+            // convert msg from hex to binary
+            msg = hexToBytes(toString(request));
+        }
 
-        //     if (curveName.equals("p256")) {
-        //         // ES256
-        //         kp = ecKeyPairFromRaw("secp256r1", secKey); // P-256
-        //         signer = Signature.getInstance("NONEwithECDSA", "BC");
-        //     } else {
-        //         // secp256k1
-        //         kp = ecKeyPairFromRaw("secp256k1", secKey);
-        //         signer = Signature.getInstance("NONEwithECDSA", "BC");
-        //     }
+        ECKeyPair keyPair = ECKeyPair.create(privKey);
 
-        //     signer.initSign(kp.getPrivate());
-        //     signer.update(msgHash);
-        //     byte[] der = signer.sign();
+        Sign.SignatureData sig = Sign.signMessage(msg, keyPair, false);
 
-        //     // DER -> r,s
-        //     // BouncyCastle util to parse DER:
-        //     // A quick parser:
-        //     java.security.Signature sigParser = signer; // not used
-        //     // Use org.bouncycastle for parsing:
-        //     org.bouncycastle.asn1.ASN1Sequence seq = (org.bouncycastle.asn1.ASN1Sequence) ASN1Primitive.fromByteArray(der);
-        //     java.math.BigInteger r = ((org.bouncycastle.asn1.ASN1Integer) seq.getObjectAt(0)).getValue();
-        //     java.math.BigInteger s = ((org.bouncycastle.asn1.ASN1Integer) seq.getObjectAt(1)).getValue();
+        int vOut = sig.getV()[0] & 0xFF;
+        int recoveryV = vOut - 27;
+        Map<String, Object> out = new HashMap<>();
+        out.put("r", Numeric.toHexString(sig.getR()).replaceAll("0x", "")   );
+        out.put("s", Numeric.toHexString(sig.getS()).replaceAll("0x", "")   );
+        out.put("v", recoveryV);
+        return out;
+    }
 
-        //     // return 32-byte hex for r and s
-        //     String rHex = leftPadHex(r.toString(16), 64);
-        //     String sHex = leftPadHex(s.toString(16), 64);
+    private static String bytesToHex(byte[] bytes) {
+        char[] hexArray = "0123456789abcdef".toCharArray();
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
 
-        //     Map<String, Object> out = new LinkedHashMap<>();
-        //     out.put("r", rHex);
-        //     out.put("s", sHex);
-        //     out.put("v", 0); // recovery id not computed here
-        //     return out;
-        // } catch (Exception e) {
-        //     throw new RuntimeException(e);
-        // }
+
+    private static byte[] sha256(byte[] msg) {
+        try {
+            var md = java.security.MessageDigest.getInstance("SHA-256");
+            return md.digest(msg);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static byte[] toBytes(Object request) {
+        Object v = (request);
+        if (v == null) return new byte[0];
+        if (v instanceof byte[] b) return b;
+        if (v instanceof String s) return s.getBytes(StandardCharsets.UTF_8);
+        return String.valueOf(v).getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static BigInteger toPrivateKey(Object secret) {
+        Object v = (secret);
+        if (v instanceof BigInteger bi) return bi;
+        if (v instanceof byte[] b) return new BigInteger(1, b);
+        if (v instanceof String s) {
+            String t = s.trim();
+            if (t.startsWith("0x")) return new BigInteger(t.substring(2), 16);
+            if (t.matches("^[0-9a-fA-F]+$")) return new BigInteger(t, 16);
+            if (t.matches("^[0-9]+$")) return new BigInteger(t, 10);
+        }
+        throw new IllegalArgumentException("Unsupported secret type: " + (v == null ? "null" : v.getClass().getName()));
     }
 
     private static KeyPair ecKeyPairFromRaw(String curveStdName, byte[] privBytes) throws Exception {
@@ -544,5 +586,91 @@ public final class Crypto {
 
     public static String rsa(Object request, Object secret, Object alg) {
         return Rsa(request, secret, alg);
+    }
+
+    private static byte[] decodePemBody(String pem, String begin, String end) {
+        int i = pem.indexOf(begin);
+        int j = pem.indexOf(end);
+        if (i < 0 || j < 0 || j <= i) {
+            throw new IllegalArgumentException("Invalid PEM: missing " + begin + " / " + end);
+        }
+        String base64 = pem.substring(i + begin.length(), j).replaceAll("\\s+", "");
+        return Base64.getMimeDecoder().decode(base64);
+    }
+
+    /**
+     * Build PKCS#8 PrivateKeyInfo DER for RSA:
+     *
+     * PrivateKeyInfo ::= SEQUENCE {
+     *   version                   INTEGER (0),
+     *   privateKeyAlgorithm       AlgorithmIdentifier (rsaEncryption OID + NULL),
+     *   privateKey                OCTET STRING (PKCS#1 RSAPrivateKey DER)
+     * }
+     */
+    private static byte[] wrapPkcs1RsaToPkcs8(byte[] pkcs1Der) {
+        // AlgorithmIdentifier for rsaEncryption: OID 1.2.840.113549.1.1.1 + NULL
+        // DER: 30 0D 06 09 2A 86 48 86 F7 0D 01 01 01 05 00
+        byte[] algId = new byte[] {
+                0x30, 0x0D,
+                0x06, 0x09,
+                0x2A, (byte)0x86, 0x48, (byte)0x86, (byte)0xF7, 0x0D, 0x01, 0x01, 0x01,
+                0x05, 0x00
+        };
+
+        byte[] version = new byte[] { 0x02, 0x01, 0x00 }; // INTEGER 0
+
+        byte[] privateKeyOctetString = derOctetString(pkcs1Der);
+
+        byte[] seqContent = concat(version, algId, privateKeyOctetString);
+        return derSequence(seqContent);
+    }
+
+    private static byte[] derSequence(byte[] content) {
+        return derWrap((byte) 0x30, content);
+    }
+
+    private static byte[] derOctetString(byte[] content) {
+        return derWrap((byte) 0x04, content);
+    }
+
+    private static byte[] derWrap(byte tag, byte[] content) {
+        byte[] len = derLength(content.length);
+        byte[] out = new byte[1 + len.length + content.length];
+        out[0] = tag;
+        System.arraycopy(len, 0, out, 1, len.length);
+        System.arraycopy(content, 0, out, 1 + len.length, content.length);
+        return out;
+    }
+
+    private static byte[] derLength(int length) {
+        if (length < 0) throw new IllegalArgumentException("Negative length");
+        if (length < 128) {
+            return new byte[] { (byte) length };
+        }
+        int tmp = length;
+        int numBytes = 0;
+        while (tmp > 0) {
+            tmp >>= 8;
+            numBytes++;
+        }
+        byte[] out = new byte[1 + numBytes];
+        out[0] = (byte) (0x80 | numBytes);
+        for (int i = numBytes; i > 0; i--) {
+            out[i] = (byte) (length & 0xFF);
+            length >>= 8;
+        }
+        return out;
+    }
+
+    private static byte[] concat(byte[]... parts) {
+        int n = 0;
+        for (byte[] p : parts) n += p.length;
+        byte[] out = new byte[n];
+        int off = 0;
+        for (byte[] p : parts) {
+            System.arraycopy(p, 0, out, off, p.length);
+            off += p.length;
+        }
+        return out;
     }
 }

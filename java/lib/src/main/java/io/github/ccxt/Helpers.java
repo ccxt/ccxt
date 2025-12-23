@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -792,40 +793,83 @@ public class Helpers {
     }
 
     public static void throwDynamicException(Object exception, Object message) {
-    if (exception == null) {
-        throw new RuntimeException(String.valueOf(message));
-    }
-    if (!(exception instanceof Class<?>)) {
-        throw new IllegalArgumentException("exception must be a Class");
-    }
-    Class<?> exClass = (Class<?>) exception;
-    String msg = String.valueOf(message);
-    try {
-        Throwable toThrow;
-        try {
-            var ctorWithMsg = exClass.getDeclaredConstructor(String.class);
-            ctorWithMsg.setAccessible(true);
-            Object exObj = ctorWithMsg.newInstance(msg);
-            if (exObj instanceof Throwable) {
-                toThrow = (Throwable) exObj;
-            } else {
-                toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
-            }
-        } catch (NoSuchMethodException innerNoStringCtor) {
-            var defaultCtor = exClass.getDeclaredConstructor();
-            defaultCtor.setAccessible(true);
-            Object exObj = defaultCtor.newInstance();
-            if (exObj instanceof Throwable) {
-                toThrow = (Throwable) exObj;
-            } else {
-                toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
-            }
+        if (exception == null) {
+            throw new RuntimeException(String.valueOf(message));
         }
-        throw toThrow;
-    } catch (Throwable reflectError) {
-        throw new RuntimeException("Failed to throw dynamic exception: " + exClass.getName() + " :: " + msg, reflectError);
+        if (!(exception instanceof Class<?>)) {
+            throw new IllegalArgumentException("exception must be a Class");
+        }
+
+        Class<?> exClass = (Class<?>) exception;
+        String msg = String.valueOf(message);
+
+        if (!Throwable.class.isAssignableFrom(exClass)) {
+            throw new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
+        }
+
+        try {
+            Throwable toThrow;
+            try {
+                var ctorWithMsg = exClass.getDeclaredConstructor(String.class);
+                ctorWithMsg.setAccessible(true);
+                toThrow = (Throwable) ctorWithMsg.newInstance(msg);
+            } catch (NoSuchMethodException innerNoStringCtor) {
+                var defaultCtor = exClass.getDeclaredConstructor();
+                defaultCtor.setAccessible(true);
+                toThrow = (Throwable) defaultCtor.newInstance();
+            }
+
+            // IMPORTANT: do not catch this with catch(Throwable)
+            throwUnchecked(toThrow);
+
+        } catch (ReflectiveOperationException | SecurityException reflectError) {
+            throw new RuntimeException(
+                "Failed to construct dynamic exception: " + exClass.getName() + " :: " + msg,
+                reflectError
+            );
+        }
     }
+
+@SuppressWarnings("unchecked")
+private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
+    throw (T) t;
 }
+
+//     public static void throwDynamicException(Object exception, Object message) {
+//     if (exception == null) {
+//         throw new RuntimeException(String.valueOf(message));
+//     }
+//     if (!(exception instanceof Class<?>)) {
+//         throw new IllegalArgumentException("exception must be a Class");
+//     }
+//     Class<?> exClass = (Class<?>) exception;
+//     String msg = String.valueOf(message);
+//     try {
+//         Throwable toThrow;
+//         try {
+//             var ctorWithMsg = exClass.getDeclaredConstructor(String.class);
+//             ctorWithMsg.setAccessible(true);
+//             Object exObj = ctorWithMsg.newInstance(msg);
+//             if (exObj instanceof Throwable) {
+//                 toThrow = (Throwable) exObj;
+//             } else {
+//                 toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
+//             }
+//         } catch (NoSuchMethodException innerNoStringCtor) {
+//             var defaultCtor = exClass.getDeclaredConstructor();
+//             defaultCtor.setAccessible(true);
+//             Object exObj = defaultCtor.newInstance();
+//             if (exObj instanceof Throwable) {
+//                 toThrow = (Throwable) exObj;
+//             } else {
+//                 toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
+//             }
+//         }
+//         throw toThrow;
+//     } catch (Throwable reflectError) {
+//         throw new RuntimeException("Failed to throw dynamic exception: " + exClass.getName() + " :: " + msg, reflectError);
+//     }
+// }
 
     public static String padEnd(Object input, Object length2, Object padStr) {
         int length = toInt(length2);
@@ -901,5 +945,29 @@ public class Helpers {
         }
 
         return null;
+    }
+
+    public static boolean isInstance(Object value, Object type) {
+        if (!(type instanceof Class<?> clazz)) {
+            return false;
+        }
+
+        Object target = unwrapIfThrowable(value);
+        return clazz.isInstance(target);
+    }
+
+    private static Object unwrapIfThrowable(Object value) {
+        if (!(value instanceof Throwable t)) {
+            return value; // normal object, no unwrap
+        }
+
+        // unwrap async wrappers
+        while (t instanceof CompletionException || t instanceof ExecutionException) {
+            if (t.getCause() == null) {
+                break;
+            }
+            t = t.getCause();
+        }
+        return t;
     }
 }

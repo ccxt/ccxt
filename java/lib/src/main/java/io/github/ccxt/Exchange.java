@@ -323,8 +323,9 @@ public class Exchange {
         this.substituteCommonCurrencyCodes = (subVal != null) ? (Boolean) subVal : true;
 
         // this.name       = SafeMethods.SafeStringTyped(extendedProperties, "name", "");
-        this.httpsProxy = SafeMethods.SafeStringTyped(extendedProperties, "httpsProxy", "");
-        this.httpProxy  = SafeMethods.SafeStringTyped(extendedProperties, "httpProxy", "");
+        this.httpsProxy = SafeMethods.SafeString(extendedProperties, "httpsProxy");
+        this.httpProxy  = SafeMethods.SafeString(extendedProperties, "httpProxy");
+        this.proxyUrl   = SafeMethods.SafeString(extendedProperties, "proxyUrl");
 
         Boolean newUpdatesTmp = (Boolean) SafeMethods.SafeValue(extendedProperties, "newUpdates", false);
         this.newUpdates = (newUpdatesTmp != null) ? newUpdatesTmp : true;
@@ -1493,7 +1494,7 @@ public class Exchange {
             );
         }
 
-        // this.checkProxySettings(url, method, headers, body);
+         this.checkProxySettings(url, method, headers, body);
 
         List<String> headerKeys = new java.util.ArrayList<>(headers.keySet());
         String contentType = "";
