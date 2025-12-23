@@ -226,6 +226,9 @@ export default class xcoin extends Exchange {
                     'TIA': 'tia',
                     'XLM': 'xlm',
                 },
+                'networksById': {
+                    'trc': 'TRC20',
+                },
             },
             'features': {
                 'default': {
