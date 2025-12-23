@@ -317,7 +317,7 @@ export default class bydfi extends Exchange {
      * @method
      * @name bydfi#fetchMarkets
      * @description retrieves data on all markets for bydfi
-     * @see
+     * @see https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -475,9 +475,9 @@ export default class bydfi extends Exchange {
 
     /**
      * @method
-     * @name alpaca#fetchOrderBook
+     * @name bydfi#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
+     * @see https://developers.bydfi.com/en/swap/market#depth-information
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -597,7 +597,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
@@ -1426,6 +1426,7 @@ export default class bydfi extends Exchange {
      * @name bydfi#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
+     * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1495,6 +1496,7 @@ export default class bydfi extends Exchange {
      * @name bydfi#fetchOpenOrder
      * @description fetch an open order by the id
      * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
+     * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
      * @param {string} id order id (mandatory if params.clientOrderId is not provided)
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1934,8 +1936,8 @@ export default class bydfi extends Exchange {
 
     /**
      * @method
-     * @description fetch open positions for a single market
      * @name bydfi#fetchPositionsForSymbol
+     * @description fetch open positions for a single market
      * @see https://developers.bydfi.com/en/swap/trade#positions-query
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
