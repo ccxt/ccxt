@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees, LedgerEntry, DepositAddress, Position, TransferEntry } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -149,6 +149,7 @@ export default class coinbase extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
                 'fetchTradingFees': true,
+                'fetchtransfers': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -5299,5 +5300,28 @@ export default class coinbase extends Exchange {
         const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         return this.parseDepositAddresses (data, codes, false, {});
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.cdp.coinbase.com/coinbase-business/track-apis/transactions
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request = this.prepareAccountRequest (undefined, params);
+        const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
+        const data = this.safeList (response, "data", []);
+        return this.parseTransfers (data, currency, since, limit);
     }
 }
