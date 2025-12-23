@@ -3,7 +3,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ export default class lighter extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
@@ -279,10 +279,19 @@ export default class lighter extends Exchange {
         return signer;
     }
 
-    createAuth () {
+    createAuth (params = {}) {
         const privateKey = this.privateKey;
-        const apiKeyIndex = this.handleOption ('createAuth', 'apiKeyIndex');
-        const accountIndex = this.handleOption ('createAuth', 'accountIndex');
+        // don't omit [accountIndex, apiKeyIndex], request may need them
+        let apiKeyIndex = this.safeInteger2 (params, 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            const res = this.handleOptionAndParams2 ({}, 'createAuth', 'apiKeyIndex', 'api_key_index');
+            apiKeyIndex = this.safeInteger (res, 0);
+        }
+        let accountIndex = this.safeInteger2 (params, 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
+            accountIndex = this.safeInteger (res, 0);
+        }
         const signer = this.loadAccount (304, privateKey, apiKeyIndex, accountIndex);
         const rs = {
             'deadline': this.seconds () + 60,
@@ -447,39 +456,6 @@ export default class lighter extends Exchange {
         // }
         //
         return this.parseOrder (response, market);
-    }
-
-    parseOrder (order: Dict, market: Market = undefined): Order {
-        return this.safeOrder ({
-            'info': order,
-            'id': undefined,
-            'clientOrderId': undefined,
-            'symbol': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
-            'triggerPrice': undefined,
-            'stopLossPrice': undefined,
-            'takeProfitPrice': undefined,
-            'average': undefined,
-            'cost': undefined,
-            'amount': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
-            'fee': {
-                'currency': undefined,
-                'cost': undefined,
-            },
-            'trades': undefined,
-            'reduceOnly': undefined,
-        }, market);
     }
 
     /**
@@ -770,7 +746,7 @@ export default class lighter extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'market_id');
-        market = this.safeMarket (marketId, market, undefined, 'swap');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_trade_price');
         const high = this.safeString (ticker, 'daily_price_high');
@@ -1069,10 +1045,11 @@ export default class lighter extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const accountIndex = this.handleOption ('createAuth', 'accountIndex');
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'accountIndex', 'account_index');
         const request: Dict = {
             'by': this.safeString (params, 'by', 'index'),
-            'value': this.safeString (params, 'value', accountIndex),
+            'value': accountIndex,
         };
         const response = await this.publicGetAccount (this.extend (request, params));
         //
@@ -1166,10 +1143,11 @@ export default class lighter extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        const accountIndex = this.handleOption ('createAuth', 'accountIndex');
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchPositions', 'accountIndex', 'account_index');
         const request: Dict = {
             'by': this.safeString (params, 'by', 'index'),
-            'value': this.safeString (params, 'value', accountIndex),
+            'value': accountIndex,
         };
         const response = await this.publicGetAccount (this.extend (request, params));
         //
@@ -1254,7 +1232,7 @@ export default class lighter extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'market_id');
-        market = this.safeMarket (marketId, market, undefined, 'swap');
+        market = this.safeMarket (marketId, market);
         const sign = this.safeInteger (position, 'sign');
         let side = undefined;
         if (sign !== undefined) {
@@ -1297,12 +1275,215 @@ export default class lighter extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name lighter#fetchClosedOrders
+     * @description fetch all unfilled currently closed orders
+     * @see https://apidocs.lighter.xyz/reference/accountinactiveorders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchClosedOrders', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an accountIndex parameter');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market_id': market['id'],
+            'account_index': accountIndex,
+            'limit': 100, // required, max 100
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 100);
+        }
+        const response = await this.privateGetAccountInactiveOrders (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "orders": [
+        //             {
+        //                 "order_index": 281474977354074,
+        //                 "client_order_index": 0,
+        //                 "order_id": "281474977354074",
+        //                 "client_order_id": "0",
+        //                 "market_index": 0,
+        //                 "owner_account_index": 1077,
+        //                 "initial_base_amount": "36.0386",
+        //                 "price": "2221.60",
+        //                 "nonce": 643418,
+        //                 "remaining_base_amount": "0.0000",
+        //                 "is_ask": true,
+        //                 "base_size": 0,
+        //                 "base_price": 222160,
+        //                 "filled_base_amount": "0.0000",
+        //                 "filled_quote_amount": "0.000000",
+        //                 "side": "",
+        //                 "type": "market",
+        //                 "time_in_force": "immediate-or-cancel",
+        //                 "reduce_only": false,
+        //                 "trigger_price": "0.00",
+        //                 "order_expiry": 0,
+        //                 "status": "canceled-margin-not-allowed",
+        //                 "trigger_status": "na",
+        //                 "trigger_time": 0,
+        //                 "parent_order_index": 0,
+        //                 "parent_order_id": "0",
+        //                 "to_trigger_order_id_0": "0",
+        //                 "to_trigger_order_id_1": "0",
+        //                 "to_cancel_order_id_0": "0",
+        //                 "block_height": 102202,
+        //                 "timestamp": 1766387932,
+        //                 "created_at": 1766387932,
+        //                 "updated_at": 1766387932
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'orders', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "order_index": 281474977354074,
+        //         "client_order_index": 0,
+        //         "order_id": "281474977354074",
+        //         "client_order_id": "0",
+        //         "market_index": 0,
+        //         "owner_account_index": 1077,
+        //         "initial_base_amount": "36.0386",
+        //         "price": "2221.60",
+        //         "nonce": 643418,
+        //         "remaining_base_amount": "0.0000",
+        //         "is_ask": true,
+        //         "base_size": 0,
+        //         "base_price": 222160,
+        //         "filled_base_amount": "0.0000",
+        //         "filled_quote_amount": "0.000000",
+        //         "side": "",
+        //         "type": "market",
+        //         "time_in_force": "immediate-or-cancel",
+        //         "reduce_only": false,
+        //         "trigger_price": "0.00",
+        //         "order_expiry": 0,
+        //         "status": "canceled-margin-not-allowed",
+        //         "trigger_status": "na",
+        //         "trigger_time": 0,
+        //         "parent_order_index": 0,
+        //         "parent_order_id": "0",
+        //         "to_trigger_order_id_0": "0",
+        //         "to_trigger_order_id_1": "0",
+        //         "to_cancel_order_id_0": "0",
+        //         "block_height": 102202,
+        //         "timestamp": 1766387932,
+        //         "created_at": 1766387932,
+        //         "updated_at": 1766387932
+        //     }
+        //
+        const marketId = this.safeString (order, 'market_index');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const isAsk = this.safeBool (order, 'is_ask');
+        let side = undefined;
+        if (isAsk !== undefined) {
+            side = isAsk ? 'sell' : 'buy';
+        }
+        const type = this.safeString (order, 'type');
+        const tif = this.safeString (order, 'time_in_force');
+        const status = this.safeString (order, 'status');
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'order_id'),
+            'clientOrderId': this.omitZero (this.safeString (order, 'client_order_id')),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeTimestamp (order, 'updated_at'),
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (type),
+            'timeInForce': this.parseOrderTimeInForeces (tif),
+            'postOnly': undefined,
+            'reduceOnly': this.safeBool (order, 'reduce_only'),
+            'side': side,
+            'price': this.safeString (order, 'price'),
+            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'trigger_price'))),
+            'amount': this.safeString (order, 'initial_base_amount'),
+            'cost': this.safeString (order, 'filled_quote_amount'),
+            'average': undefined,
+            'filled': this.safeString (order, 'filled_base_amount'),
+            'remaining': this.safeString (order, 'remaining_base_amount'),
+            'status': this.parseOrderStatus (status),
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'in-progress': 'open',
+            'pending': 'open',
+            'open': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'canceled-post-only': 'canceled',
+            'canceled-reduce-only': 'canceled',
+            'canceled-position-not-allowed': 'rejected',
+            'canceled-margin-not-allowed': 'rejected',
+            'canceled-too-much-slippage': 'canceled',
+            'canceled-not-enough-liquidity': 'canceled',
+            'canceled-self-trade': 'canceled',
+            'canceled-expired': 'expired',
+            'canceled-oco': 'canceled',
+            'canceled-child': 'canceled',
+            'canceled-liquidation': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status) {
+        const statuses: Dict = {
+            'limit': 'limit',
+            'market': 'market',
+            'stop-loss': 'market',
+            'stop-loss-limit': 'limit',
+            'take-profit': 'market',
+            'take-profit-limit': 'limit',
+            'twap': 'twap',
+            'twap-sub': 'twap',
+            'liquidation': 'market',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderTimeInForeces (tif) {
+        const timeInForces: Dict = {
+            'good-till-time': 'GTC',
+            'immediate-or-cancel': 'IOC',
+            'post-only': 'PO',
+            'Unknown': undefined,
+        };
+        return this.safeString (timeInForces, tif, tif);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = undefined;
         if (api === 'root') {
             url = this.implodeHostname (this.urls['api']['public']);
         } else {
             url = this.implodeHostname (this.urls['api'][api]) + '/api/' + this.version + '/' + path;
+        }
+        if (api === 'private') {
+            headers = {
+                'Authorization': this.createAuth (params),
+            };
         }
         if (Object.keys (params).length) {
             if (method === 'POST') {
@@ -1313,12 +1494,6 @@ export default class lighter extends Exchange {
             } else {
                 url += '?' + this.rawencode (params);
             }
-        }
-        if (api === 'private') {
-            // this.checkRequiredCredentials ();
-            headers = {
-                'Authorization': this.createAuth (),
-            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
