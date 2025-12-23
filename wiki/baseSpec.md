@@ -2339,18 +2339,20 @@ fetch the deposit address for a currency associated with this account
 <a name="fetchDepositAddresses" id="fetchdepositaddresses"></a>
 
 ## fetchDepositAddresses
-fetch deposit addresses for multiple currencies and chain types
+fetch deposit addresses for multiple currencies (when available)
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by currency code
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified currency codes, default is undefined |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes, default is undefined (all currencies) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountId | <code>string</code> | No | account ID to fetch deposit addresses for |
 
 ##### Supported exchanges
+* [coinbase](/exchanges/coinbase.md#fetchdepositaddresses)
 * [coinone](/exchanges/coinone.md#fetchdepositaddresses)
 * [deepcoin](/exchanges/deepcoin.md#fetchdepositaddresses)
 * [hollaex](/exchanges/hollaex.md#fetchdepositaddresses)
