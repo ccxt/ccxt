@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported, PermissionD
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TransferEntry, Ticker, Tickers } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ export default class bydfi extends Exchange {
             'rateLimit': 50, // 20 requests per second
             'version': 'v1',
             'certified': false,
-            'pro': false, // todo set to true when pro file will be implemented
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -93,7 +93,7 @@ export default class bydfi extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
@@ -216,7 +216,7 @@ export default class bydfi extends Exchange {
                     'get': {
                         'v1/account/assets': 1, // done
                         'v1/account/transfer_records': 1, // done
-                        'v1/spot/deposit_records': 1, // https://developers.bydfi.com/en/spot/account#query-deposit-records
+                        'v1/spot/deposit_records': 1, // done
                         'v1/spot/withdraw_records': 1, // https://developers.bydfi.com/en/spot/account#query-withdrawal-records
                         'v1/swap/trade/open_order': 1, // done
                         'v1/swap/trade/plan_order': 1, // done
@@ -290,6 +290,9 @@ export default class bydfi extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                'networks': {
+                    'ERC20': 'ETH', // todo add more networks
+                },
                 'timeInForce': {
                     'GTC': 'GTC', // Good Till Cancelled
                     'FOK': 'FOK', // Fill Or Kill
@@ -405,10 +408,10 @@ export default class bydfi extends Exchange {
         const inverse = this.safeBool (market, 'reverse');
         const limitMaxQty = this.safeString (market, 'limitMaxQty');
         const marketMaxQty = this.safeString (market, 'marketMaxQty');
-        const maxAmountString = Precise.stringMax (limitMaxQty, marketMaxQty); // todo: check which one is correct
+        const maxAmountString = Precise.stringMax (limitMaxQty, marketMaxQty);
         const marketMinQty = this.safeString (market, 'marketMinQty');
         const limitMinQty = this.safeString (market, 'limitMinQty');
-        const minAmountString = Precise.stringMin (marketMinQty, limitMinQty); // todo: check which one is correct
+        const minAmountString = Precise.stringMin (marketMinQty, limitMinQty);
         const contractSize = this.safeString (market, 'contractFactor');
         const pricePrecision = this.parsePrecision (this.safeString (market, 'priceOrderPrecision'));
         const rawAmountPrecision = this.parsePrecision (this.safeString (market, 'volumePrecision'));
@@ -976,6 +979,7 @@ export default class bydfi extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // todo check for hedged mode
         let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
@@ -2110,6 +2114,26 @@ export default class bydfi extends Exchange {
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        // transfer
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "success": true
+        //     }
+        //
+        // fetchTransfers
+        //     {
+        //         "orderId": "1209991065294581760",
+        //         "txId": "6km5fRK83Gwdp43HA479DW1Colh2pKyS",
+        //         "sourceWallet": "SPOT",
+        //         "targetWallet": "SWAP",
+        //         "asset": "USDC",
+        //         "amount": "100",
+        //         "status": "SUCCESS",
+        //         "timestamp": 1766413950000
+        //     }
+        //
         const status = this.safeStringUpper2 (transfer, 'message', 'status');
         const accountsById = this.safeDict (this.options, 'accountsById', {});
         const fromId = this.safeStringUpper (transfer, 'sourceWallet');
@@ -2136,6 +2160,153 @@ export default class bydfi extends Exchange {
             'SUCCESS': 'ok',
             'WAIT': 'pending',
             'FAILED': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://developers.bydfi.com/en/spot/account#query-deposit-records
+     * @param {string} code unified currency code (mandatory)
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const paginate = this.safeBool (params, 'paginate', false);
+        if (paginate) {
+            const maxLimit = 50;
+            params = this.omit (params, 'paginate');
+            params = this.extend (params, { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', currency['code'], since, limit, params, maxLimit, true);
+            return this.sortBy (paginatedResponse, 'timestamp');
+        }
+        const request: Dict = {
+            'asset': currency['id'],
+        };
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        const now = this.milliseconds ();
+        const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
+        let startTime = since;
+        if (startTime === undefined) {
+            if (until === undefined) {
+                // both since and until are undefined
+                startTime = now - sevenDays;
+                until = now;
+            } else {
+                // since is undefined but until is defined
+                startTime = until - sevenDays;
+            }
+        } else if (until === undefined) {
+            // until is undefined but since is defined
+            const delta = now - startTime;
+            if (delta > sevenDays) {
+                until = startTime + sevenDays;
+            } else {
+                until = now;
+            }
+        }
+        request['startTime'] = startTime;
+        request['endTime'] = until;
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV1SpotDepositRecords (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "orderId": "1208864446987255809",
+        //                 "asset": "USDC",
+        //                 "amount": "200",
+        //                 "status": "SUCCESS",
+        //                 "txId": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
+        //                 "network": "ETH",
+        //                 "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
+        //                 "addressTag": null,
+        //                 "finishTime": 1766145475000,
+        //                 "createTime": 1766145344000
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const transactionParams: Dict = {
+            'type': 'deposit',
+        };
+        params = this.extend (params, transactionParams);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
+        //     {
+        //         "orderId": "1208864446987255809",
+        //         "asset": "USDC",
+        //         "amount": "200",
+        //         "status": "SUCCESS",
+        //         "txId": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
+        //         "network": "ETH",
+        //         "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
+        //         "addressTag": null,
+        //         "finishTime": 1766145475000,
+        //         "createTime": 1766145344000
+        //     }
+        //
+        const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const rawStatus = this.safeStringLower (transaction, 'status');
+        const timestamp = this.safeInteger (transaction, 'createTime');
+        let fee = undefined;
+        const feeCost = this.safeNumber (transaction, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'orderId'),
+            'txid': this.safeString (transaction, 'txId'),
+            'type': undefined,
+            'currency': code,
+            'network': this.networkIdToCode (this.safeString (transaction, 'network')),
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (rawStatus),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'address'),
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': this.safeString (transaction, 'addressTag'),
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': this.safeInteger (transaction, 'finishTime'),
+            'comment': undefined,
+            'fee': fee,
+            'internal': false,
+        };
+    }
+
+    parseTransactionStatus (status: Str): Str {
+        const statuses = {
+            'success': 'ok',
+            'wait': 'pending',
+            'failed': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
