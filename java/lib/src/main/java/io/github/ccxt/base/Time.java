@@ -157,7 +157,8 @@ public final class Time {
     // -------- ymd/hms utilities --------
 
     public static String ymdhms(Object ts, Object infix) {
-        String sep = (infix == null) ? " " : String.valueOf(infix);
+//        String sep = (infix == null) ? " " : String.valueOf(infix);
+        String sep = (infix == null) ? " " : "'" + infix + "'";
         if (ts == null) return null;
         long ms = Long.parseLong(String.valueOf(ts));
         Instant inst = Instant.ofEpochMilli(ms);

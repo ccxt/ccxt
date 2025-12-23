@@ -529,7 +529,9 @@ public final class Crypto {
         // signer.update(msg, 0, msg.length);
         // byte[] sig = signer.generateSignature();
         // return Base64.getEncoder().encodeToString(sig);
-        throw new UnsupportedOperationException("Ed25519 signing not implemented");
+//        throw new UnsupportedOperationException("Ed25519 signing not implemented");
+        byte[] res = {}; // dummy for now implement it later todo
+        return "";
     }
 
     // ====================================================

@@ -2033,6 +2033,9 @@ class testMainClass {
     }
 
     async testWoofiPro () {
+        if (this.lang === 'java') {
+            return false; // skip for java for now due to issues with the starknet lib
+        }
         const exchange = this.initOfflineExchange ('woofipro');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXT';
@@ -2095,6 +2098,9 @@ class testMainClass {
     }
 
     async testParadex () {
+        if (this.lang === 'java') {
+            return false; // skip for java for now due to issues with the required lib
+        }
         const exchange = this.initOfflineExchange ('paradex');
         exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
         exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
@@ -2186,6 +2192,9 @@ class testMainClass {
     }
 
     async testDerive () {
+        if (this.lang === 'java') {
+            return false; // skip for java for now due to issues with the required lib
+        }
         const exchange = this.initOfflineExchange ('derive');
         const id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
         assert (exchange.options['id'] === id, 'derive - id: ' + id + ' not in options');
@@ -2210,6 +2219,9 @@ class testMainClass {
     }
 
     async testModeTrade () {
+        if (this.lang === 'java') {
+            return false; // skip for java for now due to issues with the required lib
+        }
         const exchange = this.initOfflineExchange ('modetrade');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXTMODE';
