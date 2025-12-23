@@ -1238,6 +1238,47 @@
                 }
               ]
           }
+      ],
+      "fetchTransfers": [
+          {
+              "parsedResponse": [
+                  {
+                      "info": {
+                          "user_uuid": "12345678-1234-1234-1234-123456789012",
+                          "total_volume": 1000.0,
+                          "total_fees": 5.0,
+                          "fee_tier": {
+                              "pricing_tier": "Advanced",
+                              "usd_from": "10000",
+                              "usd_to": "50000",
+                              "taker_fee_rate": "0.006",
+                              "maker_fee_rate": "0.004"
+                          },
+                          "margin_rate": {
+                              "value": "0.00"
+                          },
+                          "goods_and_services_tax": {
+                              "rate": "0.00",
+                              "type": "INCLUSIVE"
+                          },
+                          "advanced_trade_only_volume": 500.0,
+                          "advanced_trade_only_fees": 2.5,
+                          "coinbase_pro_volume": 0.0,
+                          "coinbase_pro_fees": 0.0,
+                          "total_balance": "10000.00",
+                          "has_promo_fee": false
+                      },
+                      "id": null,
+                      "timestamp": null,
+                      "datetime": null,
+                      "currency": null,
+                      "amount": null,
+                      "fromAccount": null,
+                      "toAccount": null,
+                      "status": null
+                  }
+              ]
+          }
       ]
     }
 }

@@ -5321,7 +5321,7 @@ export default class coinbase extends Exchange {
         }
         const request = this.prepareAccountRequest (undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
-        const data = this.safeList (response, "data", []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 }

@@ -651,6 +651,18 @@
               "USDT"
             ]
           }
+        ],
+        "fetchTransfers": [{
+            "description": "fetch transfers",
+            "method": "fetchTransfers",
+            "url": "https://api.coinbase.com/v2/accounts/{account_id}/transactions",
+            "input": [
+              null,
+              null,
+              null,
+              {}
+            ]
+          }
         ]
     }
 }
