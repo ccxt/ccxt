@@ -2269,7 +2269,7 @@ export default class bydfi extends Exchange {
     /**
      * @method
      * @name bydfi#setPositionMode
-     * @description set hedged to true or false for a market
+     * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
      * @see https://developers.bydfi.com/en/swap/user#change-position-mode-dual
      * @param {bool} hedged set to true to use dualSidePosition
      * @param {string} [symbol] not used by bydfi setPositionMode ()
@@ -2280,6 +2280,9 @@ export default class bydfi extends Exchange {
      * @returns {object} response from the exchange
      */
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        if (symbol !== undefined) {
+            throw new BadRequest (this.id + ' setPositionMode() does not accept a symbol argument. The position mode is set identically for all markets with same settle currency');
+        }
         await this.loadMarkets ();
         const positionType = hedged ? 'HEDGE' : 'ONEWAY';
         let wallet = 'W001';
@@ -2307,22 +2310,28 @@ export default class bydfi extends Exchange {
     /**
      * @method
      * @name bydfi#fetchPositionMode
-     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @description fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
      * @see https://developers.bydfi.com/en/swap/user#get-position-mode
-     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {string} [symbol] unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
-     * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
+     * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
         let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'wallet', wallet);
         let contractType = 'FUTURE';
         [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'contractType', contractType);
         let settleCoin = 'USDT';
-        [ settleCoin, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'settleCoin', settleCoin);
+        if (symbol === undefined) {
+            [ settleCoin, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'settleCoin', settleCoin);
+        } else {
+            const market = this.market (symbol);
+            settleCoin = market['settleId'];
+        }
         const request: Dict = {
             'contractType': contractType,
             'settleCoin': settleCoin,
