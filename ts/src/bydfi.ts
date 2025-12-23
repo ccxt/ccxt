@@ -128,7 +128,7 @@ export default class bydfi extends Exchange {
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -145,11 +145,11 @@ export default class bydfi extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchOrderWithClientOrderId': false,
                 'fetchPosition': false,
-                'fetchPositionHistory': false,
+                'fetchPositionHistory': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
-                'fetchPositionsHistory': false,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
@@ -222,8 +222,8 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/plan_order': 1, // done
                         'v1/swap/trade/leverage': 1, // done
                         'v1/swap/trade/history_order': 1, // done
-                        'v1/swap/trade/history_trade': 1, // https://developers.bydfi.com/en/swap/trade#historical-trades-query
-                        'v1/swap/trade/position_history': 1, // https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+                        'v1/swap/trade/history_trade': 1, // done
+                        'v1/swap/trade/position_history': 1, // done
                         'v1/swap/trade/positions': 1, // done
                         'v1/swap/account/balance': 1, // done
                         'v1/swap/user_data/assets_margin': 1, // done
@@ -582,6 +582,81 @@ export default class bydfi extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bydfi#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://developers.bydfi.com/en/swap/trade#historical-trades-query
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.wallet] The unique code of a sub-wallet
+     * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const paginate = this.safeBool (params, 'paginate', false);
+        if (paginate) {
+            const maxLimit = 500;
+            params = this.omit (params, 'paginate');
+            params = this.extend (params, { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, maxLimit, true);
+            return this.sortBy (paginatedResponse, 'timestamp');
+        }
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'contractType', contractType);
+        const request: Dict = {
+            'contractType': contractType,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        params = this.handleSinceAndUntil ('fetchMyTrades', since, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const orderType = this.safeStringUpper (params, 'orderType');
+        if (orderType !== undefined) {
+            params = this.omit (params, 'orderType');
+            request['orderType'] = orderType;
+        }
+        const response = await this.privateGetV1SwapTradeHistoryTrade (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "orderId": "7408919189505597440",
+        //                 "wallet": "W001",
+        //                 "symbol": "ETH-USDC",
+        //                 "time": "1766423985842",
+        //                 "dealPrice": "3032.45",
+        //                 "dealVolume": "1",
+        //                 "fee": "0",
+        //                 "side": "BUY",
+        //                 "type": "2",
+        //                 "liqPrice": null,
+        //                 "basePrecision": "8",
+        //                 "baseShowPrecision": "2",
+        //                 "tradePnl": "0",
+        //                 "marginType": "CROSS",
+        //                 "leverageLevel": 1
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
@@ -594,24 +669,67 @@ export default class bydfi extends Exchange {
         //         "time": 1766163153218
         //     }
         //
+        // fetchMyTrades
+        //     {
+        //         "orderId": "7408919189505597440",
+        //         "wallet": "W001",
+        //         "symbol": "ETH-USDC",
+        //         "time": "1766423985842",
+        //         "dealPrice": "3032.45",
+        //         "dealVolume": "1",
+        //         "fee": "0",
+        //         "side": "BUY",
+        //         "type": "2",
+        //         "liqPrice": null,
+        //         "basePrecision": "8",
+        //         "baseShowPrecision": "2",
+        //         "tradePnl": "0",
+        //         "marginType": "CROSS",
+        //         "leverageLevel": 1
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
+        let fee = undefined;
+        const rawType = this.safeString (trade, 'type');
+        const feeCost = this.safeString (trade, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
+        const orderId = this.safeString (trade, 'orderId');
+        let side: Str = undefined; // fetchMyTrades always returns side BUY
+        if (orderId === undefined) {
+            // from fetchTrades
+            side = this.safeStringLower (trade, 'side');
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'id': this.safeString (trade, 'id'),
-            'order': undefined,
-            'type': undefined,
-            'side': this.safeStringLower (trade, 'side'),
+            'order': orderId,
+            'type': this.parseTradeType (rawType),
+            'side': side,
             'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'quantity'),
+            'price': this.safeString2 (trade, 'price', 'dealPrice'),
+            'amount': this.safeString2 (trade, 'quantity', 'dealVolume'),
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         }, market);
+    }
+
+    parseTradeType (type: Str): Str {
+        const types = {
+            '1': 'limit',
+            '2': 'market',
+            '3': 'liquidation',
+        };
+        return this.safeString (types, type, type);
     }
 
     /**
@@ -661,11 +779,8 @@ export default class bydfi extends Exchange {
         }
         request['startTime'] = startTime;
         request['endTime'] = until;
-        // if (limit !== undefined) {
-        //     request['limit'] = limit;
-        // }
-        if (until !== undefined) {
-            request['endTime'] = until;
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
         const response = await this.publicGetV1SwapMarketKlines (this.extend (request, params));
         //
@@ -1454,9 +1569,14 @@ export default class bydfi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil (since, params);
+        params = this.handleSinceAndUntil ('fetchCanceledAndClosedOrders', since, params);
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        const orderType = this.safeStringUpper (params, 'orderType');
+        if (orderType !== undefined) {
+            params = this.omit (params, 'orderType');
+            request['type'] = orderType;
         }
         const response = await this.privateGetV1SwapTradeHistoryOrder (this.extend (request, params));
         //
@@ -1508,9 +1628,9 @@ export default class bydfi extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    handleSinceAndUntil (since: Int = undefined, params = {}): Dict {
+    handleSinceAndUntil (methodName: string, since: Int = undefined, params = {}): Dict {
         let until = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
@@ -1839,6 +1959,7 @@ export default class bydfi extends Exchange {
 
     parsePosition (position: Dict, market: Market = undefined) {
         //
+        // fetchPositions, fetchPositionsForSymbol
         //     {
         //         "symbol": "ETH-USDC",
         //         "side": "BUY",
@@ -1853,33 +1974,87 @@ export default class bydfi extends Exchange {
         //         "mm": "0.007581125"
         //     }
         //
+        // fetchPositionsHistory
+        //     {
+        //         "id": "16788366",
+        //         "wallet": "W001",
+        //         "currency": "USDC",
+        //         "symbol": "ETH-USDC",
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "leverage": 1,
+        //         "avgOpenPositionPrice": "3032.45",
+        //         "openPositionVolume": "1",
+        //         "openCount": 1,
+        //         "highPrice": "3032.45",
+        //         "lowPrice": "2953.67",
+        //         "avgClosePositionPrice": "2953.67",
+        //         "closePositionVolume": "1",
+        //         "closePositionCost": "2.95367",
+        //         "closeCount": 1,
+        //         "positionProfits": "-0.07878",
+        //         "lossBonus": "0",
+        //         "capitalFeeTotal": "-0.00026361",
+        //         "capitalFeeOutCash": "-0.00026361",
+        //         "capitalFeeInCash": "0",
+        //         "capitalFeeBonus": "0",
+        //         "openFeeTotal": "-0.00181947",
+        //         "openFeeBonus": "0",
+        //         "closeFeeTotal": "-0.00177221",
+        //         "closeFeeBonus": "0",
+        //         "liqLoss": "0",
+        //         "liqClosed": false,
+        //         "sequence": "53685341336",
+        //         "updateTime": "1766494929423",
+        //         "createTime": "1766423985842"
+        //     }
+        //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
+        const buyOrSell = this.safeString (position, 'side');
+        const rawPositionSide = this.safeStringLower (position, 'positionSide');
+        let positionSide = this.parsePositionSide (buyOrSell);
+        let hedged = undefined;
+        let isFetchPositionsHistory = false;
+        if (rawPositionSide !== undefined) {
+            isFetchPositionsHistory = true;
+            if (rawPositionSide !== 'both') {
+                positionSide = rawPositionSide;
+                hedged = true;
+            } else {
+                hedged = false;
+            }
+        }
         const contractSize = this.safeString (market, 'contractSize');
-        const volume = this.safeString (position, 'volume');
-        const contracts = Precise.stringDiv (volume, contractSize);
-        const side = this.safeString (position, 'side');
-        const timestamp = this.safeInteger (position, 'updatedTime');
+        let contracts = this.safeString2 (position, 'volume', 'openPositionVolume');
+        if (!isFetchPositionsHistory) {
+            // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
+            contracts = Precise.stringDiv (contracts, contractSize);
+        }
+        const timestamp = this.safeInteger (position, 'createTime');
         return this.safePosition ({
             'info': position,
-            'id': undefined,
+            'id': this.safeString (position, 'id'),
             'symbol': market['symbol'],
-            'entryPrice': this.parseNumber (this.safeString (position, 'avgPrice')),
+            'entryPrice': this.parseNumber (this.safeString2 (position, 'avgOpenPositionPrice', 'avgPrice')),
             'markPrice': this.parseNumber (this.safeString (position, 'markPrice')),
-            'notional': undefined,
+            'lastPrice': this.parseNumber (this.safeString (position, 'avgClosePositionPrice')),
+            'notional': this.parseNumber (this.safeString (position, 'closePositionCost')),
             'collateral': undefined,
             'unrealizedPnl': this.parseNumber (this.safeString (position, 'unPnl')),
-            'side': this.parasePositionSide (side),
+            'realizedPnl': this.parseNumber (this.safeString (position, 'positionProfits')),
+            'side': positionSide,
             'contracts': this.parseNumber (contracts),
             'contractSize': this.parseNumber (contractSize),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'hedged': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'updateTime'),
+            'hedged': hedged,
             'maintenanceMargin': this.parseNumber (this.safeString (position, 'mm')),
             'maintenanceMarginPercentage': undefined,
             'initialMargin': this.parseNumber (this.safeString (position, 'im')),
             'initialMarginPercentage': undefined,
-            'leverage': undefined,
+            'leverage': this.parseNumber (this.safeString (position, 'leverage')),
             'liquidationPrice': this.parseNumber (this.safeString (position, 'liqPrice')),
             'marginRatio': undefined,
             'marginMode': undefined,
@@ -1887,12 +2062,120 @@ export default class bydfi extends Exchange {
         });
     }
 
-    parasePositionSide (side: Str): Str {
+    parsePositionSide (side: Str): Str {
         const sides = {
             'BUY': 'long',
             'SELL': 'short',
         };
         return this.safeString (sides, side, side);
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+     * @param {string} symbol a unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
+     * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
+     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'contractType', contractType);
+        const request: Dict = {
+            'symbol': market['id'],
+            'contractType': contractType,
+        };
+        params = this.handleSinceAndUntil ('fetchPositionsHistory', since, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV1SwapTradePositionHistory (this.extend (request, params));
+        //
+        //
+        const data = this.safeList (response, 'data', []);
+        const positions = this.parsePositions (data);
+        return this.filterBySinceLimit (positions, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchPositionsHistory
+     * @description fetches historical positions
+     * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+     * @param {string[]} symbols a list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
+     * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
+     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'contractType', contractType);
+        const request: Dict = {
+            'contractType': contractType,
+        };
+        params = this.handleSinceAndUntil ('fetchPositionsHistory', since, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV1SwapTradePositionHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "id": "16788366",
+        //                 "wallet": "W001",
+        //                 "currency": "USDC",
+        //                 "symbol": "ETH-USDC",
+        //                 "side": "BUY",
+        //                 "positionSide": "BOTH",
+        //                 "leverage": 1,
+        //                 "avgOpenPositionPrice": "3032.45",
+        //                 "openPositionVolume": "1",
+        //                 "openCount": 1,
+        //                 "highPrice": "3032.45",
+        //                 "lowPrice": "2953.67",
+        //                 "avgClosePositionPrice": "2953.67",
+        //                 "closePositionVolume": "1",
+        //                 "closePositionCost": "2.95367",
+        //                 "closeCount": 1,
+        //                 "positionProfits": "-0.07878",
+        //                 "lossBonus": "0",
+        //                 "capitalFeeTotal": "-0.00026361",
+        //                 "capitalFeeOutCash": "-0.00026361",
+        //                 "capitalFeeInCash": "0",
+        //                 "capitalFeeBonus": "0",
+        //                 "openFeeTotal": "-0.00181947",
+        //                 "openFeeBonus": "0",
+        //                 "closeFeeTotal": "-0.00177221",
+        //                 "closeFeeBonus": "0",
+        //                 "liqLoss": "0",
+        //                 "liqClosed": false,
+        //                 "sequence": "53685341336",
+        //                 "updateTime": "1766494929423",
+        //                 "createTime": "1766423985842"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const positions = this.parsePositions (data, symbols);
+        return this.filterBySinceLimit (positions, since, limit);
     }
 
     /**
@@ -2429,7 +2712,7 @@ export default class bydfi extends Exchange {
             response = await this.privateGetV1SpotDepositRecords (this.extend (request, params));
         } else {
             //
-            // todo check after
+            // todo check after withdrawal
             //
             response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, params));
         }
