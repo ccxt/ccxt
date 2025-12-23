@@ -28,6 +28,9 @@ dependencies {
     implementation(libs.guava)
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.+")
+
+    implementation("org.web3j:crypto:4.12.2")
+
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
