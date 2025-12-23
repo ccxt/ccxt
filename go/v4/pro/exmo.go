@@ -46,8 +46,10 @@ func  (this *ExmoCore) Describe() interface{}  {
     })
 }
 func  (this *ExmoCore) RequestId() interface{}  {
+    this.LockId()
     var requestId interface{} = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
     ccxt.AddElementToObject(this.Options, "requestId", requestId)
+    this.UnlockId()
     return requestId
 }
 /**
@@ -55,7 +57,7 @@ func  (this *ExmoCore) RequestId() interface{}  {
  * @name exmo#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *ExmoCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -65,8 +67,8 @@ func  (this *ExmoCore) WatchBalance(optionalArgs ...interface{}) <- chan interfa
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes588 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes588)
+            retRes608 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes608)
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)
@@ -79,9 +81,9 @@ func  (this *ExmoCore) WatchBalance(optionalArgs ...interface{}) <- chan interfa
             }
             var request interface{} = this.DeepExtend(subscribe, query)
         
-                retRes6815 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
-                ccxt.PanicOnError(retRes6815)
-                ch <- retRes6815
+                retRes7015 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
+                ccxt.PanicOnError(retRes7015)
+                ch <- retRes7015
                 return nil
         
             }()
@@ -227,7 +229,7 @@ func  (this *ExmoCore) ParseMarginBalance(message interface{})  {
  * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *ExmoCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -237,8 +239,8 @@ func  (this *ExmoCore) WatchTicker(symbol interface{}, optionalArgs ...interface
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2178 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2178)
+            retRes2198 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2198)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -250,9 +252,9 @@ func  (this *ExmoCore) WatchTicker(symbol interface{}, optionalArgs ...interface
             }
             var request interface{} = this.DeepExtend(message, params)
         
-                retRes23015 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
-                ccxt.PanicOnError(retRes23015)
-                ch <- retRes23015
+                retRes23215 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
+                ccxt.PanicOnError(retRes23215)
+                ch <- retRes23215
                 return nil
         
             }()
@@ -265,7 +267,7 @@ func  (this *ExmoCore) WatchTicker(symbol interface{}, optionalArgs ...interface
  * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *ExmoCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -277,8 +279,8 @@ func  (this *ExmoCore) WatchTickers(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2438 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2438)
+            retRes2458 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2458)
             symbols = this.MarketSymbols(symbols, nil, false)
             var messageHashes interface{} = []interface{}{}
             var args interface{} = []interface{}{}
@@ -295,8 +297,8 @@ func  (this *ExmoCore) WatchTickers(optionalArgs ...interface{}) <- chan interfa
             }
             var request interface{} = this.DeepExtend(message, params)
         
-            retRes2598 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, request))
-            ccxt.PanicOnError(retRes2598)
+            retRes2618 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, request))
+            ccxt.PanicOnError(retRes2618)
         
             ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
             return nil
@@ -343,7 +345,7 @@ func  (this *ExmoCore) HandleTicker(client interface{}, message interface{})  {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *ExmoCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -357,8 +359,8 @@ func  (this *ExmoCore) WatchTrades(symbol interface{}, optionalArgs ...interface
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes3068 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3068)
+            retRes3088 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3088)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -424,7 +426,7 @@ func  (this *ExmoCore) HandleTrades(client interface{}, message interface{})  {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *ExmoCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -440,11 +442,11 @@ func  (this *ExmoCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes3728 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3728)
+            retRes3748 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3748)
         
-            retRes3738 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes3738)
+            retRes3758 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes3758)
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchMyTrades", nil, params)
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)
@@ -573,7 +575,7 @@ func  (this *ExmoCore) HandleMyTrades(client interface{}, message interface{})  
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *ExmoCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -585,8 +587,8 @@ func  (this *ExmoCore) WatchOrderBook(symbol interface{}, optionalArgs ...interf
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5008 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5008)
+            retRes5028 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5028)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -686,7 +688,7 @@ func  (this *ExmoCore) HandleDeltas(bookside interface{}, deltas interface{})  {
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *ExmoCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -702,11 +704,11 @@ func  (this *ExmoCore) WatchOrders(optionalArgs ...interface{}) <- chan interfac
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes6028 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6028)
+            retRes6048 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6048)
         
-            retRes6038 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes6038)
+            retRes6058 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes6058)
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchOrders", nil, params)
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)

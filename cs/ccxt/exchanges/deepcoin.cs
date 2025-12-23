@@ -129,7 +129,7 @@ public partial class deepcoin : Exchange
                 { "1y", "1Y" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/671bd35c-770e-4935-9070-f8fb114f79c4" },
+                { "logo", "https://github.com/user-attachments/assets/ddf3e178-c3b6-409d-8f9f-af8b7cf80454" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.deepcoin.com" },
                     { "private", "https://api.deepcoin.com" },
@@ -152,6 +152,9 @@ public partial class deepcoin : Exchange
                         { "deepcoin/market/trades", 1 },
                         { "deepcoin/market/mark-price-candles", 1 },
                         { "deepcoin/market/step-margin", 5 },
+                        { "deepcoin/trade/funding-rate", 5 },
+                        { "deepcoin/trade/fund-rate/current-funding-rate", 5 },
+                        { "deepcoin/trade/fund-rate/history", 5 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -164,9 +167,6 @@ public partial class deepcoin : Exchange
                         { "deepcoin/trade/finishOrderByID", 5 },
                         { "deepcoin/trade/orders-history", 5 },
                         { "deepcoin/trade/v2/orders-pending", 5 },
-                        { "deepcoin/trade/funding-rate", 5 },
-                        { "deepcoin/trade/fund-rate/current-funding-rate", 5 },
-                        { "deepcoin/trade/fund-rate/history", 5 },
                         { "deepcoin/trade/trigger-orders-pending", 5 },
                         { "deepcoin/trade/trigger-orders-history", 5 },
                         { "deepcoin/copytrading/support-contracts", 5 },
@@ -600,7 +600,7 @@ public partial class deepcoin : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -755,7 +755,7 @@ public partial class deepcoin : Exchange
      * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -848,7 +848,7 @@ public partial class deepcoin : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -967,7 +967,7 @@ public partial class deepcoin : Exchange
      * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] "spot" or "swap", the market type for the balance
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -1031,7 +1031,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1086,7 +1086,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1194,7 +1194,7 @@ public partial class deepcoin : Exchange
      * @see https://www.deepcoin.com/docs/assets/chainlist
      * @param {string[]|undefined} codes list of unified currency codes, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
@@ -1258,7 +1258,7 @@ public partial class deepcoin : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code for deposit chain
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -1332,7 +1332,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {string} [params.type] 'spot' or 'swap', the market type for the ledger (default 'spot')
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1458,7 +1458,7 @@ public partial class deepcoin : Exchange
      * @param {string} toAccount account to transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.userId] user id
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -1564,7 +1564,7 @@ public partial class deepcoin : Exchange
      * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1869,7 +1869,7 @@ public partial class deepcoin : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
@@ -1887,7 +1887,7 @@ public partial class deepcoin : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -1905,7 +1905,7 @@ public partial class deepcoin : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -1924,7 +1924,7 @@ public partial class deepcoin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchClosedOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1999,7 +1999,7 @@ public partial class deepcoin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2040,7 +2040,7 @@ public partial class deepcoin : Exchange
      * @param {string} [params.state] *non trigger orders only* 'canceled' or 'filled', the order state to filter by
      * @param {string} [params.OrderType] *trigger orders only* 'limit' or 'market'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2180,7 +2180,7 @@ public partial class deepcoin : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2205,7 +2205,7 @@ public partial class deepcoin : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2233,7 +2233,7 @@ public partial class deepcoin : Exchange
      * @param {bool} [params.trigger] whether to fetch trigger/algo orders (default false)
      * @param {int} [params.index] *non trigger orders only* pagination index, default is 1
      * @param {string} [params.orderType] *trigger orders only* 'limit' or 'market'
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2356,7 +2356,7 @@ public partial class deepcoin : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] whether the order is a trigger/algo order (default false)
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2394,7 +2394,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
      * @param {bool} [params.merged] *swap only* true for merged positions, false for split positions (default true)
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -2450,7 +2450,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -2524,7 +2524,7 @@ public partial class deepcoin : Exchange
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
@@ -2711,7 +2711,7 @@ public partial class deepcoin : Exchange
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
     {
@@ -2735,7 +2735,7 @@ public partial class deepcoin : Exchange
      * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -2915,7 +2915,7 @@ public partial class deepcoin : Exchange
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -2943,7 +2943,7 @@ public partial class deepcoin : Exchange
         object request = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        object response = await this.privateGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
+        object response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -2974,7 +2974,7 @@ public partial class deepcoin : Exchange
      * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -2989,7 +2989,7 @@ public partial class deepcoin : Exchange
             { "instId", getValue(market, "id") },
             { "instType", this.getProductGroupFromMarket(market) },
         };
-        object response = await this.privateGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
+        object response = await this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -3049,10 +3049,10 @@ public partial class deepcoin : Exchange
      * @see https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.page] pagination page number
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3070,7 +3070,7 @@ public partial class deepcoin : Exchange
         {
             ((IDictionary<string,object>)request)["size"] = limit; // default 20, max 100
         }
-        object response = await this.privateGetDeepcoinTradeFundRateHistory(this.extend(request, parameters));
+        object response = await this.publicGetDeepcoinTradeFundRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -3132,7 +3132,7 @@ public partial class deepcoin : Exchange
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {string} [params.type] 'spot' or 'swap', the market type for the trades (default is 'spot')
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3217,7 +3217,7 @@ public partial class deepcoin : Exchange
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', the market type for the trades
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3245,7 +3245,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.positionId] the id of the position you would like to close
      * @param {string[]|undefined} [params.positionIds] list of position ids to close (for batch closing)
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {

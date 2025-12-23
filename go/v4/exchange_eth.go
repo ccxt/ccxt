@@ -58,6 +58,7 @@ type OrderHyperliquid struct {
 	S string    `mapstructure:"s" msgpack:"s"`
 	R bool      `mapstructure:"r" msgpack:"r"`
 	T OrderKind `mapstructure:"t" msgpack:"t"`
+	C string    `mapstructure:"c,omitempty" msgpack:"c,omitempty"` // optional client order id
 }
 
 type OrderMessage struct {
@@ -117,6 +118,13 @@ type Modify struct {
 type EditOrderMessage struct {
 	Type     string   `mapstructure:"type" msgpack:"type"`
 	Modifies []Modify `mapstructure:"modifies" msgpack:"modifies"`
+}
+
+// CreateSubAccount message
+
+type CreateSubAccountMessage struct {
+	Type string `mapstructure:"type" msgpack:"type"`
+	Name string `mapstructure:"name" msgpack:"name"`
 }
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -422,6 +430,19 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "createSubAccount":
+		var createSubAccountMsg CreateSubAccountMessage
+
+		err := mapstructure.Decode(converted, &createSubAccountMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(createSubAccountMsg)
 		if err != nil {
 			panic(err)
 		}

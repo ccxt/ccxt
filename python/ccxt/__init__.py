@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.20'
+__version__ = '4.5.29'
 
 # ----------------------------------------------------------------------------
 
@@ -118,6 +118,7 @@ from ccxt.btcalpha import btcalpha                                    # noqa: F4
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
+from ccxt.bullish import bullish                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
@@ -191,6 +192,7 @@ from ccxt.woofipro import woofipro                                    # noqa: F4
 from ccxt.xt import xt                                                # noqa: F401
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
+from ccxt.zebpay import zebpay                                        # noqa: F401
 from ccxt.zonda import zonda                                          # noqa: F401
 
 exchanges = [
@@ -228,6 +230,7 @@ exchanges = [
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'bullish',
     'bybit',
     'cex',
     'coinbase',
@@ -301,6 +304,7 @@ exchanges = [
     'xt',
     'yobit',
     'zaif',
+    'zebpay',
     'zonda',
 ]
 

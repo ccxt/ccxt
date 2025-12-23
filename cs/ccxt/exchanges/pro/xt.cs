@@ -273,10 +273,6 @@ public partial class xt : ccxt.xt
         }
         object tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object subMessageHash = add(add(name, "::"), tradeType);
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            subMessageHash = add(add(subMessageHash, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
-        }
         object request = this.extend(unsubscribe, parameters);
         object tail = access;
         if (isTrue(isContract))
@@ -292,6 +288,12 @@ public partial class xt : ccxt.xt
             { "symbols", symbols },
             { "topic", topic },
         };
+        object symbolsAndTimeframes = this.safeList(subscriptionParams, "symbolsAndTimeframes");
+        if (isTrue(!isEqual(symbolsAndTimeframes, null)))
+        {
+            ((IDictionary<string,object>)subscription)["symbolsAndTimeframes"] = symbolsAndTimeframes;
+            subscriptionParams = this.omit(subscriptionParams, "symbolsAndTimeframes");
+        }
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, this.extend(subscription, subscriptionParams));
     }
 
@@ -363,7 +365,6 @@ public partial class xt : ccxt.xt
         object options = this.safeDict(this.options, "watchTickers");
         object defaultMethod = this.safeString(options, "method", "tickers");
         object name = this.safeString(parameters, "method", defaultMethod);
-        symbols = this.marketSymbols(symbols);
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -456,8 +457,10 @@ public partial class xt : ccxt.xt
         object market = this.market(symbol);
         object name = add(add(add("kline@", getValue(market, "id")), ","), timeframe);
         object messageHash = add("unsubscribe::", name);
-        ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframe}};
-        return await this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "kline", market, null, parameters);
+        object symbolsAndTimeframes = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframe}};
+        return await this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, new List<object>() {symbol}, parameters, new Dictionary<string, object>() {
+            { "symbolsAndTimeframes", symbolsAndTimeframes },
+        });
     }
 
     /**
@@ -503,7 +506,7 @@ public partial class xt : ccxt.xt
         object market = this.market(symbol);
         object name = add("trade@", getValue(market, "id"));
         object messageHash = add("unsubscribe::", name);
-        return await this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trade", market, null, parameters);
+        return await this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -562,7 +565,7 @@ public partial class xt : ccxt.xt
             name = add(add(add("depth@", getValue(market, "id")), ","), levels);
         }
         object messageHash = add("unsubscribe::", name);
-        return await this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "depth", market, null, parameters);
+        return await this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, new List<object>() {symbol}, parameters);
     }
 
     /**
@@ -605,7 +608,7 @@ public partial class xt : ccxt.xt
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} params extra parameters specific to the kucoin api endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -632,7 +635,7 @@ public partial class xt : ccxt.xt
      * @see https://doc.xt.com/#websocket_privatebalanceChange
      * @see https://doc.xt.com/#futures_user_websocket_v2balance
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -1556,13 +1559,24 @@ public partial class xt : ccxt.xt
         //         method: 'unsubscribe'
         //     }
         //
-        object method = this.safeStringLower(message, "method");
-        if (isTrue(isEqual(method, "unsubscribe")))
+        //     {
+        //         code: 0,
+        //         msg: 'success',
+        //         id: '1764032903806ticker@btc_usdt',
+        //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        //     }
+        //
+        object id = this.safeString(message, "id");
+        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        object unsubscribe = false;
+        if (isTrue(!isEqual(id, null)))
         {
-            object id = this.safeString(message, "id");
-            object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-            object subscription = this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
-            this.handleUnSubscription(client as WebSocketClient, subscription);
+            object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
+            unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            if (isTrue(unsubscribe))
+            {
+                this.handleUnSubscription(client as WebSocketClient, subscription);
+            }
         }
         return message;
     }

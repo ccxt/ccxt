@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.20'
+__version__ = '4.5.29'
 
 # ----------------------------------------------------------------------------
 
@@ -80,6 +80,7 @@ from ccxt.pro.bittrade import bittrade                                    # noqa
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.pro.blofin import blofin                                        # noqa: F401
+from ccxt.pro.bullish import bullish                                      # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
@@ -157,6 +158,7 @@ exchanges = [
     'bitvavo',
     'blockchaincom',
     'blofin',
+    'bullish',
     'bybit',
     'cex',
     'coinbase',

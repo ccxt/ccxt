@@ -233,8 +233,6 @@ class xt(ccxt.async_support.xt):
             unsubscribe['params'] = [name]
         tradeType = 'contract' if isContract else 'spot'
         subMessageHash = name + '::' + tradeType
-        if symbols is not None:
-            subMessageHash = subMessageHash + '::' + ','.join(symbols)
         request = self.extend(unsubscribe, params)
         tail = access
         if isContract:
@@ -248,6 +246,10 @@ class xt(ccxt.async_support.xt):
             'symbols': symbols,
             'topic': topic,
         }
+        symbolsAndTimeframes = self.safe_list(subscriptionParams, 'symbolsAndTimeframes')
+        if symbolsAndTimeframes is not None:
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes
+            subscriptionParams = self.omit(subscriptionParams, 'symbolsAndTimeframes')
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, self.extend(subscription, subscriptionParams))
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -310,7 +312,6 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'watchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
-        symbols = self.market_symbols(symbols)
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
@@ -382,8 +383,8 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
         messageHash = 'unsubscribe::' + name
-        params['symbolsAndTimeframes'] = [[market['symbol'], timeframe]]
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOHLCV', 'kline', market, None, params)
+        symbolsAndTimeframes = [[market['symbol'], timeframe]]
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [symbol], params, {'symbolsAndTimeframes': symbolsAndTimeframes})
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -421,7 +422,7 @@ class xt(ccxt.async_support.xt):
         market = self.market(symbol)
         name = 'trade@' + market['id']
         messageHash = 'unsubscribe::' + name
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchTrades', 'trade', market, None, params)
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchTrades', 'trades', market, [symbol], params)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -470,7 +471,7 @@ class xt(ccxt.async_support.xt):
         if levels is not None:
             name = 'depth@' + market['id'] + ',' + levels
         messageHash = 'unsubscribe::' + name
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'depth', market, None, params)
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], params)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -506,7 +507,7 @@ class xt(ccxt.async_support.xt):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         name = 'trade'
@@ -526,7 +527,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_user_websocket_v2balance
 
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         name = 'balance'
@@ -1343,12 +1344,21 @@ class xt(ccxt.async_support.xt):
         #         method: 'unsubscribe'
         #     }
         #
-        method = self.safe_string_lower(message, 'method')
-        if method == 'unsubscribe':
-            id = self.safe_string(message, 'id')
-            subscriptionsById = self.index_by(client.subscriptions, 'id')
-            subscription = self.safe_value(subscriptionsById, id, {})
-            self.handle_un_subscription(client, subscription)
+        #     {
+        #         code: 0,
+        #         msg: 'success',
+        #         id: '1764032903806ticker@btc_usdt',
+        #         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        #     }
+        #
+        id = self.safe_string(message, 'id')
+        subscriptionsById = self.index_by(client.subscriptions, 'id')
+        unsubscribe = False
+        if id is not None:
+            subscription = self.safe_dict(subscriptionsById, id, {})
+            unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
+            if unsubscribe:
+                self.handle_un_subscription(client, subscription)
         return message
 
     def handle_un_subscription(self, client: Client, subscription: dict):

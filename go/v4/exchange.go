@@ -59,6 +59,8 @@ type Exchange struct {
 	Timeout                int64
 	MAX_VALUE              float64
 	RateLimit              float64
+	RollingWindowSize      float64 // set to 0.0 to use leaky bucket rate limiter
+	RateLimiterAlgorithm   string
 	TokenBucket            map[string]interface{}
 	Throttler              *Throttler
 	NewUpdates             bool
@@ -105,7 +107,7 @@ type Exchange struct {
 	Password      string
 	Uid           string
 	AccountId     string
-	Token         string
+	Token         interface{}
 	Login         string
 	PrivateKey    string
 	WalletAddress string
@@ -185,6 +187,9 @@ type Exchange struct {
 	Clients     map[string]interface{}
 	newUpdates  bool
 	streaming   map[string]interface{}
+
+	// id lock
+	idMutex sync.Mutex
 }
 
 const (
@@ -1113,6 +1118,9 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 }
 
 func (this *Exchange) GetMarket(symbol string) MarketInterface {
+	if this.Markets == nil {
+		panic("Markets not loaded, please call LoadMarkets() first")
+	}
 	// market := this.Markets[symbol]
 	market, ok := this.Markets.Load(symbol)
 	if !ok {
@@ -1935,15 +1943,16 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
+		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
-			cache := this.GetProperty(stored, "Cache")
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			cache := (*orderBookInterface.GetCache()).([]interface{})
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
 				// Call Reset method on stored orderbook
-				stored.(OrderBookInterface).Reset(orderBook)
-				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[int(index):])
-				stored.(OrderBookInterface).SetCache(map[string]interface{}{})
+				orderBookInterface.Reset(orderBook)
+				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
+				orderBookInterface.SetCache(map[string]interface{}{})
 				// this.SetProperty(cache, "length", 0)
 				client.(*Client).Resolve(stored, messageHash)
 				return nil
@@ -2036,4 +2045,14 @@ func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
 
 func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
 	return ""
+}
+
+func (this *Exchange) LockId() bool {
+	this.idMutex.Lock()
+	return true
+}
+
+func (this *Exchange) UnlockId() bool {
+	this.idMutex.Unlock()
+	return true
 }

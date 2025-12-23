@@ -1457,7 +1457,7 @@ class bitteam extends Exchange {
             //     )
             //
             $tickers = array();
-            if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
+            if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
                 $response = array();
             }
             for ($i = 0; $i < count($response); $i++) {
@@ -1763,7 +1763,7 @@ class bitteam extends Exchange {
         $bestAskVolume = null;
         $bids = $this->safe_value($ticker, 'bids');
         $asks = $this->safe_value($ticker, 'asks');
-        if (($bids !== null) && (gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids))) && ($asks !== null) && (gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks)))) {
+        if (($bids !== null) && ((gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids)))) && ($asks !== null) && ((gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks))))) {
             $bestBid = $this->safe_value($bids, 0, array());
             $bestBidPrice = $this->safe_string($bestBid, 'price');
             $bestBidVolume = $this->safe_string($bestBid, 'quantity');

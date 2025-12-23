@@ -9,7 +9,6 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_proxies($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
