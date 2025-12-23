@@ -325,7 +325,7 @@ export default class lighter extends Exchange {
         let nonce = undefined;
         let apiKeyIndex = undefined;
         let accountIndex = undefined;
-        [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce', -1);
+        [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce');
         [ apiKeyIndex, params ] = this.handleOptionAndParams (params, 'createOrder', 'apiKeyIndex', 255);
         [ accountIndex, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountIndex', 0);
         request['nonce'] = nonce;
@@ -440,6 +440,12 @@ export default class lighter extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        if (orderRequest['nonce'] === undefined) {
+            const nonce = await this.publicGetApikeys ({ 'account_index': orderRequest['account_index'], 'api_key_index': orderRequest['api_key_index'] })
+            const keys = this.safeList (nonce, 'api_keys', []);
+            const api = this.safeDict (keys, 0, {});
+            orderRequest['nonce'] = this.safeInteger (api, 'nonce');
+        }
         const signer = this.loadAccount (304, this.privateKey, orderRequest['api_key_index'], orderRequest['account_index']);
         const [ txType, txInfo ] = this.signAndCreateLighterOrder (signer, orderRequest);
         const request = {
