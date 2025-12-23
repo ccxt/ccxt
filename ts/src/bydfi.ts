@@ -146,7 +146,7 @@ export default class bydfi extends Exchange {
                 'fetchOrderWithClientOrderId': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
@@ -178,7 +178,7 @@ export default class bydfi extends Exchange {
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'signIn': false,
                 'transfer': false,
                 'watchMyLiquidationsForSymbols': false,
@@ -227,7 +227,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/positions': 1, // done
                         'v1/swap/account/balance': 1, // https://developers.bydfi.com/en/swap/user#asset-query
                         'v1/swap/user_data/assets_margin': 1, // done
-                        'v1/swap/user_data/position_side/dual': 1, // https://developers.bydfi.com/en/swap/user#get-position-mode
+                        'v1/swap/user_data/position_side/dual': 1, // done
                         'v1/agent/teams': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
                         'v1/agent/agent_links': 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
                         'v1/agent/regular_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
@@ -248,7 +248,7 @@ export default class bydfi extends Exchange {
                         'v1/swap/trade/leverage': 1, // done
                         'v1/swap/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/swap/trade#modify-leverage-and-margin-type-with-one-click
                         'v1/swap/user_data/margin_type': 1, // done
-                        'v1/swap/user_data/position_side/dual': 1, // https://developers.bydfi.com/en/swap/user#change-position-mode-dual
+                        'v1/swap/user_data/position_side/dual': 1, // done
                         'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
@@ -279,6 +279,7 @@ export default class bydfi extends Exchange {
                     // {"code":100036,"message":"Position does not exist"}
                     // {"code":600,"message":"The marginType cannot be empty;"}
                     // {"code":600,"message":"Param error!"}
+                    // {"code":600,"message":"The settleCoin cannot be empty;"}
                 },
                 'broad': {
                 },
@@ -1550,7 +1551,7 @@ export default class bydfi extends Exchange {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
-     * @param {string} [params.settleCoin] the settlement currency
+     * @param {string} [params.settleCoin] the settlement currency (USDT or USDC or USD)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
@@ -1752,6 +1753,94 @@ export default class bydfi extends Exchange {
             'wallet': wallet,
         };
         return await this.privatePostV1SwapUserDataMarginType (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name bydfi#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://developers.bydfi.com/en/swap/user#change-position-mode-dual
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} [symbol] not used by bydfi setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const positionType = hedged ? 'HEDGE' : 'ONEWAY';
+        let wallet = 'W001';
+        [ wallet, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'wallet', wallet);
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'contractType', contractType);
+        let settleCoin = 'USDT';
+        [ settleCoin, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'settleCoin', settleCoin);
+        const request: Dict = {
+            'contractType': contractType,
+            'wallet': wallet,
+            'positionType': positionType,
+            'settleCoin': settleCoin,
+        };
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "success": true
+        //     }
+        //
+        return await this.privatePostV1SwapUserDataPositionSideDual (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name bydfi#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://developers.bydfi.com/en/swap/user#get-position-mode
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
+     * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
+     * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        let wallet = 'W001';
+        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'wallet', wallet);
+        let contractType = 'FUTURE';
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'contractType', contractType);
+        let settleCoin = 'USDT';
+        [ settleCoin, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'settleCoin', settleCoin);
+        const request: Dict = {
+            'contractType': contractType,
+            'settleCoin': settleCoin,
+            'wallet': wallet,
+        };
+        const response = await this.privateGetV1SwapUserDataPositionSideDual (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "wallet": "W001",
+        //             "contractType": "FUTURE",
+        //             "settleCoin": "USDT",
+        //             "positionType": "HEDGE",
+        //             "unitModel": 2,
+        //             "pricingModel": "FLAG",
+        //             "priceProtection": "CLOSE",
+        //             "totalWallet": 2
+        //         },
+        //         "success": true
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const hedged = this.safeString (data, 'positionType') === 'HEDGE';
+        return {
+            'info': response,
+            'hedged': hedged,
+        };
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
