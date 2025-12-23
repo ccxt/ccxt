@@ -1,0 +1,430 @@
+{
+    "exchange": "bydfi",
+    "skipKeys": [
+        "startTime",
+        "endTime"
+    ],
+    "options": {},
+    "outputType": "json",
+    "methods": {
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bydfi.com/api/v1/spot/withdraw_records?asset=USDC&endTime=1766508094545&startTime=1765903294545",
+                "input": [
+                    "USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bydfi.com/api/v1/spot/deposit_records?asset=USDC&endTime=1766508064483&startTime=1765903264483",
+                "input": [
+                    "USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "Fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.bydfi.com/api/v1/account/transfer_records?asset=USDC&endTime=1766507837392&rows=1&startTime=1766163153218",
+                "input": [
+                    "USDC",
+                    1766163153218,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.bydfi.com/api/v1/account/transfer",
+                "input": [
+                    "USDC",
+                    10,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"amount\":\"10\",\"asset\":\"USDC\",\"fromType\":\"SPOT\",\"toType\":\"SWAP\"}"
+            },
+            {
+                "description": "Transfer from swap to spot",
+                "method": "transfer",
+                "url": "https://api.bydfi.com/api/v1/account/transfer",
+                "input": [
+                    "USDC",
+                    42,
+                    "swap",
+                    "spot"
+                ],
+                "output": "{\"amount\":\"42\",\"asset\":\"USDC\",\"fromType\":\"SWAP\",\"toType\":\"SPOT\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance for swap",
+                "method": "fetchBalance",
+                "url": "https://api.bydfi.com/api/v1/swap/account/balance?wallet=W001",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch balance for spot",
+                "method": "fetchBalance",
+                "url": "https://api.bydfi.com/api/v1/account/assets?walletType=SPOT",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fetch position mode for market",
+                "method": "fetchPositionMode",
+                "url": "https://api.bydfi.com/api/v1/swap/user_data/position_side/dual?contractType=FUTURE&settleCoin=USDT&wallet=W001",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch position mode for USDC settle coin",
+                "method": "fetchPositionMode",
+                "url": "https://api.bydfi.com/api/v1/swap/user_data/position_side/dual?contractType=FUTURE&settleCoin=USDC&wallet=W001",
+                "input": [
+                    null,
+                    {
+                        "settleCoin": "USDC"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "Set position mode for USDC settle coin",
+                "method": "setPositionMode",
+                "url": "https://api.bydfi.com/api/v1/swap/user_data/position_side/dual",
+                "input": [
+                    true,
+                    null,
+                    {
+                        "settleCoin": "USDC"
+                    }
+                ],
+                "output": "{\"contractType\":\"FUTURE\",\"positionType\":\"HEDGE\",\"settleCoin\":\"USDC\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "createMarketSellOrder": [
+            {
+                "description": "Create market sell order",
+                "method": "createMarketSellOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1
+                ],
+                "output": "{\"quantity\":\"1\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"type\":\"MARKET\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.bydfi.com/api/v1/swap/user_data/margin_type",
+                "input": [
+                    "isolated",
+                    "ETH/USDC:USDC"
+                ],
+                "output": "{\"contractType\":\"FUTURE\",\"marginType\":\"ISOLATED\",\"symbol\":\"ETH-USDC\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://api.bydfi.com/api/v1/swap/user_data/assets_margin?contractType=FUTURE&symbol=ETH-USDC&wallet=W001",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "Fetch positions history",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/position_history?contractType=FUTURE&endTime=1766505467929&startTime=1765900667929",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "Fetch position history",
+                "method": "fetchPositionHistory",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/position_history?contractType=FUTURE&endTime=1766505423022&startTime=1765900623022&symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/leverage?symbol=ETH-USDC&wallet=W001",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage",
+                "method": "setLeverage",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/leverage",
+                "input": [
+                    2,
+                    "ETH/USDC:USDC"
+                ],
+                "output": "{\"leverage\":2,\"symbol\":\"ETH-USDC\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/history_order?contractType=FUTURE&endTime=1766505072552&limit=1&startTime=1766163153218&symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1766163153218,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "Fetch positions for ETH/USDC:USDC market",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/positions?contractType=FUTURE&symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/positions?contractType=FUTURE",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createMarketBuyOrder": [
+            {
+                "description": "Create market buy order",
+                "method": "createMarketBuyOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1
+                ],
+                "output": "{\"quantity\":\"1\",\"side\":\"BUY\",\"symbol\":\"ETH-USDC\",\"type\":\"MARKET\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "fetchOpenOrder": [
+            {
+                "description": "Fetch open order by id",
+                "method": "fetchOpenOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/open_order?orderId=7409256288494706688&symbol=ETH-USDC&wallet=W001",
+                "input": [
+                    "7409256288494706688",
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/plan_order?symbol=ETH-USDC&wallet=W001",
+                "input": [
+                    "ETH/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/open_order?symbol=ETH-USDC&wallet=W001",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit order amount and price",
+                "method": "editOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/edit_order",
+                "input": [
+                    "7409254699688157184",
+                    "ETH/USDC:USDC",
+                    "limit",
+                    "sell",
+                    2,
+                    5999
+                ],
+                "output": "{\"orderId\":\"7409254699688157184\",\"price\":\"5999\",\"quantity\":\"2\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "createLimitSellOrder": [
+            {
+                "description": "Create limit sell order",
+                "method": "createLimitSellOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1,
+                    6000
+                ],
+                "output": "{\"price\":\"6000\",\"quantity\":\"1\",\"side\":\"SELL\",\"symbol\":\"ETH-USDC\",\"type\":\"LIMIT\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "createLimitBuyOrder": [
+            {
+                "description": "Create limit buy order",
+                "method": "createLimitBuyOrder",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/place_order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1,
+                    1000
+                ],
+                "output": "{\"price\":\"1000\",\"quantity\":\"1\",\"side\":\"BUY\",\"symbol\":\"ETH-USDC\",\"type\":\"LIMIT\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/cancel_all_order",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": "{\"symbol\":\"ETH-USDC\",\"wallet\":\"W001\"}"
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.bydfi.com/api/v1/swap/market/funding_rate_history?limit=1&startTime=1766163153218&symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1766163153218,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.bydfi.com/api/v1/swap/market/funding_rate?symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.bydfi.com/api/v1/swap/market/ticker/24hr?symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bydfi.com/api/v1/swap/market/klines?endTime=1766163213218&interval=1m&limit=1&startTime=1766163153218&symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "1m",
+                    1766163153218,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.bydfi.com/api/v1/swap/trade/history_trade?contractType=FUTURE&endTime=1766502644567&limit=1&startTime=1766163153218&symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1766163153218,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.bydfi.com/api/v1/swap/market/trades?limit=1&symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1766163153218,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.bydfi.com/api/v1/swap/market/depth?limit=5&symbol=ETH-USDC",
+                "input": [
+                    "ETH/USDC:USDC",
+                    5
+                ],
+                "output": null
+            }
+        ]
+    }
+}
