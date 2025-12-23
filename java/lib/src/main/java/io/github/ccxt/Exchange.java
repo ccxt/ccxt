@@ -1308,6 +1308,9 @@ public class Exchange {
     public static Double parseNumber(Object value, Object defaultValue) {
         if (value == null) {
 //            return (Double) defaultValue;
+            if (defaultValue == null) {
+                return null;
+            }
             return Double.parseDouble(defaultValue.toString());
         }
 
