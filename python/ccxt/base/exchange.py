@@ -101,7 +101,7 @@ except ImportError:
 
 # lighter
 import os
-from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info
+from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth
 
 # -----------------------------------------------------------------------------
 
@@ -2202,14 +2202,12 @@ class Exchange(object):
         return [tx_type, tx_info]
 
     def create_lighter_auth(self, signer, request):
-        # auth, error = decode_auth(signer.CreateAuthToken(
-        #     request['deadline'],
-        #     request['api_key_index'],
-        #     request['account_index'],
-        # ))
-        # print(auth, error)
-        # return auth
-        return None
+        auth, error = decode_auth(signer.CreateAuthToken(
+            request['deadline'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        return auth
 
     # ########################################################################
     # ########################################################################
