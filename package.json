@@ -177,6 +177,7 @@
     "id-tests-php": "npm run ti-php -- --idTests",
     "id-tests-cs": "npm run ti-cs  -- --idTests",
     "id-tests-go": "npm run ti-go  -- --idTests",
+    "id-tests-java": "cd java/ &&  ./gradlew :tests:run -- --args=\"--idTests\" && cd ../",
     "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs",
     "id-tests//withGO": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs && npm run id-tests-go",
     "test-base-rest-ts": "npm run ti-ts  -- --baseTests",

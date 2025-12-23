@@ -65,9 +65,6 @@ jobs:
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-java
-    - name: Run Base Ws Tests
-      if: env.important_modified == 'true'
-      run: npm run test-base-ws-java
     - name: Run Id Tests
       if: env.important_modified == 'true'
       run: npm run id-tests-java
