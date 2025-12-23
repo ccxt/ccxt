@@ -37,6 +37,7 @@ use StarkNet\Crypto\Curve;
 use StarkNet\Crypto\Key;
 use StarkNet\Hash;
 use StarkNet\TypedData;
+use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
@@ -1407,6 +1408,48 @@ class Exchange {
         # // TODO: unify to ecdsa
         $signature = Curve::sign ('0x' . $pri, $msg_hash);
         return $this->json($signature);
+    }
+
+    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
+        $lighterSigner = Signer::getInstance($path);
+
+        $url = $this->implode_hostname($this->urls['api']['public']);
+        $lighterSigner->createClient(
+            $url,
+            $privateKey,
+            $chainId,
+            $apiKeyIndex,
+            $accountIndex
+        );
+        return $lighterSigner;
+    }
+
+    public function sign_and_create_lighter_order($signer, $request) {
+        $result = $signer->signCreateOrder(
+            $request['market_index'],
+            $request['client_order_index'],
+            $request['base_amount'],
+            $request['avg_execution_price'],
+            $request['is_ask'],
+            $request['order_type'],
+            $request['time_in_force'],
+            $request['reduce_only'],
+            0,  # trigger price
+            $request['order_expiry'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return $result;
+    }
+
+    public function create_lighter_auth($signer, $request) {
+        $result = $signer->createAuthToken(
+            $request['deadline'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return $result;
     }
 
     public function packb($data) {
