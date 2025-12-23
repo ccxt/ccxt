@@ -5272,7 +5272,7 @@ export default class coinbase extends Exchange {
      * @method
      * @name coinbase#fetchDepositAddresses
      * @description fetch deposit addresses for multiple currencies (when available)
-     * @see https://docs.cdp.coinbase.com/sign-in-with-coinbase/docs/api-addresses#list-addresses
+     * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
      * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
