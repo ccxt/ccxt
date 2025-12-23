@@ -392,6 +392,7 @@ class MarketInterface(TypedDict):
     margin: bool
     marginModes: MarketMarginModes
     swap: bool
+    perpetual: bool
     future: bool
     option: bool
     contract: bool
