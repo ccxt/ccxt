@@ -1,4 +1,22 @@
 {
+    "alp": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
+            "orderBook": {
+                "spread":"bids[0][0] is not < asks[0][0]",
+                "timestamp":""
+            },
+            "ticker": {
+                "spread": "messed bid-ask",
+                "compareOHLC": "fix implementation"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
     "alpaca": {
         "skip": "private endpoints, todo",
         "skipWs": "private endpoints, todo"
@@ -564,24 +582,6 @@
             },
             "ticker": {
                 "spread":"broken bid-ask"
-            }
-        }
-    },
-    "btcalpha": {
-        "skipMethods": {
-            "fetchCurrencies": {
-                "activeMajorCurrencies": "todo"
-            },
-            "orderBook": {
-                "spread":"bids[0][0] is not < asks[0][0]",
-                "timestamp":""
-            },
-            "ticker": {
-                "spread": "messed bid-ask",
-                "compareOHLC": "fix implementation"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
             }
         }
     },
