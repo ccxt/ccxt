@@ -2758,7 +2758,7 @@ export default class toobit extends Exchange {
             'coin': currency['id'],
             'address': address,
             'quantity': this.currencyToPrecision (currency['code'], amount),
-            'network': networkCode,
+            'chainType': networkCode,
             'clientOrderId': this.nonce (),
         };
         if (tag !== undefined) {
