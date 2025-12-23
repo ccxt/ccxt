@@ -591,7 +591,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `timeout`: A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). If the response is not received in that time, the library will throw an `RequestTimeout` exception. You can leave the default timeout value or set it to a reasonable value. Hanging forever with no timeout is not your option, for sure. You don't have to override this option in general case.
 
-- `rateLimit`: A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is enabled by default and can be turned off by setting the `enableRateLimit` property to false.
+- `rateLimit`: The rate limit in milliseconds. This value represents the number of milliseconds to wait between consecutive requests to stay within the exchange's rate limits. For example, if `rateLimit` is 1000, it means 1 request per second is allowed. The built-in rate-limiter is enabled by default and can be turned off by setting the `enableRateLimit` property to false.
 
 - `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is `true` (enabled) by default. **The user is required to implement own [rate limiting](#rate-limit) or leave the built-in rate limiter enabled to avoid being banned from the exchange**.
 
