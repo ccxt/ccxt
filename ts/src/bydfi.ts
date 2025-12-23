@@ -254,6 +254,80 @@ export default class bydfi extends Exchange {
                 },
             },
             'features': {
+                'spot': undefined,
+                'swap': {
+                    'linear': {
+                        'sandbox': false,
+                        'createOrder': {
+                            'marginMode': false,
+                            'triggerPrice': false,
+                            'triggerPriceType': {
+                                'mark': true,
+                                'last': true,
+                                'index': false,
+                            },
+                            'stopLossPrice': true,
+                            'takeProfitPrice': true,
+                            'attachedStopLossTakeProfit': undefined, // not supported
+                            'timeInForce': {
+                                'IOC': true,
+                                'FOK': true,
+                                'PO': true,
+                                'GTC': true,
+                            },
+                            'hedged': true,
+                            'selfTradePrevention': false,
+                            'trailing': true,
+                            'iceberg': false,
+                            'leverage': false,
+                            'marketBuyRequiresPrice': false,
+                            'marketBuyByCost': false,
+                        },
+                        'createOrders': {
+                            'max': 5,
+                        },
+                        'fetchMyTrades': {
+                            'marginMode': false,
+                            'daysBack': 182, // 6 months
+                            'limit': 500,
+                            'untilDays': 7,
+                            'symbolRequired': false,
+                        },
+                        'fetchOrder': undefined,
+                        'fetchOpenOrder': {
+                            'marginMode': false,
+                            'trigger': true,
+                            'trailing': false,
+                            'symbolRequired': true,
+                        },
+                        'fetchOpenOrders': {
+                            'marginMode': false,
+                            'limit': 500,
+                            'trigger': true,
+                            'trailing': false,
+                            'symbolRequired': true,
+                        },
+                        'fetchOrders': undefined,
+                        'fetchCanceledAndClosedOrders': {
+                            'marginMode': false,
+                            'limit': 500,
+                            'daysBack': 182, // 6 months
+                            'untilDays': 7,
+                            'trigger': false,
+                            'trailing': false,
+                            'symbolRequired': false,
+                        },
+                        'fetchClosedOrders': undefined,
+                        'fetchOHLCV': {
+                            'limit': 500,
+                        },
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'timeframes': {
                 '1m': '1m',
@@ -1237,9 +1311,20 @@ export default class bydfi extends Exchange {
         if (isStopLossOrder || isTakeProfitOrder || isTailingStopOrder) {
             let workingType = 'CONTRACT_PRICE';
             [ workingType, params ] = this.handleOptionAndParams (params, 'createOrder', 'triggerPriceType', workingType);
-            request['workingType'] = workingType;
+            request['workingType'] = this.encodeWorkingType (workingType);
         }
         return this.extend (request, params);
+    }
+
+    encodeWorkingType (workingType: Str): Str {
+        const types = {
+            'markPrice': 'MARK_PRICE',
+            'mark': 'MARK_PRICE',
+            'contractPrice': 'CONTRACT_PRICE',
+            'contract': 'CONTRACT_PRICE',
+            'last': 'CONTRACT_PRICE',
+        };
+        return this.safeString (types, workingType, workingType);
     }
 
     /**
