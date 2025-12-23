@@ -7,282 +7,282 @@
 
 package ccxt
 
-func (this *alpaca) TraderPrivateGetV2Account(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2Account", args...)
+func (this *AlpacaCore) TraderPrivateGetV2Account (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2Account", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2Orders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2Orders", args...)
+func (this *AlpacaCore) TraderPrivateGetV2Orders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2Orders", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2OrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2OrdersOrderId", args...)
+func (this *AlpacaCore) TraderPrivateGetV2OrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2OrdersOrderId", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2Positions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2Positions", args...)
+func (this *AlpacaCore) TraderPrivateGetV2Positions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2Positions", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2PositionsSymbolOrAssetId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2PositionsSymbolOrAssetId", args...)
+func (this *AlpacaCore) TraderPrivateGetV2PositionsSymbolOrAssetId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2PositionsSymbolOrAssetId", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2AccountPortfolioHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2AccountPortfolioHistory", args...)
+func (this *AlpacaCore) TraderPrivateGetV2AccountPortfolioHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2AccountPortfolioHistory", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2Watchlists(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2Watchlists", args...)
+func (this *AlpacaCore) TraderPrivateGetV2Watchlists (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2Watchlists", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2WatchlistsWatchlistId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2WatchlistsWatchlistId", args...)
+func (this *AlpacaCore) TraderPrivateGetV2WatchlistsWatchlistId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2WatchlistsWatchlistId", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2WatchlistsByName(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2WatchlistsByName", args...)
+func (this *AlpacaCore) TraderPrivateGetV2WatchlistsByName (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2WatchlistsByName", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2AccountConfigurations(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2AccountConfigurations", args...)
+func (this *AlpacaCore) TraderPrivateGetV2AccountConfigurations (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2AccountConfigurations", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2AccountActivities(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2AccountActivities", args...)
+func (this *AlpacaCore) TraderPrivateGetV2AccountActivities (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2AccountActivities", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2AccountActivitiesActivityType(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2AccountActivitiesActivityType", args...)
+func (this *AlpacaCore) TraderPrivateGetV2AccountActivitiesActivityType (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2AccountActivitiesActivityType", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2Calendar(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2Calendar", args...)
+func (this *AlpacaCore) TraderPrivateGetV2Calendar (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2Calendar", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2Clock(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2Clock", args...)
+func (this *AlpacaCore) TraderPrivateGetV2Clock (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2Clock", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2Assets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2Assets", args...)
+func (this *AlpacaCore) TraderPrivateGetV2Assets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2Assets", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2AssetsSymbolOrAssetId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2AssetsSymbolOrAssetId", args...)
+func (this *AlpacaCore) TraderPrivateGetV2AssetsSymbolOrAssetId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2AssetsSymbolOrAssetId", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2CorporateActionsAnnouncementsId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2CorporateActionsAnnouncementsId", args...)
+func (this *AlpacaCore) TraderPrivateGetV2CorporateActionsAnnouncementsId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2CorporateActionsAnnouncementsId", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2CorporateActionsAnnouncements(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2CorporateActionsAnnouncements", args...)
+func (this *AlpacaCore) TraderPrivateGetV2CorporateActionsAnnouncements (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2CorporateActionsAnnouncements", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2Wallets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2Wallets", args...)
+func (this *AlpacaCore) TraderPrivateGetV2Wallets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2Wallets", args...)
 }
 
-func (this *alpaca) TraderPrivateGetV2WalletsTransfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateGetV2WalletsTransfers", args...)
+func (this *AlpacaCore) TraderPrivateGetV2WalletsTransfers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateGetV2WalletsTransfers", args...)
 }
 
-func (this *alpaca) TraderPrivatePostV2Orders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePostV2Orders", args...)
+func (this *AlpacaCore) TraderPrivatePostV2Orders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePostV2Orders", args...)
 }
 
-func (this *alpaca) TraderPrivatePostV2Watchlists(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePostV2Watchlists", args...)
+func (this *AlpacaCore) TraderPrivatePostV2Watchlists (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePostV2Watchlists", args...)
 }
 
-func (this *alpaca) TraderPrivatePostV2WatchlistsWatchlistId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePostV2WatchlistsWatchlistId", args...)
+func (this *AlpacaCore) TraderPrivatePostV2WatchlistsWatchlistId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePostV2WatchlistsWatchlistId", args...)
 }
 
-func (this *alpaca) TraderPrivatePostV2WatchlistsByName(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePostV2WatchlistsByName", args...)
+func (this *AlpacaCore) TraderPrivatePostV2WatchlistsByName (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePostV2WatchlistsByName", args...)
 }
 
-func (this *alpaca) TraderPrivatePostV2WalletsTransfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePostV2WalletsTransfers", args...)
+func (this *AlpacaCore) TraderPrivatePostV2WalletsTransfers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePostV2WalletsTransfers", args...)
 }
 
-func (this *alpaca) TraderPrivatePutV2OrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePutV2OrdersOrderId", args...)
+func (this *AlpacaCore) TraderPrivatePutV2OrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePutV2OrdersOrderId", args...)
 }
 
-func (this *alpaca) TraderPrivatePutV2WatchlistsWatchlistId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePutV2WatchlistsWatchlistId", args...)
+func (this *AlpacaCore) TraderPrivatePutV2WatchlistsWatchlistId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePutV2WatchlistsWatchlistId", args...)
 }
 
-func (this *alpaca) TraderPrivatePutV2WatchlistsByName(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePutV2WatchlistsByName", args...)
+func (this *AlpacaCore) TraderPrivatePutV2WatchlistsByName (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePutV2WatchlistsByName", args...)
 }
 
-func (this *alpaca) TraderPrivatePatchV2OrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePatchV2OrdersOrderId", args...)
+func (this *AlpacaCore) TraderPrivatePatchV2OrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePatchV2OrdersOrderId", args...)
 }
 
-func (this *alpaca) TraderPrivatePatchV2AccountConfigurations(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivatePatchV2AccountConfigurations", args...)
+func (this *AlpacaCore) TraderPrivatePatchV2AccountConfigurations (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivatePatchV2AccountConfigurations", args...)
 }
 
-func (this *alpaca) TraderPrivateDeleteV2Orders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateDeleteV2Orders", args...)
+func (this *AlpacaCore) TraderPrivateDeleteV2Orders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateDeleteV2Orders", args...)
 }
 
-func (this *alpaca) TraderPrivateDeleteV2OrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateDeleteV2OrdersOrderId", args...)
+func (this *AlpacaCore) TraderPrivateDeleteV2OrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateDeleteV2OrdersOrderId", args...)
 }
 
-func (this *alpaca) TraderPrivateDeleteV2Positions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateDeleteV2Positions", args...)
+func (this *AlpacaCore) TraderPrivateDeleteV2Positions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateDeleteV2Positions", args...)
 }
 
-func (this *alpaca) TraderPrivateDeleteV2PositionsSymbolOrAssetId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateDeleteV2PositionsSymbolOrAssetId", args...)
+func (this *AlpacaCore) TraderPrivateDeleteV2PositionsSymbolOrAssetId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateDeleteV2PositionsSymbolOrAssetId", args...)
 }
 
-func (this *alpaca) TraderPrivateDeleteV2WatchlistsWatchlistId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsWatchlistId", args...)
+func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsWatchlistId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsWatchlistId", args...)
 }
 
-func (this *alpaca) TraderPrivateDeleteV2WatchlistsByName(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsByName", args...)
+func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsByName (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsByName", args...)
 }
 
-func (this *alpaca) TraderPrivateDeleteV2WatchlistsWatchlistIdSymbol(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsWatchlistIdSymbol", args...)
+func (this *AlpacaCore) TraderPrivateDeleteV2WatchlistsWatchlistIdSymbol (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsWatchlistIdSymbol", args...)
 }
 
-func (this *alpaca) MarketPublicGetV1beta3CryptoLocBars(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocBars", args...)
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocBars (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocBars", args...)
 }
 
-func (this *alpaca) MarketPublicGetV1beta3CryptoLocLatestBars(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestBars", args...)
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestBars (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestBars", args...)
 }
 
-func (this *alpaca) MarketPublicGetV1beta3CryptoLocLatestOrderbooks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestOrderbooks", args...)
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestOrderbooks (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestOrderbooks", args...)
 }
 
-func (this *alpaca) MarketPublicGetV1beta3CryptoLocLatestQuotes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestQuotes", args...)
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestQuotes (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestQuotes", args...)
 }
 
-func (this *alpaca) MarketPublicGetV1beta3CryptoLocLatestTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestTrades", args...)
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocLatestTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestTrades", args...)
 }
 
-func (this *alpaca) MarketPublicGetV1beta3CryptoLocQuotes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocQuotes", args...)
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocQuotes (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocQuotes", args...)
 }
 
-func (this *alpaca) MarketPublicGetV1beta3CryptoLocSnapshots(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocSnapshots", args...)
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocSnapshots (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocSnapshots", args...)
 }
 
-func (this *alpaca) MarketPublicGetV1beta3CryptoLocTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocTrades", args...)
+func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocTrades", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV1beta1CorporateActions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV1beta1CorporateActions", args...)
+func (this *AlpacaCore) MarketPrivateGetV1beta1CorporateActions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV1beta1CorporateActions", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV1beta1ForexLatestRates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV1beta1ForexLatestRates", args...)
+func (this *AlpacaCore) MarketPrivateGetV1beta1ForexLatestRates (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV1beta1ForexLatestRates", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV1beta1ForexRates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV1beta1ForexRates", args...)
+func (this *AlpacaCore) MarketPrivateGetV1beta1ForexRates (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV1beta1ForexRates", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV1beta1LogosSymbol(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV1beta1LogosSymbol", args...)
+func (this *AlpacaCore) MarketPrivateGetV1beta1LogosSymbol (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV1beta1LogosSymbol", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV1beta1News(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV1beta1News", args...)
+func (this *AlpacaCore) MarketPrivateGetV1beta1News (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV1beta1News", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV1beta1ScreenerStocksMostActives(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV1beta1ScreenerStocksMostActives", args...)
+func (this *AlpacaCore) MarketPrivateGetV1beta1ScreenerStocksMostActives (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV1beta1ScreenerStocksMostActives", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV1beta1ScreenerMarketTypeMovers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV1beta1ScreenerMarketTypeMovers", args...)
+func (this *AlpacaCore) MarketPrivateGetV1beta1ScreenerMarketTypeMovers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV1beta1ScreenerMarketTypeMovers", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksAuctions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksAuctions", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksAuctions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksAuctions", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksBars(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksBars", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksBars (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksBars", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksBarsLatest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksBarsLatest", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksBarsLatest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksBarsLatest", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksMetaConditionsTicktype(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksMetaConditionsTicktype", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksMetaConditionsTicktype (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksMetaConditionsTicktype", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksMetaExchanges(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksMetaExchanges", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksMetaExchanges (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksMetaExchanges", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksQuotes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksQuotes", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksQuotes (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksQuotes", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksQuotesLatest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksQuotesLatest", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksQuotesLatest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksQuotesLatest", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSnapshots(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSnapshots", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSnapshots (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSnapshots", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksTrades", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksTrades", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksTradesLatest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksTradesLatest", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksTradesLatest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksTradesLatest", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSymbolAuctions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolAuctions", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolAuctions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSymbolAuctions", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSymbolBars(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolBars", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolBars (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSymbolBars", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSymbolBarsLatest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolBarsLatest", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolBarsLatest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSymbolBarsLatest", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSymbolQuotes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolQuotes", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolQuotes (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSymbolQuotes", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSymbolQuotesLatest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolQuotesLatest", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolQuotesLatest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSymbolQuotesLatest", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSymbolSnapshot(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolSnapshot", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolSnapshot (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSymbolSnapshot", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSymbolTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolTrades", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSymbolTrades", args...)
 }
 
-func (this *alpaca) MarketPrivateGetV2StocksSymbolTradesLatest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolTradesLatest", args...)
+func (this *AlpacaCore) MarketPrivateGetV2StocksSymbolTradesLatest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketPrivateGetV2StocksSymbolTradesLatest", args...)
 }

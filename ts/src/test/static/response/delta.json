@@ -802,6 +802,93 @@
               "marginMode": "isolated"
             }
           }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "123",
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "result": {
+                        "id": 123,
+                        "user_id": 453671,
+                        "size": 10,
+                        "unfilled_size": 2,
+                        "side": "buy",
+                        "order_type": "limit_order",
+                        "limit_price": "59000",
+                        "stop_order_type": "stop_loss_order",
+                        "stop_price": "55000",
+                        "paid_commission": "0.5432",
+                        "commission": "0.5432",
+                        "reduce_only": false,
+                        "client_order_id": "my_signal_34521712",
+                        "state": "open",
+                        "created_at": "1725865012000000",
+                        "product_id": 27,
+                        "product_symbol": "BTCUSD"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": 123,
+                        "user_id": 453671,
+                        "size": 10,
+                        "unfilled_size": 2,
+                        "side": "buy",
+                        "order_type": "limit_order",
+                        "limit_price": "59000",
+                        "stop_order_type": "stop_loss_order",
+                        "stop_price": "55000",
+                        "paid_commission": "0.5432",
+                        "commission": "0.5432",
+                        "reduce_only": false,
+                        "client_order_id": "my_signal_34521712",
+                        "state": "open",
+                        "created_at": "1725865012000000",
+                        "product_id": 27,
+                        "product_symbol": "BTCUSD"
+                    },
+                    "id": "123",
+                    "clientOrderId": "my_signal_34521712",
+                    "timestamp": 1725865012000,
+                    "datetime": "2024-09-09T06:56:52.000Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "side": "buy",
+                    "price": 59000,
+                    "amount": 10,
+                    "cost": 472000,
+                    "average": null,
+                    "filled": 8,
+                    "remaining": 2,
+                    "status": "open",
+                    "fee": {
+                        "cost": "0.5432",
+                        "currency": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0.5432,
+                            "currency": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
         ]
     }
 }

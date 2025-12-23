@@ -1361,6 +1361,66 @@
         ],
         "editOrder": [
             {
+                "description": "edit spot order with clientOrderId",
+                "method": "editOrder",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.11,
+                    85,
+                    {
+                        "clientOrderId": "bitget1"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1762863706194",
+                    "data": {
+                        "orderId": "",
+                        "clientOid": "bitget1",
+                        "success": "success",
+                        "msg": ""
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "",
+                        "clientOid": "bitget1",
+                        "success": "success",
+                        "msg": ""
+                    },
+                    "id": null,
+                    "clientOrderId": "bitget1",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "uta spot edit order",
                 "method": "editOrder",
                 "input": [
@@ -3237,6 +3297,168 @@
             }
         ],
         "fetchBalance": [
+            {
+                "description": "spot isolated",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1759831688425",
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "coin": "USDT",
+                            "totalAmount": "0.000001",
+                            "available": "0.000001",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0.000001",
+                            "coupon": "0",
+                            "cTime": "1759826434145",
+                            "uTime": "1759826434146"
+                        },
+                        {
+                            "symbol": "BTCUSDT",
+                            "coin": "BTC",
+                            "totalAmount": "0",
+                            "available": "0",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0",
+                            "coupon": "0",
+                            "cTime": "1759826434145",
+                            "uTime": "1759826434145"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "coin": "USDT",
+                            "totalAmount": "0.000001",
+                            "available": "0.000001",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0.000001",
+                            "coupon": "0",
+                            "cTime": "1759826434145",
+                            "uTime": "1759826434146"
+                        },
+                        {
+                            "symbol": "BTCUSDT",
+                            "coin": "BTC",
+                            "totalAmount": "0",
+                            "available": "0",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0",
+                            "coupon": "0",
+                            "cTime": "1759826434145",
+                            "uTime": "1759826434145"
+                        }
+                    ],
+                    "USDT": {
+                        "free": null,
+                        "used": null,
+                        "total": 0.000001,
+                        "debt": 0
+                    },
+                    "BTC": {
+                        "free": null,
+                        "used": null,
+                        "total": 0,
+                        "debt": 0
+                    },
+                    "free": {
+                        "USDT": null,
+                        "BTC": null
+                    },
+                    "used": {
+                        "USDT": null,
+                        "BTC": null
+                    },
+                    "total": {
+                        "USDT": 0.000001,
+                        "BTC": 0
+                    },
+                    "debt": {
+                        "USDT": 0,
+                        "BTC": 0
+                    }
+                }
+            },
+            {
+                "description": "spot cross",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1759831667066",
+                    "data": [
+                        {
+                            "coin": "USDT",
+                            "totalAmount": "0.01",
+                            "available": "0.01",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0.01",
+                            "coupon": "0",
+                            "cTime": "1759828511592",
+                            "uTime": "1759828511592"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "coin": "USDT",
+                            "totalAmount": "0.01",
+                            "available": "0.01",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0.01",
+                            "coupon": "0",
+                            "cTime": "1759828511592",
+                            "uTime": "1759828511592"
+                        }
+                    ],
+                    "USDT": {
+                        "free": null,
+                        "used": null,
+                        "total": 0.01,
+                        "debt": 0
+                    },
+                    "free": {
+                        "USDT": null
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": 0.01
+                    },
+                    "debt": {
+                        "USDT": 0
+                    }
+                }
+            },
             {
                 "description": "spot balance",
                 "method": "fetchBalance",

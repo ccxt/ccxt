@@ -12,7 +12,7 @@ export default class woo extends Exchange {
      * @description the latest known information on the availability of the exchange API
      * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -49,7 +49,7 @@ export default class woo extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
@@ -64,7 +64,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     /**
@@ -73,7 +73,7 @@ export default class woo extends Exchange {
      * @description fetch the trading fees for multiple markets
      * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     /**
@@ -93,7 +93,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     /**
@@ -104,7 +104,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     /**
@@ -120,7 +120,7 @@ export default class woo extends Exchange {
      * @param {float} trailingAmount the quote amount to trail away from the current market price
      * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
     /**
@@ -136,7 +136,7 @@ export default class woo extends Exchange {
      * @param {float} trailingPercent the percent to trail away from the current market price
      * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
     /**
@@ -163,7 +163,7 @@ export default class woo extends Exchange {
      * @param {string} [params.trailingPercent] the percent to trail away from the current market price
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     encodeMarginMode(mode: any): string;
@@ -188,7 +188,7 @@ export default class woo extends Exchange {
      * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
      * @param {string} [params.trailingPercent] the percent to trail away from the current market price
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     /**
@@ -201,7 +201,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
@@ -213,7 +213,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
@@ -236,7 +236,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
@@ -253,7 +253,7 @@ export default class woo extends Exchange {
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
@@ -271,7 +271,7 @@ export default class woo extends Exchange {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
@@ -289,7 +289,7 @@ export default class woo extends Exchange {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseTimeInForce(timeInForce: Str): string;
@@ -303,7 +303,7 @@ export default class woo extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -331,7 +331,7 @@ export default class woo extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
@@ -344,7 +344,7 @@ export default class woo extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
@@ -354,7 +354,7 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
      * @see https://developer.woox.io/api-reference/endpoint/account/sub_accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
@@ -370,7 +370,7 @@ export default class woo extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.woox.io/#get-current-holding-get-balance-new
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
@@ -381,7 +381,7 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     getDedicatedNetworkId(currency: any, params: Dict): any;
@@ -396,7 +396,7 @@ export default class woo extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
@@ -411,7 +411,7 @@ export default class woo extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
@@ -423,7 +423,7 @@ export default class woo extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
@@ -435,7 +435,7 @@ export default class woo extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
@@ -450,7 +450,7 @@ export default class woo extends Exchange {
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     /**
@@ -463,7 +463,7 @@ export default class woo extends Exchange {
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
@@ -472,13 +472,13 @@ export default class woo extends Exchange {
      * @method
      * @name woo#withdraw
      * @description make a withdrawal
-     * @see https://docs.woox.io/#token-withdraw
+     * @see https://docs.woox.io/#token-withdraw-v3
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
@@ -490,7 +490,7 @@ export default class woo extends Exchange {
      * @param {float} amount the amount to repay
      * @param {string} symbol not used by woo.repayMargin ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
@@ -530,7 +530,7 @@ export default class woo extends Exchange {
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingRate(fundingRate: any, market?: Market): FundingRate;
@@ -541,7 +541,7 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
     /**
@@ -551,7 +551,7 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
@@ -561,7 +561,7 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     /**
@@ -571,11 +571,11 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     /**
@@ -599,7 +599,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
@@ -626,7 +626,7 @@ export default class woo extends Exchange {
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
@@ -638,7 +638,7 @@ export default class woo extends Exchange {
      * @param {float} amount amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
@@ -649,7 +649,7 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPosition(symbol: Str, params?: {}): Promise<Position>;
     /**
@@ -659,7 +659,7 @@ export default class woo extends Exchange {
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
@@ -672,7 +672,7 @@ export default class woo extends Exchange {
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     /**
@@ -685,7 +685,7 @@ export default class woo extends Exchange {
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     /**
@@ -696,7 +696,7 @@ export default class woo extends Exchange {
      * @param {string} id the id of the trade that you want to fetch
      * @param {string} [code] the unified currency code of the conversion trade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
     /**
@@ -709,7 +709,7 @@ export default class woo extends Exchange {
      * @param {int} [limit] the maximum number of conversion structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
-     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;

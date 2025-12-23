@@ -46,7 +46,19 @@ public partial class testMainClass
         this.ext = getExt();
     }
 
-    public async virtual Task<object> init(object exchangeId, object symbolArgv, object methodArgv)
+    public async virtual Task init(object exchangeId, object symbolArgv, object methodArgv)
+    {
+        try
+        {
+            await this.initInner(exchangeId, symbolArgv, methodArgv);
+        } catch(Exception e)
+        {
+            dump("[TEST_FAILURE]"); // tell run-tests.js this is failure
+            throw e;
+        }
+    }
+
+    public async virtual Task<object> initInner(object exchangeId, object symbolArgv, object methodArgv)
     {
         this.parseCliArgsAndProps();
         if (isTrue(isTrue(this.requestTests) && isTrue(this.responseTests)))
@@ -87,6 +99,7 @@ public partial class testMainClass
         Exchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
         if (isTrue(exchange.alias))
         {
+            dump(this.addPadding("[INFO] skipping alias", 25));
             exitScript(0);
         }
         await this.importFiles(exchange);
@@ -475,6 +488,7 @@ public partial class testMainClass
                     {
                         if (isTrue(this.info))
                         {
+                            // todo - turn into warning
                             dump("[INFO]", "Authentication problem for public method", exceptionMessage(e), exchange.id, methodName, argsStringified);
                         }
                         return true;
@@ -1794,6 +1808,23 @@ public partial class testMainClass
         // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
+        // linear swap conditional order
+        object swapAlgoOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new Dictionary<string, object>() {
+                { "triggerPrice", 101000 },
+            });
+            object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            object algoOrderIdDefined = (!isEqual(getValue(checkOrderRequest, "algoOrderId"), null));
+            assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
+            object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
+            object swapAlgoIdString = ((object)swapId).ToString();
+            assert(((string)clientAlgoIdSwap).StartsWith(((string)swapAlgoIdString)), add(add(add("binance - swap clientOrderId: ", clientAlgoIdSwap), " does not start with swapId"), swapAlgoIdString));
+        } catch(Exception e)
+        {
+            swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
         object createOrdersRequest = null;
         try
         {

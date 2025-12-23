@@ -63,6 +63,7 @@ class yobit(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -417,7 +418,7 @@ class yobit(Exchange, ImplicitAPI):
 
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privatePostGetInfo(params)
@@ -553,7 +554,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -578,7 +579,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
         self.load_markets()
         ids = None
@@ -669,7 +670,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.all]: you can set to `true` for convenience to fetch all tickers from self exchange by sending multiple requests
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         allSymbols = None
         allSymbols, params = self.handle_param_bool(params, 'all', False)
@@ -716,7 +717,7 @@ class yobit(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         tickers = self.fetch_tickers([symbol], params)
         return tickers[symbol]
@@ -805,7 +806,7 @@ class yobit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -842,7 +843,7 @@ class yobit(Exchange, ImplicitAPI):
 
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.publicGetInfo(params)
@@ -898,7 +899,7 @@ class yobit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -944,7 +945,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by yobit cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1092,7 +1093,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by yobit fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1129,7 +1130,7 @@ class yobit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -1176,7 +1177,7 @@ class yobit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -1233,7 +1234,7 @@ class yobit(Exchange, ImplicitAPI):
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         request: dict = {
             'need_new': 1,
@@ -1257,7 +1258,7 @@ class yobit(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1295,7 +1296,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)

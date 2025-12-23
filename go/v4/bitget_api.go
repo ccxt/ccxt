@@ -7,2286 +7,2366 @@
 
 package ccxt
 
-func (this *bitget) PublicCommonGetV2PublicAnnoucements(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicCommonGetV2PublicAnnoucements", args...)
+func (this *BitgetCore) PublicCommonGetV2PublicAnnoucements (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicCommonGetV2PublicAnnoucements", args...)
 }
 
-func (this *bitget) PublicCommonGetV2PublicTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicCommonGetV2PublicTime", args...)
+func (this *BitgetCore) PublicCommonGetV2PublicTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicCommonGetV2PublicTime", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1NoticeQueryAllNotices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1NoticeQueryAllNotices", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1NoticeQueryAllNotices (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1NoticeQueryAllNotices", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1PublicTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1PublicTime", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1PublicTime", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1PublicCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1PublicCurrencies", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1PublicCurrencies", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1PublicProducts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1PublicProducts", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicProducts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1PublicProducts", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1PublicProduct(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1PublicProduct", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicProduct (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1PublicProduct", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketTicker", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketTicker", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketTickers", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketTickers", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketFills", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketFills", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketFillsHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketFillsHistory", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketFillsHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketFillsHistory", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketCandles", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketCandles", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketDepth", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketDepth", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketSpotVipLevel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketSpotVipLevel", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketSpotVipLevel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketSpotVipLevel", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketMergeDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketMergeDepth", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketMergeDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketMergeDepth", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1MarketHistoryCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1MarketHistoryCandles", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketHistoryCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1MarketHistoryCandles", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1PublicLoanCoinInfos(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanCoinInfos", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicLoanCoinInfos (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanCoinInfos", args...)
 }
 
-func (this *bitget) PublicSpotGetSpotV1PublicLoanHourInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanHourInterest", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicLoanHourInterest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanHourInterest", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotPublicCoins(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotPublicCoins", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotPublicCoins (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotPublicCoins", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotPublicSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotPublicSymbols", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotPublicSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotPublicSymbols", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotMarketVipFeeRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotMarketVipFeeRate", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketVipFeeRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotMarketVipFeeRate", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotMarketTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotMarketTickers", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotMarketTickers", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotMarketMergeDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotMarketMergeDepth", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketMergeDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotMarketMergeDepth", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotMarketOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotMarketOrderbook", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketOrderbook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotMarketOrderbook", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotMarketCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotMarketCandles", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotMarketCandles", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotMarketHistoryCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotMarketHistoryCandles", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketHistoryCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotMarketHistoryCandles", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotMarketFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotMarketFills", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotMarketFills", args...)
 }
 
-func (this *bitget) PublicSpotGetV2SpotMarketFillsHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetV2SpotMarketFillsHistory", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketFillsHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetV2SpotMarketFillsHistory", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketContracts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketContracts", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketContracts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketContracts", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketDepth", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketDepth", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketTicker", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketTicker", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketTickers", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketTickers", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketContractVipLevel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketContractVipLevel", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketContractVipLevel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketContractVipLevel", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketFills", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketFills", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketFillsHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketFillsHistory", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketFillsHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketFillsHistory", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketCandles", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketCandles", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketIndex(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketIndex", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketIndex (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketIndex", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketFundingTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketFundingTime", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketFundingTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketFundingTime", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketHistoryFundRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryFundRate", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketHistoryFundRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketHistoryFundRate", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketCurrentFundRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketCurrentFundRate", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketCurrentFundRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketCurrentFundRate", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketOpenInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketOpenInterest", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketOpenInterest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketOpenInterest", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketMarkPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketMarkPrice", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketMarkPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketMarkPrice", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketSymbolLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketSymbolLeverage", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketSymbolLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketSymbolLeverage", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketQueryPositionLever(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketQueryPositionLever", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketQueryPositionLever (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketQueryPositionLever", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketOpenLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketOpenLimit", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketOpenLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketOpenLimit", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketHistoryCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryCandles", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketHistoryCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketHistoryCandles", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketHistoryIndexCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryIndexCandles", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketHistoryIndexCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketHistoryIndexCandles", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketHistoryMarkCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryMarkCandles", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketHistoryMarkCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketHistoryMarkCandles", args...)
 }
 
-func (this *bitget) PublicMixGetMixV1MarketMergeDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetMixV1MarketMergeDepth", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketMergeDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetMixV1MarketMergeDepth", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketVipFeeRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketVipFeeRate", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketVipFeeRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketVipFeeRate", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketMergeDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketMergeDepth", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketUnionInterestRateHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketUnionInterestRateHistory", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketTicker", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketExchangeRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketExchangeRate", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketTickers", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketDiscountRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketDiscountRate", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketFills", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketMergeDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketMergeDepth", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketFillsHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketFillsHistory", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketTicker", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketCandles", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketTickers", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketHistoryCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryCandles", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketFills", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketHistoryIndexCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryIndexCandles", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketFillsHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketFillsHistory", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketHistoryMarkCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryMarkCandles", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketCandles", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketOpenInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketOpenInterest", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketHistoryCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketHistoryCandles", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketFundingTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketFundingTime", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketHistoryIndexCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketHistoryIndexCandles", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketSymbolPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketSymbolPrice", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketHistoryMarkCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketHistoryMarkCandles", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketHistoryFundRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryFundRate", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketOpenInterest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketOpenInterest", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketCurrentFundRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketCurrentFundRate", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketFundingTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketFundingTime", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketContracts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketContracts", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketSymbolPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketSymbolPrice", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketQueryPositionLever(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketQueryPositionLever", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketHistoryFundRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketHistoryFundRate", args...)
 }
 
-func (this *bitget) PublicMixGetV2MixMarketAccountLongShort(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMixGetV2MixMarketAccountLongShort", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketCurrentFundRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketCurrentFundRate", args...)
 }
 
-func (this *bitget) PublicMarginGetMarginV1CrossPublicInterestRateAndLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicInterestRateAndLimit", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketOiLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketOiLimit", args...)
 }
 
-func (this *bitget) PublicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketContracts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketContracts", args...)
 }
 
-func (this *bitget) PublicMarginGetMarginV1CrossPublicTierData(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicTierData", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketQueryPositionLever (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketQueryPositionLever", args...)
 }
 
-func (this *bitget) PublicMarginGetMarginV1IsolatedPublicTierData(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicTierData", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketAccountLongShort (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMixGetV2MixMarketAccountLongShort", args...)
 }
 
-func (this *bitget) PublicMarginGetMarginV1PublicCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetMarginV1PublicCurrencies", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1CrossPublicInterestRateAndLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicInterestRateAndLimit", args...)
 }
 
-func (this *bitget) PublicMarginGetV2MarginCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetV2MarginCurrencies", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1IsolatedPublicInterestRateAndLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit", args...)
 }
 
-func (this *bitget) PublicMarginGetV2MarginMarketLongShortRatio(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetV2MarginMarketLongShortRatio", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1CrossPublicTierData (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicTierData", args...)
 }
 
-func (this *bitget) PublicEarnGetV2EarnLoanPublicCoinInfos(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicCoinInfos", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1IsolatedPublicTierData (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicTierData", args...)
 }
 
-func (this *bitget) PublicEarnGetV2EarnLoanPublicHourInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicHourInterest", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1PublicCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetMarginV1PublicCurrencies", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketInstruments(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketInstruments", args...)
+func (this *BitgetCore) PublicMarginGetV2MarginCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetV2MarginCurrencies", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketTickers", args...)
+func (this *BitgetCore) PublicMarginGetV2MarginMarketLongShortRatio (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetV2MarginMarketLongShortRatio", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketOrderbook", args...)
+func (this *BitgetCore) PublicEarnGetV2EarnLoanPublicCoinInfos (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicCoinInfos", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketFills", args...)
+func (this *BitgetCore) PublicEarnGetV2EarnLoanPublicHourInterest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicHourInterest", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketOpenInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketOpenInterest", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketInstruments (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketInstruments", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketCandles", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketTickers", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketHistoryCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketHistoryCandles", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketOrderbook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketOrderbook", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketCurrentFundRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketCurrentFundRate", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketFills", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketHistoryFundRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketHistoryFundRate", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketOpenInterest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketOpenInterest", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketRiskReserve(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketRiskReserve", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketCandles", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketDiscountRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketDiscountRate", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketHistoryCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketHistoryCandles", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketMarginLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketMarginLoans", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketCurrentFundRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketCurrentFundRate", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketPositionTier(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketPositionTier", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketHistoryFundRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketHistoryFundRate", args...)
 }
 
-func (this *bitget) PublicUtaGetV3MarketOiLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicUtaGetV3MarketOiLimit", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketRiskReserve (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketRiskReserve", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1WalletDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositAddress", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketDiscountRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketDiscountRate", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1WalletWithdrawalList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1WalletWithdrawalList", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketMarginLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketMarginLoans", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1WalletDepositList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositList", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketPositionTier (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketPositionTier", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1AccountGetInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1AccountGetInfo", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketOiLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUtaGetV3MarketOiLimit", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1AccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1AccountAssets", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositAddress", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1AccountAssetsLite(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1AccountAssetsLite", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1WalletWithdrawalList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1WalletWithdrawalList", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1AccountTransferRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1AccountTransferRecords", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositList", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1ConvertCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1ConvertCurrencies", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1AccountGetInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1AccountGetInfo", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1ConvertConvertRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1ConvertConvertRecord", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1AccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1AccountAssets", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1LoanOngoingOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1LoanOngoingOrders", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1AccountAssetsLite (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1AccountAssetsLite", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1LoanRepayHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1LoanRepayHistory", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1AccountTransferRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1AccountTransferRecords", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1LoanReviseHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1LoanReviseHistory", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1ConvertCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1ConvertCurrencies", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1LoanBorrowHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1LoanBorrowHistory", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1ConvertConvertRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1ConvertConvertRecord", args...)
 }
 
-func (this *bitget) PrivateSpotGetSpotV1LoanDebts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetSpotV1LoanDebts", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanOngoingOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1LoanOngoingOrders", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotTradeOrderInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotTradeOrderInfo", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanRepayHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1LoanRepayHistory", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotTradeUnfilledOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotTradeUnfilledOrders", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanReviseHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1LoanReviseHistory", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotTradeHistoryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryOrders", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanBorrowHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1LoanBorrowHistory", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotTradeFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotTradeFills", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanDebts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetSpotV1LoanDebts", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotTradeCurrentPlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotTradeCurrentPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeOrderInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotTradeOrderInfo", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotTradeHistoryPlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeUnfilledOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotTradeUnfilledOrders", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotAccountInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotAccountInfo", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeHistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryOrders", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotAccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotAccountAssets", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotTradeFills", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotAccountSubaccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotAccountSubaccountAssets", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeCurrentPlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotTradeCurrentPlanOrder", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotAccountBills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotAccountBills", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeHistoryPlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryPlanOrder", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotAccountTransferRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotAccountTransferRecords", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotAccountInfo", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2AccountFundingAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2AccountFundingAssets", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotAccountAssets", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2AccountBotAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2AccountBotAssets", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountSubaccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotAccountSubaccountAssets", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2AccountAllAccountBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2AccountAllAccountBalance", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountBills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotAccountBills", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotWalletDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositAddress", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountTransferRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotAccountTransferRecords", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotWalletDepositRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositRecords", args...)
+func (this *BitgetCore) PrivateSpotGetV2AccountFundingAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2AccountFundingAssets", args...)
 }
 
-func (this *bitget) PrivateSpotGetV2SpotWalletWithdrawalRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetV2SpotWalletWithdrawalRecords", args...)
+func (this *BitgetCore) PrivateSpotGetV2AccountBotAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2AccountBotAssets", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1WalletTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1WalletTransfer", args...)
+func (this *BitgetCore) PrivateSpotGetV2AccountAllAccountBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2AccountAllAccountBalance", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1WalletTransferV2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1WalletTransferV2", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositAddress", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1WalletSubTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1WalletSubTransfer", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositRecords", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1WalletWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawal", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotWalletWithdrawalRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetV2SpotWalletWithdrawalRecords", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1WalletWithdrawalV2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1WalletTransfer", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1WalletWithdrawalInner(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInner", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransferV2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1WalletTransferV2", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1WalletWithdrawalInnerV2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInnerV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletSubTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1WalletSubTransfer", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1AccountSubAccountSpotAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1AccountSubAccountSpotAssets", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawal", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1AccountBills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1AccountBills", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalV2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalV2", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalInner (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInner", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeBatchOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalInnerV2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInnerV2", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1AccountSubAccountSpotAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1AccountSubAccountSpotAssets", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeCancelOrderV2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrderV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1AccountBills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1AccountBills", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeCancelSymbolOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelSymbolOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeOrders", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeCancelBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeBatchOrders", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeCancelBatchOrdersV2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrdersV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeOrderInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeOrderInfo", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelOrderV2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrderV2", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeOpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeOpenOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelSymbolOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelSymbolOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeHistory", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrders", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TradeFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TradeFills", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelBatchOrdersV2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrdersV2", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1PlanPlacePlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1PlanPlacePlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeOrderInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeOrderInfo", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1PlanModifyPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1PlanModifyPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeOpenOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeOpenOrders", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1PlanCancelPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1PlanCancelPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeHistory", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1PlanCurrentPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1PlanCurrentPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TradeFills", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1PlanHistoryPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1PlanHistoryPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanPlacePlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1PlanPlacePlan", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1PlanBatchCancelPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1PlanBatchCancelPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanModifyPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1PlanModifyPlan", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1ConvertQuotedPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1ConvertQuotedPrice", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanCancelPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1PlanCancelPlan", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1ConvertTrade(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1ConvertTrade", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanCurrentPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1PlanCurrentPlan", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1LoanBorrow(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1LoanBorrow", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanHistoryPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1PlanHistoryPlan", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1LoanRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1LoanRepay", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanBatchCancelPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1PlanBatchCancelPlan", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1LoanRevisePledge(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1LoanRevisePledge", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1ConvertQuotedPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1ConvertQuotedPrice", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceOrderOrderCurrentList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderCurrentList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1ConvertTrade (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1ConvertTrade", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceOrderOrderHistoryList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderHistoryList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1LoanBorrow (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1LoanBorrow", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceOrderCloseTrackingOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderCloseTrackingOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1LoanRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1LoanRepay", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceOrderUpdateTpsl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderUpdateTpsl", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1LoanRevisePledge (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1LoanRevisePledge", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceOrderFollowerEndOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderFollowerEndOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderOrderCurrentList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderCurrentList", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceOrderSpotInfoList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderSpotInfoList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderOrderHistoryList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderHistoryList", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceConfigGetTraderSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetTraderSettings", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderCloseTrackingOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderCloseTrackingOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceConfigGetFollowerSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetFollowerSettings", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderUpdateTpsl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderUpdateTpsl", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceUserMyTraders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyTraders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderFollowerEndOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderFollowerEndOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceConfigSetFollowerConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetFollowerConfig", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderSpotInfoList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderSpotInfoList", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceUserMyFollowers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyFollowers", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigGetTraderSettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetTraderSettings", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceConfigSetProductCode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetProductCode", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigGetFollowerSettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetFollowerSettings", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceUserRemoveTrader(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveTrader", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserMyTraders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyTraders", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceGetRemovableFollower(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceGetRemovableFollower", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigSetFollowerConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetFollowerConfig", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceUserRemoveFollower(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveFollower", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserMyFollowers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyFollowers", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceProfitTotalProfitInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitInfo", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigSetProductCode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetProductCode", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceProfitTotalProfitList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserRemoveTrader (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveTrader", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceProfitProfitHisList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceGetRemovableFollower (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceGetRemovableFollower", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceProfitProfitHisDetailList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisDetailList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserRemoveFollower (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveFollower", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceProfitWaitProfitDetailList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitWaitProfitDetailList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitTotalProfitInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitInfo", args...)
 }
 
-func (this *bitget) PrivateSpotPostSpotV1TraceUserGetTraderInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserGetTraderInfo", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitTotalProfitList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitList", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradePlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradePlaceOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitProfitHisList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisList", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradeCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitProfitHisDetailList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisDetailList", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradeBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitWaitProfitDetailList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitWaitProfitDetailList", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradeBatchCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserGetTraderInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserGetTraderInfo", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradeCancelSymbolOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelSymbolOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradePlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradePlaceOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradePlacePlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradePlacePlanOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradeModifyPlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradeModifyPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchOrders", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradeCancelPlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelSymbolOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelSymbolOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotWalletTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotWalletTransfer", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradePlacePlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradePlacePlanOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotWalletSubaccountTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotWalletSubaccountTransfer", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeModifyPlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradeModifyPlanOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotWalletWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotWalletWithdrawal", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelPlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelPlanOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotWalletCancelWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotWalletCancelWithdrawal", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelReplaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelReplaceOrder", args...)
 }
 
-func (this *bitget) PrivateSpotPostV2SpotWalletModifyDepositAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostV2SpotWalletModifyDepositAccount", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelPlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelPlanOrder", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1AccountAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1AccountAccount", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotWalletTransfer", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1AccountAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1AccountAccounts", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletSubaccountTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotWalletSubaccountTransfer", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1PositionSinglePosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1PositionSinglePosition", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotWalletWithdrawal", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1PositionSinglePositionV2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1PositionSinglePositionV2", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletCancelWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotWalletCancelWithdrawal", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1PositionAllPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1PositionAllPosition", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletModifyDepositAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostV2SpotWalletModifyDepositAccount", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1PositionAllPositionV2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1PositionAllPositionV2", args...)
+func (this *BitgetCore) PrivateMixGetMixV1AccountAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1AccountAccount", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1PositionHistoryPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1PositionHistoryPosition", args...)
+func (this *BitgetCore) PrivateMixGetMixV1AccountAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1AccountAccounts", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1AccountAccountBill(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1AccountAccountBill", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionSinglePosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1PositionSinglePosition", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1AccountAccountBusinessBill(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1AccountAccountBusinessBill", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionSinglePositionV2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1PositionSinglePositionV2", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1OrderCurrent(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1OrderCurrent", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionAllPosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1PositionAllPosition", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1OrderMarginCoinCurrent(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1OrderMarginCoinCurrent", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionAllPositionV2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1PositionAllPositionV2", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1OrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1OrderHistory", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionHistoryPosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1PositionHistoryPosition", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1OrderHistoryProductType(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1OrderHistoryProductType", args...)
+func (this *BitgetCore) PrivateMixGetMixV1AccountAccountBill (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1AccountAccountBill", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1OrderDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1OrderDetail", args...)
+func (this *BitgetCore) PrivateMixGetMixV1AccountAccountBusinessBill (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1AccountAccountBusinessBill", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1OrderFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1OrderFills", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderCurrent (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1OrderCurrent", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1OrderAllFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1OrderAllFills", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderMarginCoinCurrent (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1OrderMarginCoinCurrent", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1PlanCurrentPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1PlanCurrentPlan", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1OrderHistory", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1PlanHistoryPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1PlanHistoryPlan", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderHistoryProductType (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1OrderHistoryProductType", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceCurrentTrack(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceCurrentTrack", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1OrderDetail", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceFollowerOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceFollowerOrder", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1OrderFills", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceFollowerHistoryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceFollowerHistoryOrders", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderAllFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1OrderAllFills", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceHistoryTrack(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceHistoryTrack", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PlanCurrentPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1PlanCurrentPlan", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceSummary(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceSummary", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PlanHistoryPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1PlanHistoryPlan", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceProfitSettleTokenIdGroup(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceProfitSettleTokenIdGroup", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceCurrentTrack (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceCurrentTrack", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceProfitDateGroupList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceProfitDateGroupList", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceFollowerOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceFollowerOrder", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TradeProfitDateList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TradeProfitDateList", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceFollowerHistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceFollowerHistoryOrders", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceWaitProfitDateList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceWaitProfitDateList", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceHistoryTrack (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceHistoryTrack", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceTraderSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceTraderSymbols", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceSummary (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceSummary", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceTraderList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceTraderList", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceProfitSettleTokenIdGroup (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceProfitSettleTokenIdGroup", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceTraderDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceTraderDetail", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceProfitDateGroupList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceProfitDateGroupList", args...)
 }
 
-func (this *bitget) PrivateMixGetMixV1TraceQueryTraceConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetMixV1TraceQueryTraceConfig", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TradeProfitDateList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TradeProfitDateList", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixAccountAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixAccountAccount", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceWaitProfitDateList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceWaitProfitDateList", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixAccountAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixAccountAccounts", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceTraderSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceTraderSymbols", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixAccountSubAccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixAccountSubAccountAssets", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceTraderList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceTraderList", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixAccountOpenCount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixAccountOpenCount", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceTraderDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceTraderDetail", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixAccountBill(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixAccountBill", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceQueryTraceConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetMixV1TraceQueryTraceConfig", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixMarketQueryPositionLever(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixMarketQueryPositionLever", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountAccount", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixPositionSinglePosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixPositionSinglePosition", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountAccounts", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixPositionAllPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixPositionAllPosition", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountSubAccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountSubAccountAssets", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixPositionHistoryPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixPositionHistoryPosition", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountInterestHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountInterestHistory", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixOrderDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixOrderDetail", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountMaxOpen (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountMaxOpen", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixOrderFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixOrderFills", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountLiqPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountLiqPrice", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixOrderFillHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixOrderFillHistory", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountOpenCount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountOpenCount", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixOrderOrdersPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPending", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountBill (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountBill", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixOrderOrdersHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersHistory", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountTransferLimits (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountTransferLimits", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixOrderOrdersPlanPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanPending", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountUnionConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountUnionConfig", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixOrderOrdersPlanHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanHistory", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountSwitchUnionUsdt (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountSwitchUnionUsdt", args...)
 }
 
-func (this *bitget) PrivateMixGetV2MixMarketPositionLongShort(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixGetV2MixMarketPositionLongShort", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountIsolatedSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixAccountIsolatedSymbols", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1AccountSubAccountContractAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1AccountSubAccountContractAssets", args...)
+func (this *BitgetCore) PrivateMixGetV2MixMarketQueryPositionLever (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixMarketQueryPositionLever", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1AccountOpenCount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1AccountOpenCount", args...)
+func (this *BitgetCore) PrivateMixGetV2MixPositionSinglePosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixPositionSinglePosition", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1AccountSetLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1AccountSetLeverage", args...)
+func (this *BitgetCore) PrivateMixGetV2MixPositionAllPosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixPositionAllPosition", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1AccountSetMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1AccountSetMargin", args...)
+func (this *BitgetCore) PrivateMixGetV2MixPositionAdlRank (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixPositionAdlRank", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1AccountSetMarginMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1AccountSetMarginMode", args...)
+func (this *BitgetCore) PrivateMixGetV2MixPositionHistoryPosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixPositionHistoryPosition", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1AccountSetPositionMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1AccountSetPositionMode", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixOrderDetail", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1OrderPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1OrderPlaceOrder", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixOrderFills", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1OrderBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1OrderBatchOrders", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderFillHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixOrderFillHistory", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1OrderCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1OrderCancelOrder", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPending (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPending", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1OrderCancelBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1OrderCancelBatchOrders", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixOrderOrdersHistory", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1OrderModifyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1OrderModifyOrder", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderPlanSubOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixOrderPlanSubOrder", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1OrderCancelSymbolOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1OrderCancelSymbolOrders", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanPending (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanPending", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1OrderCancelAllOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1OrderCancelAllOrders", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanHistory", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1OrderCloseAllPositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1OrderCloseAllPositions", args...)
+func (this *BitgetCore) PrivateMixGetV2MixMarketPositionLongShort (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixGetV2MixMarketPositionLongShort", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanPlacePlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanPlacePlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSubAccountContractAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1AccountSubAccountContractAssets", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanModifyPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountOpenCount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1AccountOpenCount", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanModifyPlanPreset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlanPreset", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSetLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1AccountSetLeverage", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanPlaceTPSL(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTPSL", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSetMargin (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1AccountSetMargin", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanPlaceTrailStop(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTrailStop", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSetMarginMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1AccountSetMarginMode", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanPlacePositionsTPSL(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanPlacePositionsTPSL", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSetPositionMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1AccountSetPositionMode", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanModifyTPSLPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanModifyTPSLPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1OrderPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanCancelPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanCancelPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1OrderBatchOrders", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanCancelSymbolPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanCancelSymbolPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1OrderCancelOrder", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1PlanCancelAllPlan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1PlanCancelAllPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCancelBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1OrderCancelBatchOrders", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceCloseTrackOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderModifyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1OrderModifyOrder", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceModifyTPSL(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceModifyTPSL", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCancelSymbolOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1OrderCancelSymbolOrders", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceCloseTrackOrderBySymbol(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrderBySymbol", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCancelAllOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1OrderCancelAllOrders", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceSetUpCopySymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceSetUpCopySymbols", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCloseAllPositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1OrderCloseAllPositions", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceFollowerSetBatchTraceConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetBatchTraceConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanPlacePlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanPlacePlan", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceFollowerCloseByTrackingNo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByTrackingNo", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanModifyPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlan", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceFollowerCloseByAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByAll", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanModifyPlanPreset (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlanPreset", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceFollowerSetTpsl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetTpsl", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanPlaceTPSL (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTPSL", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceCancelCopyTrader(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceCancelCopyTrader", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanPlaceTrailStop (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTrailStop", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceTraderUpdateConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanPlacePositionsTPSL (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanPlacePositionsTPSL", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceMyTraderList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceMyTraderList", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanModifyTPSLPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanModifyTPSLPlan", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceMyFollowerList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceMyFollowerList", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanCancelPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanCancelPlan", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceRemoveFollower(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceRemoveFollower", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanCancelSymbolPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanCancelSymbolPlan", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TracePublicGetFollowerConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TracePublicGetFollowerConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanCancelAllPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1PlanCancelAllPlan", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceReportOrderHistoryList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderHistoryList", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceCloseTrackOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrder", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceReportOrderCurrentList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderCurrentList", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceModifyTPSL (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceModifyTPSL", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceQueryTraderTpslRatioConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceQueryTraderTpslRatioConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceCloseTrackOrderBySymbol (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrderBySymbol", args...)
 }
 
-func (this *bitget) PrivateMixPostMixV1TraceTraderUpdateTpslRatioConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateTpslRatioConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceSetUpCopySymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceSetUpCopySymbols", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixAccountSetLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixAccountSetLeverage", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerSetBatchTraceConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetBatchTraceConfig", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixAccountSetMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixAccountSetMargin", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerCloseByTrackingNo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByTrackingNo", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixAccountSetMarginMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixAccountSetMarginMode", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerCloseByAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByAll", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixAccountSetPositionMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixAccountSetPositionMode", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerSetTpsl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetTpsl", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderPlaceOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceCancelCopyTrader (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceCancelCopyTrader", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderClickBackhand(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderClickBackhand", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateConfig", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderBatchPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceMyTraderList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceMyTraderList", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderModifyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderModifyOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceMyFollowerList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceMyFollowerList", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderCancelOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceRemoveFollower (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceRemoveFollower", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderBatchCancelOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderBatchCancelOrders", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TracePublicGetFollowerConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TracePublicGetFollowerConfig", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderClosePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderClosePositions", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceReportOrderHistoryList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderHistoryList", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderPlaceTpslOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderPlaceTpslOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceReportOrderCurrentList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderCurrentList", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderPlacePlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderPlacePlanOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceQueryTraderTpslRatioConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceQueryTraderTpslRatioConfig", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderModifyTpslOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderModifyTpslOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateTpslRatioConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateTpslRatioConfig", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderModifyPlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderModifyPlanOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAutoMargin (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixAccountSetAutoMargin", args...)
 }
 
-func (this *bitget) PrivateMixPostV2MixOrderCancelPlanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMixPostV2MixOrderCancelPlanOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixAccountSetLeverage", args...)
 }
 
-func (this *bitget) PrivateUserGetUserV1FeeQuery(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetUserV1FeeQuery", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAllLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixAccountSetAllLeverage", args...)
 }
 
-func (this *bitget) PrivateUserGetUserV1SubVirtualList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetUserV1SubVirtualList", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetMargin (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixAccountSetMargin", args...)
 }
 
-func (this *bitget) PrivateUserGetUserV1SubVirtualApiList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetUserV1SubVirtualApiList", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAssetMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixAccountSetAssetMode", args...)
 }
 
-func (this *bitget) PrivateUserGetUserV1TaxSpotRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetUserV1TaxSpotRecord", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetMarginMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixAccountSetMarginMode", args...)
 }
 
-func (this *bitget) PrivateUserGetUserV1TaxFutureRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetUserV1TaxFutureRecord", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountUnionConvert (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixAccountUnionConvert", args...)
 }
 
-func (this *bitget) PrivateUserGetUserV1TaxMarginRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetUserV1TaxMarginRecord", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetPositionMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixAccountSetPositionMode", args...)
 }
 
-func (this *bitget) PrivateUserGetUserV1TaxP2pRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetUserV1TaxP2pRecord", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateUserGetV2UserVirtualSubaccountList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountList", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderClickBackhand (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderClickBackhand", args...)
 }
 
-func (this *bitget) PrivateUserGetV2UserVirtualSubaccountApikeyList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountApikeyList", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderBatchPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderBatchPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateUserPostUserV1SubVirtualCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostUserV1SubVirtualCreate", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderModifyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderModifyOrder", args...)
 }
 
-func (this *bitget) PrivateUserPostUserV1SubVirtualModify(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostUserV1SubVirtualModify", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderCancelOrder", args...)
 }
 
-func (this *bitget) PrivateUserPostUserV1SubVirtualApiBatchCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiBatchCreate", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderBatchCancelOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderBatchCancelOrders", args...)
 }
 
-func (this *bitget) PrivateUserPostUserV1SubVirtualApiCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiCreate", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderClosePositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderClosePositions", args...)
 }
 
-func (this *bitget) PrivateUserPostUserV1SubVirtualApiModify(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiModify", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderCancelAllOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderCancelAllOrders", args...)
 }
 
-func (this *bitget) PrivateUserPostV2UserCreateVirtualSubaccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccount", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceTpslOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderPlaceTpslOrder", args...)
 }
 
-func (this *bitget) PrivateUserPostV2UserModifyVirtualSubaccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccount", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePosTpsl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderPlacePosTpsl", args...)
 }
 
-func (this *bitget) PrivateUserPostV2UserBatchCreateSubaccountAndApikey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostV2UserBatchCreateSubaccountAndApikey", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderPlacePlanOrder", args...)
 }
 
-func (this *bitget) PrivateUserPostV2UserCreateVirtualSubaccountApikey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccountApikey", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderModifyTpslOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderModifyTpslOrder", args...)
 }
 
-func (this *bitget) PrivateUserPostV2UserModifyVirtualSubaccountApikey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccountApikey", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderModifyPlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderModifyPlanOrder", args...)
 }
 
-func (this *bitget) PrivateP2pGetP2pV1MerchantMerchantList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantList", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderCancelPlanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMixPostV2MixOrderCancelPlanOrder", args...)
 }
 
-func (this *bitget) PrivateP2pGetP2pV1MerchantMerchantInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantInfo", args...)
+func (this *BitgetCore) PrivateUserGetUserV1FeeQuery (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetUserV1FeeQuery", args...)
 }
 
-func (this *bitget) PrivateP2pGetP2pV1MerchantAdvList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateP2pGetP2pV1MerchantAdvList", args...)
+func (this *BitgetCore) PrivateUserGetUserV1SubVirtualList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetUserV1SubVirtualList", args...)
 }
 
-func (this *bitget) PrivateP2pGetP2pV1MerchantOrderList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateP2pGetP2pV1MerchantOrderList", args...)
+func (this *BitgetCore) PrivateUserGetUserV1SubVirtualApiList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetUserV1SubVirtualApiList", args...)
 }
 
-func (this *bitget) PrivateP2pGetV2P2pMerchantList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateP2pGetV2P2pMerchantList", args...)
+func (this *BitgetCore) PrivateUserGetUserV1TaxSpotRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetUserV1TaxSpotRecord", args...)
 }
 
-func (this *bitget) PrivateP2pGetV2P2pMerchantInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateP2pGetV2P2pMerchantInfo", args...)
+func (this *BitgetCore) PrivateUserGetUserV1TaxFutureRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetUserV1TaxFutureRecord", args...)
 }
 
-func (this *bitget) PrivateP2pGetV2P2pOrderList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateP2pGetV2P2pOrderList", args...)
+func (this *BitgetCore) PrivateUserGetUserV1TaxMarginRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetUserV1TaxMarginRecord", args...)
 }
 
-func (this *bitget) PrivateP2pGetV2P2pAdvList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateP2pGetV2P2pAdvList", args...)
+func (this *BitgetCore) PrivateUserGetUserV1TaxP2pRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetUserV1TaxP2pRecord", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountInfo", args...)
+func (this *BitgetCore) PrivateUserGetV2UserVirtualSubaccountList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountList", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountSubList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubList", args...)
+func (this *BitgetCore) PrivateUserGetV2UserVirtualSubaccountApikeyList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountApikeyList", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountSubEmail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubEmail", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualCreate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostUserV1SubVirtualCreate", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountSubSpotAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubSpotAssets", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualModify (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostUserV1SubVirtualModify", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountSubFutureAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubFutureAssets", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiBatchCreate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiBatchCreate", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountSubaccountTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountTransfer", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiCreate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiCreate", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountSubaccountDeposit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountDeposit", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiModify (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiModify", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountSubaccountWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountWithdrawal", args...)
+func (this *BitgetCore) PrivateUserPostV2UserCreateVirtualSubaccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccount", args...)
 }
 
-func (this *bitget) PrivateBrokerGetBrokerV1AccountSubApiList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubApiList", args...)
+func (this *BitgetCore) PrivateUserPostV2UserModifyVirtualSubaccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccount", args...)
 }
 
-func (this *bitget) PrivateBrokerGetV2BrokerAccountInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountInfo", args...)
+func (this *BitgetCore) PrivateUserPostV2UserBatchCreateSubaccountAndApikey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostV2UserBatchCreateSubaccountAndApikey", args...)
 }
 
-func (this *bitget) PrivateBrokerGetV2BrokerAccountSubaccountList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountList", args...)
+func (this *BitgetCore) PrivateUserPostV2UserCreateVirtualSubaccountApikey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccountApikey", args...)
 }
 
-func (this *bitget) PrivateBrokerGetV2BrokerAccountSubaccountEmail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountEmail", args...)
+func (this *BitgetCore) PrivateUserPostV2UserModifyVirtualSubaccountApikey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccountApikey", args...)
 }
 
-func (this *bitget) PrivateBrokerGetV2BrokerAccountSubaccountSpotAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountSpotAssets", args...)
+func (this *BitgetCore) PrivateP2pGetP2pV1MerchantMerchantList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantList", args...)
 }
 
-func (this *bitget) PrivateBrokerGetV2BrokerAccountSubaccountFutureAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountFutureAssets", args...)
+func (this *BitgetCore) PrivateP2pGetP2pV1MerchantMerchantInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantInfo", args...)
 }
 
-func (this *bitget) PrivateBrokerGetV2BrokerManageSubaccountApikeyList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerGetV2BrokerManageSubaccountApikeyList", args...)
+func (this *BitgetCore) PrivateP2pGetP2pV1MerchantAdvList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateP2pGetP2pV1MerchantAdvList", args...)
 }
 
-func (this *bitget) PrivateBrokerPostBrokerV1AccountSubCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubCreate", args...)
+func (this *BitgetCore) PrivateP2pGetP2pV1MerchantOrderList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateP2pGetP2pV1MerchantOrderList", args...)
 }
 
-func (this *bitget) PrivateBrokerPostBrokerV1AccountSubModify(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModify", args...)
+func (this *BitgetCore) PrivateP2pGetV2P2pMerchantList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateP2pGetV2P2pMerchantList", args...)
 }
 
-func (this *bitget) PrivateBrokerPostBrokerV1AccountSubModifyEmail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModifyEmail", args...)
+func (this *BitgetCore) PrivateP2pGetV2P2pMerchantInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateP2pGetV2P2pMerchantInfo", args...)
 }
 
-func (this *bitget) PrivateBrokerPostBrokerV1AccountSubAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAddress", args...)
+func (this *BitgetCore) PrivateP2pGetV2P2pOrderList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateP2pGetV2P2pOrderList", args...)
 }
 
-func (this *bitget) PrivateBrokerPostBrokerV1AccountSubWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubWithdrawal", args...)
+func (this *BitgetCore) PrivateP2pGetV2P2pAdvList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateP2pGetV2P2pAdvList", args...)
 }
 
-func (this *bitget) PrivateBrokerPostBrokerV1AccountSubAutoTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAutoTransfer", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountInfo", args...)
 }
 
-func (this *bitget) PrivateBrokerPostBrokerV1AccountSubApiCreate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiCreate", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubList", args...)
 }
 
-func (this *bitget) PrivateBrokerPostBrokerV1AccountSubApiModify(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiModify", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubEmail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubEmail", args...)
 }
 
-func (this *bitget) PrivateBrokerPostV2BrokerAccountModifySubaccountEmail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccountEmail", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubSpotAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubSpotAssets", args...)
 }
 
-func (this *bitget) PrivateBrokerPostV2BrokerAccountCreateSubaccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountCreateSubaccount", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubFutureAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubFutureAssets", args...)
 }
 
-func (this *bitget) PrivateBrokerPostV2BrokerAccountModifySubaccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccount", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountTransfer", args...)
 }
 
-func (this *bitget) PrivateBrokerPostV2BrokerAccountSubaccountAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountAddress", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountDeposit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountDeposit", args...)
 }
 
-func (this *bitget) PrivateBrokerPostV2BrokerAccountSubaccountWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountWithdrawal", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountWithdrawal", args...)
 }
 
-func (this *bitget) PrivateBrokerPostV2BrokerAccountSetSubaccountAutotransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSetSubaccountAutotransfer", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubApiList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubApiList", args...)
 }
 
-func (this *bitget) PrivateBrokerPostV2BrokerManageCreateSubaccountApikey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostV2BrokerManageCreateSubaccountApikey", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountInfo", args...)
 }
 
-func (this *bitget) PrivateBrokerPostV2BrokerManageModifySubaccountApikey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateBrokerPostV2BrokerManageModifySubaccountApikey", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountList", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossAccountRiskRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountRiskRate", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountEmail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountEmail", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossAccountMaxTransferOutAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountMaxTransferOutAmount", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountSpotAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountSpotAssets", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountFutureAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountFutureAssets", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedOrderOpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderOpenOrders", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerManageSubaccountApikeyList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerGetV2BrokerManageSubaccountApikeyList", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedOrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderHistory", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubCreate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubCreate", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedOrderFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderFills", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubModify (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModify", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedLoanList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLoanList", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubModifyEmail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModifyEmail", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedRepayList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedRepayList", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAddress", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedInterestList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedInterestList", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubWithdrawal", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedLiquidationList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLiquidationList", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubAutoTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAutoTransfer", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedFinList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedFinList", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubApiCreate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiCreate", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossOrderOpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderOpenOrders", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubApiModify (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiModify", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossOrderHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderHistory", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountModifySubaccountEmail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccountEmail", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossOrderFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderFills", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountCreateSubaccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountCreateSubaccount", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossLoanList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossLoanList", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountModifySubaccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccount", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossRepayList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossRepayList", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSubaccountAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountAddress", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossInterestList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossInterestList", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSubaccountWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountWithdrawal", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossLiquidationList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossLiquidationList", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSetSubaccountAutotransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSetSubaccountAutotransfer", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossFinList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossFinList", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerManageCreateSubaccountApikey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostV2BrokerManageCreateSubaccountApikey", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1CrossAccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountAssets", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerManageModifySubaccountApikey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateBrokerPostV2BrokerManageModifySubaccountApikey", args...)
 }
 
-func (this *bitget) PrivateMarginGetMarginV1IsolatedAccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountAssets", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountRiskRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountRiskRate", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedBorrowHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedBorrowHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountMaxTransferOutAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountMaxTransferOutAmount", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedRepayHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedRepayHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedInterestHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderOpenOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderOpenOrders", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedLiquidationHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedLiquidationHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderHistory", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedFinancialRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedFinancialRecords", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderFills", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedAccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountAssets", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedLoanList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLoanList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedAccountRiskRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountRiskRate", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedRepayList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedRepayList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedAccountMaxBorrowableAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxBorrowableAmount", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedInterestList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedInterestList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedAccountMaxTransferOutAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxTransferOutAmount", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedLiquidationList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLiquidationList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedInterestRateAndLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestRateAndLimit", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedFinList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedFinList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedTierData(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedTierData", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderOpenOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderOpenOrders", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedOpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedOpenOrders", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderHistory", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedHistoryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedHistoryOrders", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderFills", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginCrossedFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginCrossedFills", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossLoanList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossLoanList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedBorrowHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedBorrowHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossRepayList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossRepayList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedRepayHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedRepayHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossInterestList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossInterestList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedInterestHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossLiquidationList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossLiquidationList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedLiquidationHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedLiquidationHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossFinList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossFinList", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedFinancialRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFinancialRecords", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountAssets", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedAccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountAssets", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedAccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountAssets", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedAccountRiskRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountRiskRate", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedBorrowHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedBorrowHistory", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedRepayHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedRepayHistory", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedInterestHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestHistory", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedInterestRateAndLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestRateAndLimit", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedLiquidationHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedLiquidationHistory", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedTierData(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedTierData", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedFinancialRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedFinancialRecords", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedOpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedOpenOrders", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountAssets", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedHistoryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedHistoryOrders", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountRiskRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountRiskRate", args...)
 }
 
-func (this *bitget) PrivateMarginGetV2MarginIsolatedFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFills", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountMaxBorrowableAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxBorrowableAmount", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossAccountBorrow(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountBorrow", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountMaxTransferOutAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxTransferOutAmount", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedAccountBorrow(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountBorrow", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedInterestRateAndLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestRateAndLimit", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossAccountRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountRepay", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedTierData (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedTierData", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedAccountRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRepay", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedOpenOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedOpenOrders", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedAccountRiskRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRiskRate", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedHistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedHistoryOrders", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossAccountMaxBorrowableAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountMaxBorrowableAmount", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginCrossedFills", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedBorrowHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedBorrowHistory", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedAccountFlashRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountFlashRepay", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedRepayHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedRepayHistory", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedInterestHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestHistory", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossAccountFlashRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountFlashRepay", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedLiquidationHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedLiquidationHistory", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossAccountQueryFlashRepayStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountQueryFlashRepayStatus", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedFinancialRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFinancialRecords", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedOrderPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountAssets", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedOrderBatchPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountRiskRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountRiskRate", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedOrderCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossOrderPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedInterestRateAndLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestRateAndLimit", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossOrderBatchPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedTierData (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedTierData", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossOrderCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedOpenOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedOpenOrders", args...)
 }
 
-func (this *bitget) PrivateMarginPostMarginV1CrossOrderBatchCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedHistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedHistoryOrders", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginCrossedAccountBorrow(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountBorrow", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFills", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginCrossedAccountRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountRepay", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountBorrow (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountBorrow", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginCrossedAccountFlashRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountFlashRepay", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountBorrow (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountBorrow", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountRepay", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginCrossedPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginCrossedPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRepay", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginCrossedBatchPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountRiskRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRiskRate", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginCrossedCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginCrossedCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountMaxBorrowableAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountMaxBorrowableAmount", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginCrossedBatchCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginIsolatedAccountBorrow(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountBorrow", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountFlashRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountFlashRepay", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginIsolatedAccountRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountRepay", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginIsolatedAccountFlashRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountFlashRepay", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountFlashRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountFlashRepay", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountQueryFlashRepayStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountQueryFlashRepayStatus", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginIsolatedPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginIsolatedBatchPlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderBatchPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginIsolatedCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderCancelOrder", args...)
 }
 
-func (this *bitget) PrivateMarginPostV2MarginIsolatedBatchCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchCancelOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderOrderCurrentTrack(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderCurrentTrack", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderOrderHistoryTrack(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderHistoryTrack", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderBatchPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderOrderTotalDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderTotalDetail", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderCancelOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderProfitHistorySummarys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistorySummarys", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderBatchCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchCancelOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderProfitHistoryDetails(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistoryDetails", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountBorrow (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountBorrow", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderProfitDetails(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitDetails", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountRepay", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderProfitsGroupCoinDate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitsGroupCoinDate", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountFlashRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountFlashRepay", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderConfigQuerySymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQuerySymbols", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixTraderConfigQueryFollowers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQueryFollowers", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginCrossedPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixFollowerQueryCurrentOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryCurrentOrders", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedBatchPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixFollowerQueryHistoryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryHistoryOrders", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginCrossedCancelOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixFollowerQuerySettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQuerySettings", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedBatchCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchCancelOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixFollowerQueryTraders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryTraders", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountBorrow (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountBorrow", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixFollowerQueryQuantityLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryQuantityLimit", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountRepay", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixBrokerQueryTraders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryTraders", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountFlashRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountFlashRepay", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixBrokerQueryHistoryTraces(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryHistoryTraces", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopyMixBrokerQueryCurrentTraces(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryCurrentTraces", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotTraderProfitSummarys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitSummarys", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedBatchPlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchPlaceOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotTraderProfitHistoryDetails(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitHistoryDetails", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedCancelOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotTraderProfitDetails(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitDetails", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedBatchCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchCancelOrder", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotTraderOrderTotalDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderTotalDetail", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderCurrentTrack (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderCurrentTrack", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotTraderOrderHistoryTrack(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderHistoryTrack", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderHistoryTrack (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderHistoryTrack", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotTraderOrderCurrentTrack(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderCurrentTrack", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderTotalDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderTotalDetail", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotTraderConfigQuerySettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQuerySettings", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitHistorySummarys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistorySummarys", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotTraderConfigQueryFollowers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQueryFollowers", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitHistoryDetails (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistoryDetails", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotFollowerQueryTraders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitDetails (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitDetails", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotFollowerQueryTraderSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraderSymbols", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitsGroupCoinDate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitsGroupCoinDate", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotFollowerQuerySettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQuerySettings", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderConfigQuerySymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQuerySymbols", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotFollowerQueryHistoryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryHistoryOrders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderConfigQueryFollowers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQueryFollowers", args...)
 }
 
-func (this *bitget) PrivateCopyGetV2CopySpotFollowerQueryCurrentOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryCurrentOrders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryCurrentOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryCurrentOrders", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixTraderOrderModifyTpsl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderModifyTpsl", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryHistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryHistoryOrders", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixTraderOrderClosePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderClosePositions", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQuerySettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQuerySettings", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixTraderConfigSettingSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingSymbols", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryTraders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryTraders", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixTraderConfigSettingBase(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingBase", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryQuantityLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryQuantityLimit", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixTraderConfigRemoveFollower(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigRemoveFollower", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryTraders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryTraders", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixFollowerSettingTpsl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettingTpsl", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryHistoryTraces (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryHistoryTraces", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixFollowerSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettings", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryCurrentTraces (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryCurrentTraces", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixFollowerClosePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerClosePositions", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitSummarys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitSummarys", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopyMixFollowerCancelTrader(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerCancelTrader", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitHistoryDetails (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitHistoryDetails", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotTraderOrderModifyTpsl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderModifyTpsl", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitDetails (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitDetails", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotTraderOrderCloseTracking(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderCloseTracking", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderTotalDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderTotalDetail", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotTraderConfigSettingSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigSettingSymbols", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderHistoryTrack (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderHistoryTrack", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotTraderConfigRemoveFollower(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigRemoveFollower", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderCurrentTrack (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderCurrentTrack", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotFollowerStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerStopOrder", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderConfigQuerySettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQuerySettings", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotFollowerSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettings", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderConfigQueryFollowers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQueryFollowers", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotFollowerSettingTpsl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettingTpsl", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryTraders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraders", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotFollowerOrderCloseTracking(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerOrderCloseTracking", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryTraderSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraderSymbols", args...)
 }
 
-func (this *bitget) PrivateCopyPostV2CopySpotFollowerCancelTrader(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerCancelTrader", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQuerySettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQuerySettings", args...)
 }
 
-func (this *bitget) PrivateTaxGetV2TaxSpotRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateTaxGetV2TaxSpotRecord", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryHistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryHistoryOrders", args...)
 }
 
-func (this *bitget) PrivateTaxGetV2TaxFutureRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateTaxGetV2TaxFutureRecord", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryCurrentOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryCurrentOrders", args...)
 }
 
-func (this *bitget) PrivateTaxGetV2TaxMarginRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateTaxGetV2TaxMarginRecord", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderOrderModifyTpsl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderModifyTpsl", args...)
 }
 
-func (this *bitget) PrivateTaxGetV2TaxP2pRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateTaxGetV2TaxP2pRecord", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderOrderClosePositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderClosePositions", args...)
 }
 
-func (this *bitget) PrivateConvertGetV2ConvertCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateConvertGetV2ConvertCurrencies", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigSettingSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingSymbols", args...)
 }
 
-func (this *bitget) PrivateConvertGetV2ConvertQuotedPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateConvertGetV2ConvertQuotedPrice", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigSettingBase (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingBase", args...)
 }
 
-func (this *bitget) PrivateConvertGetV2ConvertConvertRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateConvertGetV2ConvertConvertRecord", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigRemoveFollower (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigRemoveFollower", args...)
 }
 
-func (this *bitget) PrivateConvertGetV2ConvertBgbConvertCoinList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertCoinList", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerSettingTpsl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettingTpsl", args...)
 }
 
-func (this *bitget) PrivateConvertGetV2ConvertBgbConvertRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertRecords", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerSettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettings", args...)
 }
 
-func (this *bitget) PrivateConvertPostV2ConvertTrade(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateConvertPostV2ConvertTrade", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerClosePositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerClosePositions", args...)
 }
 
-func (this *bitget) PrivateConvertPostV2ConvertBgbConvert(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateConvertPostV2ConvertBgbConvert", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerCancelTrader (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerCancelTrader", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSavingsProduct(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSavingsProduct", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderOrderModifyTpsl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderModifyTpsl", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSavingsAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSavingsAccount", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderOrderCloseTracking (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderCloseTracking", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSavingsAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSavingsAssets", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderConfigSettingSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigSettingSymbols", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSavingsRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSavingsRecords", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderConfigRemoveFollower (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigRemoveFollower", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSavingsSubscribeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeInfo", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerStopOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerStopOrder", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSavingsSubscribeResult(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeResult", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerSettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettings", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSavingsRedeemResult(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSavingsRedeemResult", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerSettingTpsl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettingTpsl", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSharkfinProduct(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinProduct", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerOrderCloseTracking (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerOrderCloseTracking", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSharkfinAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAccount", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerCancelTrader (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerCancelTrader", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSharkfinAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAssets", args...)
+func (this *BitgetCore) PrivateTaxGetV2TaxSpotRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateTaxGetV2TaxSpotRecord", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSharkfinRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinRecords", args...)
+func (this *BitgetCore) PrivateTaxGetV2TaxFutureRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateTaxGetV2TaxFutureRecord", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSharkfinSubscribeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeInfo", args...)
+func (this *BitgetCore) PrivateTaxGetV2TaxMarginRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateTaxGetV2TaxMarginRecord", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnSharkfinSubscribeResult(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeResult", args...)
+func (this *BitgetCore) PrivateTaxGetV2TaxP2pRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateTaxGetV2TaxP2pRecord", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnLoanOngoingOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnLoanOngoingOrders", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateConvertGetV2ConvertCurrencies", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnLoanRepayHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnLoanRepayHistory", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertQuotedPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateConvertGetV2ConvertQuotedPrice", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnLoanReviseHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnLoanReviseHistory", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertConvertRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateConvertGetV2ConvertConvertRecord", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnLoanBorrowHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnLoanBorrowHistory", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertBgbConvertCoinList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertCoinList", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnLoanDebts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnLoanDebts", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertBgbConvertRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertRecords", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnLoanReduces(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnLoanReduces", args...)
+func (this *BitgetCore) PrivateConvertPostV2ConvertTrade (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateConvertPostV2ConvertTrade", args...)
 }
 
-func (this *bitget) PrivateEarnGetV2EarnAccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetV2EarnAccountAssets", args...)
+func (this *BitgetCore) PrivateConvertPostV2ConvertBgbConvert (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateConvertPostV2ConvertBgbConvert", args...)
 }
 
-func (this *bitget) PrivateEarnPostV2EarnSavingsSubscribe(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPostV2EarnSavingsSubscribe", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsProduct (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSavingsProduct", args...)
 }
 
-func (this *bitget) PrivateEarnPostV2EarnSavingsRedeem(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPostV2EarnSavingsRedeem", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSavingsAccount", args...)
 }
 
-func (this *bitget) PrivateEarnPostV2EarnSharkfinSubscribe(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPostV2EarnSharkfinSubscribe", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSavingsAssets", args...)
 }
 
-func (this *bitget) PrivateEarnPostV2EarnLoanBorrow(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPostV2EarnLoanBorrow", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSavingsRecords", args...)
 }
 
-func (this *bitget) PrivateEarnPostV2EarnLoanRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPostV2EarnLoanRepay", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsSubscribeInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeInfo", args...)
 }
 
-func (this *bitget) PrivateEarnPostV2EarnLoanRevisePledge(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPostV2EarnLoanRevisePledge", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsSubscribeResult (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeResult", args...)
 }
 
-func (this *bitget) PrivateCommonGetV2CommonTradeRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateCommonGetV2CommonTradeRate", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsRedeemResult (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSavingsRedeemResult", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountAssets", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinProduct (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinProduct", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountSettings", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAccount", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountDepositRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountDepositRecords", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAssets", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountFinancialRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountFinancialRecords", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinRecords", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountRepayableCoins(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountRepayableCoins", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinSubscribeInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeInfo", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountPaymentCoins(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountPaymentCoins", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinSubscribeResult (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeResult", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountConvertRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountConvertRecords", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanOngoingOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnLoanOngoingOrders", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountTransferableCoins(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountTransferableCoins", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanRepayHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnLoanRepayHistory", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3AccountSubTransferRecord(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountSubTransferRecord", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanReviseHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnLoanReviseHistory", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3InsLoanTransfered(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanTransfered", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanBorrowHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnLoanBorrowHistory", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3InsLoanSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanSymbols", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanDebts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnLoanDebts", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3InsLoanRiskUnit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanRiskUnit", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanReduces (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnLoanReduces", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3InsLoanRepaidHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanRepaidHistory", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnAccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetV2EarnAccountAssets", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3InsLoanProductInfos(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanProductInfos", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnSavingsSubscribe (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostV2EarnSavingsSubscribe", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3InsLoanLoanOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanLoanOrder", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnSavingsRedeem (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostV2EarnSavingsRedeem", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3InsLoanLtvConvert(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanLtvConvert", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnSharkfinSubscribe (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostV2EarnSharkfinSubscribe", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnLoanBorrow (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostV2EarnLoanBorrow", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3PositionCurrentPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3PositionCurrentPosition", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnLoanRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostV2EarnLoanRepay", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3PositionHistoryPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3PositionHistoryPosition", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnLoanRevisePledge (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostV2EarnLoanRevisePledge", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3TradeOrderInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3TradeOrderInfo", args...)
+func (this *BitgetCore) PrivateCommonGetV2CommonTradeRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateCommonGetV2CommonTradeRate", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3TradeUnfilledOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3TradeUnfilledOrders", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountAssets", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3TradeUnfilledStrategyOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3TradeUnfilledStrategyOrders", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountSettings", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3TradeHistoryOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3TradeHistoryOrders", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountDepositRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountDepositRecords", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3TradeHistoryStrategyOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3TradeHistoryStrategyOrders", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountFinancialRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountFinancialRecords", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3TradeFills(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3TradeFills", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountRepayableCoins (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountRepayableCoins", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3UserSubList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3UserSubList", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountPaymentCoins (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountPaymentCoins", args...)
 }
 
-func (this *bitget) PrivateUtaGetV3UserSubApiList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3UserSubApiList", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountConvertRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountConvertRecords", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3AccountSetLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3AccountSetLeverage", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountTransferableCoins (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountTransferableCoins", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3AccountSetHoldMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3AccountSetHoldMode", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSubTransferRecord (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountSubTransferRecord", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3AccountRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3AccountRepay", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanTransfered (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3InsLoanTransfered", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3AccountTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3AccountTransfer", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3InsLoanSymbols", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3AccountSubTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3AccountSubTransfer", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanRiskUnit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3InsLoanRiskUnit", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3AccountMaxOpenAvailable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3AccountMaxOpenAvailable", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanRepaidHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3InsLoanRepaidHistory", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3InsLoanBindUid(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanProductInfos (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3InsLoanProductInfos", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradePlaceOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradePlaceOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanLoanOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3InsLoanLoanOrder", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradePlaceStrategyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradePlaceStrategyOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanLtvConvert (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3InsLoanLtvConvert", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradeModifyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradeModifyOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanEnsureCoinsConvert (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradeModifyStrategyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradeModifyStrategyOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3PositionCurrentPosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3PositionCurrentPosition", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradeCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradeCancelOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3PositionHistoryPosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3PositionHistoryPosition", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradeCancelStrategyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradeCancelStrategyOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeOrderInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3TradeOrderInfo", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradePlaceBatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradePlaceBatch", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeUnfilledOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3TradeUnfilledOrders", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradeBatchModifyOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradeBatchModifyOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeUnfilledStrategyOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3TradeUnfilledStrategyOrders", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradeCancelBatch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradeCancelBatch", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeHistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3TradeHistoryOrders", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradeCancelSymbolOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradeCancelSymbolOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeHistoryStrategyOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3TradeHistoryStrategyOrders", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3TradeClosePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3TradeClosePositions", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeFills (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3TradeFills", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3UserCreateSub(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3UserCreateSub", args...)
+func (this *BitgetCore) PrivateUtaGetV3UserSubList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3UserSubList", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3UserFreezeSub(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3UserFreezeSub", args...)
+func (this *BitgetCore) PrivateUtaGetV3UserSubApiList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3UserSubApiList", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3UserCreateSubApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3UserCreateSubApi", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountSetLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3AccountSetLeverage", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3UserUpdateSubApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3UserUpdateSubApi", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountSetHoldMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3AccountSetHoldMode", args...)
 }
 
-func (this *bitget) PrivateUtaPostV3UserDeleteSubApi(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaPostV3UserDeleteSubApi", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3AccountRepay", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3AccountTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3AccountTransfer", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3AccountSubTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3AccountSubTransfer", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3AccountMaxOpenAvailable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3AccountMaxOpenAvailable", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3InsLoanBindUid (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradePlaceOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradePlaceOrder", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradePlaceStrategyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradePlaceStrategyOrder", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeModifyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeModifyOrder", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeModifyStrategyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeModifyStrategyOrder", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeCancelOrder", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeCancelStrategyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeCancelStrategyOrder", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradePlaceBatch (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradePlaceBatch", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeBatchModifyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeBatchModifyOrder", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeCancelBatch (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeCancelBatch", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeCancelSymbolOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeCancelSymbolOrder", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeClosePositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeClosePositions", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3UserCreateSub (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3UserCreateSub", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3UserFreezeSub (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3UserFreezeSub", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3UserCreateSubApi (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3UserCreateSubApi", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3UserUpdateSubApi (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3UserUpdateSubApi", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3UserDeleteSubApi (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3UserDeleteSubApi", args...)
 }

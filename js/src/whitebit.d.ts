@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory, Position, CrossBorrowRate } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory, Position, CrossBorrowRate, Account } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -33,7 +33,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/public/http-v4/#fee
      * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTransactionFees(codes?: Strings, params?: {}): Promise<{
         withdraw: Dict;
@@ -47,7 +47,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/public/http-v4/#fee
      * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
@@ -57,9 +57,30 @@ export default class whitebit extends Exchange {
      * @description fetch the trading fees for multiple markets
      * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
+    /**
+     * @method
+     * @name whitebit#fetchTradingLimits
+     * @description fetch the trading limits for a market
+     * @see https://docs.whitebit.com/public/http-v4/#market-info
+     * @param {string[]|undefined} symbols unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
+     */
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name whitebit#fetchFundingLimits
+     * @description fetch the deposit and withdrawal limits for a currency
+     * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+     * @see https://docs.whitebit.com/public/http-v4/#fee
+     * @param {string[]|undefined} codes unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
+     */
+    fetchFundingLimits(codes?: Strings, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name whitebit#fetchTicker
@@ -67,10 +88,24 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
+     * @name whitebit#fetchOrder
+     * @description fetches information on an order by the id
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.checkActive] whether to check active orders (default: true)
+     * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name whitebit#fetchTickers
@@ -79,7 +114,7 @@ export default class whitebit extends Exchange {
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
@@ -90,7 +125,7 @@ export default class whitebit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -102,7 +137,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
@@ -114,7 +149,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
@@ -138,7 +173,7 @@ export default class whitebit extends Exchange {
      * @description the latest known information on the availability of the exchange API
      * @see https://docs.whitebit.com/public/http-v4/#server-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
@@ -164,7 +199,7 @@ export default class whitebit extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
     /**
@@ -174,7 +209,7 @@ export default class whitebit extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     /**
@@ -197,7 +232,7 @@ export default class whitebit extends Exchange {
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     /**
@@ -212,7 +247,7 @@ export default class whitebit extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     /**
@@ -223,7 +258,7 @@ export default class whitebit extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
@@ -235,9 +270,22 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] market type, ['swap', 'spot']
      * @param {boolean} [params.isMargin] cancel all margin orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name whitebit#fetchOrders
+     * @description fetches information on multiple orders made by the user (combines open and closed orders)
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name whitebit#cancelAllOrdersAfter
@@ -258,7 +306,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/private/http-main-v4/#main-balance
      * @see https://docs.whitebit.com/private/http-trade-v4/#trading-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
     /**
@@ -270,7 +318,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
@@ -282,7 +330,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderType(type: Str): string;
@@ -297,9 +345,35 @@ export default class whitebit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
+     * @name whitebit#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    /**
+     * @method
+     * @name whitebit#fetchTransactions
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transactions structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    fetchTransactions(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
      * @method
      * @name whitebit#fetchDepositAddress
@@ -308,7 +382,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/private/http-main-v4/#get-cryptocurrency-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     /**
@@ -320,10 +394,19 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network to create a deposit address on
      * @param {string} [params.type] address type, available for specific currencies
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    /**
+     * @method
+     * @name whitebit#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    fetchAccounts(params?: {}): Promise<Account[]>;
     /**
      * @method
      * @name whitebit#setLeverage
@@ -345,7 +428,7 @@ export default class whitebit extends Exchange {
      * @param {string} fromAccount account to transfer from - main, spot, collateral
      * @param {string} toAccount account to transfer to - main, spot, collateral
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
@@ -359,7 +442,7 @@ export default class whitebit extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
@@ -372,7 +455,7 @@ export default class whitebit extends Exchange {
      * @param {string} id deposit id
      * @param {string} code not used by whitebit fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     /**
@@ -384,7 +467,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
@@ -397,7 +480,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch borrrow interest for
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
@@ -408,7 +491,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
@@ -418,7 +501,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
@@ -432,7 +515,7 @@ export default class whitebit extends Exchange {
      * @param {int} [limit] the number of entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch funding history for
-     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingHistory(contract: any, market?: Market): {
@@ -462,7 +545,7 @@ export default class whitebit extends Exchange {
      * @param {string} [params.uniqueId] Can be used for filtering transactions by specific unique id
      * @param {int} [params.offset] If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000
      * @param {string[]} [params.status] Can be used for filtering transactions by status codes. Caution: You must use this parameter with appropriate transactionMethod and use valid status codes for this method. You can find them below. Example: "status": [3,7]
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
@@ -474,7 +557,7 @@ export default class whitebit extends Exchange {
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} amount how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     /**
@@ -487,7 +570,7 @@ export default class whitebit extends Exchange {
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     /**
@@ -503,7 +586,7 @@ export default class whitebit extends Exchange {
      * @param {string} [params.fromTicker] the currency that you sold and converted from
      * @param {string} [params.toTicker] the currency that you bought and converted into
      * @param {string} [params.quoteId] the quote id of the conversion
-     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
@@ -517,7 +600,7 @@ export default class whitebit extends Exchange {
      * @param {int} [limit] the maximum amount of records to fetch
      * @param {object} [params] extra parameters specific to the exchange api endpoint
      * @param {int} [params.positionId] the id of the requested position
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     /**
@@ -527,7 +610,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     /**
@@ -537,7 +620,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     parsePosition(position: Dict, market?: Market): Position;
@@ -548,7 +631,7 @@ export default class whitebit extends Exchange {
      * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     parseBorrowRate(info: any, currency?: Currency): {

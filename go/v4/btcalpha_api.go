@@ -7,58 +7,58 @@
 
 package ccxt
 
-func (this *btcalpha) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrencies", args...)
+func (this *BtcalphaCore) PublicGetCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *btcalpha) PublicGetPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPairs", args...)
+func (this *BtcalphaCore) PublicGetPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetPairs", args...)
 }
 
-func (this *btcalpha) PublicGetOrderbookPairName(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOrderbookPairName", args...)
+func (this *BtcalphaCore) PublicGetOrderbookPairName (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOrderbookPairName", args...)
 }
 
-func (this *btcalpha) PublicGetExchanges(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetExchanges", args...)
+func (this *BtcalphaCore) PublicGetExchanges (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetExchanges", args...)
 }
 
-func (this *btcalpha) PublicGetChartsPairTypeChart(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetChartsPairTypeChart", args...)
+func (this *BtcalphaCore) PublicGetChartsPairTypeChart (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetChartsPairTypeChart", args...)
 }
 
-func (this *btcalpha) PublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *BtcalphaCore) PublicGetTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *btcalpha) PrivateGetWallets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetWallets", args...)
+func (this *BtcalphaCore) PrivateGetWallets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetWallets", args...)
 }
 
-func (this *btcalpha) PrivateGetOrdersOwn(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrdersOwn", args...)
+func (this *BtcalphaCore) PrivateGetOrdersOwn (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOrdersOwn", args...)
 }
 
-func (this *btcalpha) PrivateGetOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrderId", args...)
+func (this *BtcalphaCore) PrivateGetOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOrderId", args...)
 }
 
-func (this *btcalpha) PrivateGetExchangesOwn(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetExchangesOwn", args...)
+func (this *BtcalphaCore) PrivateGetExchangesOwn (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetExchangesOwn", args...)
 }
 
-func (this *btcalpha) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDeposits", args...)
+func (this *BtcalphaCore) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *btcalpha) PrivateGetWithdraws(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetWithdraws", args...)
+func (this *BtcalphaCore) PrivateGetWithdraws (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetWithdraws", args...)
 }
 
-func (this *btcalpha) PrivatePostOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOrder", args...)
+func (this *BtcalphaCore) PrivatePostOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *btcalpha) PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOrderCancel", args...)
+func (this *BtcalphaCore) PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOrderCancel", args...)
 }

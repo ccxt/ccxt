@@ -38,7 +38,7 @@
             {
                 "description": "sol",
                 "method": "withdraw",
-                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/withdraw/apply?address=eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ&amount=2.31157&coin=TRUMPSOL&network=SOL&timestamp=1738519816182&walletType=1&signature=b98a71c9cf4a30724f65223ed5c11f8990ba929c57731524e17cadabab8c5cea",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/withdraw/apply?address=eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ&amount=2.31157&coin=TRUMPSOL&network=SOL&timestamp=1738519816182&walletType=15&signature=b98a71c9cf4a30724f65223ed5c11f8990ba929c57731524e17cadabab8c5cea",
                 "input": [
                     "TRUMPSOL",
                     2.31157,
@@ -1142,7 +1142,7 @@
             {
                 "description": "Linear swap fetch balance",
                 "method": "fetchBalance",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/user/balance?timestamp=1699458295585&signature=9ac6bdbb0f9dda6650951407abbf317de3c8c9eab00418dbdd285be82531dc9c",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/user/balance?timestamp=1699458295585&signature=9ac6bdbb0f9dda6650951407abbf317de3c8c9eab00418dbdd285be82531dc9c",
                 "input": [
                     {
                         "type": "swap"

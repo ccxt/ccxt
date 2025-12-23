@@ -7,1122 +7,1306 @@
 
 package ccxt
 
-func (this *gateio) PublicWalletGetCurrencyChains(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicWalletGetCurrencyChains", args...)
+func (this *GateioCore) PublicWalletGetCurrencyChains (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicWalletGetCurrencyChains", args...)
 }
 
-func (this *gateio) PublicSpotGetCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetCurrencies", args...)
+func (this *GateioCore) PublicUnifiedGetCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUnifiedGetCurrencies", args...)
 }
 
-func (this *gateio) PublicSpotGetCurrenciesCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetCurrenciesCurrency", args...)
+func (this *GateioCore) PublicUnifiedGetHistoryLoanRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicUnifiedGetHistoryLoanRate", args...)
 }
 
-func (this *gateio) PublicSpotGetCurrencyPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetCurrencyPairs", args...)
+func (this *GateioCore) PublicSpotGetCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetCurrencies", args...)
 }
 
-func (this *gateio) PublicSpotGetCurrencyPairsCurrencyPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetCurrencyPairsCurrencyPair", args...)
+func (this *GateioCore) PublicSpotGetCurrenciesCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetCurrenciesCurrency", args...)
 }
 
-func (this *gateio) PublicSpotGetTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetTickers", args...)
+func (this *GateioCore) PublicSpotGetCurrencyPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetCurrencyPairs", args...)
 }
 
-func (this *gateio) PublicSpotGetOrderBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetOrderBook", args...)
+func (this *GateioCore) PublicSpotGetCurrencyPairsCurrencyPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetCurrencyPairsCurrencyPair", args...)
 }
 
-func (this *gateio) PublicSpotGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetTrades", args...)
+func (this *GateioCore) PublicSpotGetTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetTickers", args...)
 }
 
-func (this *gateio) PublicSpotGetCandlesticks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetCandlesticks", args...)
+func (this *GateioCore) PublicSpotGetOrderBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetOrderBook", args...)
 }
 
-func (this *gateio) PublicSpotGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicSpotGetTime", args...)
+func (this *GateioCore) PublicSpotGetTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetTrades", args...)
 }
 
-func (this *gateio) PublicMarginGetCurrencyPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetCurrencyPairs", args...)
+func (this *GateioCore) PublicSpotGetCandlesticks (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetCandlesticks", args...)
 }
 
-func (this *gateio) PublicMarginGetCurrencyPairsCurrencyPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetCurrencyPairsCurrencyPair", args...)
+func (this *GateioCore) PublicSpotGetTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetTime", args...)
 }
 
-func (this *gateio) PublicMarginGetFundingBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetFundingBook", args...)
+func (this *GateioCore) PublicSpotGetInsuranceHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicSpotGetInsuranceHistory", args...)
 }
 
-func (this *gateio) PublicMarginGetCrossCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetCrossCurrencies", args...)
+func (this *GateioCore) PublicMarginGetUniCurrencyPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetUniCurrencyPairs", args...)
 }
 
-func (this *gateio) PublicMarginGetCrossCurrenciesCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetCrossCurrenciesCurrency", args...)
+func (this *GateioCore) PublicMarginGetUniCurrencyPairsCurrencyPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetUniCurrencyPairsCurrencyPair", args...)
 }
 
-func (this *gateio) PublicMarginGetUniCurrencyPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetUniCurrencyPairs", args...)
+func (this *GateioCore) PublicMarginGetLoanMarginTiers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetLoanMarginTiers", args...)
 }
 
-func (this *gateio) PublicMarginGetUniCurrencyPairsCurrencyPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetUniCurrencyPairsCurrencyPair", args...)
+func (this *GateioCore) PublicMarginGetCurrencyPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetCurrencyPairs", args...)
 }
 
-func (this *gateio) PublicFlash_swapGetCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFlash_swapGetCurrencies", args...)
+func (this *GateioCore) PublicMarginGetCurrencyPairsCurrencyPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetCurrencyPairsCurrencyPair", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleContracts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleContracts", args...)
+func (this *GateioCore) PublicMarginGetFundingBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetFundingBook", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleContractsContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleContractsContract", args...)
+func (this *GateioCore) PublicMarginGetCrossCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetCrossCurrencies", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleOrderBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleOrderBook", args...)
+func (this *GateioCore) PublicMarginGetCrossCurrenciesCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicMarginGetCrossCurrenciesCurrency", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleTrades", args...)
+func (this *GateioCore) PublicFlash_swapGetCurrencyPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFlash_swapGetCurrencyPairs", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleCandlesticks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleCandlesticks", args...)
+func (this *GateioCore) PublicFlash_swapGetCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFlash_swapGetCurrencies", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettlePremiumIndex(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettlePremiumIndex", args...)
+func (this *GateioCore) PublicFuturesGetSettleContracts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleContracts", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleTickers", args...)
+func (this *GateioCore) PublicFuturesGetSettleContractsContract (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleContractsContract", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleFundingRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleFundingRate", args...)
+func (this *GateioCore) PublicFuturesGetSettleOrderBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleOrderBook", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleInsurance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleInsurance", args...)
+func (this *GateioCore) PublicFuturesGetSettleTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleTrades", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleContractStats(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleContractStats", args...)
+func (this *GateioCore) PublicFuturesGetSettleCandlesticks (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleCandlesticks", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleIndexConstituentsIndex(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleIndexConstituentsIndex", args...)
+func (this *GateioCore) PublicFuturesGetSettlePremiumIndex (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettlePremiumIndex", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleLiqOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleLiqOrders", args...)
+func (this *GateioCore) PublicFuturesGetSettleTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleTickers", args...)
 }
 
-func (this *gateio) PublicFuturesGetSettleRiskLimitTiers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicFuturesGetSettleRiskLimitTiers", args...)
+func (this *GateioCore) PublicFuturesGetSettleFundingRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleFundingRate", args...)
 }
 
-func (this *gateio) PublicDeliveryGetSettleContracts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicDeliveryGetSettleContracts", args...)
+func (this *GateioCore) PublicFuturesGetSettleInsurance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleInsurance", args...)
 }
 
-func (this *gateio) PublicDeliveryGetSettleContractsContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicDeliveryGetSettleContractsContract", args...)
+func (this *GateioCore) PublicFuturesGetSettleContractStats (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleContractStats", args...)
 }
 
-func (this *gateio) PublicDeliveryGetSettleOrderBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicDeliveryGetSettleOrderBook", args...)
+func (this *GateioCore) PublicFuturesGetSettleIndexConstituentsIndex (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleIndexConstituentsIndex", args...)
 }
 
-func (this *gateio) PublicDeliveryGetSettleTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicDeliveryGetSettleTrades", args...)
+func (this *GateioCore) PublicFuturesGetSettleLiqOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleLiqOrders", args...)
 }
 
-func (this *gateio) PublicDeliveryGetSettleCandlesticks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicDeliveryGetSettleCandlesticks", args...)
+func (this *GateioCore) PublicFuturesGetSettleRiskLimitTiers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicFuturesGetSettleRiskLimitTiers", args...)
 }
 
-func (this *gateio) PublicDeliveryGetSettleTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicDeliveryGetSettleTickers", args...)
+func (this *GateioCore) PublicDeliveryGetSettleContracts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicDeliveryGetSettleContracts", args...)
 }
 
-func (this *gateio) PublicDeliveryGetSettleInsurance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicDeliveryGetSettleInsurance", args...)
+func (this *GateioCore) PublicDeliveryGetSettleContractsContract (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicDeliveryGetSettleContractsContract", args...)
 }
 
-func (this *gateio) PublicOptionsGetUnderlyings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetUnderlyings", args...)
+func (this *GateioCore) PublicDeliveryGetSettleOrderBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicDeliveryGetSettleOrderBook", args...)
 }
 
-func (this *gateio) PublicOptionsGetExpirations(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetExpirations", args...)
+func (this *GateioCore) PublicDeliveryGetSettleTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicDeliveryGetSettleTrades", args...)
 }
 
-func (this *gateio) PublicOptionsGetContracts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetContracts", args...)
+func (this *GateioCore) PublicDeliveryGetSettleCandlesticks (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicDeliveryGetSettleCandlesticks", args...)
 }
 
-func (this *gateio) PublicOptionsGetContractsContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetContractsContract", args...)
+func (this *GateioCore) PublicDeliveryGetSettleTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicDeliveryGetSettleTickers", args...)
 }
 
-func (this *gateio) PublicOptionsGetSettlements(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetSettlements", args...)
+func (this *GateioCore) PublicDeliveryGetSettleInsurance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicDeliveryGetSettleInsurance", args...)
 }
 
-func (this *gateio) PublicOptionsGetSettlementsContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetSettlementsContract", args...)
+func (this *GateioCore) PublicDeliveryGetSettleRiskLimitTiers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicDeliveryGetSettleRiskLimitTiers", args...)
 }
 
-func (this *gateio) PublicOptionsGetOrderBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetOrderBook", args...)
+func (this *GateioCore) PublicOptionsGetUnderlyings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetUnderlyings", args...)
 }
 
-func (this *gateio) PublicOptionsGetTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetTickers", args...)
+func (this *GateioCore) PublicOptionsGetExpirations (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetExpirations", args...)
 }
 
-func (this *gateio) PublicOptionsGetUnderlyingTickersUnderlying(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetUnderlyingTickersUnderlying", args...)
+func (this *GateioCore) PublicOptionsGetContracts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetContracts", args...)
 }
 
-func (this *gateio) PublicOptionsGetCandlesticks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetCandlesticks", args...)
+func (this *GateioCore) PublicOptionsGetContractsContract (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetContractsContract", args...)
 }
 
-func (this *gateio) PublicOptionsGetUnderlyingCandlesticks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetUnderlyingCandlesticks", args...)
+func (this *GateioCore) PublicOptionsGetSettlements (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetSettlements", args...)
 }
 
-func (this *gateio) PublicOptionsGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicOptionsGetTrades", args...)
+func (this *GateioCore) PublicOptionsGetSettlementsContract (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetSettlementsContract", args...)
 }
 
-func (this *gateio) PublicEarnGetUniCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicEarnGetUniCurrencies", args...)
+func (this *GateioCore) PublicOptionsGetOrderBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetOrderBook", args...)
 }
 
-func (this *gateio) PublicEarnGetUniCurrenciesCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicEarnGetUniCurrenciesCurrency", args...)
+func (this *GateioCore) PublicOptionsGetTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetTickers", args...)
 }
 
-func (this *gateio) PrivateWithdrawalsPostWithdrawals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWithdrawalsPostWithdrawals", args...)
+func (this *GateioCore) PublicOptionsGetUnderlyingTickersUnderlying (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetUnderlyingTickersUnderlying", args...)
 }
 
-func (this *gateio) PrivateWithdrawalsPostPush(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWithdrawalsPostPush", args...)
+func (this *GateioCore) PublicOptionsGetCandlesticks (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetCandlesticks", args...)
 }
 
-func (this *gateio) PrivateWithdrawalsDeleteWithdrawalsWithdrawalId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWithdrawalsDeleteWithdrawalsWithdrawalId", args...)
+func (this *GateioCore) PublicOptionsGetUnderlyingCandlesticks (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetUnderlyingCandlesticks", args...)
 }
 
-func (this *gateio) PrivateWalletGetDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetDepositAddress", args...)
+func (this *GateioCore) PublicOptionsGetTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicOptionsGetTrades", args...)
 }
 
-func (this *gateio) PrivateWalletGetWithdrawals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetWithdrawals", args...)
+func (this *GateioCore) PublicEarnGetUniCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicEarnGetUniCurrencies", args...)
 }
 
-func (this *gateio) PrivateWalletGetDeposits(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetDeposits", args...)
+func (this *GateioCore) PublicEarnGetUniCurrenciesCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicEarnGetUniCurrenciesCurrency", args...)
 }
 
-func (this *gateio) PrivateWalletGetSubAccountTransfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetSubAccountTransfers", args...)
+func (this *GateioCore) PublicEarnGetDualInvestmentPlan (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicEarnGetDualInvestmentPlan", args...)
 }
 
-func (this *gateio) PrivateWalletGetOrderStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetOrderStatus", args...)
+func (this *GateioCore) PublicEarnGetStructuredProducts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicEarnGetStructuredProducts", args...)
 }
 
-func (this *gateio) PrivateWalletGetWithdrawStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetWithdrawStatus", args...)
+func (this *GateioCore) PublicLoanGetCollateralCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicLoanGetCollateralCurrencies", args...)
 }
 
-func (this *gateio) PrivateWalletGetSubAccountBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetSubAccountBalances", args...)
+func (this *GateioCore) PublicLoanGetMultiCollateralCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicLoanGetMultiCollateralCurrencies", args...)
 }
 
-func (this *gateio) PrivateWalletGetSubAccountMarginBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetSubAccountMarginBalances", args...)
+func (this *GateioCore) PublicLoanGetMultiCollateralLtv (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicLoanGetMultiCollateralLtv", args...)
 }
 
-func (this *gateio) PrivateWalletGetSubAccountFuturesBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetSubAccountFuturesBalances", args...)
+func (this *GateioCore) PublicLoanGetMultiCollateralFixedRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicLoanGetMultiCollateralFixedRate", args...)
 }
 
-func (this *gateio) PrivateWalletGetSubAccountCrossMarginBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetSubAccountCrossMarginBalances", args...)
+func (this *GateioCore) PublicLoanGetMultiCollateralCurrentRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicLoanGetMultiCollateralCurrentRate", args...)
 }
 
-func (this *gateio) PrivateWalletGetSavedAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetSavedAddress", args...)
+func (this *GateioCore) PrivateWithdrawalsPostWithdrawals (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWithdrawalsPostWithdrawals", args...)
 }
 
-func (this *gateio) PrivateWalletGetFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetFee", args...)
+func (this *GateioCore) PrivateWithdrawalsPostPush (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWithdrawalsPostPush", args...)
 }
 
-func (this *gateio) PrivateWalletGetTotalBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetTotalBalance", args...)
+func (this *GateioCore) PrivateWithdrawalsDeleteWithdrawalsWithdrawalId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWithdrawalsDeleteWithdrawalsWithdrawalId", args...)
 }
 
-func (this *gateio) PrivateWalletGetSmallBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetSmallBalance", args...)
+func (this *GateioCore) PrivateWalletGetDepositAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetDepositAddress", args...)
 }
 
-func (this *gateio) PrivateWalletGetSmallBalanceHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetSmallBalanceHistory", args...)
+func (this *GateioCore) PrivateWalletGetWithdrawals (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetWithdrawals", args...)
 }
 
-func (this *gateio) PrivateWalletGetPush(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletGetPush", args...)
+func (this *GateioCore) PrivateWalletGetDeposits (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetDeposits", args...)
 }
 
-func (this *gateio) PrivateWalletPostTransfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletPostTransfers", args...)
+func (this *GateioCore) PrivateWalletGetSubAccountTransfers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetSubAccountTransfers", args...)
 }
 
-func (this *gateio) PrivateWalletPostSubAccountTransfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletPostSubAccountTransfers", args...)
+func (this *GateioCore) PrivateWalletGetOrderStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetOrderStatus", args...)
 }
 
-func (this *gateio) PrivateWalletPostSubAccountToSubAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletPostSubAccountToSubAccount", args...)
+func (this *GateioCore) PrivateWalletGetWithdrawStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetWithdrawStatus", args...)
 }
 
-func (this *gateio) PrivateWalletPostSmallBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateWalletPostSmallBalance", args...)
+func (this *GateioCore) PrivateWalletGetSubAccountBalances (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetSubAccountBalances", args...)
 }
 
-func (this *gateio) PrivateSubAccountsGetSubAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsGetSubAccounts", args...)
+func (this *GateioCore) PrivateWalletGetSubAccountMarginBalances (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetSubAccountMarginBalances", args...)
 }
 
-func (this *gateio) PrivateSubAccountsGetSubAccountsUserId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsGetSubAccountsUserId", args...)
+func (this *GateioCore) PrivateWalletGetSubAccountFuturesBalances (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetSubAccountFuturesBalances", args...)
 }
 
-func (this *gateio) PrivateSubAccountsGetSubAccountsUserIdKeys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsGetSubAccountsUserIdKeys", args...)
+func (this *GateioCore) PrivateWalletGetSubAccountCrossMarginBalances (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetSubAccountCrossMarginBalances", args...)
 }
 
-func (this *gateio) PrivateSubAccountsGetSubAccountsUserIdKeysKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsGetSubAccountsUserIdKeysKey", args...)
+func (this *GateioCore) PrivateWalletGetSavedAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetSavedAddress", args...)
 }
 
-func (this *gateio) PrivateSubAccountsPostSubAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsPostSubAccounts", args...)
+func (this *GateioCore) PrivateWalletGetFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetFee", args...)
 }
 
-func (this *gateio) PrivateSubAccountsPostSubAccountsUserIdKeys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsPostSubAccountsUserIdKeys", args...)
+func (this *GateioCore) PrivateWalletGetTotalBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetTotalBalance", args...)
 }
 
-func (this *gateio) PrivateSubAccountsPostSubAccountsUserIdLock(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsPostSubAccountsUserIdLock", args...)
+func (this *GateioCore) PrivateWalletGetSmallBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetSmallBalance", args...)
 }
 
-func (this *gateio) PrivateSubAccountsPostSubAccountsUserIdUnlock(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsPostSubAccountsUserIdUnlock", args...)
+func (this *GateioCore) PrivateWalletGetSmallBalanceHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetSmallBalanceHistory", args...)
 }
 
-func (this *gateio) PrivateSubAccountsPutSubAccountsUserIdKeysKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsPutSubAccountsUserIdKeysKey", args...)
+func (this *GateioCore) PrivateWalletGetPush (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetPush", args...)
 }
 
-func (this *gateio) PrivateSubAccountsDeleteSubAccountsUserIdKeysKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSubAccountsDeleteSubAccountsUserIdKeysKey", args...)
+func (this *GateioCore) PrivateWalletGetGetLowCapExchangeList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletGetGetLowCapExchangeList", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetAccounts", args...)
+func (this *GateioCore) PrivateWalletPostTransfers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletPostTransfers", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetAccountMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetAccountMode", args...)
+func (this *GateioCore) PrivateWalletPostSubAccountTransfers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletPostSubAccountTransfers", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetBorrowable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetBorrowable", args...)
+func (this *GateioCore) PrivateWalletPostSubAccountToSubAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletPostSubAccountToSubAccount", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetTransferable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetTransferable", args...)
+func (this *GateioCore) PrivateWalletPostSmallBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateWalletPostSmallBalance", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetLoans", args...)
+func (this *GateioCore) PrivateSubAccountsGetSubAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsGetSubAccounts", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetLoanRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetLoanRecords", args...)
+func (this *GateioCore) PrivateSubAccountsGetSubAccountsUserId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsGetSubAccountsUserId", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetInterestRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetInterestRecords", args...)
+func (this *GateioCore) PrivateSubAccountsGetSubAccountsUserIdKeys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsGetSubAccountsUserIdKeys", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetEstimateRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetEstimateRate", args...)
+func (this *GateioCore) PrivateSubAccountsGetSubAccountsUserIdKeysKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsGetSubAccountsUserIdKeysKey", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetCurrencyDiscountTiers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetCurrencyDiscountTiers", args...)
+func (this *GateioCore) PrivateSubAccountsPostSubAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsPostSubAccounts", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetRiskUnits(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetRiskUnits", args...)
+func (this *GateioCore) PrivateSubAccountsPostSubAccountsUserIdKeys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsPostSubAccountsUserIdKeys", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetUnifiedMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetUnifiedMode", args...)
+func (this *GateioCore) PrivateSubAccountsPostSubAccountsUserIdLock (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsPostSubAccountsUserIdLock", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetLoanMarginTiers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetLoanMarginTiers", args...)
+func (this *GateioCore) PrivateSubAccountsPostSubAccountsUserIdUnlock (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsPostSubAccountsUserIdUnlock", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetLeverageUserCurrencyConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetLeverageUserCurrencyConfig", args...)
+func (this *GateioCore) PrivateSubAccountsPutSubAccountsUserIdKeysKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsPutSubAccountsUserIdKeysKey", args...)
 }
 
-func (this *gateio) PrivateUnifiedGetLeverageUserCurrencySetting(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetLeverageUserCurrencySetting", args...)
+func (this *GateioCore) PrivateSubAccountsDeleteSubAccountsUserIdKeysKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSubAccountsDeleteSubAccountsUserIdKeysKey", args...)
 }
 
-func (this *gateio) PrivateUnifiedPostAccountMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedPostAccountMode", args...)
+func (this *GateioCore) PrivateUnifiedGetAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetAccounts", args...)
 }
 
-func (this *gateio) PrivateUnifiedPostLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedPostLoans", args...)
+func (this *GateioCore) PrivateUnifiedGetBorrowable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetBorrowable", args...)
 }
 
-func (this *gateio) PrivateUnifiedPostPortfolioCalculator(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedPostPortfolioCalculator", args...)
+func (this *GateioCore) PrivateUnifiedGetTransferable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetTransferable", args...)
 }
 
-func (this *gateio) PrivateUnifiedPostLeverageUserCurrencySetting(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedPostLeverageUserCurrencySetting", args...)
+func (this *GateioCore) PrivateUnifiedGetTransferables (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetTransferables", args...)
 }
 
-func (this *gateio) PrivateUnifiedPutUnifiedMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedPutUnifiedMode", args...)
+func (this *GateioCore) PrivateUnifiedGetBatchBorrowable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetBatchBorrowable", args...)
 }
 
-func (this *gateio) PrivateSpotGetFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetFee", args...)
+func (this *GateioCore) PrivateUnifiedGetLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetLoans", args...)
 }
 
-func (this *gateio) PrivateSpotGetBatchFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetBatchFee", args...)
+func (this *GateioCore) PrivateUnifiedGetLoanRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetLoanRecords", args...)
 }
 
-func (this *gateio) PrivateSpotGetAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetAccounts", args...)
+func (this *GateioCore) PrivateUnifiedGetInterestRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetInterestRecords", args...)
 }
 
-func (this *gateio) PrivateSpotGetAccountBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetAccountBook", args...)
+func (this *GateioCore) PrivateUnifiedGetRiskUnits (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetRiskUnits", args...)
 }
 
-func (this *gateio) PrivateSpotGetOpenOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetOpenOrders", args...)
+func (this *GateioCore) PrivateUnifiedGetUnifiedMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetUnifiedMode", args...)
 }
 
-func (this *gateio) PrivateSpotGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetOrders", args...)
+func (this *GateioCore) PrivateUnifiedGetEstimateRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetEstimateRate", args...)
 }
 
-func (this *gateio) PrivateSpotGetOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetOrdersOrderId", args...)
+func (this *GateioCore) PrivateUnifiedGetCurrencyDiscountTiers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetCurrencyDiscountTiers", args...)
 }
 
-func (this *gateio) PrivateSpotGetMyTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetMyTrades", args...)
+func (this *GateioCore) PrivateUnifiedGetLoanMarginTiers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetLoanMarginTiers", args...)
 }
 
-func (this *gateio) PrivateSpotGetPriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetPriceOrders", args...)
+func (this *GateioCore) PrivateUnifiedGetLeverageUserCurrencyConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetLeverageUserCurrencyConfig", args...)
 }
 
-func (this *gateio) PrivateSpotGetPriceOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotGetPriceOrdersOrderId", args...)
+func (this *GateioCore) PrivateUnifiedGetLeverageUserCurrencySetting (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetLeverageUserCurrencySetting", args...)
 }
 
-func (this *gateio) PrivateSpotPostBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostBatchOrders", args...)
+func (this *GateioCore) PrivateUnifiedGetAccountMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedGetAccountMode", args...)
 }
 
-func (this *gateio) PrivateSpotPostCrossLiquidateOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostCrossLiquidateOrders", args...)
+func (this *GateioCore) PrivateUnifiedPostLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedPostLoans", args...)
 }
 
-func (this *gateio) PrivateSpotPostOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostOrders", args...)
+func (this *GateioCore) PrivateUnifiedPostPortfolioCalculator (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedPostPortfolioCalculator", args...)
 }
 
-func (this *gateio) PrivateSpotPostCancelBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostCancelBatchOrders", args...)
+func (this *GateioCore) PrivateUnifiedPostLeverageUserCurrencySetting (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedPostLeverageUserCurrencySetting", args...)
 }
 
-func (this *gateio) PrivateSpotPostCountdownCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostCountdownCancelAll", args...)
+func (this *GateioCore) PrivateUnifiedPostCollateralCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedPostCollateralCurrencies", args...)
 }
 
-func (this *gateio) PrivateSpotPostAmendBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostAmendBatchOrders", args...)
+func (this *GateioCore) PrivateUnifiedPostAccountMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedPostAccountMode", args...)
 }
 
-func (this *gateio) PrivateSpotPostPriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPostPriceOrders", args...)
+func (this *GateioCore) PrivateUnifiedPutUnifiedMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUnifiedPutUnifiedMode", args...)
 }
 
-func (this *gateio) PrivateSpotDeleteOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotDeleteOrders", args...)
+func (this *GateioCore) PrivateSpotGetFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetFee", args...)
 }
 
-func (this *gateio) PrivateSpotDeleteOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotDeleteOrdersOrderId", args...)
+func (this *GateioCore) PrivateSpotGetBatchFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetBatchFee", args...)
 }
 
-func (this *gateio) PrivateSpotDeletePriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotDeletePriceOrders", args...)
+func (this *GateioCore) PrivateSpotGetAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetAccounts", args...)
 }
 
-func (this *gateio) PrivateSpotDeletePriceOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotDeletePriceOrdersOrderId", args...)
+func (this *GateioCore) PrivateSpotGetAccountBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetAccountBook", args...)
 }
 
-func (this *gateio) PrivateSpotPatchOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateSpotPatchOrdersOrderId", args...)
+func (this *GateioCore) PrivateSpotGetOpenOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetOpenOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetAccounts", args...)
+func (this *GateioCore) PrivateSpotGetOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetAccountBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetAccountBook", args...)
+func (this *GateioCore) PrivateSpotGetOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateMarginGetFundingAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetFundingAccounts", args...)
+func (this *GateioCore) PrivateSpotGetMyTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetMyTrades", args...)
 }
 
-func (this *gateio) PrivateMarginGetAutoRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetAutoRepay", args...)
+func (this *GateioCore) PrivateSpotGetPriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetPriceOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetTransferable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetTransferable", args...)
+func (this *GateioCore) PrivateSpotGetPriceOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotGetPriceOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateMarginGetLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetLoans", args...)
+func (this *GateioCore) PrivateSpotPostBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostBatchOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetLoansLoanId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetLoansLoanId", args...)
+func (this *GateioCore) PrivateSpotPostCrossLiquidateOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostCrossLiquidateOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetLoansLoanIdRepayment(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetLoansLoanIdRepayment", args...)
+func (this *GateioCore) PrivateSpotPostOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetLoanRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetLoanRecords", args...)
+func (this *GateioCore) PrivateSpotPostCancelBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostCancelBatchOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetLoanRecordsLoanRecordId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetLoanRecordsLoanRecordId", args...)
+func (this *GateioCore) PrivateSpotPostCountdownCancelAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostCountdownCancelAll", args...)
 }
 
-func (this *gateio) PrivateMarginGetBorrowable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetBorrowable", args...)
+func (this *GateioCore) PrivateSpotPostAmendBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostAmendBatchOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossAccounts", args...)
+func (this *GateioCore) PrivateSpotPostPriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPostPriceOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossAccountBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossAccountBook", args...)
+func (this *GateioCore) PrivateSpotDeleteOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotDeleteOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossLoans", args...)
+func (this *GateioCore) PrivateSpotDeleteOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotDeleteOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossLoansLoanId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossLoansLoanId", args...)
+func (this *GateioCore) PrivateSpotDeletePriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotDeletePriceOrders", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossRepayments(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossRepayments", args...)
+func (this *GateioCore) PrivateSpotDeletePriceOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotDeletePriceOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossInterestRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossInterestRecords", args...)
+func (this *GateioCore) PrivateSpotPatchOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateSpotPatchOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossTransferable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossTransferable", args...)
+func (this *GateioCore) PrivateMarginGetAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetAccounts", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossEstimateRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossEstimateRate", args...)
+func (this *GateioCore) PrivateMarginGetAccountBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetAccountBook", args...)
 }
 
-func (this *gateio) PrivateMarginGetCrossBorrowable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetCrossBorrowable", args...)
+func (this *GateioCore) PrivateMarginGetFundingAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetFundingAccounts", args...)
 }
 
-func (this *gateio) PrivateMarginGetUniEstimateRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniEstimateRate", args...)
+func (this *GateioCore) PrivateMarginGetAutoRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetAutoRepay", args...)
 }
 
-func (this *gateio) PrivateMarginGetUniLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniLoans", args...)
+func (this *GateioCore) PrivateMarginGetTransferable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetTransferable", args...)
 }
 
-func (this *gateio) PrivateMarginGetUniLoanRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniLoanRecords", args...)
+func (this *GateioCore) PrivateMarginGetUniEstimateRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetUniEstimateRate", args...)
 }
 
-func (this *gateio) PrivateMarginGetUniInterestRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniInterestRecords", args...)
+func (this *GateioCore) PrivateMarginGetUniLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetUniLoans", args...)
 }
 
-func (this *gateio) PrivateMarginGetUniBorrowable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniBorrowable", args...)
+func (this *GateioCore) PrivateMarginGetUniLoanRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetUniLoanRecords", args...)
 }
 
-func (this *gateio) PrivateMarginPostAutoRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostAutoRepay", args...)
+func (this *GateioCore) PrivateMarginGetUniInterestRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetUniInterestRecords", args...)
 }
 
-func (this *gateio) PrivateMarginPostLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostLoans", args...)
+func (this *GateioCore) PrivateMarginGetUniBorrowable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetUniBorrowable", args...)
 }
 
-func (this *gateio) PrivateMarginPostMergedLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostMergedLoans", args...)
+func (this *GateioCore) PrivateMarginGetUserLoanMarginTiers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetUserLoanMarginTiers", args...)
 }
 
-func (this *gateio) PrivateMarginPostLoansLoanIdRepayment(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostLoansLoanIdRepayment", args...)
+func (this *GateioCore) PrivateMarginGetUserAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetUserAccount", args...)
 }
 
-func (this *gateio) PrivateMarginPostCrossLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostCrossLoans", args...)
+func (this *GateioCore) PrivateMarginGetLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetLoans", args...)
 }
 
-func (this *gateio) PrivateMarginPostCrossRepayments(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostCrossRepayments", args...)
+func (this *GateioCore) PrivateMarginGetLoansLoanId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetLoansLoanId", args...)
 }
 
-func (this *gateio) PrivateMarginPostUniLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostUniLoans", args...)
+func (this *GateioCore) PrivateMarginGetLoansLoanIdRepayment (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetLoansLoanIdRepayment", args...)
 }
 
-func (this *gateio) PrivateMarginPatchLoansLoanId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPatchLoansLoanId", args...)
+func (this *GateioCore) PrivateMarginGetLoanRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetLoanRecords", args...)
 }
 
-func (this *gateio) PrivateMarginPatchLoanRecordsLoanRecordId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPatchLoanRecordsLoanRecordId", args...)
+func (this *GateioCore) PrivateMarginGetLoanRecordsLoanRecordId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetLoanRecordsLoanRecordId", args...)
 }
 
-func (this *gateio) PrivateMarginDeleteLoansLoanId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginDeleteLoansLoanId", args...)
+func (this *GateioCore) PrivateMarginGetBorrowable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetBorrowable", args...)
 }
 
-func (this *gateio) PrivateFlash_swapGetCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFlash_swapGetCurrencies", args...)
+func (this *GateioCore) PrivateMarginGetCrossAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossAccounts", args...)
 }
 
-func (this *gateio) PrivateFlash_swapGetCurrencyPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFlash_swapGetCurrencyPairs", args...)
+func (this *GateioCore) PrivateMarginGetCrossAccountBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossAccountBook", args...)
 }
 
-func (this *gateio) PrivateFlash_swapGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFlash_swapGetOrders", args...)
+func (this *GateioCore) PrivateMarginGetCrossLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossLoans", args...)
 }
 
-func (this *gateio) PrivateFlash_swapGetOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFlash_swapGetOrdersOrderId", args...)
+func (this *GateioCore) PrivateMarginGetCrossLoansLoanId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossLoansLoanId", args...)
 }
 
-func (this *gateio) PrivateFlash_swapPostOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFlash_swapPostOrders", args...)
+func (this *GateioCore) PrivateMarginGetCrossRepayments (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossRepayments", args...)
 }
 
-func (this *gateio) PrivateFlash_swapPostOrdersPreview(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFlash_swapPostOrdersPreview", args...)
+func (this *GateioCore) PrivateMarginGetCrossInterestRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossInterestRecords", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleAccounts", args...)
+func (this *GateioCore) PrivateMarginGetCrossTransferable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossTransferable", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleAccountBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleAccountBook", args...)
+func (this *GateioCore) PrivateMarginGetCrossEstimateRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossEstimateRate", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettlePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettlePositions", args...)
+func (this *GateioCore) PrivateMarginGetCrossBorrowable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginGetCrossBorrowable", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettlePositionsContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettlePositionsContract", args...)
+func (this *GateioCore) PrivateMarginPostAutoRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostAutoRepay", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleDualCompPositionsContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleDualCompPositionsContract", args...)
+func (this *GateioCore) PrivateMarginPostUniLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostUniLoans", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleOrders", args...)
+func (this *GateioCore) PrivateMarginPostLeverageUserMarketSetting (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostLeverageUserMarketSetting", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleOrdersTimerange(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleOrdersTimerange", args...)
+func (this *GateioCore) PrivateMarginPostLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostLoans", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleOrdersOrderId", args...)
+func (this *GateioCore) PrivateMarginPostMergedLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostMergedLoans", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleMyTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleMyTrades", args...)
+func (this *GateioCore) PrivateMarginPostLoansLoanIdRepayment (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostLoansLoanIdRepayment", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleMyTradesTimerange(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleMyTradesTimerange", args...)
+func (this *GateioCore) PrivateMarginPostCrossLoans (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostCrossLoans", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettlePositionClose(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettlePositionClose", args...)
+func (this *GateioCore) PrivateMarginPostCrossRepayments (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPostCrossRepayments", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleLiquidates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleLiquidates", args...)
+func (this *GateioCore) PrivateMarginPatchLoansLoanId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPatchLoansLoanId", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleAutoDeleverages(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleAutoDeleverages", args...)
+func (this *GateioCore) PrivateMarginPatchLoanRecordsLoanRecordId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginPatchLoanRecordsLoanRecordId", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleFee", args...)
+func (this *GateioCore) PrivateMarginDeleteLoansLoanId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateMarginDeleteLoansLoanId", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettleRiskLimitTiers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleRiskLimitTiers", args...)
+func (this *GateioCore) PrivateFlash_swapGetOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFlash_swapGetOrders", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettlePriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettlePriceOrders", args...)
+func (this *GateioCore) PrivateFlash_swapGetOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFlash_swapGetOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateFuturesGetSettlePriceOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettlePriceOrdersOrderId", args...)
+func (this *GateioCore) PrivateFlash_swapPostOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFlash_swapPostOrders", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettlePositionsContractMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractMargin", args...)
+func (this *GateioCore) PrivateFlash_swapPostOrdersPreview (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFlash_swapPostOrdersPreview", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettlePositionsContractLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractLeverage", args...)
+func (this *GateioCore) PrivateFuturesGetSettleAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleAccounts", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettlePositionsContractRiskLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractRiskLimit", args...)
+func (this *GateioCore) PrivateFuturesGetSettleAccountBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleAccountBook", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettleDualMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettleDualMode", args...)
+func (this *GateioCore) PrivateFuturesGetSettlePositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettlePositions", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettleDualCompPositionsContractMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettleDualCompPositionsContractMargin", args...)
+func (this *GateioCore) PrivateFuturesGetSettlePositionsContract (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettlePositionsContract", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettleDualCompPositionsContractLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettleDualCompPositionsContractLeverage", args...)
+func (this *GateioCore) PrivateFuturesGetSettleDualCompPositionsContract (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleDualCompPositionsContract", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettleDualCompPositionsContractRiskLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettleDualCompPositionsContractRiskLimit", args...)
+func (this *GateioCore) PrivateFuturesGetSettleOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleOrders", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettleOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettleOrders", args...)
+func (this *GateioCore) PrivateFuturesGetSettleOrdersTimerange (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleOrdersTimerange", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettleBatchOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettleBatchOrders", args...)
+func (this *GateioCore) PrivateFuturesGetSettleOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettleCountdownCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettleCountdownCancelAll", args...)
+func (this *GateioCore) PrivateFuturesGetSettleMyTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleMyTrades", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettleBatchCancelOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettleBatchCancelOrders", args...)
+func (this *GateioCore) PrivateFuturesGetSettleMyTradesTimerange (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleMyTradesTimerange", args...)
 }
 
-func (this *gateio) PrivateFuturesPostSettlePriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPostSettlePriceOrders", args...)
+func (this *GateioCore) PrivateFuturesGetSettlePositionClose (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettlePositionClose", args...)
 }
 
-func (this *gateio) PrivateFuturesPutSettleOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesPutSettleOrdersOrderId", args...)
+func (this *GateioCore) PrivateFuturesGetSettleLiquidates (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleLiquidates", args...)
 }
 
-func (this *gateio) PrivateFuturesDeleteSettleOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesDeleteSettleOrders", args...)
+func (this *GateioCore) PrivateFuturesGetSettleAutoDeleverages (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleAutoDeleverages", args...)
 }
 
-func (this *gateio) PrivateFuturesDeleteSettleOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesDeleteSettleOrdersOrderId", args...)
+func (this *GateioCore) PrivateFuturesGetSettleFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleFee", args...)
 }
 
-func (this *gateio) PrivateFuturesDeleteSettlePriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesDeleteSettlePriceOrders", args...)
+func (this *GateioCore) PrivateFuturesGetSettleRiskLimitTable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettleRiskLimitTable", args...)
 }
 
-func (this *gateio) PrivateFuturesDeleteSettlePriceOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesDeleteSettlePriceOrdersOrderId", args...)
+func (this *GateioCore) PrivateFuturesGetSettlePriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettlePriceOrders", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettleAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettleAccounts", args...)
+func (this *GateioCore) PrivateFuturesGetSettlePriceOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesGetSettlePriceOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettleAccountBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettleAccountBook", args...)
+func (this *GateioCore) PrivateFuturesPostSettlePositionsContractMargin (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettlePositionsContractMargin", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettlePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettlePositions", args...)
+func (this *GateioCore) PrivateFuturesPostSettlePositionsContractLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettlePositionsContractLeverage", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettlePositionsContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettlePositionsContract", args...)
+func (this *GateioCore) PrivateFuturesPostSettlePositionsContractRiskLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettlePositionsContractRiskLimit", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettleOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettleOrders", args...)
+func (this *GateioCore) PrivateFuturesPostSettlePositionsCrossMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettlePositionsCrossMode", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettleOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettleOrdersOrderId", args...)
+func (this *GateioCore) PrivateFuturesPostSettleDualCompPositionsCrossMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleDualCompPositionsCrossMode", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettleMyTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettleMyTrades", args...)
+func (this *GateioCore) PrivateFuturesPostSettleDualMode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleDualMode", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettlePositionClose(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettlePositionClose", args...)
+func (this *GateioCore) PrivateFuturesPostSettleDualCompPositionsContractMargin (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleDualCompPositionsContractMargin", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettleLiquidates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettleLiquidates", args...)
+func (this *GateioCore) PrivateFuturesPostSettleDualCompPositionsContractLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleDualCompPositionsContractLeverage", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettleSettlements(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettleSettlements", args...)
+func (this *GateioCore) PrivateFuturesPostSettleDualCompPositionsContractRiskLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleDualCompPositionsContractRiskLimit", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettlePriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettlePriceOrders", args...)
+func (this *GateioCore) PrivateFuturesPostSettleOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleOrders", args...)
 }
 
-func (this *gateio) PrivateDeliveryGetSettlePriceOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryGetSettlePriceOrdersOrderId", args...)
+func (this *GateioCore) PrivateFuturesPostSettleBatchOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleBatchOrders", args...)
 }
 
-func (this *gateio) PrivateDeliveryPostSettlePositionsContractMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryPostSettlePositionsContractMargin", args...)
+func (this *GateioCore) PrivateFuturesPostSettleCountdownCancelAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleCountdownCancelAll", args...)
 }
 
-func (this *gateio) PrivateDeliveryPostSettlePositionsContractLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryPostSettlePositionsContractLeverage", args...)
+func (this *GateioCore) PrivateFuturesPostSettleBatchCancelOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleBatchCancelOrders", args...)
 }
 
-func (this *gateio) PrivateDeliveryPostSettlePositionsContractRiskLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryPostSettlePositionsContractRiskLimit", args...)
+func (this *GateioCore) PrivateFuturesPostSettleBatchAmendOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleBatchAmendOrders", args...)
 }
 
-func (this *gateio) PrivateDeliveryPostSettleOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryPostSettleOrders", args...)
+func (this *GateioCore) PrivateFuturesPostSettleBboOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettleBboOrders", args...)
 }
 
-func (this *gateio) PrivateDeliveryPostSettlePriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryPostSettlePriceOrders", args...)
+func (this *GateioCore) PrivateFuturesPostSettlePriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPostSettlePriceOrders", args...)
 }
 
-func (this *gateio) PrivateDeliveryDeleteSettleOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryDeleteSettleOrders", args...)
+func (this *GateioCore) PrivateFuturesPutSettleOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPutSettleOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateDeliveryDeleteSettleOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryDeleteSettleOrdersOrderId", args...)
+func (this *GateioCore) PrivateFuturesPutSettlePriceOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesPutSettlePriceOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateDeliveryDeleteSettlePriceOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryDeleteSettlePriceOrders", args...)
+func (this *GateioCore) PrivateFuturesDeleteSettleOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesDeleteSettleOrders", args...)
 }
 
-func (this *gateio) PrivateDeliveryDeleteSettlePriceOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeliveryDeleteSettlePriceOrdersOrderId", args...)
+func (this *GateioCore) PrivateFuturesDeleteSettleOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesDeleteSettleOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateOptionsGetMySettlements(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetMySettlements", args...)
+func (this *GateioCore) PrivateFuturesDeleteSettlePriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesDeleteSettlePriceOrders", args...)
 }
 
-func (this *gateio) PrivateOptionsGetAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetAccounts", args...)
+func (this *GateioCore) PrivateFuturesDeleteSettlePriceOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateFuturesDeleteSettlePriceOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateOptionsGetAccountBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetAccountBook", args...)
+func (this *GateioCore) PrivateDeliveryGetSettleAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettleAccounts", args...)
 }
 
-func (this *gateio) PrivateOptionsGetPositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetPositions", args...)
+func (this *GateioCore) PrivateDeliveryGetSettleAccountBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettleAccountBook", args...)
 }
 
-func (this *gateio) PrivateOptionsGetPositionsContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetPositionsContract", args...)
+func (this *GateioCore) PrivateDeliveryGetSettlePositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettlePositions", args...)
 }
 
-func (this *gateio) PrivateOptionsGetPositionClose(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetPositionClose", args...)
+func (this *GateioCore) PrivateDeliveryGetSettlePositionsContract (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettlePositionsContract", args...)
 }
 
-func (this *gateio) PrivateOptionsGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetOrders", args...)
+func (this *GateioCore) PrivateDeliveryGetSettleOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettleOrders", args...)
 }
 
-func (this *gateio) PrivateOptionsGetOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetOrdersOrderId", args...)
+func (this *GateioCore) PrivateDeliveryGetSettleOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettleOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateOptionsGetMyTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetMyTrades", args...)
+func (this *GateioCore) PrivateDeliveryGetSettleMyTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettleMyTrades", args...)
 }
 
-func (this *gateio) PrivateOptionsGetMmp(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsGetMmp", args...)
+func (this *GateioCore) PrivateDeliveryGetSettlePositionClose (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettlePositionClose", args...)
 }
 
-func (this *gateio) PrivateOptionsPostOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsPostOrders", args...)
+func (this *GateioCore) PrivateDeliveryGetSettleLiquidates (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettleLiquidates", args...)
 }
 
-func (this *gateio) PrivateOptionsPostCountdownCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsPostCountdownCancelAll", args...)
+func (this *GateioCore) PrivateDeliveryGetSettleSettlements (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettleSettlements", args...)
 }
 
-func (this *gateio) PrivateOptionsPostMmp(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsPostMmp", args...)
+func (this *GateioCore) PrivateDeliveryGetSettlePriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettlePriceOrders", args...)
 }
 
-func (this *gateio) PrivateOptionsPostMmpReset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsPostMmpReset", args...)
+func (this *GateioCore) PrivateDeliveryGetSettlePriceOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryGetSettlePriceOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateOptionsDeleteOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsDeleteOrders", args...)
+func (this *GateioCore) PrivateDeliveryPostSettlePositionsContractMargin (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryPostSettlePositionsContractMargin", args...)
 }
 
-func (this *gateio) PrivateOptionsDeleteOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateOptionsDeleteOrdersOrderId", args...)
+func (this *GateioCore) PrivateDeliveryPostSettlePositionsContractLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryPostSettlePositionsContractLeverage", args...)
 }
 
-func (this *gateio) PrivateEarnGetUniCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniCurrencies", args...)
+func (this *GateioCore) PrivateDeliveryPostSettlePositionsContractRiskLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryPostSettlePositionsContractRiskLimit", args...)
 }
 
-func (this *gateio) PrivateEarnGetUniCurrenciesCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniCurrenciesCurrency", args...)
+func (this *GateioCore) PrivateDeliveryPostSettleOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryPostSettleOrders", args...)
 }
 
-func (this *gateio) PrivateEarnGetUniLends(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniLends", args...)
+func (this *GateioCore) PrivateDeliveryPostSettlePriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryPostSettlePriceOrders", args...)
 }
 
-func (this *gateio) PrivateEarnGetUniLendRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniLendRecords", args...)
+func (this *GateioCore) PrivateDeliveryDeleteSettleOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryDeleteSettleOrders", args...)
 }
 
-func (this *gateio) PrivateEarnGetUniInterestsCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniInterestsCurrency", args...)
+func (this *GateioCore) PrivateDeliveryDeleteSettleOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryDeleteSettleOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateEarnGetUniInterestRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniInterestRecords", args...)
+func (this *GateioCore) PrivateDeliveryDeleteSettlePriceOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryDeleteSettlePriceOrders", args...)
 }
 
-func (this *gateio) PrivateEarnGetUniInterestStatusCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniInterestStatusCurrency", args...)
+func (this *GateioCore) PrivateDeliveryDeleteSettlePriceOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeliveryDeleteSettlePriceOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateEarnPostUniLends(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPostUniLends", args...)
+func (this *GateioCore) PrivateOptionsGetMySettlements (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetMySettlements", args...)
 }
 
-func (this *gateio) PrivateEarnPutUniInterestReinvest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPutUniInterestReinvest", args...)
+func (this *GateioCore) PrivateOptionsGetAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetAccounts", args...)
 }
 
-func (this *gateio) PrivateEarnPatchUniLends(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnPatchUniLends", args...)
+func (this *GateioCore) PrivateOptionsGetAccountBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetAccountBook", args...)
 }
 
-func (this *gateio) PrivateLoanGetCollateralOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetCollateralOrders", args...)
+func (this *GateioCore) PrivateOptionsGetPositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetPositions", args...)
 }
 
-func (this *gateio) PrivateLoanGetCollateralOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetCollateralOrdersOrderId", args...)
+func (this *GateioCore) PrivateOptionsGetPositionsContract (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetPositionsContract", args...)
 }
 
-func (this *gateio) PrivateLoanGetCollateralRepayRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetCollateralRepayRecords", args...)
+func (this *GateioCore) PrivateOptionsGetPositionClose (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetPositionClose", args...)
 }
 
-func (this *gateio) PrivateLoanGetCollateralCollaterals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetCollateralCollaterals", args...)
+func (this *GateioCore) PrivateOptionsGetOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetOrders", args...)
 }
 
-func (this *gateio) PrivateLoanGetCollateralTotalAmount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetCollateralTotalAmount", args...)
+func (this *GateioCore) PrivateOptionsGetOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateLoanGetCollateralLtv(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetCollateralLtv", args...)
+func (this *GateioCore) PrivateOptionsGetMyTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetMyTrades", args...)
 }
 
-func (this *gateio) PrivateLoanGetCollateralCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetCollateralCurrencies", args...)
+func (this *GateioCore) PrivateOptionsGetMmp (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsGetMmp", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralOrders", args...)
+func (this *GateioCore) PrivateOptionsPostOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsPostOrders", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralOrdersOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralOrdersOrderId", args...)
+func (this *GateioCore) PrivateOptionsPostCountdownCancelAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsPostCountdownCancelAll", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralRepay", args...)
+func (this *GateioCore) PrivateOptionsPostMmp (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsPostMmp", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralMortgage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralMortgage", args...)
+func (this *GateioCore) PrivateOptionsPostMmpReset (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsPostMmpReset", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralCurrencyQuota(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralCurrencyQuota", args...)
+func (this *GateioCore) PrivateOptionsDeleteOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsDeleteOrders", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralCurrencies", args...)
+func (this *GateioCore) PrivateOptionsDeleteOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateOptionsDeleteOrdersOrderId", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralLtv(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralLtv", args...)
+func (this *GateioCore) PrivateEarnGetUniLends (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniLends", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralFixedRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralFixedRate", args...)
+func (this *GateioCore) PrivateEarnGetUniLendRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniLendRecords", args...)
 }
 
-func (this *gateio) PrivateLoanGetMultiCollateralCurrentRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetMultiCollateralCurrentRate", args...)
+func (this *GateioCore) PrivateEarnGetUniInterestsCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniInterestsCurrency", args...)
 }
 
-func (this *gateio) PrivateLoanPostCollateralOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanPostCollateralOrders", args...)
+func (this *GateioCore) PrivateEarnGetUniInterestRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniInterestRecords", args...)
 }
 
-func (this *gateio) PrivateLoanPostCollateralRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanPostCollateralRepay", args...)
+func (this *GateioCore) PrivateEarnGetUniInterestStatusCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniInterestStatusCurrency", args...)
 }
 
-func (this *gateio) PrivateLoanPostCollateralCollaterals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanPostCollateralCollaterals", args...)
+func (this *GateioCore) PrivateEarnGetUniChart (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniChart", args...)
 }
 
-func (this *gateio) PrivateLoanPostMultiCollateralOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanPostMultiCollateralOrders", args...)
+func (this *GateioCore) PrivateEarnGetUniRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniRate", args...)
 }
 
-func (this *gateio) PrivateLoanPostMultiCollateralRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanPostMultiCollateralRepay", args...)
+func (this *GateioCore) PrivateEarnGetStakingEth2RateRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetStakingEth2RateRecords", args...)
 }
 
-func (this *gateio) PrivateLoanPostMultiCollateralMortgage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanPostMultiCollateralMortgage", args...)
+func (this *GateioCore) PrivateEarnGetDualOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetDualOrders", args...)
 }
 
-func (this *gateio) PrivateAccountGetDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateAccountGetDetail", args...)
+func (this *GateioCore) PrivateEarnGetStructuredOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetStructuredOrders", args...)
 }
 
-func (this *gateio) PrivateAccountGetRateLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateAccountGetRateLimit", args...)
+func (this *GateioCore) PrivateEarnGetStakingCoins (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetStakingCoins", args...)
 }
 
-func (this *gateio) PrivateAccountGetStpGroups(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateAccountGetStpGroups", args...)
+func (this *GateioCore) PrivateEarnGetStakingOrderList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetStakingOrderList", args...)
 }
 
-func (this *gateio) PrivateAccountGetStpGroupsStpIdUsers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateAccountGetStpGroupsStpIdUsers", args...)
+func (this *GateioCore) PrivateEarnGetStakingAwardList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetStakingAwardList", args...)
 }
 
-func (this *gateio) PrivateAccountGetStpGroupsDebitFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateAccountGetStpGroupsDebitFee", args...)
+func (this *GateioCore) PrivateEarnGetStakingAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetStakingAssets", args...)
 }
 
-func (this *gateio) PrivateAccountPostStpGroups(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateAccountPostStpGroups", args...)
+func (this *GateioCore) PrivateEarnGetUniCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniCurrencies", args...)
 }
 
-func (this *gateio) PrivateAccountPostStpGroupsStpIdUsers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateAccountPostStpGroupsStpIdUsers", args...)
+func (this *GateioCore) PrivateEarnGetUniCurrenciesCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnGetUniCurrenciesCurrency", args...)
 }
 
-func (this *gateio) PrivateAccountDeleteStpGroupsStpIdUsers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateAccountDeleteStpGroupsStpIdUsers", args...)
+func (this *GateioCore) PrivateEarnPostUniLends (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostUniLends", args...)
 }
 
-func (this *gateio) PrivateRebateGetAgencyTransactionHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateRebateGetAgencyTransactionHistory", args...)
+func (this *GateioCore) PrivateEarnPostStakingEth2Swap (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostStakingEth2Swap", args...)
 }
 
-func (this *gateio) PrivateRebateGetAgencyCommissionHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateRebateGetAgencyCommissionHistory", args...)
+func (this *GateioCore) PrivateEarnPostDualOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostDualOrders", args...)
+}
+
+func (this *GateioCore) PrivateEarnPostStructuredOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostStructuredOrders", args...)
+}
+
+func (this *GateioCore) PrivateEarnPostStakingSwap (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPostStakingSwap", args...)
+}
+
+func (this *GateioCore) PrivateEarnPutUniInterestReinvest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPutUniInterestReinvest", args...)
+}
+
+func (this *GateioCore) PrivateEarnPatchUniLends (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateEarnPatchUniLends", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetCollateralOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetCollateralOrders", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetCollateralOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetCollateralOrdersOrderId", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetCollateralRepayRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetCollateralRepayRecords", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetCollateralCollaterals (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetCollateralCollaterals", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetCollateralTotalAmount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetCollateralTotalAmount", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetCollateralLtv (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetCollateralLtv", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralOrders", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralOrdersOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralOrdersOrderId", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralRepay", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralMortgage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralMortgage", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralCurrencyQuota (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralCurrencyQuota", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetCollateralCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetCollateralCurrencies", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralCurrencies", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralLtv (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralLtv", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralFixedRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralFixedRate", args...)
+}
+
+func (this *GateioCore) PrivateLoanGetMultiCollateralCurrentRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanGetMultiCollateralCurrentRate", args...)
+}
+
+func (this *GateioCore) PrivateLoanPostCollateralOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanPostCollateralOrders", args...)
+}
+
+func (this *GateioCore) PrivateLoanPostCollateralRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanPostCollateralRepay", args...)
+}
+
+func (this *GateioCore) PrivateLoanPostCollateralCollaterals (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanPostCollateralCollaterals", args...)
+}
+
+func (this *GateioCore) PrivateLoanPostMultiCollateralOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanPostMultiCollateralOrders", args...)
+}
+
+func (this *GateioCore) PrivateLoanPostMultiCollateralRepay (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanPostMultiCollateralRepay", args...)
+}
+
+func (this *GateioCore) PrivateLoanPostMultiCollateralMortgage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateLoanPostMultiCollateralMortgage", args...)
+}
+
+func (this *GateioCore) PrivateAccountGetDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountGetDetail", args...)
+}
+
+func (this *GateioCore) PrivateAccountGetMainKeys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountGetMainKeys", args...)
+}
+
+func (this *GateioCore) PrivateAccountGetRateLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountGetRateLimit", args...)
+}
+
+func (this *GateioCore) PrivateAccountGetStpGroups (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountGetStpGroups", args...)
+}
+
+func (this *GateioCore) PrivateAccountGetStpGroupsStpIdUsers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountGetStpGroupsStpIdUsers", args...)
+}
+
+func (this *GateioCore) PrivateAccountGetStpGroupsDebitFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountGetStpGroupsDebitFee", args...)
+}
+
+func (this *GateioCore) PrivateAccountGetDebitFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountGetDebitFee", args...)
+}
+
+func (this *GateioCore) PrivateAccountPostStpGroups (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountPostStpGroups", args...)
+}
+
+func (this *GateioCore) PrivateAccountPostStpGroupsStpIdUsers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountPostStpGroupsStpIdUsers", args...)
+}
+
+func (this *GateioCore) PrivateAccountPostDebitFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountPostDebitFee", args...)
+}
+
+func (this *GateioCore) PrivateAccountDeleteStpGroupsStpIdUsers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateAccountDeleteStpGroupsStpIdUsers", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetAgencyTransactionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetAgencyTransactionHistory", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetAgencyCommissionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetAgencyCommissionHistory", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetPartnerTransactionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetPartnerTransactionHistory", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetPartnerCommissionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetPartnerCommissionHistory", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetPartnerSubList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetPartnerSubList", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetBrokerCommissionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetBrokerCommissionHistory", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetBrokerTransactionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetBrokerTransactionHistory", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetUserInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetUserInfo", args...)
+}
+
+func (this *GateioCore) PrivateRebateGetUserSubRelation (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateRebateGetUserSubRelation", args...)
 }

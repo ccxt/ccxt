@@ -40,17 +40,25 @@ type TimeInForce struct {
 	TIF string `mapstructure:"tif" msgpack:"tif"`
 }
 
-type Limit struct {
-	TimeInForce TimeInForce `mapstructure:"limit" msgpack:"limit"`
+type TriggerSpec struct {
+	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
+	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
+	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
+}
+
+type OrderKind struct {
+	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
+	Trigger *TriggerSpec `mapstructure:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
-	A int    `mapstructure:"a" msgpack:"a"`
-	B bool   `mapstructure:"b" msgpack:"b"`
-	P string `mapstructure:"p" msgpack:"p"`
-	S string `mapstructure:"s" msgpack:"s"`
-	R bool   `mapstructure:"r" msgpack:"r"`
-	T Limit  `mapstructure:"t" msgpack:"t"`
+	A int       `mapstructure:"a" msgpack:"a"`
+	B bool      `mapstructure:"b" msgpack:"b"`
+	P string    `mapstructure:"p" msgpack:"p"`
+	S string    `mapstructure:"s" msgpack:"s"`
+	R bool      `mapstructure:"r" msgpack:"r"`
+	T OrderKind `mapstructure:"t" msgpack:"t"`
+	C string    `mapstructure:"c,omitempty" msgpack:"c,omitempty"` // optional client order id
 }
 
 type OrderMessage struct {
@@ -81,6 +89,12 @@ type TransferMessage struct {
 	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
 	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
 }
+type SubAccountTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `mapstructure:"usd" msgpack:"usd"`
+}
 
 // withdraw
 // {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","destination":"0xc950889d14a3717f541ec246bc253d7a9e98c78f","amount":"100000","time":1737458231937,"type":"withdraw3"}
@@ -96,14 +110,21 @@ type WithdrawMessage struct {
 // editOrder
 // {"type":"batchModify","modifies":[{"oid":8553833906,"order":{"a":5,"b":true,"p":"151","s":"0.2","r":false,"t":{"limit":{"tif":"Gtc"}}}}]}
 type Modify struct {
-	OID   int64 `mapstructure:"oid" msgpack:"oid"`
-	Order Order `mapstructure:"order" msgpack:"order"`
+	OID   int              `mapstructure:"oid" msgpack:"oid"`
+	Order OrderHyperliquid `mapstructure:"order" msgpack:"order"`
 }
 
 // EditOrderMessage represents the batch modification message.
 type EditOrderMessage struct {
 	Type     string   `mapstructure:"type" msgpack:"type"`
 	Modifies []Modify `mapstructure:"modifies" msgpack:"modifies"`
+}
+
+// CreateSubAccount message
+
+type CreateSubAccountMessage struct {
+	Type string `mapstructure:"type" msgpack:"type"`
+	Name string `mapstructure:"name" msgpack:"name"`
 }
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -396,6 +417,32 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(editMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "createSubAccount":
+		var createSubAccountMsg CreateSubAccountMessage
+
+		err := mapstructure.Decode(converted, &createSubAccountMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(createSubAccountMsg)
 		if err != nil {
 			panic(err)
 		}

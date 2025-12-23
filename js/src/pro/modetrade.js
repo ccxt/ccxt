@@ -80,7 +80,7 @@ export default class modetrade extends modetradeRest {
     async watchPublic(messageHash, message) {
         // the default id
         let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-        if (this.accountId !== undefined) {
+        if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
         const url = this.urls['api']['ws']['public'] + '/' + id;
@@ -99,7 +99,7 @@ export default class modetrade extends modetradeRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -157,7 +157,7 @@ export default class modetrade extends modetradeRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -244,7 +244,7 @@ export default class modetrade extends modetradeRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -299,7 +299,7 @@ export default class modetrade extends modetradeRest {
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -443,7 +443,7 @@ export default class modetrade extends modetradeRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -595,7 +595,7 @@ export default class modetrade extends modetradeRest {
         const client = this.client(url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce().toString();
@@ -650,7 +650,7 @@ export default class modetrade extends modetradeRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] true if trigger order
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -685,7 +685,7 @@ export default class modetrade extends modetradeRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] true if trigger order
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1159,7 +1159,7 @@ export default class modetrade extends modetradeRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();

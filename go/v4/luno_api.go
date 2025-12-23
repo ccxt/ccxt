@@ -7,138 +7,138 @@
 
 package ccxt
 
-func (this *luno) ExchangeGetMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("exchangeGetMarkets", args...)
+func (this *LunoCore) ExchangeGetMarkets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("exchangeGetMarkets", args...)
 }
 
-func (this *luno) ExchangePrivateGetCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("exchangePrivateGetCandles", args...)
+func (this *LunoCore) ExchangePrivateGetCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("exchangePrivateGetCandles", args...)
 }
 
-func (this *luno) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *LunoCore) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *luno) PublicGetOrderbookTop(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOrderbookTop", args...)
+func (this *LunoCore) PublicGetOrderbookTop (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOrderbookTop", args...)
 }
 
-func (this *luno) PublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *LunoCore) PublicGetTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *luno) PublicGetTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTickers", args...)
+func (this *LunoCore) PublicGetTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *luno) PublicGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTrades", args...)
+func (this *LunoCore) PublicGetTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *luno) PrivateGetAccountsIdPending(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountsIdPending", args...)
+func (this *LunoCore) PrivateGetAccountsIdPending (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAccountsIdPending", args...)
 }
 
-func (this *luno) PrivateGetAccountsIdTransactions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountsIdTransactions", args...)
+func (this *LunoCore) PrivateGetAccountsIdTransactions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAccountsIdTransactions", args...)
 }
 
-func (this *luno) PrivateGetBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBalance", args...)
+func (this *LunoCore) PrivateGetBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *luno) PrivateGetBeneficiaries(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBeneficiaries", args...)
+func (this *LunoCore) PrivateGetBeneficiaries (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetBeneficiaries", args...)
 }
 
-func (this *luno) PrivateGetSendNetworks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetSendNetworks", args...)
+func (this *LunoCore) PrivateGetSendNetworks (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetSendNetworks", args...)
 }
 
-func (this *luno) PrivateGetFeeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetFeeInfo", args...)
+func (this *LunoCore) PrivateGetFeeInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetFeeInfo", args...)
 }
 
-func (this *luno) PrivateGetFundingAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetFundingAddress", args...)
+func (this *LunoCore) PrivateGetFundingAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetFundingAddress", args...)
 }
 
-func (this *luno) PrivateGetListorders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetListorders", args...)
+func (this *LunoCore) PrivateGetListorders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetListorders", args...)
 }
 
-func (this *luno) PrivateGetListtrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetListtrades", args...)
+func (this *LunoCore) PrivateGetListtrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetListtrades", args...)
 }
 
-func (this *luno) PrivateGetSendFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetSendFee", args...)
+func (this *LunoCore) PrivateGetSendFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetSendFee", args...)
 }
 
-func (this *luno) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrdersId", args...)
+func (this *LunoCore) PrivateGetOrdersId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *luno) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetWithdrawals", args...)
+func (this *LunoCore) PrivateGetWithdrawals (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *luno) PrivateGetWithdrawalsId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetWithdrawalsId", args...)
+func (this *LunoCore) PrivateGetWithdrawalsId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetWithdrawalsId", args...)
 }
 
-func (this *luno) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTransfers", args...)
+func (this *LunoCore) PrivateGetTransfers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *luno) PrivatePostAccounts(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccounts", args...)
+func (this *LunoCore) PrivatePostAccounts (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAccounts", args...)
 }
 
-func (this *luno) PrivatePostAddressValidate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAddressValidate", args...)
+func (this *LunoCore) PrivatePostAddressValidate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAddressValidate", args...)
 }
 
-func (this *luno) PrivatePostPostorder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostPostorder", args...)
+func (this *LunoCore) PrivatePostPostorder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostPostorder", args...)
 }
 
-func (this *luno) PrivatePostMarketorder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostMarketorder", args...)
+func (this *LunoCore) PrivatePostMarketorder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostMarketorder", args...)
 }
 
-func (this *luno) PrivatePostStoporder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostStoporder", args...)
+func (this *LunoCore) PrivatePostStoporder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostStoporder", args...)
 }
 
-func (this *luno) PrivatePostFundingAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostFundingAddress", args...)
+func (this *LunoCore) PrivatePostFundingAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostFundingAddress", args...)
 }
 
-func (this *luno) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdrawals", args...)
+func (this *LunoCore) PrivatePostWithdrawals (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *luno) PrivatePostSend(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostSend", args...)
+func (this *LunoCore) PrivatePostSend (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostSend", args...)
 }
 
-func (this *luno) PrivatePostOauth2Grant(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOauth2Grant", args...)
+func (this *LunoCore) PrivatePostOauth2Grant (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOauth2Grant", args...)
 }
 
-func (this *luno) PrivatePostBeneficiaries(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostBeneficiaries", args...)
+func (this *LunoCore) PrivatePostBeneficiaries (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostBeneficiaries", args...)
 }
 
-func (this *luno) PrivatePutAccountsIdName(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePutAccountsIdName", args...)
+func (this *LunoCore) PrivatePutAccountsIdName (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePutAccountsIdName", args...)
 }
 
-func (this *luno) PrivateDeleteWithdrawalsId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteWithdrawalsId", args...)
+func (this *LunoCore) PrivateDeleteWithdrawalsId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteWithdrawalsId", args...)
 }
 
-func (this *luno) PrivateDeleteBeneficiariesId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteBeneficiariesId", args...)
+func (this *LunoCore) PrivateDeleteBeneficiariesId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteBeneficiariesId", args...)
 }

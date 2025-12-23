@@ -29,6 +29,9 @@ class woofipro extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -53,12 +56,21 @@ class woofipro extends Exchange {
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => false,
                 'fetchConvertQuote' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
@@ -69,7 +81,10 @@ class woofipro extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchMarginAdjustmentHistory' => false,
@@ -81,6 +96,8 @@ class woofipro extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -98,8 +115,11 @@ class woofipro extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setPositionMode' => false,
@@ -131,7 +151,7 @@ class woofipro extends Exchange {
                 ),
                 'www' => 'https://dex.woo.org',
                 'doc' => array(
-                    'https://orderly.network/docs/build-on-evm/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
                 ),
                 'fees' => array(
                     'https://dex.woo.org/en/orderly',
@@ -428,10 +448,10 @@ class woofipro extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-$status
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
         $response = $this->v1PublicGetPublicSystemInfo ($params);
         //
@@ -466,7 +486,7 @@ class woofipro extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -578,7 +598,7 @@ class woofipro extends Exchange {
         /**
          * retrieves $data on all markets for woofipro
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -808,13 +828,13 @@ class woofipro extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-$market-trades
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-$market-trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -902,11 +922,11 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate interval
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         return $this->fetch_funding_rate($symbol, $params);
     }
@@ -915,11 +935,11 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-$market
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -950,11 +970,11 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
          *
          * @param {string[]} $symbols unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -985,15 +1005,15 @@ class woofipro extends Exchange {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-$market
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -1094,7 +1114,7 @@ class woofipro extends Exchange {
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -1152,10 +1172,10 @@ class woofipro extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
         $this->load_markets();
         $response = $this->v1PrivateGetClientInfo ($params);
@@ -1208,12 +1228,12 @@ class woofipro extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1258,10 +1278,10 @@ class woofipro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
          *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1481,8 +1501,10 @@ class woofipro extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
+        $hasStopLoss = ($stopLoss !== null);
+        $hasTakeProfit = ($takeProfit !== null);
         $algoType = $this->safe_string($params, 'algoType');
-        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($params, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1517,7 +1539,7 @@ class woofipro extends Exchange {
         if ($triggerPrice !== null) {
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['algo_type'] = 'STOP';
-        } elseif (($stopLoss !== null) || ($takeProfit !== null)) {
+        } elseif ($hasStopLoss || $hasTakeProfit) {
             $request['algo_type'] = 'TP_SL';
             $outterOrder = array(
                 'symbol' => $market['id'],
@@ -1527,7 +1549,7 @@ class woofipro extends Exchange {
             );
             $childOrders = $outterOrder['child_orders'];
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
-            if ($stopLoss !== null) {
+            if ($hasStopLoss) {
                 $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
                 $stopLossOrder = array(
                     'side' => $closeSide,
@@ -1538,7 +1560,7 @@ class woofipro extends Exchange {
                 );
                 $childOrders[] = $stopLossOrder;
             }
-            if ($takeProfit !== null) {
+            if ($hasTakeProfit) {
                 $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
                 $takeProfitOrder = array(
                     'side' => $closeSide,
@@ -1559,8 +1581,8 @@ class woofipro extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-$order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-$order
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-$order
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-$order
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1576,7 +1598,7 @@ class woofipro extends Exchange {
          * @param {float} [$params->algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {string} [$params->clientOrderId] a unique id for the $order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1629,11 +1651,11 @@ class woofipro extends Exchange {
         /**
          * *contract only* create a list of trade $orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $ordersRequests = array();
@@ -1685,8 +1707,8 @@ class woofipro extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1698,7 +1720,7 @@ class woofipro extends Exchange {
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1764,10 +1786,10 @@ class woofipro extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
          *
          * cancels an open order
          * @param {string} $id order $id
@@ -1775,7 +1797,7 @@ class woofipro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {string} [$params->clientOrderId] a unique $id for the order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
@@ -1845,14 +1867,14 @@ class woofipro extends Exchange {
         /**
          * cancel multiple orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
          *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
@@ -1883,14 +1905,14 @@ class woofipro extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
          *
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
@@ -1931,10 +1953,10 @@ class woofipro extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
          *
          * fetches information on an order made by the user
          * @param {string} $id the order $id
@@ -1942,7 +1964,7 @@ class woofipro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {string} [$params->clientOrderId] a unique $id for the order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = null;
@@ -2006,8 +2028,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-$orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -2018,7 +2040,7 @@ class woofipro extends Exchange {
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->paginate] set to true if you want to fetch $orders with pagination
          * @param {int} $params->until timestamp in ms of the latest order to fetch
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -2096,8 +2118,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2108,7 +2130,7 @@ class woofipro extends Exchange {
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {int} $params->until timestamp in ms of the latest order to fetch
          * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
@@ -2119,8 +2141,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2131,7 +2153,7 @@ class woofipro extends Exchange {
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {int} $params->until timestamp in ms of the latest order to fetch
          * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
@@ -2142,14 +2164,14 @@ class woofipro extends Exchange {
         /**
          * fetch all the $trades made from a single order
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-$trades-of-specific-order
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-$trades-of-specific-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -2189,7 +2211,7 @@ class woofipro extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-$trades
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-$trades
          *
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -2198,7 +2220,7 @@ class woofipro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] set to true if you want to fetch $trades with pagination
          * @param {int} $params->until timestamp in ms of the latest trade to fetch
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -2273,10 +2295,10 @@ class woofipro extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->v1PrivateGetClientHolding ($params);
@@ -2388,13 +2410,13 @@ class woofipro extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
          */
         $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $params);
         $currency = $this->safe_value($currencyRows, 0);
@@ -2452,13 +2474,13 @@ class woofipro extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $request = array(
             'side' => 'DEPOSIT',
@@ -2470,13 +2492,13 @@ class woofipro extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $request = array(
             'side' => 'WITHDRAW',
@@ -2488,13 +2510,13 @@ class woofipro extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $request = array();
         $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params));
@@ -2549,14 +2571,14 @@ class woofipro extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-$request
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-$request
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $this->check_address($address);
@@ -2641,11 +2663,11 @@ class woofipro extends Exchange {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2685,7 +2707,7 @@ class woofipro extends Exchange {
         /**
          * set the level of $leverage for a market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-$leverage-setting
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-$leverage-setting
          *
          * @param {int} [$leverage] the rate of $leverage
          * @param {string} [$symbol] unified market $symbol
@@ -2776,12 +2798,12 @@ class woofipro extends Exchange {
     public function fetch_position(?string $symbol, $params = array ()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
          *
          * fetch $data on an open position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2823,11 +2845,11 @@ class woofipro extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-$positions-info
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-$positions-info
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $response = $this->v1PrivateGetPositions ($params);

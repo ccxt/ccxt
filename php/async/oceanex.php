@@ -49,6 +49,7 @@ class oceanex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
@@ -331,7 +332,7 @@ class oceanex extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -370,7 +371,7 @@ class oceanex extends Exchange {
              *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -461,7 +462,7 @@ class oceanex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -507,7 +508,7 @@ class oceanex extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
              * @param {int} [$limit] max number of entries per $orderbook to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbol
              */
             Async\await($this->load_markets());
             if ($symbols === null) {
@@ -568,7 +569,7 @@ class oceanex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -674,7 +675,7 @@ class oceanex extends Exchange {
              * @see https://api.oceanex.pro/doc/v1/#trading-fees-post
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
             $response = Async\await($this->publicGetFeesTrading ($params));
             $data = $this->safe_value($response, 'data', array());
@@ -728,7 +729,7 @@ class oceanex extends Exchange {
              * @see https://api.oceanex.pro/doc/v1/#account-info-post
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetMembersMe ($params));
@@ -749,7 +750,7 @@ class oceanex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -778,7 +779,7 @@ class oceanex extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -793,7 +794,7 @@ class oceanex extends Exchange {
             if ($data === null) {
                 throw new OrderNotFound($this->id . ' could not found matching order');
             }
-            if (gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id))) {
+            if ((gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id)))) {
                 $orders = $this->parse_orders($data, $market);
                 return $orders[0];
             }
@@ -815,7 +816,7 @@ class oceanex extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'states' => array( 'wait' ),
@@ -835,7 +836,7 @@ class oceanex extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'states' => array( 'done', 'cancel' ),
@@ -855,7 +856,7 @@ class oceanex extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -904,7 +905,7 @@ class oceanex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1010,7 +1011,7 @@ class oceanex extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol not used by oceanex cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostOrderDelete ($this->extend(array( 'id' => $id ), $params)));
@@ -1019,7 +1020,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1029,7 +1030,7 @@ class oceanex extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by oceanex cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostOrderDeleteMulti ($this->extend(array( 'ids' => $ids ), $params)));
@@ -1047,7 +1048,7 @@ class oceanex extends Exchange {
              *
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostOrdersClear ($params));
@@ -1065,7 +1066,7 @@ class oceanex extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary ~@link https://docs.ccxt.com/#/?id=address-structure address structures~, indexed by the network
+             * @return {array} a dictionary ~@link https://docs.ccxt.com/?id=address-structure address structures~, indexed by the network
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);

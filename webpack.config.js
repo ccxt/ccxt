@@ -49,7 +49,7 @@ export default {
     hints: false,
   },
   plugins: [
-    new webpack.IgnorePlugin({ resourceRegExp: /^protobufjs\/minimal$/ }),
+    new webpack.IgnorePlugin({ resourceRegExp: /^protobufjs\/minimal(.js)?$/ }),
     new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
   ],
 }

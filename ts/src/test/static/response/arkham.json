@@ -1,0 +1,2744 @@
+{
+    "exchange": "arkm",
+    "skipKeys": [],
+    "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address using ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "addresses": [
+                        "0x14af05e850030ff8cfce1cd11b4be16675c27e9e",
+                        "0x3e0da5b895818f57da7eee7cbf20b5b85b402551",
+                        "0xbac8495bdd328d7e8681cfde1f8ddf7f1390246b",
+                        "0xe37546f416040ec461957f97bada62b9ce96ecba",
+                        "0xefdb2f9e7fa25117e5e17be8d4b23d8de7f3ab7c",
+                        "0x5dab87b5f339edb7e638e05bced5cbea1ff668cc"
+                    ]
+                },
+                "parsedResponse": {
+                    "info": "0x5dab87b5f339edb7e638e05bced5cbea1ff668cc",
+                    "currency": null,
+                    "network": "ERC20",
+                    "address": "0x5dab87b5f339edb7e638e05bced5cbea1ff668cc",
+                    "tag": null
+                }
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "with args",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "SOL/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "name": "A",
+                        "bands": [
+                            {
+                                "positionLimit": "1000000",
+                                "leverageRate": "50",
+                                "marginRate": "0.02",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "2000000",
+                                "leverageRate": "25",
+                                "marginRate": "0.04",
+                                "rebate": "20000"
+                            },
+                            {
+                                "positionLimit": "5000000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "40000"
+                            },
+                            {
+                                "positionLimit": "10000000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "290000"
+                            },
+                            {
+                                "positionLimit": "20000000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "1290000"
+                            },
+                            {
+                                "positionLimit": "60000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "3290000"
+                            },
+                            {
+                                "positionLimit": "200000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "15290000"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "B",
+                        "bands": [
+                            {
+                                "positionLimit": "250000",
+                                "leverageRate": "50",
+                                "marginRate": "0.02",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "750000",
+                                "leverageRate": "25",
+                                "marginRate": "0.04",
+                                "rebate": "5000"
+                            },
+                            {
+                                "positionLimit": "1000000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "12500"
+                            },
+                            {
+                                "positionLimit": "5000000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "62500"
+                            },
+                            {
+                                "positionLimit": "10000000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "562500"
+                            },
+                            {
+                                "positionLimit": "30000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "1562500"
+                            },
+                            {
+                                "positionLimit": "100000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "7562500"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "C",
+                        "bands": [
+                            {
+                                "positionLimit": "250000",
+                                "leverageRate": "25",
+                                "marginRate": "0.04",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "500000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "2500"
+                            },
+                            {
+                                "positionLimit": "1000000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "27500"
+                            },
+                            {
+                                "positionLimit": "2500000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "127500"
+                            },
+                            {
+                                "positionLimit": "50000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "377500"
+                            },
+                            {
+                                "positionLimit": "100000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "10377500"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "D",
+                        "bands": [
+                            {
+                                "positionLimit": "10000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "250000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "500"
+                            },
+                            {
+                                "positionLimit": "500000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "25500"
+                            },
+                            {
+                                "positionLimit": "2000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "75500"
+                            },
+                            {
+                                "positionLimit": "5000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "475500"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "E",
+                        "bands": [
+                            {
+                                "positionLimit": "10000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "100000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "1000"
+                            },
+                            {
+                                "positionLimit": "1000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "11000"
+                            },
+                            {
+                                "positionLimit": "5000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "211000"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "F",
+                        "bands": [
+                            {
+                                "positionLimit": "10000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "100000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "1000"
+                            },
+                            {
+                                "positionLimit": "500000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "21000"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "G",
+                        "bands": [
+                            {
+                                "positionLimit": "10000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "50000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "2000"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC",
+                            "minNotional": 0,
+                            "maxNotional": 250000,
+                            "maintenanceMarginRate": 0.04,
+                            "maxLeverage": 25,
+                            "info": {
+                                "positionLimit": "250000",
+                                "leverageRate": "25",
+                                "marginRate": "0.04",
+                                "rebate": "0"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC",
+                            "minNotional": 250000,
+                            "maxNotional": 500000,
+                            "maintenanceMarginRate": 0.05,
+                            "maxLeverage": 20,
+                            "info": {
+                                "positionLimit": "500000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "2500"
+                            }
+                        },
+                        {
+                            "tier": 3,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC",
+                            "minNotional": 500000,
+                            "maxNotional": 1000000,
+                            "maintenanceMarginRate": 0.1,
+                            "maxLeverage": 10,
+                            "info": {
+                                "positionLimit": "1000000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "27500"
+                            }
+                        },
+                        {
+                            "tier": 4,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC",
+                            "minNotional": 1000000,
+                            "maxNotional": 2500000,
+                            "maintenanceMarginRate": 0.2,
+                            "maxLeverage": 5,
+                            "info": {
+                                "positionLimit": "2500000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "127500"
+                            }
+                        },
+                        {
+                            "tier": 5,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC",
+                            "minNotional": 2500000,
+                            "maxNotional": 50000000,
+                            "maintenanceMarginRate": 0.3,
+                            "maxLeverage": 3,
+                            "info": {
+                                "positionLimit": "50000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "377500"
+                            }
+                        },
+                        {
+                            "tier": 6,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC",
+                            "minNotional": 50000000,
+                            "maxNotional": 100000000,
+                            "maintenanceMarginRate": 0.5,
+                            "maxLeverage": 2,
+                            "info": {
+                                "positionLimit": "100000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "10377500"
+                            }
+                        }
+                    ],
+                    "SOL/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "SOL/USDT:USDT",
+                            "currency": "SOL",
+                            "minNotional": 0,
+                            "maxNotional": 10000,
+                            "maintenanceMarginRate": 0.1,
+                            "maxLeverage": 10,
+                            "info": {
+                                "positionLimit": "10000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "0"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "SOL/USDT:USDT",
+                            "currency": "SOL",
+                            "minNotional": 10000,
+                            "maxNotional": 100000,
+                            "maintenanceMarginRate": 0.2,
+                            "maxLeverage": 5,
+                            "info": {
+                                "positionLimit": "100000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "1000"
+                            }
+                        },
+                        {
+                            "tier": 3,
+                            "symbol": "SOL/USDT:USDT",
+                            "currency": "SOL",
+                            "minNotional": 100000,
+                            "maxNotional": 1000000,
+                            "maintenanceMarginRate": 0.3,
+                            "maxLeverage": 3,
+                            "info": {
+                                "positionLimit": "1000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "11000"
+                            }
+                        },
+                        {
+                            "tier": 4,
+                            "symbol": "SOL/USDT:USDT",
+                            "currency": "SOL",
+                            "minNotional": 1000000,
+                            "maxNotional": 5000000,
+                            "maintenanceMarginRate": 0.5,
+                            "maxLeverage": 2,
+                            "info": {
+                                "positionLimit": "5000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "211000"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "disabled": true,
+                "description": "with args (disabled because of weird error)",
+                "method": "withdraw",
+                "input": [
+                    [
+                        "USDT",
+                        5,
+                        "0x743f79D65EA07AA222F4a83c10dee4210A920a6e",
+                        {
+                            "network": "ETH"
+                        }
+                    ]
+                ],
+                "httpResponse": [
+                    "1234709779980\n"
+                ],
+                "parsedResponse": [
+                    {
+                        "info": "1234709779980",
+                        "id": "1234709779980",
+                        "txid": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": null,
+                        "amount": null,
+                        "currency": "USDT",
+                        "status": null,
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "with args",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "SOL/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "subaccountId": "0",
+                        "symbol": "SOL_USDT_PERP",
+                        "base": "-0.058",
+                        "quote": "10.11172",
+                        "openBuySize": "0",
+                        "openSellSize": "0",
+                        "openBuyNotional": "0",
+                        "openSellNotional": "0",
+                        "lastUpdateReason": "orderFill",
+                        "lastUpdateTime": "1753904098501304",
+                        "lastUpdateId": "250443556",
+                        "lastUpdateBaseDelta": "-0.058",
+                        "lastUpdateQuoteDelta": "10.11172",
+                        "breakEvenPrice": "174.34",
+                        "markPrice": "174.9",
+                        "value": "-10.1442",
+                        "pnl": "-0.03248",
+                        "initialMargin": "1.01442",
+                        "maintenanceMargin": "0.608652",
+                        "averageEntryPrice": "174.34"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "subaccountId": "0",
+                            "symbol": "SOL_USDT_PERP",
+                            "base": "-0.058",
+                            "quote": "10.11172",
+                            "openBuySize": "0",
+                            "openSellSize": "0",
+                            "openBuyNotional": "0",
+                            "openSellNotional": "0",
+                            "lastUpdateReason": "orderFill",
+                            "lastUpdateTime": "1753904098501304",
+                            "lastUpdateId": "250443556",
+                            "lastUpdateBaseDelta": "-0.058",
+                            "lastUpdateQuoteDelta": "10.11172",
+                            "breakEvenPrice": "174.34",
+                            "markPrice": "174.9",
+                            "value": "-10.1442",
+                            "pnl": "-0.03248",
+                            "initialMargin": "1.01442",
+                            "maintenanceMargin": "0.608652",
+                            "averageEntryPrice": "174.34"
+                        },
+                        "id": null,
+                        "symbol": "SOL/USDT:USDT",
+                        "notional": 10.1442,
+                        "marginMode": null,
+                        "liquidationPrice": null,
+                        "entryPrice": 174.34,
+                        "unrealizedPnl": -0.03248,
+                        "realizedPnl": null,
+                        "percentage": null,
+                        "contracts": 0.058,
+                        "contractSize": 1,
+                        "markPrice": 174.9,
+                        "lastPrice": null,
+                        "side": "short",
+                        "hedged": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": 1753904098501304,
+                        "maintenanceMargin": 0.608652,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": null,
+                        "initialMargin": 1.01442,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "disabled": true,
+                "description": "with args (disabled because of empty response)",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": null,
+                "parsedResponse": {
+                    "info": "",
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "with args",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "leverage": "7"
+                    },
+                    {
+                        "symbol": "ETH_USDT_PERP",
+                        "leverage": "5"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC_USDT_PERP",
+                        "leverage": "7"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": 7,
+                    "shortLeverage": 7
+                }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "disabled": true,
+                "description": "without args",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "spotTakerFee": "0.001",
+                    "spotMakerFee": "0.001",
+                    "perpTakerFee": "0.0005",
+                    "perpMakerFee": "0.00025"
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "BTC/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ETH/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ETH/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    }
+                }
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "without args",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": [],
+                "parsedResponse": []
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "without args",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "238644",
+                        "symbol": "SOL",
+                        "amount": "0.104",
+                        "time": "1753436404000000",
+                        "confirmed": true,
+                        "transactionHash": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
+                        "chain": "Solana",
+                        "depositAddress": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "price": "180.322010164"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "238644",
+                            "symbol": "SOL",
+                            "amount": "0.104",
+                            "time": "1753436404000000",
+                            "confirmed": true,
+                            "transactionHash": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
+                            "chain": "Solana",
+                            "depositAddress": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                            "price": "180.322010164"
+                        },
+                        "id": "238644",
+                        "txid": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
+                        "type": null,
+                        "currency": "SOL",
+                        "network": "Solana",
+                        "amount": 0.104,
+                        "status": "ok",
+                        "timestamp": 1753436404000,
+                        "datetime": "2025-07-25T09:40:04.000Z",
+                        "address": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "addressFrom": null,
+                        "addressTo": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "updated": null,
+                        "comment": null,
+                        "fee": null,
+                        "internal": false
+                    }
+                ]
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "with network",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0x6a0da5b895242f57da7eee7cbe92b5b85b402126"
+                },
+                "parsedResponse": {
+                    "info": null,
+                    "currency": "USDT",
+                    "network": null,
+                    "address": null,
+                    "tag": null
+                }
+            }
+        ],
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "with code",
+                "method": "fetchDepositAddressesByNetwork",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "httpResponse": {
+                    "addresses": [
+                        "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV"
+                    ]
+                },
+                "parsedResponse": {
+                    "SOL": {
+                        "info": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "currency": null,
+                        "network": "SOL",
+                        "address": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "tag": null
+                    }
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "without args",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "subaccountId": "0",
+                        "symbol": "USDT",
+                        "balance": "19.66494694",
+                        "free": "14.10759514",
+                        "priceUSDT": "1",
+                        "balanceUSDT": "19.66494694",
+                        "freeUSDT": "14.10759514",
+                        "lastUpdateReason": "orderFill",
+                        "lastUpdateTime": "1753773952039342",
+                        "lastUpdateId": "248507437",
+                        "lastUpdateAmount": "7.77252"
+                    },
+                    {
+                        "subaccountId": "0",
+                        "symbol": "SOL",
+                        "balance": "0",
+                        "free": "0",
+                        "priceUSDT": "185.964853614",
+                        "balanceUSDT": "0",
+                        "freeUSDT": "0",
+                        "lastUpdateReason": "orderFill",
+                        "lastUpdateTime": "1753773952039342",
+                        "lastUpdateId": "248507435",
+                        "lastUpdateAmount": "-0.042"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "subaccountId": "0",
+                            "symbol": "USDT",
+                            "balance": "19.66494694",
+                            "free": "14.10759514",
+                            "priceUSDT": "1",
+                            "balanceUSDT": "19.66494694",
+                            "freeUSDT": "14.10759514",
+                            "lastUpdateReason": "orderFill",
+                            "lastUpdateTime": "1753773952039342",
+                            "lastUpdateId": "248507437",
+                            "lastUpdateAmount": "7.77252"
+                        },
+                        {
+                            "subaccountId": "0",
+                            "symbol": "SOL",
+                            "balance": "0",
+                            "free": "0",
+                            "priceUSDT": "185.964853614",
+                            "balanceUSDT": "0",
+                            "freeUSDT": "0",
+                            "lastUpdateReason": "orderFill",
+                            "lastUpdateTime": "1753773952039342",
+                            "lastUpdateId": "248507435",
+                            "lastUpdateAmount": "-0.042"
+                        }
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "USDT": {
+                        "free": 14.10759514,
+                        "used": 5.5573518,
+                        "total": 19.66494694
+                    },
+                    "SOL": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "USDT": 14.10759514,
+                        "SOL": 0
+                    },
+                    "used": {
+                        "USDT": 5.5573518,
+                        "SOL": 0
+                    },
+                    "total": {
+                        "USDT": 19.66494694,
+                        "SOL": 0
+                    }
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "without args",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "id": "2959123",
+                    "email": "xyz@gmail.com",
+                    "username": "t.695",
+                    "requireMFA": true,
+                    "kycVerifiedAt": "1753434515850673",
+                    "pmm": false,
+                    "dmm": false,
+                    "becameVipAt": "0",
+                    "subaccounts": [
+                        {
+                            "id": "0",
+                            "name": "Primary",
+                            "pinned": true,
+                            "isLsp": false,
+                            "futuresEnabled": true,
+                            "payFeesInArkm": false,
+                            "lspSettings": []
+                        }
+                    ],
+                    "settings": {
+                        "autogenDepositAddresses": false,
+                        "hideBalances": false,
+                        "confirmBeforePlaceOrder": false,
+                        "tickerTapeScroll": true,
+                        "updatesFlash": true,
+                        "notifyOrderFills": false,
+                        "notifyAnnouncements": false,
+                        "notifyMarginUsage": false,
+                        "marginUsageThreshold": "0.5",
+                        "notifyWithdrawals": true,
+                        "notifyDeposits": true,
+                        "notifySendEmail": true,
+                        "notifyRebates": true,
+                        "notifyCommissions": true,
+                        "allowSequenceEmails": true,
+                        "language": "en"
+                    },
+                    "airdropKycAt": null
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0",
+                        "type": null,
+                        "code": null,
+                        "info": {
+                            "id": "0",
+                            "name": "Primary",
+                            "pinned": true,
+                            "isLsp": false,
+                            "futuresEnabled": true,
+                            "payFeesInArkm": false,
+                            "lspSettings": []
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "using since",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    1753772400000
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "SOL_USDT",
+                        "revisionId": "891839406",
+                        "size": "0.042",
+                        "price": "185.06",
+                        "takerSide": "sell",
+                        "time": "1753773952039342",
+                        "orderId": "3717304929194",
+                        "userSide": "sell",
+                        "quoteFee": "0.00777252",
+                        "arkmFee": "0",
+                        "clientOrderId": ""
+                    },
+                    {
+                        "symbol": "SOL_USDT",
+                        "revisionId": "891831453",
+                        "size": "0.042",
+                        "price": "185.24",
+                        "takerSide": "buy",
+                        "time": "1753773732074248",
+                        "orderId": "3717248468018",
+                        "userSide": "buy",
+                        "quoteFee": "0.00778008",
+                        "arkmFee": "0",
+                        "clientOrderId": ""
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "SOL_USDT",
+                            "revisionId": "891831453",
+                            "size": "0.042",
+                            "price": "185.24",
+                            "takerSide": "buy",
+                            "time": "1753773732074248",
+                            "orderId": "3717248468018",
+                            "userSide": "buy",
+                            "quoteFee": "0.00778008",
+                            "arkmFee": "0",
+                            "clientOrderId": ""
+                        },
+                        "id": "891831453",
+                        "timestamp": 1753773732074,
+                        "datetime": "2025-07-29T07:22:12.074Z",
+                        "symbol": "SOL/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 185.24,
+                        "amount": 0.042,
+                        "cost": 7.78008,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.00778008
+                        },
+                        "order": "3717248468018",
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.00778008
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "symbol": "SOL_USDT",
+                            "revisionId": "891839406",
+                            "size": "0.042",
+                            "price": "185.06",
+                            "takerSide": "sell",
+                            "time": "1753773952039342",
+                            "orderId": "3717304929194",
+                            "userSide": "sell",
+                            "quoteFee": "0.00777252",
+                            "arkmFee": "0",
+                            "clientOrderId": ""
+                        },
+                        "id": "891839406",
+                        "timestamp": 1753773952039,
+                        "datetime": "2025-07-29T07:25:52.039Z",
+                        "symbol": "SOL/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 185.06,
+                        "amount": 0.042,
+                        "cost": 7.77252,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.00777252
+                        },
+                        "order": "3717304929194",
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.00777252
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "without args",
+                "method": "fetchClosedOrders",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "orderId": "3697114271287",
+                        "userId": "2959123",
+                        "subaccountId": "0",
+                        "symbol": "SOL_USDT",
+                        "time": "1753714263841103",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "executedSize": "0",
+                        "status": "closed",
+                        "avgPrice": "0",
+                        "executedNotional": "0",
+                        "creditFeePaid": "0",
+                        "marginBonusFeePaid": "0",
+                        "quoteFeePaid": "0",
+                        "arkmFeePaid": "0",
+                        "revisionId": "888925211",
+                        "lastTime": "1753714277293350",
+                        "clientOrderId": "test123",
+                        "lastSize": "0",
+                        "lastPrice": "0",
+                        "lastCreditFee": "0",
+                        "lastMarginBonusFee": "0",
+                        "lastQuoteFee": "0",
+                        "lastArkmFee": "0"
+                    },
+                    {
+                        "orderId": "3696995236595",
+                        "userId": "2959123",
+                        "subaccountId": "0",
+                        "symbol": "SOL_USDT",
+                        "time": "1753714016555241",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "executedSize": "0",
+                        "status": "closed",
+                        "avgPrice": "0",
+                        "executedNotional": "0",
+                        "creditFeePaid": "0",
+                        "marginBonusFeePaid": "0",
+                        "quoteFeePaid": "0",
+                        "arkmFeePaid": "0",
+                        "revisionId": "888919435",
+                        "lastTime": "1753714211062311",
+                        "clientOrderId": "test123",
+                        "lastSize": "0",
+                        "lastPrice": "0",
+                        "lastCreditFee": "0",
+                        "lastMarginBonusFee": "0",
+                        "lastQuoteFee": "0",
+                        "lastArkmFee": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "3696995236595",
+                        "clientOrderId": "test123",
+                        "timestamp": 1753714016555,
+                        "datetime": "2025-07-28T14:46:56.555Z",
+                        "lastTradeTimeStamp": null,
+                        "lastUpdateTimestamp": 1753714211062,
+                        "status": "closed",
+                        "symbol": "SOL/USDT",
+                        "type": "LIMIT",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 180,
+                        "triggerPrice": null,
+                        "cost": 0,
+                        "average": 0,
+                        "amount": 0.05,
+                        "filled": 0.05,
+                        "remaining": 0,
+                        "trades": [],
+                        "fee": null,
+                        "reduceOnly": false,
+                        "info": {
+                            "orderId": "3696995236595",
+                            "userId": "2959123",
+                            "subaccountId": "0",
+                            "symbol": "SOL_USDT",
+                            "time": "1753714016555241",
+                            "side": "buy",
+                            "type": "limitGtc",
+                            "size": "0.05",
+                            "price": "180",
+                            "postOnly": false,
+                            "reduceOnly": false,
+                            "executedSize": "0",
+                            "status": "closed",
+                            "avgPrice": "0",
+                            "executedNotional": "0",
+                            "creditFeePaid": "0",
+                            "marginBonusFeePaid": "0",
+                            "quoteFeePaid": "0",
+                            "arkmFeePaid": "0",
+                            "revisionId": "888919435",
+                            "lastTime": "1753714211062311",
+                            "clientOrderId": "test123",
+                            "lastSize": "0",
+                            "lastPrice": "0",
+                            "lastCreditFee": "0",
+                            "lastMarginBonusFee": "0",
+                            "lastQuoteFee": "0",
+                            "lastArkmFee": "0"
+                        },
+                        "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
+                        "lastTradeTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "id": "3697114271287",
+                        "clientOrderId": "test123",
+                        "timestamp": 1753714263841,
+                        "datetime": "2025-07-28T14:51:03.841Z",
+                        "lastTradeTimeStamp": null,
+                        "lastUpdateTimestamp": 1753714277293,
+                        "status": "closed",
+                        "symbol": "SOL/USDT",
+                        "type": "LIMIT",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 180,
+                        "triggerPrice": null,
+                        "cost": 0,
+                        "average": 0,
+                        "amount": 0.05,
+                        "filled": 0.05,
+                        "remaining": 0,
+                        "trades": [],
+                        "fee": null,
+                        "reduceOnly": false,
+                        "info": {
+                            "orderId": "3697114271287",
+                            "userId": "2959123",
+                            "subaccountId": "0",
+                            "symbol": "SOL_USDT",
+                            "time": "1753714263841103",
+                            "side": "buy",
+                            "type": "limitGtc",
+                            "size": "0.05",
+                            "price": "180",
+                            "postOnly": false,
+                            "reduceOnly": false,
+                            "executedSize": "0",
+                            "status": "closed",
+                            "avgPrice": "0",
+                            "executedNotional": "0",
+                            "creditFeePaid": "0",
+                            "marginBonusFeePaid": "0",
+                            "quoteFeePaid": "0",
+                            "arkmFeePaid": "0",
+                            "revisionId": "888925211",
+                            "lastTime": "1753714277293350",
+                            "clientOrderId": "test123",
+                            "lastSize": "0",
+                            "lastPrice": "0",
+                            "lastCreditFee": "0",
+                            "lastMarginBonusFee": "0",
+                            "lastQuoteFee": "0",
+                            "lastArkmFee": "0"
+                        },
+                        "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
+                        "lastTradeTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "without args",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "orderId": "3697346296818",
+                        "userId": "2959123",
+                        "subaccountId": "0",
+                        "symbol": "SOL_USDT",
+                        "time": "1753714765793162",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.028",
+                        "price": "181.87",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "executedSize": "0",
+                        "status": "booked",
+                        "avgPrice": "0",
+                        "executedNotional": "0",
+                        "creditFeePaid": "0",
+                        "marginBonusFeePaid": "0",
+                        "quoteFeePaid": "0",
+                        "arkmFeePaid": "0",
+                        "revisionId": "888960443",
+                        "lastTime": "1753714765794096",
+                        "clientOrderId": "",
+                        "lastSize": "0",
+                        "lastPrice": "0",
+                        "lastCreditFee": "0",
+                        "lastMarginBonusFee": "0",
+                        "lastQuoteFee": "0",
+                        "lastArkmFee": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "3697346296818",
+                        "clientOrderId": null,
+                        "timestamp": 1753714765793,
+                        "datetime": "2025-07-28T14:59:25.793Z",
+                        "lastTradeTimeStamp": null,
+                        "lastUpdateTimestamp": 1753714765794,
+                        "status": "open",
+                        "symbol": "SOL/USDT",
+                        "type": "LIMIT",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 181.87,
+                        "triggerPrice": null,
+                        "cost": 0,
+                        "average": null,
+                        "amount": 0.028,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "reduceOnly": false,
+                        "info": {
+                            "orderId": "3697346296818",
+                            "userId": "2959123",
+                            "subaccountId": "0",
+                            "symbol": "SOL_USDT",
+                            "time": "1753714765793162",
+                            "side": "buy",
+                            "type": "limitGtc",
+                            "size": "0.028",
+                            "price": "181.87",
+                            "postOnly": false,
+                            "reduceOnly": false,
+                            "executedSize": "0",
+                            "status": "booked",
+                            "avgPrice": "0",
+                            "executedNotional": "0",
+                            "creditFeePaid": "0",
+                            "marginBonusFeePaid": "0",
+                            "quoteFeePaid": "0",
+                            "arkmFeePaid": "0",
+                            "revisionId": "888960443",
+                            "lastTime": "1753714765794096",
+                            "clientOrderId": "",
+                            "lastSize": "0",
+                            "lastPrice": "0",
+                            "lastCreditFee": "0",
+                            "lastMarginBonusFee": "0",
+                            "lastQuoteFee": "0",
+                            "lastArkmFee": "0"
+                        },
+                        "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
+                        "lastTradeTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "with id",
+                "method": "cancelOrder",
+                "input": [
+                    "3697114271287"
+                ],
+                "httpResponse": {
+                    "orderId": "3697114271287"
+                },
+                "parsedResponse": {
+                    "id": "3697114271287",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "orderId": "3697114271287"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "with id",
+                "method": "fetchOrder",
+                "input": [
+                    "3696995236595"
+                ],
+                "httpResponse": {
+                    "orderId": "3696995236595",
+                    "userId": "2959123",
+                    "subaccountId": "0",
+                    "symbol": "SOL_USDT",
+                    "time": "1753714016555241",
+                    "side": "buy",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "executedSize": "0",
+                    "status": "booked",
+                    "avgPrice": "0",
+                    "executedNotional": "0",
+                    "creditFeePaid": "0",
+                    "marginBonusFeePaid": "0",
+                    "quoteFeePaid": "0",
+                    "arkmFeePaid": "0",
+                    "revisionId": "888904063",
+                    "lastTime": "1753714016556340",
+                    "clientOrderId": "test123",
+                    "lastSize": "0",
+                    "lastPrice": "0",
+                    "lastCreditFee": "0",
+                    "lastMarginBonusFee": "0",
+                    "lastQuoteFee": "0",
+                    "lastArkmFee": "0"
+                },
+                "parsedResponse": {
+                    "id": "3696995236595",
+                    "clientOrderId": "test123",
+                    "timestamp": 1753714016555,
+                    "datetime": "2025-07-28T14:46:56.555Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1753714016556,
+                    "status": "open",
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": false,
+                    "info": {
+                        "orderId": "3696995236595",
+                        "userId": "2959123",
+                        "subaccountId": "0",
+                        "symbol": "SOL_USDT",
+                        "time": "1753714016555241",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "executedSize": "0",
+                        "status": "booked",
+                        "avgPrice": "0",
+                        "executedNotional": "0",
+                        "creditFeePaid": "0",
+                        "marginBonusFeePaid": "0",
+                        "quoteFeePaid": "0",
+                        "arkmFeePaid": "0",
+                        "revisionId": "888904063",
+                        "lastTime": "1753714016556340",
+                        "clientOrderId": "test123",
+                        "lastSize": "0",
+                        "lastPrice": "0",
+                        "lastCreditFee": "0",
+                        "lastMarginBonusFee": "0",
+                        "lastQuoteFee": "0",
+                        "lastArkmFee": "0"
+                    },
+                    "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "with id numeric",
+                "method": "fetchOrder",
+                "input": [
+                    3696995236595
+                ],
+                "httpResponse": {
+                    "orderId": "3696995236595",
+                    "userId": "2959123",
+                    "subaccountId": "0",
+                    "symbol": "SOL_USDT",
+                    "time": "1753714016555241",
+                    "side": "buy",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "executedSize": "0",
+                    "status": "booked",
+                    "avgPrice": "0",
+                    "executedNotional": "0",
+                    "creditFeePaid": "0",
+                    "marginBonusFeePaid": "0",
+                    "quoteFeePaid": "0",
+                    "arkmFeePaid": "0",
+                    "revisionId": "888904063",
+                    "lastTime": "1753714016556340",
+                    "clientOrderId": "test123",
+                    "lastSize": "0",
+                    "lastPrice": "0",
+                    "lastCreditFee": "0",
+                    "lastMarginBonusFee": "0",
+                    "lastQuoteFee": "0",
+                    "lastArkmFee": "0"
+                },
+                "parsedResponse": {
+                    "id": "3696995236595",
+                    "clientOrderId": "test123",
+                    "timestamp": 1753714016555,
+                    "datetime": "2025-07-28T14:46:56.555Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1753714016556,
+                    "status": "open",
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": false,
+                    "info": {
+                        "orderId": "3696995236595",
+                        "userId": "2959123",
+                        "subaccountId": "0",
+                        "symbol": "SOL_USDT",
+                        "time": "1753714016555241",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "executedSize": "0",
+                        "status": "booked",
+                        "avgPrice": "0",
+                        "executedNotional": "0",
+                        "creditFeePaid": "0",
+                        "marginBonusFeePaid": "0",
+                        "quoteFeePaid": "0",
+                        "arkmFeePaid": "0",
+                        "revisionId": "888904063",
+                        "lastTime": "1753714016556340",
+                        "clientOrderId": "test123",
+                        "lastSize": "0",
+                        "lastPrice": "0",
+                        "lastCreditFee": "0",
+                        "lastMarginBonusFee": "0",
+                        "lastQuoteFee": "0",
+                        "lastArkmFee": "0"
+                    },
+                    "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "trigger sell desc",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "httpResponse": {
+                    "triggerOrderId": "3716782007035",
+                    "symbol": "SOL_USDT",
+                    "side": "sell",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180"
+                },
+                "parsedResponse": {
+                    "id": "3716782007035",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "sell",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "triggerOrderId": "3716782007035",
+                        "symbol": "SOL_USDT",
+                        "side": "sell",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "trigger sell asc",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "httpResponse": {
+                    "triggerOrderId": "3716778018289",
+                    "symbol": "SOL_USDT",
+                    "side": "sell",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180"
+                },
+                "parsedResponse": {
+                    "id": "3716778018289",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "sell",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "triggerOrderId": "3716778018289",
+                        "symbol": "SOL_USDT",
+                        "side": "sell",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "trigger buy desc",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "httpResponse": {
+                    "triggerOrderId": "3716768198885",
+                    "symbol": "SOL_USDT",
+                    "side": "buy",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180"
+                },
+                "parsedResponse": {
+                    "id": "3716768198885",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "triggerOrderId": "3716768198885",
+                        "symbol": "SOL_USDT",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "trigger buy asc",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "httpResponse": {
+                    "triggerOrderId": "3716762169546",
+                    "symbol": "SOL_USDT",
+                    "side": "buy",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180"
+                },
+                "parsedResponse": {
+                    "id": "3716762169546",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "triggerOrderId": "3716762169546",
+                        "symbol": "SOL_USDT",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "with args & params",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "timeInForce": "FOK",
+                        "clientOrderId": "test123"
+                    }
+                ],
+                "httpResponse": {
+                    "orderId": "3696915163766",
+                    "clientOrderId": "test123",
+                    "symbol": "SOL_USDT",
+                    "subaccountId": "0",
+                    "side": "buy",
+                    "type": "limitFok",
+                    "size": "0.05",
+                    "price": "180",
+                    "time": "1753713844447249"
+                },
+                "parsedResponse": {
+                    "id": "3696915163766",
+                    "clientOrderId": "test123",
+                    "timestamp": 1753713844447,
+                    "datetime": "2025-07-28T14:44:04.447Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "FOK",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "orderId": "3696915163766",
+                        "clientOrderId": "test123",
+                        "symbol": "SOL_USDT",
+                        "subaccountId": "0",
+                        "side": "buy",
+                        "type": "limitFok",
+                        "size": "0.05",
+                        "price": "180",
+                        "time": "1753713844447249"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "serverTime": "1753465897737284"
+                },
+                "parsedResponse": 1753465897737
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "swap with args",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "time": "1745000100000000",
+                        "duration": "60000000",
+                        "open": "84568.64",
+                        "high": "84575.17",
+                        "low": "84568.64",
+                        "close": "84571.69",
+                        "volume": "0.11097",
+                        "quoteVolume": "9384.9550866"
+                    },
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "time": "1745000040000000",
+                        "duration": "60000000",
+                        "open": "84566.72",
+                        "high": "84572.38",
+                        "low": "84565.09",
+                        "close": "84571.36",
+                        "volume": "0.12368",
+                        "quoteVolume": "10459.3296352"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1745000040000,
+                        84566.72,
+                        84572.38,
+                        84565.09,
+                        84571.36,
+                        0.12368
+                    ],
+                    [
+                        1745000100000,
+                        84568.64,
+                        84575.17,
+                        84568.64,
+                        84571.69,
+                        0.11097
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "swap with args",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "revisionId": "1130539712",
+                        "size": "0.00585",
+                        "price": "116346.42",
+                        "takerSide": "sell",
+                        "time": "1753440450249251"
+                    },
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "revisionId": "1130539709",
+                        "size": "0.03451",
+                        "price": "116352.12",
+                        "takerSide": "sell",
+                        "time": "1753440450249251"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "revisionId": "1130539709",
+                            "size": "0.03451",
+                            "price": "116352.12",
+                            "takerSide": "sell",
+                            "time": "1753440450249251"
+                        },
+                        "id": "1130539709",
+                        "timestamp": 1753440450249,
+                        "datetime": "2025-07-25T10:47:30.249Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 116352.12,
+                        "amount": 0.03451,
+                        "cost": 4015.3116612,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "order": null,
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "revisionId": "1130539712",
+                            "size": "0.00585",
+                            "price": "116346.42",
+                            "takerSide": "sell",
+                            "time": "1753440450249251"
+                        },
+                        "id": "1130539712",
+                        "timestamp": 1753440450249,
+                        "datetime": "2025-07-25T10:47:30.249Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 116346.42,
+                        "amount": 0.00585,
+                        "cost": 680.626557,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "order": null,
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "spot with args",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT",
+                        "revisionId": "829640730",
+                        "size": "0.00082",
+                        "price": "116352.94",
+                        "takerSide": "sell",
+                        "time": "1753440101890053"
+                    },
+                    {
+                        "symbol": "BTC_USDT",
+                        "revisionId": "829640188",
+                        "size": "0.00082",
+                        "price": "116332.04",
+                        "takerSide": "buy",
+                        "time": "1753440094488132"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "revisionId": "829640188",
+                            "size": "0.00082",
+                            "price": "116332.04",
+                            "takerSide": "buy",
+                            "time": "1753440094488132"
+                        },
+                        "id": "829640188",
+                        "timestamp": 1753440094488,
+                        "datetime": "2025-07-25T10:41:34.488Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 116332.04,
+                        "amount": 0.00082,
+                        "cost": 95.3922728,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "order": null,
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "revisionId": "829640730",
+                            "size": "0.00082",
+                            "price": "116352.94",
+                            "takerSide": "sell",
+                            "time": "1753440101890053"
+                        },
+                        "id": "829640730",
+                        "timestamp": 1753440101890,
+                        "datetime": "2025-07-25T10:41:41.890Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 116352.94,
+                        "amount": 0.00082,
+                        "cost": 95.4094108,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "order": null,
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+        
+            {
+                "description": "spot",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC_USDT",
+                    "baseSymbol": "BTC",
+                    "quoteSymbol": "USDT",
+                    "price": "115482.6",
+                    "price24hAgo": "118382.48",
+                    "high24h": "119455.9",
+                    "low24h": "114748.85",
+                    "volume24h": "47.74406",
+                    "quoteVolume24h": "5633694.9342398",
+                    "markPrice": "0",
+                    "indexPrice": "115475.982212293",
+                    "fundingRate": "0",
+                    "nextFundingRate": "0",
+                    "nextFundingTime": "0",
+                    "productType": "spot",
+                    "openInterest": "0",
+                    "indexCurrency": "USDT",
+                    "usdVolume24h": "5633694.9342398",
+                    "openInterestUSD": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC_USDT",
+                        "baseSymbol": "BTC",
+                        "quoteSymbol": "USDT",
+                        "price": "115482.6",
+                        "price24hAgo": "118382.48",
+                        "high24h": "119455.9",
+                        "low24h": "114748.85",
+                        "volume24h": "47.74406",
+                        "quoteVolume24h": "5633694.9342398",
+                        "markPrice": "0",
+                        "indexPrice": "115475.982212293",
+                        "fundingRate": "0",
+                        "nextFundingRate": "0",
+                        "nextFundingTime": "0",
+                        "productType": "spot",
+                        "openInterest": "0",
+                        "indexCurrency": "USDT",
+                        "usdVolume24h": "5633694.9342398",
+                        "openInterestUSD": "0"
+                    },
+                    "symbol": "BTC/USDT",
+                    "high": 119455.9,
+                    "low": 114748.85,
+                    "bid": null,
+                    "last": 115482.6,
+                    "open": 118382.48,
+                    "change": -2899.88,
+                    "percentage": -2.449585445413882,
+                    "baseVolume": 47.74406,
+                    "quoteVolume": 5633694.9342398,
+                    "markPrice": 0,
+                    "indexPrice": 115475.982212293,
+                    "vwap": 117997.81866560574,
+                    "average": 116932.54,
+                    "previousClose": null,
+                    "askVolume": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "close": 115482.6
+                }
+            },
+            {
+                "description": "swap",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC_USDT_PERP",
+                    "baseSymbol": "BTC.P",
+                    "quoteSymbol": "USDT",
+                    "price": "115581.27",
+                    "price24hAgo": "118466.96",
+                    "high24h": "119468.05",
+                    "low24h": "114722.52",
+                    "volume24h": "149.28382",
+                    "quoteVolume24h": "17621918.517774",
+                    "markPrice": "115576.67",
+                    "indexPrice": "115557.903551448",
+                    "fundingRate": "0.000007",
+                    "nextFundingRate": "0.000008",
+                    "nextFundingTime": "1753437600000000",
+                    "productType": "perpetual",
+                    "openInterest": "2.297795",
+                    "indexCurrency": "USDT",
+                    "usdVolume24h": "17621918.517774",
+                    "openInterestUSD": "265582.06429965"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC_USDT_PERP",
+                        "baseSymbol": "BTC.P",
+                        "quoteSymbol": "USDT",
+                        "price": "115581.27",
+                        "price24hAgo": "118466.96",
+                        "high24h": "119468.05",
+                        "low24h": "114722.52",
+                        "volume24h": "149.28382",
+                        "quoteVolume24h": "17621918.517774",
+                        "markPrice": "115576.67",
+                        "indexPrice": "115557.903551448",
+                        "fundingRate": "0.000007",
+                        "nextFundingRate": "0.000008",
+                        "nextFundingTime": "1753437600000000",
+                        "productType": "perpetual",
+                        "openInterest": "2.297795",
+                        "indexCurrency": "USDT",
+                        "usdVolume24h": "17621918.517774",
+                        "openInterestUSD": "265582.06429965"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "high": 119468.05,
+                    "low": 114722.52,
+                    "bid": null,
+                    "last": 115581.27,
+                    "open": 118466.96,
+                    "change": -2885.69,
+                    "percentage": -2.435860597756539,
+                    "baseVolume": 149.28382,
+                    "quoteVolume": 17621918.517774,
+                    "markPrice": 115576.67,
+                    "indexPrice": 115557.903551448,
+                    "vwap": 118043.05729699307,
+                    "average": 117024.115,
+                    "previousClose": null,
+                    "askVolume": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "close": 115581.27
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "with symbols",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT",
+                        "baseSymbol": "BTC",
+                        "quoteSymbol": "USDT",
+                        "price": "115790.27",
+                        "price24hAgo": "118611.49",
+                        "high24h": "119455.9",
+                        "low24h": "114748.85",
+                        "volume24h": "48.41096",
+                        "quoteVolume24h": "5715729.9028597",
+                        "markPrice": "0",
+                        "indexPrice": "115789.86210398",
+                        "fundingRate": "0",
+                        "nextFundingRate": "0",
+                        "nextFundingTime": "0",
+                        "productType": "spot",
+                        "openInterest": "0",
+                        "indexCurrency": "USDT",
+                        "usdVolume24h": "5715729.9028597",
+                        "openInterestUSD": "0"
+                    },
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "baseSymbol": "BTC.P",
+                        "quoteSymbol": "USDT",
+                        "price": "115785.38",
+                        "price24hAgo": "118628.36",
+                        "high24h": "119468.05",
+                        "low24h": "114722.52",
+                        "volume24h": "150.94093",
+                        "quoteVolume24h": "17822970.6521057",
+                        "markPrice": "115820",
+                        "indexPrice": "115789.86210398",
+                        "fundingRate": "0.000007",
+                        "nextFundingRate": "0.000008",
+                        "nextFundingTime": "1753437600000000",
+                        "productType": "perpetual",
+                        "openInterest": "2.085525",
+                        "indexCurrency": "USDT",
+                        "usdVolume24h": "17822970.6521057",
+                        "openInterestUSD": "241473.3046245"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "baseSymbol": "BTC",
+                            "quoteSymbol": "USDT",
+                            "price": "115790.27",
+                            "price24hAgo": "118611.49",
+                            "high24h": "119455.9",
+                            "low24h": "114748.85",
+                            "volume24h": "48.41096",
+                            "quoteVolume24h": "5715729.9028597",
+                            "markPrice": "0",
+                            "indexPrice": "115789.86210398",
+                            "fundingRate": "0",
+                            "nextFundingRate": "0",
+                            "nextFundingTime": "0",
+                            "productType": "spot",
+                            "openInterest": "0",
+                            "indexCurrency": "USDT",
+                            "usdVolume24h": "5715729.9028597",
+                            "openInterestUSD": "0"
+                        },
+                        "symbol": "BTC/USDT",
+                        "high": 119455.9,
+                        "low": 114748.85,
+                        "bid": null,
+                        "last": 115790.27,
+                        "open": 118611.49,
+                        "change": -2821.22,
+                        "percentage": -2.3785385378768953,
+                        "baseVolume": 48.41096,
+                        "quoteVolume": 5715729.9028597,
+                        "markPrice": 0,
+                        "indexPrice": 115789.86210398,
+                        "vwap": 118066.8572335624,
+                        "average": 117200.88,
+                        "previousClose": null,
+                        "askVolume": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "close": 115790.27
+                    },
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "baseSymbol": "BTC.P",
+                            "quoteSymbol": "USDT",
+                            "price": "115785.38",
+                            "price24hAgo": "118628.36",
+                            "high24h": "119468.05",
+                            "low24h": "114722.52",
+                            "volume24h": "150.94093",
+                            "quoteVolume24h": "17822970.6521057",
+                            "markPrice": "115820",
+                            "indexPrice": "115789.86210398",
+                            "fundingRate": "0.000007",
+                            "nextFundingRate": "0.000008",
+                            "nextFundingTime": "1753437600000000",
+                            "productType": "perpetual",
+                            "openInterest": "2.085525",
+                            "indexCurrency": "USDT",
+                            "usdVolume24h": "17822970.6521057",
+                            "openInterestUSD": "241473.3046245"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "high": 119468.05,
+                        "low": 114722.52,
+                        "bid": null,
+                        "last": 115785.38,
+                        "open": 118628.36,
+                        "change": -2842.98,
+                        "percentage": -2.3965432886368823,
+                        "baseVolume": 150.94093,
+                        "quoteVolume": 17822970.6521057,
+                        "markPrice": 115820,
+                        "indexPrice": 115789.86210398,
+                        "vwap": 118079.10983525608,
+                        "average": 117206.87,
+                        "previousClose": null,
+                        "askVolume": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "close": 115785.38
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "with limit",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    8
+                ],
+                "httpResponse": {
+                    "symbol": "BTC_USDT",
+                    "group": "0.01",
+                    "asks": [
+                        
+                        {
+                            "price": "115556.99",
+                            "size": "0.05623"
+                        },
+                        {
+                            "price": "115547.26",
+                            "size": "0.00849"
+                        }
+                    ],
+                    "bids": [
+                        {
+                            "price": "115538.45",
+                            "size": "0.0173"
+                        },
+                        {
+                            "price": "115547.25",
+                            "size": "0.05624"
+                        }
+                    ],
+                    "lastTime": "1753420207107106"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            115547.25,
+                            0.05624
+                        ],
+                        [
+                            115538.45,
+                            0.0173
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            115547.26,
+                            0.00849
+                        ],
+                        [
+                            115556.99,
+                            0.05623
+                        ]
+                    ],
+                    "timestamp": 1753420207107,
+                    "datetime": "2025-07-25T05:10:07.107Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "without params",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "USDT",
+                        "name": "Tether",
+                        "imageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+                        "stablecoin": true,
+                        "featuredPair": "BTC_USDT",
+                        "chains": [
+                            {
+                                "symbol": "ETH",
+                                "assetSymbol": "ETH",
+                                "name": "Ethereum",
+                                "type": "1",
+                                "confirmations": "6",
+                                "blockTime": "12000000"
+                            }
+                        ],
+                        "status": "listed",
+                        "minDeposit": "5",
+                        "minWithdrawal": "5",
+                        "withdrawalFee": "2"
+                    },
+                    {
+                        "symbol": "BTC",
+                        "name": "Bitcoin",
+                        "imageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+                        "stablecoin": false,
+                        "featuredPair": "BTC_USDT",
+                        "chains": [
+                            {
+                                "symbol": "BTC",
+                                "assetSymbol": "BTC",
+                                "name": "Bitcoin",
+                                "type": "2",
+                                "confirmations": "3",
+                                "blockTime": "600000000"
+                            }
+                        ],
+                        "status": "listed",
+                        "minDeposit": "0.0001",
+                        "minWithdrawal": "0.0001",
+                        "withdrawalFee": "0.00005"
+                    },
+                    {
+                        "symbol": "SOL",
+                        "name": "Solana",
+                        "imageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+                        "stablecoin": false,
+                        "featuredPair": "SOL_USDT",
+                        "chains": [
+                            {
+                                "symbol": "SOL",
+                                "assetSymbol": "SOL",
+                                "name": "Solana",
+                                "type": "4",
+                                "confirmations": "32",
+                                "blockTime": "400000"
+                            }
+                        ],
+                        "status": "listed",
+                        "minDeposit": "0.05",
+                        "minWithdrawal": "0.05",
+                        "withdrawalFee": "0.02"
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "symbol": "USDT",
+                            "name": "Tether",
+                            "imageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+                            "stablecoin": true,
+                            "featuredPair": "BTC_USDT",
+                            "chains": [
+                                {
+                                    "symbol": "ETH",
+                                    "assetSymbol": "ETH",
+                                    "name": "Ethereum",
+                                    "type": "1",
+                                    "confirmations": "6",
+                                    "blockTime": "12000000"
+                                }
+                            ],
+                            "status": "listed",
+                            "minDeposit": "5",
+                            "minWithdrawal": "5",
+                            "withdrawalFee": "2"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 2,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "symbol": "ETH",
+                                    "assetSymbol": "ETH",
+                                    "name": "Ethereum",
+                                    "type": "1",
+                                    "confirmations": "6",
+                                    "blockTime": "12000000"
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "title": "Ethereum",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 5,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 5,
+                                "max": null
+                            }
+                        }
+                    },
+                    "BTC": {
+                        "info": {
+                            "symbol": "BTC",
+                            "name": "Bitcoin",
+                            "imageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+                            "stablecoin": false,
+                            "featuredPair": "BTC_USDT",
+                            "chains": [
+                                {
+                                    "symbol": "BTC",
+                                    "assetSymbol": "BTC",
+                                    "name": "Bitcoin",
+                                    "type": "2",
+                                    "confirmations": "3",
+                                    "blockTime": "600000000"
+                                }
+                            ],
+                            "status": "listed",
+                            "minDeposit": "0.0001",
+                            "minWithdrawal": "0.0001",
+                            "withdrawalFee": "0.00005"
+                        },
+                        "id": "BTC",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Bitcoin",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.00005,
+                        "fees": {},
+                        "networks": {
+                            "BTC": {
+                                "info": {
+                                    "symbol": "BTC",
+                                    "assetSymbol": "BTC",
+                                    "name": "Bitcoin",
+                                    "type": "2",
+                                    "confirmations": "3",
+                                    "blockTime": "600000000"
+                                },
+                                "id": "BTC",
+                                "network": "BTC",
+                                "title": "Bitcoin",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.0001,
+                                "max": null
+                            }
+                        }
+                    },
+                    "SOL": {
+                        "info": {
+                            "symbol": "SOL",
+                            "name": "Solana",
+                            "imageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+                            "stablecoin": false,
+                            "featuredPair": "SOL_USDT",
+                            "chains": [
+                                {
+                                    "symbol": "SOL",
+                                    "assetSymbol": "SOL",
+                                    "name": "Solana",
+                                    "type": "4",
+                                    "confirmations": "32",
+                                    "blockTime": "400000"
+                                }
+                            ],
+                            "status": "listed",
+                            "minDeposit": "0.05",
+                            "minWithdrawal": "0.05",
+                            "withdrawalFee": "0.02"
+                        },
+                        "id": "SOL",
+                        "numericId": null,
+                        "code": "SOL",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Solana",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.02,
+                        "fees": {},
+                        "networks": {
+                            "SOL": {
+                                "info": {
+                                    "symbol": "SOL",
+                                    "assetSymbol": "SOL",
+                                    "name": "Solana",
+                                    "type": "4",
+                                    "confirmations": "32",
+                                    "blockTime": "400000"
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "title": "Solana",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.05,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.05,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

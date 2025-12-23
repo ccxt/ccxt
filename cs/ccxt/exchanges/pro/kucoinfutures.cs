@@ -71,17 +71,17 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         parameters ??= new Dictionary<string, object>();
         object connectId = ((bool) isTrue(privateChannel)) ? "private" : "public";
         object urls = this.safeValue(this.options, "urls", new Dictionary<string, object>() {});
-        object spawaned = this.safeValue(urls, connectId);
-        if (isTrue(!isEqual(spawaned, null)))
+        var future = this.safeValue(urls, connectId);
+        if (isTrue(!isEqual(future, null)))
         {
-            return await (spawaned as Exchange.Future);
+            return await (future as Exchange.Future);
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         ((IDictionary<string,object>)urls)[(string)connectId] = this.spawn(this.negotiateHelper, new object[] { privateChannel, parameters}); // we have to wait here otherwsie in c# will not work
         ((IDictionary<string,object>)this.options)["urls"] = urls;
-        var future = getValue(urls, connectId);
+        future = getValue(urls, connectId);
         return await (future as Exchange.Future);
     }
 
@@ -124,8 +124,10 @@ public partial class kucoinfutures : ccxt.kucoinfutures
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return requestId;
     }
 
@@ -200,7 +202,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -219,7 +221,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -273,7 +275,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -412,7 +414,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         {
             return null;
         }
-        object cache = (this.positions as ArrayCacheBySymbolById).hashmap;
+        object cache = (this.positions as ArrayCache).hashmap;
         object symbolCache = this.safeValue(cache, symbol, new Dictionary<string, object>() {});
         object values = new List<object>(((IDictionary<string,object>)symbolCache).Values);
         return this.safeValue(values, 0);
@@ -570,7 +572,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -586,7 +588,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -628,7 +630,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @see https://docs.kucoin.com/futures/#execution-data
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
@@ -642,7 +644,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @description get the list of most recent trades for a particular symbol
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
@@ -799,7 +801,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -815,7 +817,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -860,7 +862,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @see https://docs.kucoin.com/futures/#level-2-market-data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -874,7 +876,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
@@ -1044,7 +1046,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1154,7 +1156,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             object cachedOrders = this.orders;
-            object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object order = this.safeValue(orders, orderId);
             if (isTrue(!isEqual(order, null)))
             {
@@ -1182,7 +1184,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.kucoin.com/futures/#account-balance-events
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {

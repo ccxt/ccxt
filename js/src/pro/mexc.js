@@ -88,7 +88,7 @@ export default class mexc extends mexcRest {
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -114,7 +114,7 @@ export default class mexc extends mexcRest {
         //         "symbol": "BTC_USDT",
         //         "data": {
         //             "symbol": "BTC_USDT",
-        //             "lastPrice": 76376.2,
+        //             "lastPrice": 76376.1,
         //             "riseFallRate": -0.0006,
         //             "fairPrice": 76374.4,
         //             "indexPrice": 76385.8,
@@ -203,7 +203,7 @@ export default class mexc extends mexcRest {
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -416,7 +416,7 @@ export default class mexc extends mexcRest {
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -738,7 +738,7 @@ export default class mexc extends mexcRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -866,6 +866,7 @@ export default class mexc extends mexcRest {
         }
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
+        let shouldReturn = false;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
@@ -884,6 +885,11 @@ export default class mexc extends mexcRest {
         catch (e) {
             delete client.subscriptions[messageHash];
             client.reject(e, messageHash);
+            // return;
+            shouldReturn = true;
+        }
+        if (shouldReturn) {
+            return; // go requirement
         }
         client.resolve(storedOrderBook, messageHash);
     }
@@ -932,7 +938,7 @@ export default class mexc extends mexcRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -993,14 +999,16 @@ export default class mexc extends mexcRest {
         // swap
         //     {
         //         "symbol": "BTC_USDT",
-        //         "data": {
-        //             "p": 27307.3,
-        //             "v": 5,
-        //             "T": 2,
-        //             "O": 3,
-        //             "M": 1,
-        //             "t": 1680055941870
-        //         },
+        //         "data": [
+        //            {
+        //                "p": 114350.4,
+        //                "v": 4,
+        //                "T": 2,
+        //                "O": 3,
+        //                "M": 2,
+        //                "t": 1760368563597
+        //            }
+        //         ],
         //         "channel": "push.deal",
         //         "ts": 1680055941870
         //     }
@@ -1015,8 +1023,11 @@ export default class mexc extends mexcRest {
             stored = new ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const d = this.safeDictN(message, ['d', 'data', 'publicAggreDeals']);
-        const trades = this.safeList2(d, 'deals', 'dealsList', [d]);
+        const d = this.safeDictN(message, ['d', 'publicAggreDeals']);
+        let trades = this.safeList2(d, 'deals', 'dealsList', [d]);
+        if (d === undefined) {
+            trades = this.safeList(message, 'data', []);
+        }
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade = undefined;
             if (market['spot']) {
@@ -1039,7 +1050,7 @@ export default class mexc extends mexcRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1217,7 +1228,7 @@ export default class mexc extends mexcRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1486,7 +1497,7 @@ export default class mexc extends mexcRest {
      * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();
@@ -1563,7 +1574,7 @@ export default class mexc extends mexcRest {
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -1595,7 +1606,7 @@ export default class mexc extends mexcRest {
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1656,7 +1667,7 @@ export default class mexc extends mexcRest {
      * @description unWatches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1734,7 +1745,7 @@ export default class mexc extends mexcRest {
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOrderBook(symbol, params = {}) {
         await this.loadMarkets();
@@ -1769,7 +1780,7 @@ export default class mexc extends mexcRest {
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
         await this.loadMarkets();

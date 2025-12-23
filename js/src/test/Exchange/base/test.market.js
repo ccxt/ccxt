@@ -195,10 +195,10 @@ function testMarket(exchange, skippedProperties, method, market) {
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, 'expiry', '0');
         if (option) {
             // strike should be defined
-            assert(market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
+            assert((('strike' in skippedProperties) || market['strike'] !== undefined), '"strike" must be defined when "option" is true' + logText);
             testSharedMethods.assertGreater(exchange, skippedProperties, method, market, 'strike', '0');
             // optionType should be defined
-            assert(market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
+            assert((('optionType' in skippedProperties) || market['optionType'] !== undefined), '"optionType" must be defined when "option" is true' + logText);
             testSharedMethods.assertInArray(exchange, skippedProperties, method, market, 'optionType', ['put', 'call']);
         }
         else {

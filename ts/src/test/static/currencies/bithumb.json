@@ -20,5 +20,16 @@
             "deposit": {},
             "withdraw": {}
         }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "precision": 4,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}  
+        }
     }
 }

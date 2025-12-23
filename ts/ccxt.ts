@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.5';
+const version = '4.5.29';
 
 (Exchange as any).ccxtVersion = version
 
@@ -48,6 +48,7 @@ const version = '4.5.5';
 
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
+import arkham from  './src/arkham.js'
 import ascendex from  './src/ascendex.js'
 import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
@@ -79,6 +80,7 @@ import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
+import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
@@ -95,11 +97,13 @@ import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
 import cryptomus from  './src/cryptomus.js'
+import deepcoin from  './src/deepcoin.js'
 import defx from  './src/defx.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
 import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
+import dydx from  './src/dydx.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
@@ -129,7 +133,6 @@ import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
-import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -142,6 +145,7 @@ import poloniex from  './src/poloniex.js'
 import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
+import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
 import whitebit from  './src/whitebit.js'
@@ -150,12 +154,14 @@ import woofipro from  './src/woofipro.js'
 import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
+import zebpay from  './src/zebpay.js'
 import zonda from  './src/zonda.js'
 
 
 // pro exchanges
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
+import arkhamPro from  './src/pro/arkham.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import backpackPro from  './src/pro/backpack.js'
 import bequantPro from  './src/pro/bequant.js'
@@ -176,6 +182,7 @@ import bittradePro from  './src/pro/bittrade.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
 import blofinPro from  './src/pro/blofin.js'
+import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
@@ -187,9 +194,11 @@ import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
+import deepcoinPro from  './src/pro/deepcoin.js'
 import defxPro from  './src/pro/defx.js'
 import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
+import dydxPro from  './src/pro/dydx.js'
 import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
 import gateioPro from  './src/pro/gateio.js'
@@ -211,7 +220,6 @@ import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
 import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
-import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
 import okxusPro from  './src/pro/okxus.js'
 import onetradingPro from  './src/pro/onetrading.js'
@@ -221,6 +229,7 @@ import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import probitPro from  './src/pro/probit.js'
+import toobitPro from  './src/pro/toobit.js'
 import upbitPro from  './src/pro/upbit.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
@@ -230,6 +239,7 @@ import xtPro from  './src/pro/xt.js'
 const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
+    'arkham':                 arkham,
     'ascendex':               ascendex,
     'backpack':               backpack,
     'bequant':                bequant,
@@ -261,6 +271,7 @@ const exchanges = {
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
     'btcturk':                btcturk,
+    'bullish':                bullish,
     'bybit':                  bybit,
     'cex':                    cex,
     'coinbase':               coinbase,
@@ -277,11 +288,13 @@ const exchanges = {
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
     'cryptomus':              cryptomus,
+    'deepcoin':               deepcoin,
     'defx':                   defx,
     'delta':                  delta,
     'deribit':                deribit,
     'derive':                 derive,
     'digifinex':              digifinex,
+    'dydx':                   dydx,
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
@@ -311,7 +324,6 @@ const exchanges = {
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
-    'okcoin':                 okcoin,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -324,6 +336,7 @@ const exchanges = {
     'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
+    'toobit':                 toobit,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
     'whitebit':               whitebit,
@@ -332,12 +345,14 @@ const exchanges = {
     'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
+    'zebpay':                 zebpay,
     'zonda':                  zonda,
 }
 
 const pro = {
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
+    'arkham':                 arkhamPro,
     'ascendex':               ascendexPro,
     'backpack':               backpackPro,
     'bequant':                bequantPro,
@@ -358,6 +373,7 @@ const pro = {
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
     'blofin':                 blofinPro,
+    'bullish':                bullishPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
@@ -369,9 +385,11 @@ const pro = {
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
+    'deepcoin':               deepcoinPro,
     'defx':                   defxPro,
     'deribit':                deribitPro,
     'derive':                 derivePro,
+    'dydx':                   dydxPro,
     'exmo':                   exmoPro,
     'gate':                   gatePro,
     'gateio':                 gateioPro,
@@ -393,7 +411,6 @@ const pro = {
     'modetrade':              modetradePro,
     'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
-    'okcoin':                 okcoinPro,
     'okx':                    okxPro,
     'okxus':                  okxusPro,
     'onetrading':             onetradingPro,
@@ -403,6 +420,7 @@ const pro = {
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'probit':                 probitPro,
+    'toobit':                 toobitPro,
     'upbit':                  upbitPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
@@ -554,6 +572,7 @@ export {
     LeverageTiers,
     alpaca,
     apex,
+    arkham,
     ascendex,
     backpack,
     bequant,
@@ -585,6 +604,7 @@ export {
     btcbox,
     btcmarkets,
     btcturk,
+    bullish,
     bybit,
     cex,
     coinbase,
@@ -601,11 +621,13 @@ export {
     coinspot,
     cryptocom,
     cryptomus,
+    deepcoin,
     defx,
     delta,
     deribit,
     derive,
     digifinex,
+    dydx,
     exmo,
     fmfwio,
     foxbit,
@@ -635,7 +657,6 @@ export {
     ndax,
     novadax,
     oceanex,
-    okcoin,
     okx,
     okxus,
     onetrading,
@@ -648,6 +669,7 @@ export {
     probit,
     timex,
     tokocrypto,
+    toobit,
     upbit,
     wavesexchange,
     whitebit,
@@ -656,6 +678,7 @@ export {
     xt,
     yobit,
     zaif,
+    zebpay,
     zonda,    
 }
 

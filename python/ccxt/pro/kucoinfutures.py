@@ -86,9 +86,9 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
-        spawaned = self.safe_value(urls, connectId)
-        if spawaned is not None:
-            return await spawaned
+        future = self.safe_value(urls, connectId)
+        if future is not None:
+            return await future
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
@@ -143,8 +143,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return None
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return requestId
 
     async def subscribe(self, url, messageHash, subscriptionHash, subscription, params={}):
@@ -201,7 +203,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -215,7 +217,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         ticker = await self.watch_multi_request('watchTickers', '/contractMarket/ticker:', symbols, params)
@@ -262,7 +264,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         ticker = await self.watch_multi_request('watchBidsAsks', '/contractMarket/tickerV2:', symbols, params)
         if self.newUpdates:
@@ -516,7 +518,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -527,7 +529,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
@@ -560,7 +562,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.un_watch_trades_for_symbols([symbol], params)
 
@@ -569,7 +571,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         get the list of most recent trades for a particular symbol
         :param str[] symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -626,7 +628,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.resolve(trades, messageHash)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
@@ -714,7 +716,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -727,7 +729,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
@@ -761,7 +763,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.un_watch_order_book_for_symbols([symbol], params)
 
@@ -770,7 +772,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -903,7 +905,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         url = await self.negotiate(True)
@@ -1018,7 +1020,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         https://docs.kucoin.com/futures/#account-balance-events
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         url = await self.negotiate(True)

@@ -139,7 +139,7 @@ class bitget(ccxt.async_support.bitget):
         :param str symbol: unified symbol of the market to watch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -183,7 +183,7 @@ class bitget(ccxt.async_support.bitget):
         :param str[] symbols: unified symbol of the market to watch the tickers for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -417,7 +417,7 @@ class bitget(ccxt.async_support.bitget):
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -476,7 +476,7 @@ class bitget(ccxt.async_support.bitget):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -520,7 +520,7 @@ class bitget(ccxt.async_support.bitget):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unsubscribe from the ohlcv channel
 
@@ -532,7 +532,7 @@ class bitget(ccxt.async_support.bitget):
         :param str [timeframe]: the period for the ratio, default is 1 minute
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         timeframes = self.safe_dict(self.options, 'timeframes')
@@ -702,7 +702,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -718,7 +718,7 @@ class bitget(ccxt.async_support.bitget):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         channel = 'books'
@@ -762,7 +762,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -931,7 +931,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -948,7 +948,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
@@ -1443,6 +1443,7 @@ class bitget(ccxt.async_support.bitget):
         watches information on multiple orders made by the user
 
         https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+        https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
         https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
         https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
         https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -1458,7 +1459,7 @@ class bitget(ccxt.async_support.bitget):
         :param str [params.type]: 'spot', 'swap'
         :param str [params.subType]: 'linear', 'inverse'
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1929,7 +1930,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         market = None
@@ -2105,7 +2106,7 @@ class bitget(ccxt.async_support.bitget):
         :param str [params.instType]: one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin balances
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         uta = None
         uta, params = self.handle_option_and_params(params, 'watchBalance', 'uta', False)
@@ -2342,7 +2343,7 @@ class bitget(ccxt.async_support.bitget):
         url = self.safe_string(params, 'url')
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = str(self.seconds())
@@ -2584,7 +2585,8 @@ class bitget(ccxt.async_support.bitget):
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
         error = UnsubscribeError(self.id + ' orderbook ' + symbol)
-        client.reject(error, subMessageHash)
+        if subMessageHash in client.futures:
+            client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
     def handle_trades_un_subscription(self, client: Client, message):
@@ -2606,7 +2608,8 @@ class bitget(ccxt.async_support.bitget):
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
         error = UnsubscribeError(self.id + ' trades ' + symbol)
-        client.reject(error, subMessageHash)
+        if subMessageHash in client.futures:
+            client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
     def handle_ticker_un_subscription(self, client: Client, message):
@@ -2628,7 +2631,8 @@ class bitget(ccxt.async_support.bitget):
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
         error = UnsubscribeError(self.id + ' ticker ' + symbol)
-        client.reject(error, subMessageHash)
+        if subMessageHash in client.futures:
+            client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
     def handle_ohlcv_un_subscription(self, client: Client, message):

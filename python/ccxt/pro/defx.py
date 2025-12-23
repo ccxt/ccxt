@@ -90,7 +90,7 @@ class defx(ccxt.async_support.defx):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -106,7 +106,7 @@ class defx(ccxt.async_support.defx):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -226,7 +226,7 @@ class defx(ccxt.async_support.defx):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -244,7 +244,7 @@ class defx(ccxt.async_support.defx):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         return await self.un_watch_tickers([symbol], params)
 
@@ -256,7 +256,7 @@ class defx(ccxt.async_support.defx):
 
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -278,7 +278,7 @@ class defx(ccxt.async_support.defx):
 
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -339,7 +339,7 @@ class defx(ccxt.async_support.defx):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -389,7 +389,7 @@ class defx(ccxt.async_support.defx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -401,7 +401,7 @@ class defx(ccxt.async_support.defx):
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.un_watch_trades_for_symbols([symbol], params)
 
@@ -415,7 +415,7 @@ class defx(ccxt.async_support.defx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -444,7 +444,7 @@ class defx(ccxt.async_support.defx):
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -496,7 +496,7 @@ class defx(ccxt.async_support.defx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -508,7 +508,7 @@ class defx(ccxt.async_support.defx):
 
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.un_watch_order_book_for_symbols([symbol], params)
 
@@ -521,7 +521,7 @@ class defx(ccxt.async_support.defx):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbolsLength = len(symbols)
@@ -546,7 +546,7 @@ class defx(ccxt.async_support.defx):
 
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbolsLength = len(symbols)
@@ -641,7 +641,7 @@ class defx(ccxt.async_support.defx):
         https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -686,7 +686,7 @@ class defx(ccxt.async_support.defx):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         await self.authenticate()

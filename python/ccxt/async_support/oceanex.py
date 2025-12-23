@@ -54,6 +54,7 @@ class oceanex(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
@@ -330,7 +331,7 @@ class oceanex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -366,7 +367,7 @@ class oceanex(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -451,7 +452,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -493,7 +494,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
         await self.load_markets()
         if symbols is None:
@@ -548,7 +549,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -644,7 +645,7 @@ class oceanex(Exchange, ImplicitAPI):
         https://api.oceanex.pro/doc/v1/#trading-fees-post
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         response = await self.publicGetFeesTrading(params)
         data = self.safe_value(response, 'data', [])
@@ -689,7 +690,7 @@ class oceanex(Exchange, ImplicitAPI):
         https://api.oceanex.pro/doc/v1/#account-info-post
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetMembersMe(params)
@@ -707,7 +708,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -732,7 +733,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -762,7 +763,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'states': ['wait'],
@@ -779,7 +780,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'states': ['done', 'cancel'],
@@ -796,7 +797,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -839,7 +840,7 @@ class oceanex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -936,14 +937,14 @@ class oceanex(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by oceanex cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         response = await self.privatePostOrderDelete(self.extend({'id': id}, params))
         data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -952,7 +953,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str symbol: not used by oceanex cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         response = await self.privatePostOrderDeleteMulti(self.extend({'ids': ids}, params))
@@ -967,7 +968,7 @@ class oceanex(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         response = await self.privatePostOrdersClear(params)
@@ -982,7 +983,7 @@ class oceanex(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary `address structures <https://docs.ccxt.com/#/?id=address-structure>`, indexed by the network
+        :returns dict: a dictionary `address structures <https://docs.ccxt.com/?id=address-structure>`, indexed by the network
         """
         await self.load_markets()
         currency = self.currency(code)

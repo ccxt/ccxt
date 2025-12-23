@@ -259,6 +259,7 @@ public partial class coinbase : Exchange
                             { "brokerage/intx/positions/{portfolio_uuid}/{symbol}", 1 },
                             { "brokerage/payment_methods", 1 },
                             { "brokerage/payment_methods/{payment_method_id}", 1 },
+                            { "brokerage/key_permissions", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "brokerage/orders", 1 },
@@ -499,7 +500,7 @@ public partial class coinbase : Exchange
      * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
@@ -652,7 +653,7 @@ public partial class coinbase : Exchange
      * @description fetch all the portfolios
      * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async virtual Task<object> fetchPortfolios(object parameters = null)
     {
@@ -752,7 +753,7 @@ public partial class coinbase : Exchange
      * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
@@ -838,7 +839,7 @@ public partial class coinbase : Exchange
      * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
      * @param {int} [limit] max number of sells to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchMySells(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -861,7 +862,7 @@ public partial class coinbase : Exchange
      * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
      * @param {int} [limit] max number of buys to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchMyBuys(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -896,7 +897,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.currencyType] "fiat" or "crypto"
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -923,7 +924,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.currencyType] "fiat" or "crypto"
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -949,7 +950,7 @@ public partial class coinbase : Exchange
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2077,7 +2078,7 @@ public partial class coinbase : Exchange
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] use private endpoint for fetching tickers
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -2217,7 +2218,7 @@ public partial class coinbase : Exchange
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -2519,7 +2520,7 @@ public partial class coinbase : Exchange
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
      * @param {string} [params.type] "spot" (default) or "swap" or "future"
      * @param {int} [params.limit] default 250, maximum number of accounts to return
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -2631,7 +2632,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3064,7 +3065,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if (isTrue(isEqual(accountId, null)))
             {
-                throw new ExchangeError ((string)add(add(this.id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code)) ;
+                throw new ExchangeError ((string)add(add(add(this.id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code), ". You might try to generate the deposit address in the website for that coin first.")) ;
             }
         }
         object request = new Dictionary<string, object>() {
@@ -3085,7 +3086,7 @@ public partial class coinbase : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -3126,7 +3127,7 @@ public partial class coinbase : Exchange
      * @param {string} [params.retail_portfolio_id] portfolio uid
      * @param {boolean} [params.is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
      * @param {string} [params.tradable_balance] amount of tradable balance
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -3570,7 +3571,7 @@ public partial class coinbase : Exchange
      * @param {string} id order id
      * @param {string} symbol not used by coinbase cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -3588,9 +3589,9 @@ public partial class coinbase : Exchange
      * @param {string[]} ids order ids
      * @param {string} symbol not used by coinbase cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3639,7 +3640,7 @@ public partial class coinbase : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -3687,7 +3688,7 @@ public partial class coinbase : Exchange
      * @param {string} id the order id
      * @param {string} symbol unified market symbol that the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -3756,7 +3757,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3945,7 +3946,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3973,7 +3974,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3999,7 +4000,7 @@ public partial class coinbase : Exchange
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of canceled order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4121,7 +4122,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] the maximum number of trade structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the trades
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -4193,7 +4194,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4275,7 +4276,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -4334,7 +4335,7 @@ public partial class coinbase : Exchange
      * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -4383,7 +4384,7 @@ public partial class coinbase : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -4483,7 +4484,7 @@ public partial class coinbase : Exchange
      * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
@@ -4631,7 +4632,7 @@ public partial class coinbase : Exchange
      * @param {string} id the payment method id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] the id of the account to deposit into
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async virtual Task<object> deposit(object code, object amount, object id, object parameters = null)
     {
@@ -4709,7 +4710,7 @@ public partial class coinbase : Exchange
      * @param {string} [code] unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] the id of the account that the funds were deposited into
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
@@ -4781,7 +4782,7 @@ public partial class coinbase : Exchange
      * @description fetch the deposit id for a fiat currency associated with this account
      * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
     public async virtual Task<object> fetchDepositMethodIds(object parameters = null)
     {
@@ -4818,7 +4819,7 @@ public partial class coinbase : Exchange
      * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
      * @param {string} id the deposit payment method id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
     public async virtual Task<object> fetchDepositMethodId(object id, object parameters = null)
     {
@@ -4884,7 +4885,7 @@ public partial class coinbase : Exchange
      * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
      * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
      * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -4910,7 +4911,7 @@ public partial class coinbase : Exchange
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -4935,7 +4936,7 @@ public partial class coinbase : Exchange
      * @param {string} code the unified currency code that was converted from
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {strng} params.toCode the unified currency code that was converted into
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
@@ -4994,7 +4995,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the coinbase api endpoint
      * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
      * @param {float} [params.size] the size of the position to close, optional
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
@@ -5025,7 +5026,7 @@ public partial class coinbase : Exchange
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -5074,7 +5075,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
      * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -5259,7 +5260,7 @@ public partial class coinbase : Exchange
      * @description fetch the trading fees for multiple markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap'
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -5327,7 +5328,7 @@ public partial class coinbase : Exchange
      * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
      * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
      * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
-     * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+     * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
      */
     public async virtual Task<object> fetchPortfolioDetails(object portfolioUuid, object parameters = null)
     {

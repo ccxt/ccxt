@@ -103,14 +103,25 @@ class VerifyingKey:
         verifying_keys = [klass.from_public_point(pk.point, curve, hashfunc) for pk in pks]
         return verifying_keys
 
-    def to_string(self):
-        # VerifyingKey.from_string(vk.to_string()) == vk as long as the
-        # curves are the same: the curve itself is not included in the
-        # serialized form
+    def _raw_encode(self):
+        """Convert the point to the :term:`raw encoding`."""
         order = self.pubkey.order
         x_str = number_to_string(self.pubkey.point.x(), order)
         y_str = number_to_string(self.pubkey.point.y(), order)
         return x_str + y_str
+
+    def _compressed_encode(self):
+        """Encode the point into the compressed form."""
+        order = self.pubkey.order
+        x_str = number_to_string(self.pubkey.point.x(), order)
+        if self.pubkey.point.y() & 1:
+            return b"\x03" + x_str
+        return b"\x02" + x_str
+
+    def to_string(self, encoding = 'uncompressed'):
+        if encoding == "compressed":
+            return self._compressed_encode()
+        return self._raw_encode()
 
     def to_pem(self):
         return der.topem(self.to_der(), "PUBLIC KEY")

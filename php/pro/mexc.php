@@ -95,7 +95,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->miniTicker] set to true for using the miniTicker endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -121,7 +121,7 @@ class mexc extends \ccxt\async\mexc {
         //         "symbol" => "BTC_USDT",
         //         "data" => array(
         //             "symbol" => "BTC_USDT",
-        //             "lastPrice" => 76376.2,
+        //             "lastPrice" => 76376.1,
         //             "riseFallRate" => -0.0006,
         //             "fairPrice" => 76374.4,
         //             "indexPrice" => 76385.8,
@@ -212,7 +212,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->miniTicker] set to true for using the $miniTicker endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null);
@@ -428,7 +428,7 @@ class mexc extends \ccxt\async\mexc {
              * watches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true, false, true);
@@ -568,7 +568,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -770,7 +770,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->frequency] the $frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -900,6 +900,7 @@ class mexc extends \ccxt\async\mexc {
         }
         $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
+        $shouldReturn = false;
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
@@ -917,6 +918,11 @@ class mexc extends \ccxt\async\mexc {
         } catch (Exception $e) {
             unset($client->subscriptions[$messageHash]);
             $client->reject ($e, $messageHash);
+            // return;
+            $shouldReturn = true;
+        }
+        if ($shouldReturn) {
+            return; // go requirement
         }
         $client->resolve ($storedOrderBook, $messageHash);
     }
@@ -930,7 +936,7 @@ class mexc extends \ccxt\async\mexc {
         //
         for ($i = 0; $i < count($bidasks); $i++) {
             $bidask = $bidasks[$i];
-            if (gettype($bidask) === 'array' && array_keys($bidask) === array_keys(array_keys($bidask))) {
+            if ((gettype($bidask) === 'array' && array_keys($bidask) === array_keys(array_keys($bidask)))) {
                 $bookside->storeArray ($bidask);
             } else {
                 $price = $this->safe_float_2($bidask, 'p', 'price');
@@ -969,7 +975,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1031,12 +1037,14 @@ class mexc extends \ccxt\async\mexc {
         //     {
         //         "symbol" => "BTC_USDT",
         //         "data" => array(
-        //             "p" => 27307.3,
-        //             "v" => 5,
-        //             "T" => 2,
-        //             "O" => 3,
-        //             "M" => 1,
-        //             "t" => 1680055941870
+        //            {
+        //                "p" => 114350.4,
+        //                "v" => 4,
+        //                "T" => 2,
+        //                "O" => 3,
+        //                "M" => 2,
+        //                "t" => 1760368563597
+        //            }
         //         ),
         //         "channel" => "push.deal",
         //         "ts" => 1680055941870
@@ -1052,8 +1060,11 @@ class mexc extends \ccxt\async\mexc {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        $d = $this->safe_dict_n($message, array( 'd', 'data', 'publicAggreDeals' ));
+        $d = $this->safe_dict_n($message, array( 'd', 'publicAggreDeals' ));
         $trades = $this->safe_list_2($d, 'deals', 'dealsList', array( $d ));
+        if ($d === null) {
+            $trades = $this->safe_list($message, 'data', array());
+        }
         for ($j = 0; $j < count($trades); $j++) {
             $parsedTrade = null;
             if ($market['spot']) {
@@ -1078,7 +1089,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
@@ -1259,7 +1270,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|null} $params->type the $type of $orders to retrieve, can be 'spot' or 'margin'
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';
@@ -1534,7 +1545,7 @@ class mexc extends \ccxt\async\mexc {
              *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -1612,7 +1623,7 @@ class mexc extends \ccxt\async\mexc {
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1644,7 +1655,7 @@ class mexc extends \ccxt\async\mexc {
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null);
@@ -1705,7 +1716,7 @@ class mexc extends \ccxt\async\mexc {
              * unWatches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true, false, true);
@@ -1740,7 +1751,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1784,7 +1795,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {string} $symbol unified array of symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->frequency] the $frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1819,7 +1830,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

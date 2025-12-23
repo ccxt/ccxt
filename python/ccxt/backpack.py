@@ -71,6 +71,7 @@ class backpack(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
                 'fetchAccounts': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchCanceledAndClosedOrders': False,
                 'fetchCanceledOrders': False,
@@ -89,6 +90,7 @@ class backpack(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': False,
                 'fetchLeverage': False,
@@ -103,6 +105,8 @@ class backpack(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': False,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -123,6 +127,7 @@ class backpack(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'sandbox': False,
@@ -158,7 +163,7 @@ class backpack(Exchange, ImplicitAPI):
                 },
                 'www': 'https://backpack.exchange/',
                 'doc': 'https://docs.backpack.exchange/',
-                'referral': 'https://backpack.exchange/join/ib8qxwyl',
+                'referral': 'https://backpack.exchange/join/ccxt',
             },
             'api': {
                 'public': {
@@ -255,7 +260,12 @@ class backpack(Exchange, ImplicitAPI):
                         'leverage': False,
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': True,
-                        'selfTradePrevention': False,
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': False,
+                        },
                         'iceberg': False,
                     },
                     'createOrders': {
@@ -803,7 +813,7 @@ class backpack(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -819,7 +829,7 @@ class backpack(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -994,7 +1004,7 @@ class backpack(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1050,7 +1060,7 @@ class backpack(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1094,7 +1104,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of funding rate structures
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -1142,7 +1152,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.offset]: the number of trades to skip, default is 0
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1171,7 +1181,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param str [params.fillType]: 'User'(default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1267,7 +1277,7 @@ class backpack(Exchange, ImplicitAPI):
         https://docs.backpack.exchange/#tag/System/operation/get_status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         response = self.publicGetApiV1Status(params)
         #
@@ -1307,7 +1317,7 @@ class backpack(Exchange, ImplicitAPI):
         https://docs.backpack.exchange/#tag/Capital/operation/get_balances
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetApiV1Capital(params)
@@ -1349,7 +1359,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1379,7 +1389,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for(default time now)
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1408,14 +1418,14 @@ class backpack(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.network]: the network to withdraw on(mandatory)
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str params['network']: the network to withdraw on(mandatory)
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
         request: dict = {
             'symbol': currency['id'],
-            'amount': self.number_to_string(amount),
+            'quantity': self.number_to_string(amount),
             'address': address,
         }
         if tag is not None:
@@ -1566,13 +1576,13 @@ class backpack(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.networkCode]: the network to fetch the deposit address(mandatory)
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
-            raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/#/?id=network-codes')
+            raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes')
         currency = self.currency(code)
         request: dict = {
             'blockchain': self.network_code_to_id(networkCode),
@@ -1614,7 +1624,7 @@ class backpack(Exchange, ImplicitAPI):
         :param boolean [params.postOnly]: True to place a post only order
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'PO'
         :param bool [params.reduceOnly]: *contract only* Indicates if self order is to reduce the size of a position
-        :param str [params.selfTradePrevention]: 'RejectTaker', 'RejectMaker' or 'RejectBoth'
+        :param str [params.selfTradePrevention]: one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
         :param bool [params.autoLend]: *spot margin only* if True then the order can lend
         :param bool [params.autoLendRedeem]: *spot margin only* if True then the order can redeem a lend if required
         :param bool [params.autoBorrow]: *spot margin only* if True then the order can borrow
@@ -1626,7 +1636,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.stopLoss.price]: stop loss order price(if not provided the order will be a market order)
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1642,7 +1652,7 @@ class backpack(Exchange, ImplicitAPI):
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         ordersRequests = []
@@ -1711,6 +1721,15 @@ class backpack(Exchange, ImplicitAPI):
             if stopLossPrice is not None:
                 request['stopLossLimitPrice'] = self.price_to_precision(symbol, stopLossPrice)
             params = self.omit(params, 'stopLoss')
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            if selfTradePrevention == 'EXPIRE_MAKER':
+                request['selfTradePrevention'] = 'RejectMaker'
+            elif selfTradePrevention == 'EXPIRE_TAKER':
+                request['selfTradePrevention'] = 'RejectTaker'
+            elif selfTradePrevention == 'EXPIRE_BOTH':
+                request['selfTradePrevention'] = 'RejectBoth'
         return self.extend(request, params)
 
     def encode_order_side(self, side):
@@ -1730,7 +1749,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1750,7 +1769,7 @@ class backpack(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by hollaex fetchOpenOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         if symbol is None:
@@ -1772,7 +1791,7 @@ class backpack(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         if symbol is None:
@@ -1793,7 +1812,7 @@ class backpack(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         if symbol is None:
@@ -1995,7 +2014,7 @@ class backpack(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         response = self.privateGetApiV1Position(params)
@@ -2099,7 +2118,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade to fetch(default now)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         request: dict = {}

@@ -232,6 +232,9 @@ abstract class coinbaseadvanced extends \ccxt\async\coinbase {
     public function v3_private_get_brokerage_payment_methods_payment_method_id($params = array()) {
         return $this->request('brokerage/payment_methods/{payment_method_id}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v3_private_get_brokerage_key_permissions($params = array()) {
+        return $this->request('brokerage/key_permissions', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v3_private_post_brokerage_orders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -501,6 +504,9 @@ abstract class coinbaseadvanced extends \ccxt\async\coinbase {
     }
     public function v3PrivateGetBrokeragePaymentMethodsPaymentMethodId($params = array()) {
         return $this->request('brokerage/payment_methods/{payment_method_id}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v3PrivateGetBrokerageKeyPermissions($params = array()) {
+        return $this->request('brokerage/key_permissions', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v3PrivatePostBrokerageOrders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 1));

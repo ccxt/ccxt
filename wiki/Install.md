@@ -40,72 +40,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.5/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.5/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.29/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.29/dist/ccxt.browser.min.js
 * ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.5/dist/ccxt.browser.min.js"></script>
-```
-
-We also provide webpack minified and tree-shaken versions of the library starting from version 3.0.35 - Visit https://cdn.ccxt.com to browse the prebundled versions we distribute.
-
-| name           | size   |
-|----------------|--------|
-| binance.min.js | ~300kb |
-| bitget.min.js  | ~200kb |
-| bitmart.min.js | ~200kb |
-| bybit.min.js   | ~300kb |
-| ccxt.min.js    | ~3mb   |
-| huobi.min.js   | ~300kb |
-| kucoin.min.js  | ~200kb |
-| mexc.min.js    | ~200kb |
-| okx.min.js     | ~250kb |
-
-Note: the file sizes are subject to change.
-
-```html
-<script type="text/javascript" src="https://cdn.ccxt.com/3.0.35/ccxt.min.js"></script>
-```
-
-Here is an [example](https://cdn.ccxt.com/example.html) using a custom bybit bundle from our cdn in the browser
-
-```html
-<html>
-<head>
-<script type="text/javascript" src="https://cdn.ccxt.com/latest/bybit.min.js"></script>
-<script>
-async function update () {
-    const bid = document.querySelector ('#bid')
-    const ask = document.querySelector ('#ask')
-    const updates = document.querySelector ('#updates')
-
-    const bybit = new ccxt.pro.bybit ()
-    window.bybit = bybit
-    const ticker = await bybit.fetchTicker ('BTC/USDT:USDT')
-    bid.innerText = ticker.bid.toFixed (2)
-    ask.innerText = ticker.ask.toFixed (2)
-    while (true) {
-        const trades = await bybit.watchTrades ('BTC/USDT:USDT')
-        // const trades = await bybit.fetchTrades ('BTC/USDT:USDT', 1)
-        const trade = trades[0]
-
-        const notify = document.createElement ('li')
-        notify.innerHTML = `<strong>${trade.datetime.slice (11, 19)}</strong> &nbsp; ${trade.amount.toFixed (3)} btc was bought at ${trade.price.toFixed (1)}`
-        notify.style = 'padding-top: 8px;'
-        updates.appendChild (notify)
-    }
-}
-</script>
-</head>
-
-<body onload="update()">
-<h3>The current bitcoin bid on bybit is <span id="bid"></span><br><br>and the best ask is <span id="ask"></span></h3>
-<ul id="updates" style="color: red;"></ul>
-</body>
-</html>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.29/dist/ccxt.browser.min.js"></script>
 ```
 
 The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:

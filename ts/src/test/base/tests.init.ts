@@ -12,7 +12,7 @@ import testNetworkMethods from './test.networkMethods.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
-// import testJson from './test.json.js';
+import testJson from './test.json.js';
 import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
@@ -23,8 +23,9 @@ import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
+import testSleep from './test.sleep.js';
 
-function baseTestsInit () {
+async function baseTestsInit () {
     testLanguageSpecific ();
     testAfterConstructor ();
     testExtend ();
@@ -36,7 +37,7 @@ function baseTestsInit () {
     testPrecise ();
     testSafeMethods ();
     testSafeTicker ();
-    // testJson ();
+    testJson ();
     testSortBy ();
     testSum ();
     testOmit ();
@@ -47,6 +48,7 @@ function baseTestsInit () {
     testRemoveRepeatedElementsFromArray ();
     testParsePrecision ();
     testArraysConcat ();
+    await testSleep ();
 }
 
 export default baseTestsInit;

@@ -94,7 +94,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         url = self.urls['api']['ws']['private']
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = self.milliseconds()
@@ -208,7 +208,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str [params.method]: 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
         :param int [params.depth]: 5 , 10, or 20(default)
         :param int [params.speed]: 100(default), 500, or 1000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         options = self.safe_value(self.options, 'watchOrderBook')
         defaultMethod = self.safe_string(options, 'method', 'orderbook/full')
@@ -307,7 +307,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'ticker/{speed}'(default), or 'ticker/price/{speed}'
         :param str [params.speed]: '1s'(default), or '3s'
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         ticker = await self.watch_tickers([symbol], params)
         return self.safe_value(ticker, symbol)
@@ -468,7 +468,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch(default)'
         :param str [params.speed]: '100ms'(default) or '500ms' or '1000ms'
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -545,7 +545,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -657,7 +657,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'fee': None,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1007,7 +1007,7 @@ class hitbtc(ccxt.async_support.hitbtc):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.mode]: 'updates' or 'batches'(default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
-        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         type = None
@@ -1074,7 +1074,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
         :param bool [params.margin]: True for canceling a margin order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1094,7 +1094,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_cancel_order', request)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
         """
 
         https://api.hitbtc.com/#cancel-spot-orders
@@ -1105,7 +1105,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
         :param bool [params.margin]: True for canceling margin orders
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1136,7 +1136,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
         :param bool [params.margin]: True for fetching open margin orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None

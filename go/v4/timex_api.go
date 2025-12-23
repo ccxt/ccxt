@@ -7,234 +7,234 @@
 
 package ccxt
 
-func (this *timex) AddressbookGetMe(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("addressbookGetMe", args...)
+func (this *TimexCore) AddressbookGetMe (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("addressbookGetMe", args...)
 }
 
-func (this *timex) AddressbookPost(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("addressbookPost", args...)
+func (this *TimexCore) AddressbookPost (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("addressbookPost", args...)
 }
 
-func (this *timex) AddressbookPostIdId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("addressbookPostIdId", args...)
+func (this *TimexCore) AddressbookPostIdId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("addressbookPostIdId", args...)
 }
 
-func (this *timex) AddressbookPostIdIdRemove(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("addressbookPostIdIdRemove", args...)
+func (this *TimexCore) AddressbookPostIdIdRemove (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("addressbookPostIdIdRemove", args...)
 }
 
-func (this *timex) CustodyGetCredentials(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("custodyGetCredentials", args...)
+func (this *TimexCore) CustodyGetCredentials (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("custodyGetCredentials", args...)
 }
 
-func (this *timex) CustodyGetCredentialsHHash(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("custodyGetCredentialsHHash", args...)
+func (this *TimexCore) CustodyGetCredentialsHHash (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("custodyGetCredentialsHHash", args...)
 }
 
-func (this *timex) CustodyGetCredentialsKKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("custodyGetCredentialsKKey", args...)
+func (this *TimexCore) CustodyGetCredentialsKKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("custodyGetCredentialsKKey", args...)
 }
 
-func (this *timex) CustodyGetCredentialsMe(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("custodyGetCredentialsMe", args...)
+func (this *TimexCore) CustodyGetCredentialsMe (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("custodyGetCredentialsMe", args...)
 }
 
-func (this *timex) CustodyGetCredentialsMeAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("custodyGetCredentialsMeAddress", args...)
+func (this *TimexCore) CustodyGetCredentialsMeAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("custodyGetCredentialsMeAddress", args...)
 }
 
-func (this *timex) CustodyGetDepositAddresses(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("custodyGetDepositAddresses", args...)
+func (this *TimexCore) CustodyGetDepositAddresses (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("custodyGetDepositAddresses", args...)
 }
 
-func (this *timex) CustodyGetDepositAddressesHHash(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("custodyGetDepositAddressesHHash", args...)
+func (this *TimexCore) CustodyGetDepositAddressesHHash (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("custodyGetDepositAddressesHHash", args...)
 }
 
-func (this *timex) HistoryGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetOrders", args...)
+func (this *TimexCore) HistoryGetOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("historyGetOrders", args...)
 }
 
-func (this *timex) HistoryGetOrdersDetails(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetOrdersDetails", args...)
+func (this *TimexCore) HistoryGetOrdersDetails (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("historyGetOrdersDetails", args...)
 }
 
-func (this *timex) HistoryGetOrdersExportCsv(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetOrdersExportCsv", args...)
+func (this *TimexCore) HistoryGetOrdersExportCsv (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("historyGetOrdersExportCsv", args...)
 }
 
-func (this *timex) HistoryGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetTrades", args...)
+func (this *TimexCore) HistoryGetTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("historyGetTrades", args...)
 }
 
-func (this *timex) HistoryGetTradesExportCsv(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("historyGetTradesExportCsv", args...)
+func (this *TimexCore) HistoryGetTradesExportCsv (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("historyGetTradesExportCsv", args...)
 }
 
-func (this *timex) CurrenciesGetAAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesGetAAddress", args...)
+func (this *TimexCore) CurrenciesGetAAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesGetAAddress", args...)
 }
 
-func (this *timex) CurrenciesGetIId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesGetIId", args...)
+func (this *TimexCore) CurrenciesGetIId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesGetIId", args...)
 }
 
-func (this *timex) CurrenciesGetSSymbol(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesGetSSymbol", args...)
+func (this *TimexCore) CurrenciesGetSSymbol (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesGetSSymbol", args...)
 }
 
-func (this *timex) CurrenciesPostPerform(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesPostPerform", args...)
+func (this *TimexCore) CurrenciesPostPerform (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesPostPerform", args...)
 }
 
-func (this *timex) CurrenciesPostPrepare(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesPostPrepare", args...)
+func (this *TimexCore) CurrenciesPostPrepare (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesPostPrepare", args...)
 }
 
-func (this *timex) CurrenciesPostRemovePerform(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesPostRemovePerform", args...)
+func (this *TimexCore) CurrenciesPostRemovePerform (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesPostRemovePerform", args...)
 }
 
-func (this *timex) CurrenciesPostSSymbolRemovePrepare(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesPostSSymbolRemovePrepare", args...)
+func (this *TimexCore) CurrenciesPostSSymbolRemovePrepare (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesPostSSymbolRemovePrepare", args...)
 }
 
-func (this *timex) CurrenciesPostSSymbolUpdatePerform(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesPostSSymbolUpdatePerform", args...)
+func (this *TimexCore) CurrenciesPostSSymbolUpdatePerform (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesPostSSymbolUpdatePerform", args...)
 }
 
-func (this *timex) CurrenciesPostSSymbolUpdatePrepare(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("currenciesPostSSymbolUpdatePrepare", args...)
+func (this *TimexCore) CurrenciesPostSSymbolUpdatePrepare (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("currenciesPostSSymbolUpdatePrepare", args...)
 }
 
-func (this *timex) ManagerGetDeposits(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("managerGetDeposits", args...)
+func (this *TimexCore) ManagerGetDeposits (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("managerGetDeposits", args...)
 }
 
-func (this *timex) ManagerGetTransfers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("managerGetTransfers", args...)
+func (this *TimexCore) ManagerGetTransfers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("managerGetTransfers", args...)
 }
 
-func (this *timex) ManagerGetWithdrawals(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("managerGetWithdrawals", args...)
+func (this *TimexCore) ManagerGetWithdrawals (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("managerGetWithdrawals", args...)
 }
 
-func (this *timex) MarketsGetIId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketsGetIId", args...)
+func (this *TimexCore) MarketsGetIId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketsGetIId", args...)
 }
 
-func (this *timex) MarketsGetSSymbol(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketsGetSSymbol", args...)
+func (this *TimexCore) MarketsGetSSymbol (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketsGetSSymbol", args...)
 }
 
-func (this *timex) MarketsPostPerform(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketsPostPerform", args...)
+func (this *TimexCore) MarketsPostPerform (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketsPostPerform", args...)
 }
 
-func (this *timex) MarketsPostPrepare(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketsPostPrepare", args...)
+func (this *TimexCore) MarketsPostPrepare (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketsPostPrepare", args...)
 }
 
-func (this *timex) MarketsPostRemovePerform(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketsPostRemovePerform", args...)
+func (this *TimexCore) MarketsPostRemovePerform (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketsPostRemovePerform", args...)
 }
 
-func (this *timex) MarketsPostSSymbolRemovePrepare(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketsPostSSymbolRemovePrepare", args...)
+func (this *TimexCore) MarketsPostSSymbolRemovePrepare (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketsPostSSymbolRemovePrepare", args...)
 }
 
-func (this *timex) MarketsPostSSymbolUpdatePerform(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketsPostSSymbolUpdatePerform", args...)
+func (this *TimexCore) MarketsPostSSymbolUpdatePerform (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketsPostSSymbolUpdatePerform", args...)
 }
 
-func (this *timex) MarketsPostSSymbolUpdatePrepare(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketsPostSSymbolUpdatePrepare", args...)
+func (this *TimexCore) MarketsPostSSymbolUpdatePrepare (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketsPostSSymbolUpdatePrepare", args...)
 }
 
-func (this *timex) PublicGetCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCandles", args...)
+func (this *TimexCore) PublicGetCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCandles", args...)
 }
 
-func (this *timex) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrencies", args...)
+func (this *TimexCore) PublicGetCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *timex) PublicGetMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *TimexCore) PublicGetMarkets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *timex) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *TimexCore) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *timex) PublicGetOrderbookRaw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOrderbookRaw", args...)
+func (this *TimexCore) PublicGetOrderbookRaw (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOrderbookRaw", args...)
 }
 
-func (this *timex) PublicGetOrderbookV2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOrderbookV2", args...)
+func (this *TimexCore) PublicGetOrderbookV2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOrderbookV2", args...)
 }
 
-func (this *timex) PublicGetTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTickers", args...)
+func (this *TimexCore) PublicGetTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *timex) PublicGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTrades", args...)
+func (this *TimexCore) PublicGetTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *timex) StatisticsGetAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("statisticsGetAddress", args...)
+func (this *TimexCore) StatisticsGetAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("statisticsGetAddress", args...)
 }
 
-func (this *timex) TradingGetBalances(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingGetBalances", args...)
+func (this *TimexCore) TradingGetBalances (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingGetBalances", args...)
 }
 
-func (this *timex) TradingGetFees(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingGetFees", args...)
+func (this *TimexCore) TradingGetFees (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingGetFees", args...)
 }
 
-func (this *timex) TradingGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingGetOrders", args...)
+func (this *TimexCore) TradingGetOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingGetOrders", args...)
 }
 
-func (this *timex) TradingPostOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingPostOrders", args...)
+func (this *TimexCore) TradingPostOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingPostOrders", args...)
 }
 
-func (this *timex) TradingPostOrdersJson(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingPostOrdersJson", args...)
+func (this *TimexCore) TradingPostOrdersJson (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingPostOrdersJson", args...)
 }
 
-func (this *timex) TradingPutOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingPutOrders", args...)
+func (this *TimexCore) TradingPutOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingPutOrders", args...)
 }
 
-func (this *timex) TradingPutOrdersJson(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingPutOrdersJson", args...)
+func (this *TimexCore) TradingPutOrdersJson (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingPutOrdersJson", args...)
 }
 
-func (this *timex) TradingDeleteOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingDeleteOrders", args...)
+func (this *TimexCore) TradingDeleteOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingDeleteOrders", args...)
 }
 
-func (this *timex) TradingDeleteOrdersJson(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingDeleteOrdersJson", args...)
+func (this *TimexCore) TradingDeleteOrdersJson (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingDeleteOrdersJson", args...)
 }
 
-func (this *timex) TradingviewGetConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingviewGetConfig", args...)
+func (this *TimexCore) TradingviewGetConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingviewGetConfig", args...)
 }
 
-func (this *timex) TradingviewGetHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingviewGetHistory", args...)
+func (this *TimexCore) TradingviewGetHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingviewGetHistory", args...)
 }
 
-func (this *timex) TradingviewGetSymbolInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingviewGetSymbolInfo", args...)
+func (this *TimexCore) TradingviewGetSymbolInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingviewGetSymbolInfo", args...)
 }
 
-func (this *timex) TradingviewGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tradingviewGetTime", args...)
+func (this *TimexCore) TradingviewGetTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tradingviewGetTime", args...)
 }

@@ -71,7 +71,7 @@ class bitmex(ccxt.async_support.bitmex):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -86,7 +86,7 @@ class bitmex(ccxt.async_support.bitmex):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
@@ -463,7 +463,7 @@ class bitmex(ccxt.async_support.bitmex):
         https://www.bitmex.com/app/wsAPI#Subscriptions
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -671,7 +671,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -679,7 +679,7 @@ class bitmex(ccxt.async_support.bitmex):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()
@@ -921,7 +921,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -1130,7 +1130,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -1241,7 +1241,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -1254,7 +1254,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         table = None
         if limit is None:
@@ -1294,7 +1294,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -1320,7 +1320,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

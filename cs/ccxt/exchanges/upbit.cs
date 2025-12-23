@@ -10,7 +10,7 @@ public partial class upbit : Exchange
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "upbit" },
             { "name", "Upbit" },
-            { "countries", new List<object>() {"KR"} },
+            { "countries", new List<object>() {"KR", "ID", "SG", "TH"} },
             { "version", "v1" },
             { "rateLimit", 50 },
             { "pro", true },
@@ -32,6 +32,7 @@ public partial class upbit : Exchange
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchCurrencies", false },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
@@ -89,7 +90,7 @@ public partial class upbit : Exchange
                     { "private", "https://{hostname}" },
                 } },
                 { "www", "https://upbit.com" },
-                { "doc", "https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C" },
+                { "doc", new List<object>() {"https://docs.upbit.com/kr", "https://global-docs.upbit.com"} },
                 { "fees", "https://upbit.com/service_center/guide" },
             } },
             { "api", new Dictionary<string, object>() {
@@ -116,7 +117,7 @@ public partial class upbit : Exchange
                         { "ticker", 2 },
                         { "ticker/all", 2 },
                         { "orderbook", 2 },
-                        { "orderbook/supported_levels", 2 },
+                        { "orderbook/instruments", 2 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -142,6 +143,7 @@ public partial class upbit : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "orders", 2.5 },
+                        { "orders/test", 2.5 },
                         { "orders/cancel_and_new", 2.5 },
                         { "withdraws/coin", 0.67 },
                         { "withdraws/krw", 0.67 },
@@ -154,6 +156,7 @@ public partial class upbit : Exchange
                         { "order", 0.67 },
                         { "orders/open", 40 },
                         { "orders/uuids", 0.67 },
+                        { "withdraws/coin", 0.67 },
                     } },
                 } },
             } },
@@ -185,14 +188,14 @@ public partial class upbit : Exchange
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
                             { "FOK", true },
-                            { "PO", false },
+                            { "PO", true },
                             { "GTD", false },
                         } },
                         { "hedged", false },
                         { "leverage", false },
                         { "marketBuyByCost", false },
                         { "marketBuyRequiresPrice", false },
-                        { "selfTradePrevention", false },
+                        { "selfTradePrevention", true },
                         { "trailing", false },
                         { "iceberg", false },
                     } },
@@ -493,8 +496,8 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchMarkets
-     * @see https://docs.upbit.com/kr/reference/마켓-코드-조회
-     * @see https://global-docs.upbit.com/reference/listing-market-list
+     * @see https://docs.upbit.com/kr/reference/list-trading-pairs
+     * @see https://global-docs.upbit.com/reference/list-trading-pairs
      * @description retrieves data on all markets for upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -600,11 +603,11 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchBalance
-     * @see https://docs.upbit.com/kr/reference/전체-계좌-조회
-     * @see https://global-docs.upbit.com/reference/overall-account-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-balance
+     * @see https://global-docs.upbit.com/reference/get-balance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -629,13 +632,13 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchOrderBooks
-     * @see https://docs.upbit.com/kr/reference/호가-정보-조회
-     * @see https://global-docs.upbit.com/reference/order-book-list
+     * @see https://docs.upbit.com/kr/reference/list-orderbooks
+     * @see https://global-docs.upbit.com/reference/list-orderbooks
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
      * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-     * @param {int} [limit] not used by upbit fetchOrderBooks ()
+     * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+     * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
     public async override Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
     {
@@ -653,6 +656,10 @@ public partial class upbit : Exchange
         object request = new Dictionary<string, object>() {
             { "markets", ids },
         };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["count"] = limit;
+        }
         object response = await this.publicGetOrderbook(this.extend(request, parameters));
         //
         //     [ {          market:   "BTC-ETH",
@@ -704,13 +711,13 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchOrderBook
-     * @see https://docs.upbit.com/kr/reference/호가-정보-조회
-     * @see https://global-docs.upbit.com/reference/order-book-list
+     * @see https://docs.upbit.com/kr/reference/list-orderbooks
+     * @see https://global-docs.upbit.com/reference/list-orderbooks
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -780,12 +787,12 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchTickers
-     * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
-     * @see https://global-docs.upbit.com/reference/tickers
+     * @see https://docs.upbit.com/kr/reference/list-tickers
+     * @see https://global-docs.upbit.com/reference/list-tickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -846,12 +853,12 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchTicker
-     * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
-     * @see https://global-docs.upbit.com/reference/tickers
+     * @see https://docs.upbit.com/kr/reference/list-tickers
+     * @see https://global-docs.upbit.com/reference/list-tickers
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -940,14 +947,14 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchTrades
-     * @see https://docs.upbit.com/kr/reference/최근-체결-내역
-     * @see https://global-docs.upbit.com/reference/today-trades-history
+     * @see https://docs.upbit.com/kr/reference/list-pair-trades
+     * @see https://global-docs.upbit.com/reference/list-pair-trades
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -991,12 +998,12 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchTradingFee
-     * @see https://docs.upbit.com/kr/reference/주문-가능-정보
+     * @see https://docs.upbit.com/kr/reference/available-order-information
      * @see https://global-docs.upbit.com/reference/available-order-information
      * @description fetch the trading fees for a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -1062,7 +1069,7 @@ public partial class upbit : Exchange
      * @name upbit#fetchTradingFees
      * @description fetch the trading fees for markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/?id=trading-fee-structure}
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -1107,8 +1114,8 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchOHLCV
-     * @see https://docs.upbit.com/kr/reference/분minute-캔들-1
-     * @see https://global-docs.upbit.com/reference/minutes
+     * @see https://docs.upbit.com/kr/reference/list-candles-minutes
+     * @see https://global-docs.upbit.com/reference/list-candles-minutes
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1216,8 +1223,10 @@ public partial class upbit : Exchange
      * @method
      * @name upbit#createOrder
      * @description create a trade order
-     * @see https://docs.upbit.com/kr/reference/주문하기
-     * @see https://global-docs.upbit.com/reference/order
+     * @see https://docs.upbit.com/kr/reference/new-order
+     * @see https://global-docs.upbit.com/reference/new-order
+     * @see https://docs.upbit.com/kr/reference/order-test
+     * @see https://global-docs.upbit.com/reference/order-test
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
      * @param {string} side 'buy' or 'sell'
@@ -1226,14 +1235,26 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
      * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
-     * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+     * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+     * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        object customType = this.safeString2(parameters, "ordType", "ord_type");
+        object postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
+        object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+        object selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
+        object test = this.safeBool(parameters, "test", false);
+        if (isTrue(isTrue(postOnly) && isTrue((!isEqual(selfTradePrevention, null)))))
+        {
+            throw new ExchangeError ((string)add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
+        }
         object orderSide = null;
         if (isTrue(isEqual(side, "buy")))
         {
@@ -1278,7 +1299,6 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder() supports only limit or market types in the type argument.")) ;
         }
-        object customType = this.safeString2(parameters, "ordType", "ord_type");
         if (isTrue(isEqual(customType, "best")))
         {
             parameters = this.omit(parameters, new List<object>() {"ordType", "ord_type"});
@@ -1296,28 +1316,38 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
             }
         }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["identifier"] = clientOrderId;
         }
-        if (isTrue(isTrue(!isEqual(getValue(request, "ord_type"), "market")) && isTrue(!isEqual(getValue(request, "ord_type"), "price"))))
+        if (isTrue(postOnly))
         {
-            object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            parameters = this.omit(parameters, new List<object>() {"timeInForce"});
-            if (isTrue(!isEqual(timeInForce, null)))
+            if (isTrue(!isEqual(getValue(request, "ord_type"), "limit")))
+            {
+                throw new InvalidOrder ((string)add(this.id, " postOnly orders are only supported for limit orders")) ;
+            }
+            ((IDictionary<string,object>)request)["time_in_force"] = "post_only";
+        }
+        if (isTrue(!isEqual(timeInForce, null)))
+        {
+            if (isTrue(isTrue(isEqual(timeInForce, "ioc")) || isTrue(isEqual(timeInForce, "fok"))))
             {
                 ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
-            } else
-            {
-                if (isTrue(isEqual(getValue(request, "ord_type"), "best")))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " the best type order in createOrder() is required timeInForce.")) ;
-                }
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "cost"});
-        object response = await this.privatePostOrders(this.extend(request, parameters));
+        if (isTrue(isTrue(isEqual(getValue(request, "ord_type"), "best")) && isTrue(isEqual(timeInForce, null))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a timeInForce parameter for best type orders")) ;
+        }
+        object response = null;
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"});
+        if (isTrue(test))
+        {
+            response = await this.privatePostOrdersTest(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privatePostOrders(this.extend(request, parameters));
+        }
         //
         //     {
         //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1344,13 +1374,13 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#cancelOrder
-     * @see https://docs.upbit.com/kr/reference/주문-취소
-     * @see https://global-docs.upbit.com/reference/order-cancel
+     * @see https://docs.upbit.com/kr/reference/cancel-order
+     * @see https://global-docs.upbit.com/reference/cancel-order
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol not used by upbit cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1385,8 +1415,8 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#editOrder
-     * @see https://docs.upbit.com/kr/reference/취소-후-재주문
-     * @see https://global-docs.upbit.com/reference/cancel-and-new
+     * @see https://docs.upbit.com/kr/reference/cancel-and-new-order
+     * @see https://global-docs.upbit.com/reference/cancel-and-new-order
      * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
      * @param {string} id the uuid of the previous order you want to edit.
      * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
@@ -1397,10 +1427,11 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
      * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
-     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
      * @param {string} [params.newClientOrderId] the order ID that the user can define.
      * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -1408,6 +1439,15 @@ public partial class upbit : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object prevClientOrderId = this.safeString(parameters, "clientOrderId");
+        object customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
+        object clientOrderId = this.safeString(parameters, "newClientOrderId");
+        object postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
+        object timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
+        object selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
+        if (isTrue(isTrue(postOnly) && isTrue((!isEqual(selfTradePrevention, null)))))
+        {
+            throw new ExchangeError ((string)add(this.id, " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
+        }
         parameters = this.omit(parameters, "clientOrderId");
         if (isTrue(!isEqual(id, null)))
         {
@@ -1448,7 +1488,6 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " editOrder() supports only limit or market types in the type argument.")) ;
         }
-        object customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
         if (isTrue(isEqual(customType, "best")))
         {
             parameters = this.omit(parameters, new List<object>() {"newOrdType", "new_ord_type"});
@@ -1466,27 +1505,34 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)request)["new_volume"] = this.amountToPrecision(symbol, amount);
             }
         }
-        object clientOrderId = this.safeString(parameters, "newClientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["new_identifier"] = clientOrderId;
         }
-        if (isTrue(isTrue(!isEqual(getValue(request, "new_ord_type"), "market")) && isTrue(!isEqual(getValue(request, "new_ord_type"), "price"))))
+        if (isTrue(!isEqual(selfTradePrevention, null)))
         {
-            object timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
-            parameters = this.omit(parameters, new List<object>() {"newTimeInForce", "new_time_in_force"});
-            if (isTrue(!isEqual(timeInForce, null)))
+            ((IDictionary<string,object>)request)["new_smp_type"] = selfTradePrevention;
+        }
+        if (isTrue(postOnly))
+        {
+            if (isTrue(!isEqual(getValue(request, "new_ord_type"), "limit")))
+            {
+                throw new InvalidOrder ((string)add(this.id, " postOnly orders are only supported for limit orders")) ;
+            }
+            ((IDictionary<string,object>)request)["new_time_in_force"] = "post_only";
+        }
+        if (isTrue(!isEqual(timeInForce, null)))
+        {
+            if (isTrue(isTrue(isEqual(timeInForce, "ioc")) || isTrue(isEqual(timeInForce, "fok"))))
             {
                 ((IDictionary<string,object>)request)["new_time_in_force"] = timeInForce;
-            } else
-            {
-                if (isTrue(isEqual(getValue(request, "new_ord_type"), "best")))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " the best type order is required timeInForce.")) ;
-                }
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"newClientOrderId", "cost"});
+        if (isTrue(isTrue(isEqual(getValue(request, "new_ord_type"), "best")) && isTrue(isEqual(timeInForce, null))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a timeInForce parameter for best type orders")) ;
+        }
+        parameters = this.omit(parameters, new List<object>() {"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"});
         // console.log ('check the each request params: ', request);
         object response = await this.privatePostOrdersCancelAndNew(this.extend(request, parameters));
         //   {
@@ -1520,14 +1566,14 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchDeposits
-     * @see https://docs.upbit.com/kr/reference/입금-리스트-조회
-     * @see https://global-docs.upbit.com/reference/deposit-list-inquiry
+     * @see https://docs.upbit.com/kr/reference/list-deposits
+     * @see https://global-docs.upbit.com/reference/list-deposits
      * @description fetch all deposits made to an account
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1568,13 +1614,13 @@ public partial class upbit : Exchange
      * @method
      * @name upbit#fetchDeposit
      * @description fetch information on a deposit
-     * @see https://docs.upbit.com/kr/reference/개별-입금-조회
-     * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-deposit
+     * @see https://global-docs.upbit.com/reference/get-deposit
      * @param {string} id the unique id for the deposit
      * @param {string} [code] unified currency code of the currency deposited
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
@@ -1611,14 +1657,14 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchWithdrawals
-     * @see https://docs.upbit.com/kr/reference/전체-출금-조회
-     * @see https://global-docs.upbit.com/reference/withdrawal-list-inquiry
+     * @see https://docs.upbit.com/kr/reference/list-withdrawals
+     * @see https://global-docs.upbit.com/reference/list-withdrawals
      * @description fetch all withdrawals made from an account
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1660,13 +1706,13 @@ public partial class upbit : Exchange
      * @method
      * @name upbit#fetchWithdrawal
      * @description fetch data on a currency withdrawal via the withdrawal id
-     * @see https://docs.upbit.com/kr/reference/개별-출금-조회
-     * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-withdrawal
+     * @see https://global-docs.upbit.com/reference/get-withdrawal
      * @param {string} id the unique id for the withdrawal
      * @param {string} [code] unified currency code of the currency withdrawn
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
@@ -1797,48 +1843,36 @@ public partial class upbit : Exchange
 
     public override object parseOrder(object order, object market = null)
     {
-        //
+        // {
+        //   "market": "KRW-USDT",
+        //   "uuid": "3b67e543-8ad3-48d0-8451-0dad315cae73",
+        //   "side": "ask",
+        //   "ord_type": "market",
+        //   "state": "done",
+        //   "created_at": "2025-08-09T16:44:00+09:00",
+        //   "volume": "5.377594",
+        //   "remaining_volume": "0",
+        //   "executed_volume": "5.377594",
+        //   "reserved_fee": "0",
+        //   "remaining_fee": "0",
+        //   "paid_fee": "3.697095875",
+        //   "locked": "0",
+        //   "prevented_volume": "0",
+        //   "prevented_locked": "0",
+        //   "trades_count": 1,
+        //   "trades": [
         //     {
-        //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //         "side": "bid",
-        //         "ord_type": "limit",
-        //         "price": "17417000.0",
-        //         "state": "done",
-        //         "market": "KRW-BTC",
-        //         "created_at": "2018-04-05T14:09:14+09:00",
-        //         "volume": "1.0",
-        //         "remaining_volume": "0.0",
-        //         "reserved_fee": "26125.5",
-        //         "remaining_fee": "25974.0",
-        //         "paid_fee": "151.5",
-        //         "locked": "17341974.0",
-        //         "executed_volume": "1.0",
-        //         "trades_count": 2,
-        //         "trades": [
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //                 "price": "101000.0",
-        //                 "volume": "0.77368323",
-        //                 "funds": "78142.00623",
-        //                 "ask_fee": "117.213009345",
-        //                 "bid_fee": "117.213009345",
-        //                 "created_at": "2018-04-05T14:09:15+09:00",
-        //                 "side": "bid",
-        //             },
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
-        //                 "price": "101000.0",
-        //                 "volume": "0.22631677",
-        //                 "funds": "22857.99377",
-        //                 "ask_fee": "34.286990655", // missing in market orders
-        //                 "bid_fee": "34.286990655", // missing in market orders
-        //                 "created_at": "2018-04-05T14:09:15+09:00", // missing in market orders
-        //                 "side": "bid",
-        //             },
-        //         ],
+        //       "market": "KRW-USDT",
+        //       "uuid": "795dff29-bba6-49b2-baab-63473ab7931c",
+        //       "price": "1375",
+        //       "volume": "5.377594",
+        //       "funds": "7394.19175",
+        //       "trend": "down",
+        //       "created_at": "2025-08-09T16:44:00.597751+09:00",
+        //       "side": "ask"
         //     }
+        //   ]
+        // }
         //
         // fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
@@ -1981,14 +2015,14 @@ public partial class upbit : Exchange
      * @method
      * @name upbit#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.upbit.com/kr/reference/대기-주문-조회
-     * @see https://global-docs.upbit.com/reference/open-order
+     * @see https://docs.upbit.com/kr/reference/list-open-orders
+     * @see https://global-docs.upbit.com/reference/list-open-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.state] default is 'wait', set to 'watch' for stop limit orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2035,14 +2069,14 @@ public partial class upbit : Exchange
      * @method
      * @name upbit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.upbit.com/kr/reference/종료-주문-조회
-     * @see https://global-docs.upbit.com/reference/closed-order
+     * @see https://docs.upbit.com/kr/reference/list-closed-orders
+     * @see https://global-docs.upbit.com/reference/list-closed-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest order
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2099,14 +2133,14 @@ public partial class upbit : Exchange
      * @method
      * @name upbit#fetchCanceledOrders
      * @description fetches information on multiple canceled orders made by the user
-     * @see https://docs.upbit.com/kr/reference/종료-주문-조회
-     * @see https://global-docs.upbit.com/reference/closed-order
+     * @see https://docs.upbit.com/kr/reference/list-closed-orders
+     * @see https://global-docs.upbit.com/reference/list-closed-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest order
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2162,13 +2196,13 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchOrder
-     * @see https://docs.upbit.com/kr/reference/개별-주문-조회
-     * @see https://global-docs.upbit.com/reference/individual-order-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-order
+     * @see https://global-docs.upbit.com/reference/get-order
      * @description fetches information on an order made by the user
      * @param {string} id order id
      * @param {string} symbol not used by upbit fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2227,12 +2261,12 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchDepositAddresses
-     * @see https://docs.upbit.com/kr/reference/전체-입금-주소-조회
-     * @see https://global-docs.upbit.com/reference/general-deposit-address-inquiry
+     * @see https://docs.upbit.com/kr/reference/list-deposit-addresses
+     * @see https://global-docs.upbit.com/reference/list-deposit-addresses
      * @description fetch deposit addresses for multiple currencies and chain types
      * @param {string[]|undefined} codes list of unified currency codes, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
@@ -2289,13 +2323,13 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#fetchDepositAddress
-     * @see https://docs.upbit.com/kr/reference/개별-입금-주소-조회
-     * @see https://global-docs.upbit.com/reference/individual-deposit-address-inquiry
+     * @see https://docs.upbit.com/kr/reference/get-deposit-address
+     * @see https://global-docs.upbit.com/reference/get-deposit-address
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -2328,12 +2362,12 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#createDepositAddress
-     * @see https://docs.upbit.com/kr/reference/입금-주소-생성-요청
-     * @see https://global-docs.upbit.com/reference/deposit-address-generation
+     * @see https://docs.upbit.com/kr/reference/create-deposit-address
+     * @see https://global-docs.upbit.com/reference/create-deposit-address
      * @description create a currency deposit address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
@@ -2371,15 +2405,15 @@ public partial class upbit : Exchange
     /**
      * @method
      * @name upbit#withdraw
-     * @see https://docs.upbit.com/kr/reference/디지털자산-출금하기
-     * @see https://global-docs.upbit.com/reference/withdrawal-digital-assets
+     * @see https://docs.upbit.com/kr/reference/withdraw
+     * @see https://global-docs.upbit.com/reference/withdraw
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {

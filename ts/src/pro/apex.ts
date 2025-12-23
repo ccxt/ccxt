@@ -5,7 +5,7 @@ import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
 import { OHLCV, Order, Position, Str } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
@@ -63,7 +63,7 @@ export default class apex extends apexRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
@@ -78,7 +78,7 @@ export default class apex extends apexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -122,9 +122,10 @@ export default class apex extends apexRest {
         //                 "v": "0.001",
         //                 "p": "16578.50",
         //                 "L": "PlusTick",
-        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
         //                 "BT": false
-        //             }
+        //             },
+        //             // sorted by newest first
         //         ]
         //     }
         //
@@ -141,8 +142,10 @@ export default class apex extends apexRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        for (let j = 0; j < trades.length; j++) {
-            const parsed = this.parseWsTrade (trades[j], market);
+        const length = trades.length;
+        for (let j = 0; j < length; j++) {
+            const index = length - j - 1;
+            const parsed = this.parseWsTrade (trades[index], market);
             stored.append (parsed);
         }
         const messageHash = 'trade' + ':' + symbol;
@@ -196,7 +199,7 @@ export default class apex extends apexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -210,7 +213,7 @@ export default class apex extends apexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -326,7 +329,7 @@ export default class apex extends apexRest {
      * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
@@ -347,7 +350,7 @@ export default class apex extends apexRest {
      * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
@@ -434,7 +437,7 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -563,7 +566,7 @@ export default class apex extends apexRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let messageHash = 'myTrades';
@@ -628,7 +631,7 @@ export default class apex extends apexRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -845,7 +848,7 @@ export default class apex extends apexRest {
         const signature = this.hmac (this.encode (messageString), this.encode (this.stringToBase64 (this.secret)), sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
@@ -965,6 +968,7 @@ export default class apex extends apexRest {
             'recentlyTrade': this.handleTrades,
             'pong': this.handlePong,
             'auth': this.handleAuthenticate,
+            'ping': this.handlePing,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
@@ -988,12 +992,25 @@ export default class apex extends apexRest {
     }
 
     ping (client: Client) {
-        const timeStamp = this.milliseconds ().toString ();
-        client.lastPong = timeStamp; // server won't send a pong, so we set it here
+        const timeStamp = this.milliseconds ();
+        client.lastPong = timeStamp;
         return {
-            'args': [ timeStamp ],
+            'args': [ timeStamp.toString () ],
             'op': 'ping',
         };
+    }
+
+    async pong (client, message) {
+        //
+        //     {"op": "ping", "args": ["1761069137485"]}
+        //
+        const timeStamp = this.milliseconds ();
+        try {
+            await client.send ({ 'args': [ timeStamp.toString () ], 'op': 'pong' });
+        } catch (e) {
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            client.reset (error);
+        }
     }
 
     handlePong (client: Client, message) {
@@ -1009,6 +1026,10 @@ export default class apex extends apexRest {
         //
         client.lastPong = this.safeInteger (message, 'pong');
         return message;
+    }
+
+    handlePing (client: Client, message) {
+        this.spawn (this.pong, client, message);
     }
 
     handleAccount (client: Client, message) {

@@ -46,8 +46,8 @@ function test_fetch_tickers_amounts($exchange, $skipped_properties, $tickers) {
         $non_inactive_markets = get_active_markets($exchange);
         $not_inactive_symbols_length = count($non_inactive_markets);
         $obtained_tickers_length = count($tickers_values);
-        $tolerance_coefficient = 0.01; // 1% tolerance, eg. when 100 active markets, we should have at least 99 tickers
-        assert($obtained_tickers_length >= $not_inactive_symbols_length * (1 - $tolerance_coefficient), $exchange->id . ' ' . 'fetchTickers' . ' must return tickers for all active markets. but returned: ' . ((string) $obtained_tickers_length) . ' tickers, ' . ((string) $not_inactive_symbols_length) . ' active markets');
+        $min_ratio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
+        assert($obtained_tickers_length >= $not_inactive_symbols_length * $min_ratio, $exchange->id . ' ' . 'fetchTickers' . ' must return tickers for all active markets. but returned: ' . ((string) $obtained_tickers_length) . ' tickers, ' . ((string) $not_inactive_symbols_length) . ' active markets');
         //
         // ensure tickers length is less than markets length
         //

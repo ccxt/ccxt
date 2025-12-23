@@ -1,11 +1,89 @@
 {
     "exchange": "hyperliquid",
     "skipKeys": [],
-    "options": {},
+    "options": {
+        "hip3TokensByName": {
+            "flx:CRCL": {
+                "quote": "USDH",
+                "code": "FLX-CRCL"
+            }
+        }
+    },
     "methods": {
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create order with tp and sl",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    "market",
+                    "buy",
+                    1,
+                    39,
+                    30,
+                    10
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "order",
+                        "data": {
+                            "statuses": [
+                                {
+                                    "filled": {
+                                        "totalSz": "1.0",
+                                        "avgPx": "39.9351",
+                                        "oid": "211341310459"
+                                    }
+                                },
+                                "waitingForTrigger",
+                                "waitingForTrigger"
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "filled": {
+                            "totalSz": "1.0",
+                            "avgPx": "39.9351",
+                            "oid": "211341310459"
+                        }
+                    },
+                    "id": "211341310459",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 1,
+                    "cost": null,
+                    "average": 39.9351,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
+                "disabled": true,
+                "reason": "using spotMeta now",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
@@ -283,6 +361,86 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "open order using a non usdc hip3 market",
+                "method": "fetchOpenOrders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "flx:CRCL",
+                        "side": "B",
+                        "limitPx": "70.0",
+                        "sz": "0.14",
+                        "oid": "251733169011",
+                        "timestamp": "1764346344235",
+                        "triggerCondition": "N/A",
+                        "isTrigger": false,
+                        "triggerPx": "0.0",
+                        "children": [],
+                        "isPositionTpsl": false,
+                        "reduceOnly": false,
+                        "orderType": "Limit",
+                        "origSz": "0.14",
+                        "tif": "Gtc",
+                        "cloid": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "flx:CRCL",
+                            "side": "B",
+                            "limitPx": "70.0",
+                            "sz": "0.14",
+                            "oid": "251733169011",
+                            "timestamp": "1764346344235",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "0.14",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "id": "251733169011",
+                        "clientOrderId": null,
+                        "timestamp": 1764346344235,
+                        "datetime": "2025-11-28T16:12:24.235Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "FLX-CRCL/USDH:USDH",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 70,
+                        "triggerPrice": null,
+                        "amount": 0.14,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.14,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "open orders",
                 "method": "fetchOpenOrders",
                 "input": [
@@ -417,7 +575,7 @@
                 ]
             }
         ],
-    "fetchOrder": [
+        "fetchOrder": [
             {
                 "description": "fetch postOnly order",
                 "method": "fetchOrder",
@@ -576,6 +734,88 @@
                     "filled": 0,
                     "remaining": 50,
                     "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "42495335444"
+                ],
+                "httpResponse": {
+                    "status": "order",
+                    "order": {
+                        "order": {
+                            "coin": "xyz:XYZ100",
+                            "side": "B",
+                            "limitPx": "25400.0",
+                            "sz": "0.0007",
+                            "oid": 42495335444,
+                            "timestamp": 1762480406163,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "0.0007",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1762480406163
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "coin": "xyz:XYZ100",
+                            "side": "B",
+                            "limitPx": "25400.0",
+                            "sz": "0.0007",
+                            "oid": 42495335444,
+                            "timestamp": 1762480406163,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "0.0007",
+                            "tif": "Alo",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1762480406163
+                    },
+                    "id": "42495335444",
+                    "clientOrderId": null,
+                    "timestamp": 1762480406163,
+                    "datetime": "2025-11-07T01:53:26.163Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1762480406163,
+                    "symbol": "XYZ-XYZ100/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "ALO",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 25400,
+                    "triggerPrice": null,
+                    "amount": 0.0007,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.0007,
+                    "status": "open",
                     "fee": null,
                     "trades": [],
                     "fees": [],
@@ -751,6 +991,109 @@
             }
         ],
         "fetchPositions": [
+            {
+                "description": "fetch hip3 positions",
+                "method": "fetchPositions",
+                "input": [
+                    null,
+                    {
+                        "dex": "flx"
+                    }
+                ],
+                "httpResponse": {
+                    "marginSummary": {
+                        "accountValue": "6.889701",
+                        "totalNtlPos": "10.41482",
+                        "totalRawUsd": "-3.525119",
+                        "totalMarginUsed": "3.459702"
+                    },
+                    "crossMarginSummary": {
+                        "accountValue": "3.429999",
+                        "totalNtlPos": "0.0",
+                        "totalRawUsd": "3.429999",
+                        "totalMarginUsed": "0.0"
+                    },
+                    "crossMaintenanceMarginUsed": "0.0",
+                    "withdrawable": "0.163333",
+                    "assetPositions": [
+                        {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "flx:CRCL",
+                                "szi": "0.13",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "3",
+                                    "rawUsd": "-6.955118"
+                                },
+                                "entryPx": "80.262",
+                                "positionValue": "10.41482",
+                                "unrealizedPnl": "-0.01924",
+                                "returnOnEquity": "-0.0055318831",
+                                "liquidationPx": "64.2010892308",
+                                "marginUsed": "3.459702",
+                                "maxLeverage": "3",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        }
+                    ],
+                    "time": "1764350959056"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "flx:CRCL",
+                                "szi": "0.13",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "3",
+                                    "rawUsd": "-6.955118"
+                                },
+                                "entryPx": "80.262",
+                                "positionValue": "10.41482",
+                                "unrealizedPnl": "-0.01924",
+                                "returnOnEquity": "-0.0055318831",
+                                "liquidationPx": "64.2010892308",
+                                "marginUsed": "3.459702",
+                                "maxLeverage": "3",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        },
+                        "id": null,
+                        "symbol": "FLX-CRCL/USDH:USDH",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": true,
+                        "hedged": null,
+                        "side": "long",
+                        "contracts": 0.13,
+                        "contractSize": 1,
+                        "entryPrice": 80.262,
+                        "markPrice": null,
+                        "notional": 10.41482,
+                        "leverage": 3,
+                        "collateral": 3.459702,
+                        "initialMargin": 3.478942,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": -0.01924,
+                        "liquidationPrice": 64.2010892308,
+                        "marginMode": "isolated",
+                        "percentage": 0.5561172609664069
+                    }
+                ]
+            },
             {
                 "description": "fetch positions",
                 "method": "fetchPositions",
@@ -996,9 +1339,209 @@
                         "percentage": 11.597564511452594
                     }
                 ]
+            },
+            {
+                "description": "isolated short position",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "HYPE/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "marginSummary": {
+                        "accountValue": "76.206517",
+                        "totalNtlPos": "192.58",
+                        "totalRawUsd": "268.786517",
+                        "totalMarginUsed": "18.564417"
+                    },
+                    "crossMarginSummary": {
+                        "accountValue": "57.6421",
+                        "totalNtlPos": "0.0",
+                        "totalRawUsd": "57.6421",
+                        "totalMarginUsed": "0.0"
+                    },
+                    "crossMaintenanceMarginUsed": "0.0",
+                    "withdrawable": "57.6421",
+                    "assetPositions": [
+                        {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "HYPE",
+                                "szi": "-4.0",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "10",
+                                    "rawUsd": "211.144417"
+                                },
+                                "entryPx": "47.9932",
+                                "positionValue": "192.58",
+                                "unrealizedPnl": "-0.6071",
+                                "returnOnEquity": "-0.0316242553",
+                                "liquidationPx": "50.2724802381",
+                                "marginUsed": "18.564417",
+                                "maxLeverage": "10",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        }
+                    ],
+                    "time": "1761803589961"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "type": "oneWay",
+                            "position": {
+                                "coin": "HYPE",
+                                "szi": "-4.0",
+                                "leverage": {
+                                    "type": "isolated",
+                                    "value": "10",
+                                    "rawUsd": "211.144417"
+                                },
+                                "entryPx": "47.9932",
+                                "positionValue": "192.58",
+                                "unrealizedPnl": "-0.6071",
+                                "returnOnEquity": "-0.0316242553",
+                                "liquidationPx": "50.2724802381",
+                                "marginUsed": "18.564417",
+                                "maxLeverage": "10",
+                                "cumFunding": {
+                                    "allTime": "0.0",
+                                    "sinceOpen": "0.0",
+                                    "sinceChange": "0.0"
+                                }
+                            }
+                        },
+                        "id": null,
+                        "symbol": "HYPE/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": true,
+                        "hedged": null,
+                        "side": "short",
+                        "contracts": 4,
+                        "contractSize": 1,
+                        "entryPrice": 47.9932,
+                        "markPrice": null,
+                        "notional": 192.58,
+                        "leverage": 10,
+                        "collateral": 18.564417,
+                        "initialMargin": 19.171517,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": -0.6071,
+                        "liquidationPrice": 50.2724802381,
+                        "marginMode": "isolated",
+                        "percentage": 3.270234664519764
+                    }
+                ]
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv using HPENGU/USDC",
+                "method": "fetchOHLCV",
+                "input": [
+                    "HPENGU/USDC",
+                    "1h",
+                    1761729650000,
+                    1,
+                    {
+                        "until": 1761736850000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1761728400000",
+                        "T": "1761731999999",
+                        "s": "@184",
+                        "i": "1h",
+                        "o": "0.020729",
+                        "c": "0.020704",
+                        "h": "0.020752",
+                        "l": "0.020624",
+                        "v": "321028.89",
+                        "n": "73"
+                    },
+                    {
+                        "t": "1761732000000",
+                        "T": "1761735599999",
+                        "s": "@184",
+                        "i": "1h",
+                        "o": "0.0207",
+                        "c": "0.020765",
+                        "h": "0.020765",
+                        "l": "0.020687",
+                        "v": "54681.37",
+                        "n": "14"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1761732000000,
+                        0.0207,
+                        0.020765,
+                        0.020687,
+                        0.020765,
+                        54681.37
+                    ]
+                ]
+            },
+            {
+                "description": "fetch ohlcv using UBTC/USDC",
+                "method": "fetchOHLCV",
+                "input": [
+                    "UBTC/USDC",
+                    "1h",
+                    1761729650000,
+                    1,
+                    {
+                        "until": 1761736850000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1761728400000",
+                        "T": "1761731999999",
+                        "s": "@142",
+                        "i": "1h",
+                        "o": "113097.0",
+                        "c": "113035.0",
+                        "h": "113112.0",
+                        "l": "112804.0",
+                        "v": "30.79386",
+                        "n": "2850"
+                    },
+                    {
+                        "t": "1761732000000",
+                        "T": "1761735599999",
+                        "s": "@142",
+                        "i": "1h",
+                        "o": "113035.0",
+                        "c": "113103.0",
+                        "h": "113150.0",
+                        "l": "112926.0",
+                        "v": "7.44028",
+                        "n": "1158"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1761732000000,
+                        113035,
+                        113150,
+                        112926,
+                        113103,
+                        7.44028
+                    ]
+                ]
+            },
             {
                 "description": "btc ohlcv",
                 "method": "fetchOHLCV",
@@ -1604,7 +2147,7 @@
                 ]
             }
         ],
-    "transfer": [
+        "transfer": [
             {
                 "description": "transfer",
                 "method": "transfer",

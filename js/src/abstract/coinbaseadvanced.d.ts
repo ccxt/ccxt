@@ -76,6 +76,7 @@ interface coinbase {
     v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokeragePaymentMethods(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageKeyPermissions(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersEdit(params?: {}): Promise<implicitReturnType>;

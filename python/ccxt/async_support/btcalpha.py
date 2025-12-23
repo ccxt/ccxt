@@ -23,6 +23,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'name': 'BTC-Alpha',
             'countries': ['US'],
             'version': 'v1',
+            'rateLimit': 10,  # https://btc-alpha.github.io/api-docs/?utm_source=chatgpt.com#http-api-v1
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -56,6 +57,7 @@ class btcalpha(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDeposit': False,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
@@ -149,28 +151,28 @@ class btcalpha(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies/',
-                        'pairs/',
-                        'orderbook/{pair_name}',
-                        'exchanges/',
-                        'charts/{pair}/{type}/chart/',
-                        'ticker/',
-                    ],
+                    'get': {
+                        'currencies/': 1,
+                        'pairs/': 1,
+                        'orderbook/{pair_name}': 1,
+                        'exchanges/': 1,
+                        'charts/{pair}/{type}/chart/': 1,
+                        'ticker/': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'wallets/',
-                        'orders/own/',
-                        'order/{id}/',
-                        'exchanges/own/',
-                        'deposits/',
-                        'withdraws/',
-                    ],
-                    'post': [
-                        'order/',
-                        'order-cancel/',
-                    ],
+                    'get': {
+                        'wallets/': 50,
+                        'orders/own/': 50,
+                        'order/{id}/': 50,
+                        'exchanges/own/': 50,
+                        'deposits/': 50,
+                        'withdraws/': 50,
+                    },
+                    'post': {
+                        'order/': 50,
+                        'order-cancel/': 50,
+                    },
                 },
             },
             'fees': {
@@ -366,7 +368,7 @@ class btcalpha(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTicker(params)
@@ -396,7 +398,7 @@ class btcalpha(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -470,7 +472,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -550,7 +552,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = None
@@ -573,7 +575,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -602,7 +604,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -699,7 +701,7 @@ class btcalpha(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '5m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -751,7 +753,7 @@ class btcalpha(Exchange, ImplicitAPI):
         https://btc-alpha.github.io/api-docs/#list-own-wallets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetWallets(params)
@@ -847,7 +849,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if type == 'market':
             raise InvalidOrder(self.id + ' only limits orders are supported')
@@ -877,7 +879,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'order': id,
@@ -899,7 +901,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: not used by btcalpha fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -918,7 +920,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -941,7 +943,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'status': '1',
@@ -958,7 +960,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'status': '3',
@@ -975,7 +977,7 @@ class btcalpha(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         request: dict = {}

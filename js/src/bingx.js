@@ -33,6 +33,9 @@ export default class bingx extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -53,9 +56,18 @@ export default class bingx extends Exchange {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -66,6 +78,9 @@ export default class bingx extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': true,
                 'fetchLiquidations': false,
                 'fetchMarginAdjustmentHistory': false,
@@ -79,6 +94,8 @@ export default class bingx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -93,8 +110,11 @@ export default class bingx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMargin': true,
@@ -174,6 +194,9 @@ export default class bingx extends Exchange {
                                 'trade/myTrades': 2,
                                 'user/commissionRate': 5,
                                 'account/balance': 2,
+                                'oco/orderList': 5,
+                                'oco/openOrderList': 5,
+                                'oco/historyOrderList': 5,
                             },
                             'post': {
                                 'trade/order': 2,
@@ -183,6 +206,8 @@ export default class bingx extends Exchange {
                                 'trade/cancelOrders': 5,
                                 'trade/cancelOpenOrders': 5,
                                 'trade/cancelAllAfter': 5,
+                                'oco/order': 5,
+                                'oco/cancel': 5,
                             },
                         },
                     },
@@ -191,6 +216,7 @@ export default class bingx extends Exchange {
                             'get': {
                                 'market/depth': 1,
                                 'market/kline': 1,
+                                'ticker/price': 1,
                             },
                         },
                     },
@@ -216,6 +242,7 @@ export default class bingx extends Exchange {
                                 'market/historicalTrades': 1,
                                 'market/markPriceKlines': 1,
                                 'trade/multiAssetsRules': 1,
+                                'tradingRules': 1,
                             },
                         },
                         'private': {
@@ -233,6 +260,7 @@ export default class bingx extends Exchange {
                                 'user/marginAssets': 5,
                             },
                             'post': {
+                                'trade/amend': 2,
                                 'trade/cancelReplace': 2,
                                 'positionSide/dual': 5,
                                 'trade/batchCancelReplace': 5,
@@ -241,6 +269,8 @@ export default class bingx extends Exchange {
                                 'twap/order': 5,
                                 'twap/cancelOrder': 5,
                                 'trade/assetMode': 5,
+                                'trade/reverse': 5,
+                                'trade/autoAddMargin': 5,
                             },
                         },
                     },
@@ -299,6 +329,11 @@ export default class bingx extends Exchange {
                         'public': {
                             'get': {
                                 'quote/klines': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'user/balance': 2,
                             },
                         },
                     },
@@ -441,10 +476,19 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'swap/trace/currentTrack': 2,
+                                'PFutures/traderDetail': 2,
+                                'PFutures/profitHistorySummarys': 2,
+                                'PFutures/profitDetail': 2,
+                                'PFutures/tradingPairs': 2,
+                                'spot/traderDetail': 2,
+                                'spot/profitHistorySummarys': 2,
+                                'spot/profitDetail': 2,
+                                'spot/historyOrder': 2,
                             },
                             'post': {
                                 'swap/trace/closeTrackOrder': 2,
                                 'swap/trace/setTPSL': 2,
+                                'PFutures/setCommission': 2,
                                 'spot/trader/sellOrder': 10,
                             },
                         },
@@ -475,6 +519,22 @@ export default class bingx extends Exchange {
                                 'get': {
                                     'transfer/supportCoins': 5,
                                 },
+                            },
+                        },
+                    },
+                },
+                'agent': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/inviteAccountList': 5,
+                                'reward/commissionDataList': 5,
+                                'account/inviteRelationCheck': 5,
+                                'asset/depositDetailList': 5,
+                                'reward/third/commissionDataList': 5,
+                                'asset/partnerData': 5,
+                                'commissionDataList/referralCode': 5,
+                                'account/superiorCheck': 5,
                             },
                         },
                     },
@@ -1244,7 +1304,7 @@ export default class bingx extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1478,7 +1538,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1592,7 +1652,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
@@ -1633,7 +1693,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1682,11 +1742,11 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1756,7 +1816,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
@@ -1851,7 +1911,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -1916,7 +1976,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1983,7 +2043,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrice(symbol, params = {}) {
         await this.loadMarkets();
@@ -2041,7 +2101,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrices(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -2201,13 +2261,13 @@ export default class bingx extends Exchange {
      * @name bingx#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-     * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.standard] whether to fetch standard contract balances
      * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -2297,27 +2357,26 @@ export default class bingx extends Exchange {
                 //
             }
             else {
-                response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+                response = await this.swapV3PrivateGetUserBalance(marketTypeQuery);
                 //
                 //     {
                 //         "code": 0,
                 //         "msg": "",
-                //         "data": {
-                //             "balance": {
-                //                 "userId": "1177064765068660742",
+                //         "data": [
+                //             {
+                //                 "userId": "116***295",
                 //                 "asset": "USDT",
-                //                 "balance": "51.5198",
-                //                 "equity": "50.5349",
-                //                 "unrealizedProfit": "-0.9849",
-                //                 "realisedProfit": "-0.2134",
-                //                 "availableMargin": "49.1428",
-                //                 "usedMargin": "1.3922",
+                //                 "balance": "194.8212",
+                //                 "equity": "196.7431",
+                //                 "unrealizedProfit": "1.9219",
+                //                 "realisedProfit": "-109.2504",
+                //                 "availableMargin": "193.7609",
+                //                 "usedMargin": "1.0602",
                 //                 "freezedMargin": "0.0000",
                 //                 "shortUid": "12851936"
                 //             }
-                //         }
+                //         ]
                 //     }
-                //
             }
         }
         return this.parseBalance(response);
@@ -2385,34 +2444,35 @@ export default class bingx extends Exchange {
         //     {
         //         "code": 0,
         //         "msg": "",
-        //         "data": {
-        //             "balance": {
-        //                 "userId": "1177064765068660742",
+        //         "data": [
+        //             {
+        //                 "userId": "116***295",
         //                 "asset": "USDT",
-        //                 "balance": "51.5198",
-        //                 "equity": "50.5349",
-        //                 "unrealizedProfit": "-0.9849",
-        //                 "realisedProfit": "-0.2134",
-        //                 "availableMargin": "49.1428",
-        //                 "usedMargin": "1.3922",
+        //                 "balance": "194.8212",
+        //                 "equity": "196.7431",
+        //                 "unrealizedProfit": "1.9219",
+        //                 "realisedProfit": "-109.2504",
+        //                 "availableMargin": "193.7609",
+        //                 "usedMargin": "1.0602",
         //                 "freezedMargin": "0.0000",
         //                 "shortUid": "12851936"
         //             }
-        //         }
+        //         ]
         //     }
         //
         const result = { 'info': response };
-        const standardAndInverseBalances = this.safeList(response, 'data');
-        const firstStandardOrInverse = this.safeDict(standardAndInverseBalances, 0);
-        const isStandardOrInverse = firstStandardOrInverse !== undefined;
+        const contractBalances = this.safeList(response, 'data');
+        const firstContractBalances = this.safeDict(contractBalances, 0);
+        const isContract = firstContractBalances !== undefined;
         const spotData = this.safeDict(response, 'data', {});
         const spotBalances = this.safeList2(spotData, 'balances', 'assets', []);
-        const firstSpot = this.safeDict(spotBalances, 0);
-        const isSpot = firstSpot !== undefined;
-        if (isStandardOrInverse) {
-            for (let i = 0; i < standardAndInverseBalances.length; i++) {
-                const balance = standardAndInverseBalances[i];
+        if (isContract) {
+            for (let i = 0; i < contractBalances.length; i++) {
+                const balance = contractBalances[i];
                 const currencyId = this.safeString(balance, 'asset');
+                if (currencyId === undefined) { // linear v3 returns empty asset
+                    break;
+                }
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
@@ -2421,7 +2481,7 @@ export default class bingx extends Exchange {
                 result[code] = account;
             }
         }
-        else if (isSpot) {
+        else {
             for (let i = 0; i < spotBalances.length; i++) {
                 const balance = spotBalances[i];
                 const currencyId = this.safeString(balance, 'asset');
@@ -2429,18 +2489,6 @@ export default class bingx extends Exchange {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'free');
                 account['used'] = this.safeString(balance, 'locked');
-                result[code] = account;
-            }
-        }
-        else {
-            const linearSwapData = this.safeDict(response, 'data', {});
-            const linearSwapBalance = this.safeDict(linearSwapData, 'balance');
-            if (linearSwapBalance) {
-                const currencyId = this.safeString(linearSwapBalance, 'asset');
-                const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['free'] = this.safeString(linearSwapBalance, 'availableMargin');
-                account['used'] = this.safeString(linearSwapBalance, 'usedMargin');
                 result[code] = account;
             }
         }
@@ -2456,7 +2504,7 @@ export default class bingx extends Exchange {
      * @param {int} [limit] the maximum amount of records to fetch
      * @param {object} [params] extra parameters specific to the exchange api endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2521,7 +2569,7 @@ export default class bingx extends Exchange {
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.standard] whether to fetch standard contract positions
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -2618,7 +2666,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
@@ -2827,7 +2875,7 @@ export default class bingx extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         params['quoteOrderQty'] = cost;
@@ -2840,7 +2888,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         params['quoteOrderQty'] = cost;
@@ -2853,7 +2901,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
         params['quoteOrderQty'] = cost;
@@ -2986,8 +3034,8 @@ export default class bingx extends Exchange {
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
             const stopLoss = this.safeValue(params, 'stopLoss');
             const takeProfit = this.safeValue(params, 'takeProfit');
-            const isStopLoss = stopLoss !== undefined;
-            const isTakeProfit = takeProfit !== undefined;
+            const hasStopLoss = stopLoss !== undefined;
+            const hasTakeProfit = takeProfit !== undefined;
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
@@ -3033,9 +3081,9 @@ export default class bingx extends Exchange {
                     request['priceRate'] = this.parseToNumeric(requestTrailingPercent);
                 }
             }
-            if (isStopLoss || isTakeProfit) {
+            if (hasStopLoss || hasTakeProfit) {
                 const stringifiedAmount = this.numberToString(amount);
-                if (isStopLoss) {
+                if (hasStopLoss) {
                     const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                     const slWorkingType = this.safeString(stopLoss, 'workingType', 'MARK_PRICE');
                     const slType = this.safeString(stopLoss, 'type', 'STOP_MARKET');
@@ -3052,7 +3100,7 @@ export default class bingx extends Exchange {
                     slRequest['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
                     request['stopLoss'] = this.json(slRequest);
                 }
-                if (isTakeProfit) {
+                if (hasTakeProfit) {
                     const tkTriggerPrice = this.safeString2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                     const tkWorkingType = this.safeString(takeProfit, 'workingType', 'MARK_PRICE');
                     const tpType = this.safeString(takeProfit, 'type', 'TAKE_PROFIT_MARKET');
@@ -3125,7 +3173,7 @@ export default class bingx extends Exchange {
      * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -3246,7 +3294,7 @@ export default class bingx extends Exchange {
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
         await this.loadMarkets();
@@ -3768,7 +3816,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -3949,7 +3997,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -4095,7 +4143,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -4248,7 +4296,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.twap] if fetching twap order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -4427,7 +4475,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {int} [params.orderId] Only return subsequent orders, and return the latest order by default
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -4519,7 +4567,7 @@ export default class bingx extends Exchange {
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.twap] if fetching twap open orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -4707,7 +4755,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {boolean} [params.standard] whether to fetch standard contract orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -4728,7 +4776,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {boolean} [params.standard] whether to fetch standard contract orders
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -4751,7 +4799,7 @@ export default class bingx extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {boolean} [params.standard] whether to fetch standard contract orders
      * @param {boolean} [params.twap] if fetching twap orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -4944,7 +4992,7 @@ export default class bingx extends Exchange {
      * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
      * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
@@ -5007,7 +5055,7 @@ export default class bingx extends Exchange {
      * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
      * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -5100,7 +5148,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+     * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
         await this.loadMarkets();
@@ -5144,7 +5192,7 @@ export default class bingx extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
         const network = this.safeString(params, 'network');
@@ -5201,7 +5249,7 @@ export default class bingx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -5246,7 +5294,7 @@ export default class bingx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -5395,7 +5443,7 @@ export default class bingx extends Exchange {
             '3': 'rejected',
             '4': 'pending',
             '5': 'rejected',
-            '6': 'ok',
+            '6': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -5459,7 +5507,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the bingx api endpoint
-     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     async setMargin(symbol, amount, params = {}) {
         const type = this.safeInteger(params, 'type'); // 1 increase margin 2 decrease margin
@@ -5518,7 +5566,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
         await this.loadMarkets();
@@ -5687,7 +5735,7 @@ export default class bingx extends Exchange {
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
      * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
      * @param {string} params.orderId the order id required for inverse swap
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -5858,7 +5906,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
         await this.loadMarkets();
@@ -5884,15 +5932,25 @@ export default class bingx extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        const walletType = this.safeInteger(params, 'walletType', 1);
+        const defaultWalletType = 15; // spot
+        let walletType = undefined;
+        [walletType, params] = this.handleOptionAndParams2(params, 'withdraw', 'type', 'walletType', defaultWalletType);
+        const walletTypes = {
+            'funding': 1,
+            'fund': 1,
+            'standard': 2,
+            'perpetual': 3,
+            'spot': 15,
+        };
+        walletType = this.safeInteger(walletTypes, walletType, defaultWalletType);
         const request = {
             'coin': currency['id'],
             'address': address,
@@ -5951,7 +6009,7 @@ export default class bingx extends Exchange {
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bingx api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -6092,7 +6150,7 @@ export default class bingx extends Exchange {
      * @param {string} [side] not used by bingx
      * @param {object} [params] extra parameters specific to the bingx api endpoint
      * @param {string|undefined} [params.positionId] the id of the position you would like to close
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
         await this.loadMarkets();
@@ -6162,7 +6220,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
      * @param {object} [params] extra parameters specific to the bingx api endpoint
      * @param {string} [params.recvWindow] request valid time window value
-     * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closeAllPositions(params = {}) {
         await this.loadMarkets();
@@ -6306,7 +6364,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
      * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
      * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -6423,7 +6481,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
         await this.loadMarkets();
@@ -6482,7 +6540,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();

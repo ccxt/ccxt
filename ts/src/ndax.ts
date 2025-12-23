@@ -690,7 +690,7 @@ export default class ndax extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -802,7 +802,7 @@ export default class ndax extends Exchange {
      * @see https://apidoc.ndax.io/#getlevel1
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -882,7 +882,7 @@ export default class ndax extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1093,7 +1093,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1123,7 +1123,7 @@ export default class ndax extends Exchange {
      * @description fetch all the accounts associated with a profile
      * @see https://apidoc.ndax.io/#getuseraccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
         if (!this.login) {
@@ -1179,7 +1179,7 @@ export default class ndax extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidoc.ndax.io/#getaccountpositions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1315,7 +1315,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1477,7 +1477,7 @@ export default class ndax extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1594,7 +1594,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1681,7 +1681,7 @@ export default class ndax extends Exchange {
      * @see https://apidoc.ndax.io/#cancelallorders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1723,7 +1723,7 @@ export default class ndax extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1764,7 +1764,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1844,7 +1844,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1939,7 +1939,7 @@ export default class ndax extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -2019,7 +2019,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -2099,7 +2099,7 @@ export default class ndax extends Exchange {
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -2173,7 +2173,7 @@ export default class ndax extends Exchange {
      * @description create a currency deposit address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const request: Dict = {
@@ -2191,7 +2191,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] not used by ndax fetchDeposits
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -2252,7 +2252,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -2454,7 +2454,7 @@ export default class ndax extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);

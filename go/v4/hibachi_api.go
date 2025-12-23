@@ -7,90 +7,90 @@
 
 package ccxt
 
-func (this *hibachi) PublicGetMarketExchangeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketExchangeInfo", args...)
+func (this *HibachiCore) PublicGetMarketExchangeInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketExchangeInfo", args...)
 }
 
-func (this *hibachi) PublicGetMarketDataTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataTrades", args...)
+func (this *HibachiCore) PublicGetMarketDataTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketDataTrades", args...)
 }
 
-func (this *hibachi) PublicGetMarketDataPrices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataPrices", args...)
+func (this *HibachiCore) PublicGetMarketDataPrices (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketDataPrices", args...)
 }
 
-func (this *hibachi) PublicGetMarketDataStats(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataStats", args...)
+func (this *HibachiCore) PublicGetMarketDataStats (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketDataStats", args...)
 }
 
-func (this *hibachi) PublicGetMarketDataKlines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataKlines", args...)
+func (this *HibachiCore) PublicGetMarketDataKlines (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketDataKlines", args...)
 }
 
-func (this *hibachi) PublicGetMarketDataOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataOrderbook", args...)
+func (this *HibachiCore) PublicGetMarketDataOrderbook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketDataOrderbook", args...)
 }
 
-func (this *hibachi) PublicGetMarketDataOpenInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataOpenInterest", args...)
+func (this *HibachiCore) PublicGetMarketDataOpenInterest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketDataOpenInterest", args...)
 }
 
-func (this *hibachi) PublicGetMarketDataFundingRates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketDataFundingRates", args...)
+func (this *HibachiCore) PublicGetMarketDataFundingRates (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketDataFundingRates", args...)
 }
 
-func (this *hibachi) PublicGetExchangeUtcTimestamp(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetExchangeUtcTimestamp", args...)
+func (this *HibachiCore) PublicGetExchangeUtcTimestamp (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetExchangeUtcTimestamp", args...)
 }
 
-func (this *hibachi) PrivateGetCapitalDepositInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetCapitalDepositInfo", args...)
+func (this *HibachiCore) PrivateGetCapitalDepositInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetCapitalDepositInfo", args...)
 }
 
-func (this *hibachi) PrivateGetCapitalHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetCapitalHistory", args...)
+func (this *HibachiCore) PrivateGetCapitalHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetCapitalHistory", args...)
 }
 
-func (this *hibachi) PrivateGetTradeAccountTradingHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeAccountTradingHistory", args...)
+func (this *HibachiCore) PrivateGetTradeAccountTradingHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeAccountTradingHistory", args...)
 }
 
-func (this *hibachi) PrivateGetTradeAccountInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeAccountInfo", args...)
+func (this *HibachiCore) PrivateGetTradeAccountInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeAccountInfo", args...)
 }
 
-func (this *hibachi) PrivateGetTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeOrder", args...)
+func (this *HibachiCore) PrivateGetTradeOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeOrder", args...)
 }
 
-func (this *hibachi) PrivateGetTradeAccountTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeAccountTrades", args...)
+func (this *HibachiCore) PrivateGetTradeAccountTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeAccountTrades", args...)
 }
 
-func (this *hibachi) PrivateGetTradeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTradeOrders", args...)
+func (this *HibachiCore) PrivateGetTradeOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTradeOrders", args...)
 }
 
-func (this *hibachi) PrivatePutTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePutTradeOrder", args...)
+func (this *HibachiCore) PrivatePutTradeOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePutTradeOrder", args...)
 }
 
-func (this *hibachi) PrivateDeleteTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteTradeOrder", args...)
+func (this *HibachiCore) PrivateDeleteTradeOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteTradeOrder", args...)
 }
 
-func (this *hibachi) PrivateDeleteTradeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteTradeOrders", args...)
+func (this *HibachiCore) PrivateDeleteTradeOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteTradeOrders", args...)
 }
 
-func (this *hibachi) PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeOrder", args...)
+func (this *HibachiCore) PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostTradeOrder", args...)
 }
 
-func (this *hibachi) PrivatePostTradeOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeOrders", args...)
+func (this *HibachiCore) PrivatePostTradeOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostTradeOrders", args...)
 }
 
-func (this *hibachi) PrivatePostCapitalWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCapitalWithdraw", args...)
+func (this *HibachiCore) PrivatePostCapitalWithdraw (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostCapitalWithdraw", args...)
 }
