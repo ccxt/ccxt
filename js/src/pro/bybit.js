@@ -1522,9 +1522,11 @@ export default class bybit extends bybitRest {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, 'position');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, 'position');
+        }
     }
     handlePositions(client, message) {
         //

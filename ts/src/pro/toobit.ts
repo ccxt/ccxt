@@ -757,10 +757,12 @@ export default class toobit extends toobitRest {
         const type = (marketType === 'spot') ? 'spot' : 'contract';
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve ();
-        client.resolve (this.balance[type], type + ':fetchBalanceSnapshot');
-        client.resolve (this.balance[type], type + ':balance'); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve ();
+            client.resolve (this.balance[type], type + ':fetchBalanceSnapshot');
+            client.resolve (this.balance[type], type + ':balance'); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        }
     }
 
     /**
@@ -1027,9 +1029,11 @@ export default class toobit extends toobitRest {
             cache.append (position);
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve (cache);
-        client.resolve (cache, type + ':positions');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (cache, type + ':positions');
+        }
     }
 
     handlePositions (client, message) {

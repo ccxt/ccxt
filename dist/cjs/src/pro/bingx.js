@@ -1134,9 +1134,11 @@ class bingx extends bingx$1["default"] {
         const response = await this.fetchBalance({ 'type': type, 'subType': subType });
         this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve();
-        client.resolve(this.balance[type], type + ':balance');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve();
+            client.resolve(this.balance[type], type + ':balance');
+        }
     }
     handleErrorMessage(client, message) {
         //

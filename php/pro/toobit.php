@@ -781,10 +781,12 @@ class toobit extends \ccxt\async\toobit {
             $type = ($marketType === 'spot') ? 'spot' : 'contract';
             $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ();
-            $client->resolve ($this->balance[$type], $type . ':fetchBalanceSnapshot');
-            $client->resolve ($this->balance[$type], $type . ':balance'); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ();
+                $client->resolve ($this->balance[$type], $type . ':fetchBalanceSnapshot');
+                $client->resolve ($this->balance[$type], $type . ':balance'); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+            }
         }) ();
     }
 
@@ -1059,9 +1061,11 @@ class toobit extends \ccxt\async\toobit {
                 $cache->append ($position);
             }
             // don't remove the $future from the .futures $cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($cache, $type . ':positions');
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($cache, $type . ':positions');
+            }
         }) ();
     }
 
