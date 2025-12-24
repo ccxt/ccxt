@@ -3,8 +3,8 @@
 import bydfiRest from '../bydfi.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
-import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
@@ -24,7 +24,7 @@ export default class bydfi extends bydfiRest {
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchOrdersForSymbols': true,
-                'watchPositions': false,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': false,
@@ -629,20 +629,34 @@ export default class bydfi extends bydfiRest {
         //         }
         //     }
         //
-        if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
-        }
-        const orders = this.orders;
         const rawOrder = this.safeDict (message, 'o', {});
-        const order = this.parseWsOrder (rawOrder);
-        const lastUpdateTimestamp = this.safeInteger (message, 'T');
-        order['lastUpdateTimestamp'] = lastUpdateTimestamp;
-        orders.append (order);
-        let messageHash = 'orders';
-        client.resolve (orders, messageHash);
-        messageHash = 'orders:' + order['symbol'];
-        client.resolve (orders, messageHash);
+        const marketId = this.safeString (rawOrder, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let match = false;
+        const messageHash = 'orders';
+        const symbolMessageHash = messageHash + '::' + symbol;
+        const messageHashes = this.findMessageHashes (client, messageHash);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const hash = messageHashes[i];
+            if (hash === symbolMessageHash || hash === messageHash) {
+                match = true;
+                break;
+            }
+        }
+        if (match) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const orders = this.orders;
+            const order = this.parseWsOrder (rawOrder, market);
+            const lastUpdateTimestamp = this.safeInteger (message, 'T');
+            order['lastUpdateTimestamp'] = lastUpdateTimestamp;
+            orders.append (order);
+            client.resolve (orders, messageHash);
+            client.resolve (orders, symbolMessageHash);
+        }
     }
 
     parseWsOrder (order: Dict, market: Market = undefined): Order {
@@ -708,6 +722,174 @@ export default class bydfi extends bydfiRest {
             'fee': fee,
             'average': this.omitZero (this.safeString (order, 'ap')),
         }, market);
+    }
+
+    /**
+     * @method
+     * @name bydfi#watchPositions
+     * @description watch all open positions
+     * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const messageHashes = [];
+        const messageHash = 'positions';
+        if (symbols === undefined) {
+            messageHashes.push (messageHash);
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push (messageHash + '::' + symbol);
+            }
+        }
+        const positions = await this.watchPrivate (messageHashes, params);
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client, message) {
+        //
+        //     {
+        //         "a": {
+        //             "B": [
+        //                 {
+        //                     "a": "USDC",
+        //                     "ba": "0",
+        //                     "im": "1.46282986",
+        //                     "om": "0",
+        //                     "tfm": "1.46282986",
+        //                     "wb": "109.86879703"
+        //                 }
+        //             ],
+        //             "m": "ORDER",
+        //             "p": [
+        //                 {
+        //                     "S": "1",
+        //                     "ap": "2925.81666667",
+        //                     "c": "USDC",
+        //                     "ct": "FUTURE",
+        //                     "l": 2,
+        //                     "lq": "1471.1840621072728637",
+        //                     "lv": "0",
+        //                     "ma": "0",
+        //                     "mt": "ISOLATED",
+        //                     "pm": "1.4628298566666665",
+        //                     "pt": "ONEWAY",
+        //                     "rp": "-0.00036721",
+        //                     "s": "ETH-USDC",
+        //                     "t": "0",
+        //                     "uq": "0.001",
+        //                     "v": "1"
+        //                 }
+        //             ]
+        //         },
+        //         "T": 1766592694451,
+        //         "E": 1766592694554,
+        //         "e": "ACCOUNT_UPDATE"
+        //     }
+        //
+        const data = this.safeDict (message, 'a', {});
+        const positionsData = this.safeList (data, 'p', []);
+        const rawPosition = this.safeDict (positionsData, 0, {});
+        const marketId = this.safeString (rawPosition, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'positions';
+        const symbolMessageHash = messageHash + '::' + symbol;
+        const messageHashes = this.findMessageHashes (client, messageHash);
+        let match = false;
+        for (let i = 0; i < messageHashes.length; i++) {
+            const hash = messageHashes[i];
+            if (hash === symbolMessageHash || hash === messageHash) {
+                match = true;
+                break;
+            }
+        }
+        if (match) {
+            if (this.positions === undefined) {
+                this.positions = new ArrayCacheBySymbolBySide ();
+            }
+            const cache = this.positions;
+            const parsedPosition = this.parseWsPosition (rawPosition, market);
+            const timestamp = this.safeInteger (message, 'T');
+            parsedPosition['timestamp'] = timestamp;
+            parsedPosition['datetime'] = this.iso8601 (timestamp);
+            cache.append (parsedPosition);
+            const symbolSpecificMessageHash = messageHash + ':' + parsedPosition['symbol'];
+            client.resolve ([ parsedPosition ], messageHash);
+            client.resolve ([ parsedPosition ], symbolSpecificMessageHash);
+        }
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        //     {
+        //         "S": "1",
+        //         "ap": "2925.81666667",
+        //         "c": "USDC",
+        //         "ct": "FUTURE",
+        //         "l": 2,
+        //         "lq": "1471.1840621072728637",
+        //         "lv": "0",
+        //         "ma": "0",
+        //         "mt": "ISOLATED",
+        //         "pm": "1.4628298566666665",
+        //         "pt": "ONEWAY",
+        //         "rp": "-0.00036721",
+        //         "s": "ETH-USDC",
+        //         "t": "0",
+        //         "uq": "0.001",
+        //         "v": "1"
+        //     }
+        //
+        const marketId = this.safeString (position, 's');
+        market = this.safeMarket (marketId, market);
+        const rawPositionSide = this.safeString (position, 'S');
+        const positionMode = this.safeString (position, 'pt');
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'id'),
+            'symbol': market['symbol'],
+            'entryPrice': this.parseNumber (this.safeString (position, 'ap')),
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'notional': undefined,
+            'collateral': undefined,
+            'unrealizedPnl': undefined,
+            'realizedPnl': this.parseNumber (this.safeString (position, 'rp')),
+            'side': this.parseWsPositionSide (rawPositionSide),
+            'contracts': this.parseNumber (this.safeString (position, 'v')),
+            'contractSize': this.parseNumber (this.safeString (position, 'uq')),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'hedged': (positionMode !== 'ONEWAY'),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.parseNumber (this.safeString (position, 'pm')),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeInteger (position, 'l'),
+            'liquidationPrice': this.parseNumber (this.safeString (position, 'lq')),
+            'marginRatio': undefined,
+            'marginMode': this.safeStringLower (position, 'mt'),
+            'percentage': undefined,
+        });
+    }
+
+    parseWsPositionSide (rawPositionSide: Str): Str {
+        const sides = {
+            '1': 'long',
+            '2': 'short',
+        };
+        return this.safeString (sides, rawPositionSide, rawPositionSide);
     }
 
     handleSubscriptionStatus (client: Client, message) {
@@ -785,6 +967,14 @@ export default class bydfi extends bydfiRest {
                 this.handleOrderBook (client, message);
             } else if (event === 'ORDER_TRADE_UPDATE') {
                 this.handleOrder (client, message);
+            } else if (event === 'ACCOUNT_UPDATE') {
+                const account = this.safeDict (message, 'a', {});
+                // const balances = this.safeList (account, 'B', []);
+                const positions = this.safeList (account, 'p', []);
+                const positionsLength = positions.length;
+                if (positionsLength > 0) {
+                    this.handlePositions (client, message);
+                }
             }
         }
     }
