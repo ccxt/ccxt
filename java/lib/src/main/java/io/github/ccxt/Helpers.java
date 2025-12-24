@@ -13,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -969,5 +970,16 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
             t = t.getCause();
         }
         return t;
+    }
+
+    public static Object split(Object str, Object splitter) {
+        if (str == null || splitter == null) {
+            return new String[0];
+        }
+
+        String s = String.valueOf(str);
+        String delim = String.valueOf(splitter);
+
+        return s.split(Pattern.quote(delim));
     }
 }

@@ -424,7 +424,8 @@ public class BaseTest {
 
         Class<?> clazz = exchange.getClass();
 
-        for (Method m : clazz.getDeclaredMethods()) {
+//        for (Method m : clazz.getDeclaredMethods()) {
+        for (Method m : clazz.getMethods()) {
             if (m.getName().equals(methodName)) {
                 method = m;
                 break;
