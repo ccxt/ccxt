@@ -200,34 +200,34 @@ export default class bydfi extends Exchange {
                 'public': {
                     'get': {
                         'v1/public/api_limits': 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/swap/market/exchange_info': 1, // done
-                        'v1/swap/market/depth': 1, // done
-                        'v1/swap/market/trades': 1, // done
-                        'v1/swap/market/klines': 1, // done
-                        'v1/swap/market/ticker/24hr': 1, // done
+                        'v1/swap/market/exchange_info': 1,
+                        'v1/swap/market/depth': 1,
+                        'v1/swap/market/trades': 1,
+                        'v1/swap/market/klines': 1,
+                        'v1/swap/market/ticker/24hr': 1,
                         'v1/swap/market/ticker/price': 1, // https://developers.bydfi.com/en/swap/market#latest-price
                         'v1/swap/market/mark_price': 1, // https://developers.bydfi.com/en/swap/market#mark-price
-                        'v1/swap/market/funding_rate': 1, // done
-                        'v1/swap/market/funding_rate_history': 1, // done
+                        'v1/swap/market/funding_rate': 1,
+                        'v1/swap/market/funding_rate_history': 1,
                         'v1/swap/market/risk_limit': 1, // https://developers.bydfi.com/en/swap/market#risk-limit
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/account/assets': 1, // done
-                        'v1/account/transfer_records': 1, // done
-                        'v1/spot/deposit_records': 1, // done
-                        'v1/spot/withdraw_records': 1, // done
-                        'v1/swap/trade/open_order': 1, // done
-                        'v1/swap/trade/plan_order': 1, // done
-                        'v1/swap/trade/leverage': 1, // done
-                        'v1/swap/trade/history_order': 1, // done
-                        'v1/swap/trade/history_trade': 1, // done
-                        'v1/swap/trade/position_history': 1, // done
-                        'v1/swap/trade/positions': 1, // done
-                        'v1/swap/account/balance': 1, // done
-                        'v1/swap/user_data/assets_margin': 1, // done
-                        'v1/swap/user_data/position_side/dual': 1, // done
+                        'v1/account/assets': 1,
+                        'v1/account/transfer_records': 1,
+                        'v1/spot/deposit_records': 1,
+                        'v1/spot/withdraw_records': 1,
+                        'v1/swap/trade/open_order': 1,
+                        'v1/swap/trade/plan_order': 1,
+                        'v1/swap/trade/leverage': 1,
+                        'v1/swap/trade/history_order': 1,
+                        'v1/swap/trade/history_trade': 1,
+                        'v1/swap/trade/position_history': 1,
+                        'v1/swap/trade/positions': 1,
+                        'v1/swap/account/balance': 1,
+                        'v1/swap/user_data/assets_margin': 1,
+                        'v1/swap/user_data/position_side/dual': 1,
                         'v1/agent/teams': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
                         'v1/agent/agent_links': 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
                         'v1/agent/regular_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
@@ -239,16 +239,16 @@ export default class bydfi extends Exchange {
                         'v1/agent/internal_withdrawal_status': 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
-                        'v1/account/transfer': 1, // done
-                        'v1/swap/trade/place_order': 1, // done
-                        'v1/swap/trade/batch_place_order': 1, // done
-                        'v1/swap/trade/edit_order': 1, // done
-                        'v1/swap/trade/batch_edit_order': 1, // done
-                        'v1/swap/trade/cancel_all_order': 1, // done
-                        'v1/swap/trade/leverage': 1, // done
+                        'v1/account/transfer': 1,
+                        'v1/swap/trade/place_order': 1,
+                        'v1/swap/trade/batch_place_order': 1,
+                        'v1/swap/trade/edit_order': 1,
+                        'v1/swap/trade/batch_edit_order': 1,
+                        'v1/swap/trade/cancel_all_order': 1,
+                        'v1/swap/trade/leverage': 1,
                         'v1/swap/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/swap/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/swap/user_data/margin_type': 1, // done
-                        'v1/swap/user_data/position_side/dual': 1, // done
+                        'v1/swap/user_data/margin_type': 1,
+                        'v1/swap/user_data/position_side/dual': 1,
                         'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
@@ -1171,7 +1171,6 @@ export default class bydfi extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // todo check for hedged mode
         let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         let wallet = 'W001';
         [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
@@ -1891,7 +1890,6 @@ export default class bydfi extends Exchange {
             '2': 'closed',
             '4': 'canceled',
         };
-        // todo check other status codes
         return this.safeString (statuses, status, status);
     }
 
