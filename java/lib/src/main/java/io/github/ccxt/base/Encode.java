@@ -3,6 +3,7 @@ package io.github.ccxt.base;
 
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -265,6 +266,8 @@ public final class Encode {
             Object value = parameters.get(key);
             if (value instanceof Boolean b) {
                 value = String.valueOf(b).toLowerCase(Locale.ROOT);
+            } else if (value instanceof Double) {
+                value = BigDecimal.valueOf((Double) value).stripTrailingZeros().toPlainString(); // avoid scientific notation
             }
             out.add(key + "=" + String.valueOf(value));
         }
@@ -328,6 +331,11 @@ public final class Encode {
             String finalValue = String.valueOf(value);
             if (value instanceof Boolean) {
                 finalValue = finalValue.toLowerCase(Locale.ROOT);
+            } else if (value instanceof Double) {
+                finalValue =  BigDecimal
+                        .valueOf((Double) value)
+                        .stripTrailingZeros()
+                        .toPlainString();
             }
             String encodedValue = urlEncode(finalValue);
             if ("timestamp".equalsIgnoreCase(key)) {

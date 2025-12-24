@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
+import org.bouncycastle.jcajce.provider.digest.Keccak;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
@@ -195,10 +196,10 @@ public final class Crypto {
     }
 
     private static byte[] keccakDigest(byte[] data) {
-        // Keccak.Digest256 k = new Keccak.Digest256();
-        // k.update(data, 0, data.length);
-        // return k.digest();
-        throw new UnsupportedOperationException("Keccak not implemented");
+        Keccak.Digest256 k = new Keccak.Digest256();
+        k.update(data, 0, data.length);
+        return k.digest();
+        // throw new UnsupportedOperationException("Keccak not implemented");
     }
 
     // ====================================================
