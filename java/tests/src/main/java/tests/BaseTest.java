@@ -403,17 +403,25 @@ public class BaseTest {
     public static CompletableFuture<Object> callExchangeMethodDynamically(
         Object exchange,
         Object methodName2,
-        Object... args
+        Object args
     ) throws Exception {
         var methodName = (String) methodName2;
         List<Object> realArgs;
-        if (args.length == 0) {
+
+//        if (args.length == 0) {
+//            realArgs = new ArrayList<>();
+//        } else {
+//            realArgs = (List<Object>) args[0];
+//        }
+
+        if (args == null) {
             realArgs = new ArrayList<>();
         } else {
-            realArgs = (List<Object>) args[0];
+            List<Object> args2 = (List<Object>) args;
+            realArgs = args2;
         }
-
         Method method = null;
+
         Class<?> clazz = exchange.getClass();
 
         for (Method m : clazz.getDeclaredMethods()) {
@@ -430,17 +438,39 @@ public class BaseTest {
         method.setAccessible(true);
 
         Class<?>[] parameterTypes = method.getParameterTypes();
-        Object[] newArgs = new Object[parameterTypes.length];
 
-        for (int i = 0; i < parameterTypes.length; i++) {
-            if (i < realArgs.size()) {
-                newArgs[i] = realArgs.get(i);
-            } else {
-                newArgs[i] = null;
+        Object[] invokeArgs;
+
+        if (method.isVarArgs()) {
+            int fixedCount = parameterTypes.length - 1; // last is the vararg array type
+
+            // fill fixed args
+            invokeArgs = new Object[parameterTypes.length];
+            for (int i = 0; i < fixedCount; i++) {
+                invokeArgs[i] = (i < realArgs.size()) ? realArgs.get(i) : null;
+            }
+
+            // pack remaining args into an array for the varargs parameter
+            Class<?> varArgArrayType = parameterTypes[parameterTypes.length - 1]; // e.g., Object[]
+            Class<?> componentType = varArgArrayType.getComponentType();          // e.g., Object
+
+            int varCount = Math.max(0, realArgs.size() - fixedCount);
+            Object varArgArray = java.lang.reflect.Array.newInstance(componentType, varCount);
+            for (int j = 0; j < varCount; j++) {
+                java.lang.reflect.Array.set(varArgArray, j, realArgs.get(fixedCount + j));
+            }
+
+            invokeArgs[parameterTypes.length - 1] = varArgArray;
+
+        } else {
+            // non-varargs: your old approach is fine
+            invokeArgs = new Object[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                invokeArgs[i] = (i < realArgs.size()) ? realArgs.get(i) : null;
             }
         }
 
-        Object result = method.invoke(exchange, newArgs);
+        Object result = method.invoke(exchange, invokeArgs);
 
         if (result instanceof CompletableFuture<?>) {
             return (CompletableFuture<Object>) result;
