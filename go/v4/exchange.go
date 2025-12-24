@@ -1187,6 +1187,23 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 	}
 }
 
+func (this *Exchange) exceptionMessage(err interface{}, includeStack interface{}) string {
+	var message string
+
+	if includeStack {
+		message = fmt.Sprintf("[%T] %+v", err, err)
+	} else {
+		message = fmt.Sprintf("[%T] %v", err, err)
+	}
+
+	length := len(message)
+	if length > 100000 {
+		length = 100000
+	}
+
+	return message[:length]
+}
+
 func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
 	// Convert property to string
 	propName, ok := property.(string)

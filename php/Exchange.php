@@ -2325,6 +2325,12 @@ class Exchange {
         $obj->$property = $defaultValue;
     }
 
+    function exceptionMessage($exc, $includeStack = true) {
+        $message = '[' . get_class($exc) . '] ' . (!$includeStack ? $exc->getMessage() : $exc->getTraceAsString());
+        $length = min(100000, strlen($message));
+        return substr($message, 0, $length);
+    }
+
     function un_camel_case($str){
         return self::underscore($str);
     }
