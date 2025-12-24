@@ -1821,11 +1821,13 @@ public class Exchange {
     }
 
     public Object ethEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2) {
-        throw new RuntimeException("Not implemented");
+        // throw new RuntimeException("Not implemented");
+        return ""; // to do later
     }
 
     public Object packb(Object data) {
-        throw new RuntimeException("Not implemented");
+        // throw new RuntimeException("Not implemented");
+        return ""; // to do later
     }
 
     public int binaryLength(Object binary) {
@@ -1844,17 +1846,20 @@ public class Exchange {
 
     public Object ethAbiEncode(Object types2, Object args2)
     {
-        throw new RuntimeException("not implemented");
+        // throw new RuntimeException("not implemented");
+        return ""; // to do later
     }
 
     public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
     {
-        throw new RuntimeException("Not implemented");
+        // throw new RuntimeException("Not implemented");
+        return ""; // to do later
     }
 
     public Object starknetSign(Object msgHash, Object privateKey)
     {
-        throw new RuntimeException("Not implemented");
+        // throw new RuntimeException("Not implemented");
+        return ""; // to do later
     }
 
     // public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
@@ -1864,7 +1869,8 @@ public class Exchange {
 
     public Object retrieveStarkAccount(Object signature, Object accountClassHash, Object accountProxyClassHash)
     {
-        throw new RuntimeException("Not implemented");
+        // throw new RuntimeException("Not implemented");
+        return "";
     }
 
     public void checkRequiredDependencies()
@@ -1874,7 +1880,8 @@ public class Exchange {
 
     public Object retrieveDydxCredentials(Object entropy)
     {
-        throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
+        // throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
+        return "";
     }
 
     public int randNumber(int size) {
