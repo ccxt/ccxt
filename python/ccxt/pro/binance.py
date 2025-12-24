@@ -2420,9 +2420,10 @@ class binance(ccxt.async_support.binance):
         response = await self.fetch_balance(params)
         self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve()
-        client.resolve(self.balance[type], type + ':balance')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve()
+            client.resolve(self.balance[type], type + ':balance')
 
     async def fetch_balance_ws(self, params={}) -> Balances:
         """
@@ -3773,9 +3774,10 @@ class binance(ccxt.async_support.binance):
             if contracts > 0:
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, type + ':position')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, type + ':position')
 
     def handle_positions(self, client, message):
         #
