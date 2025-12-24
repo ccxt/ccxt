@@ -1190,7 +1190,7 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 func (this *Exchange) exceptionMessage(err interface{}, includeStack interface{}) string {
 	var message string
 
-	if includeStack {
+	if includeStack.(bool) {
 		message = fmt.Sprintf("[%T] %+v", err, err)
 	} else {
 		message = fmt.Sprintf("[%T] %v", err, err)

@@ -1935,7 +1935,7 @@ class Exchange(object):
     def set_property(self, obj, property, value):
         setattr(obj, property, value)
 
-    def exception_message(exc, include_stack = True):
+    def exception_message(self, exc, include_stack=True):
         message = '[' + type(exc).__name__ + '] ' + (str(exc) if include_stack else "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6)))
         length = min(100000, len(message))
         return message[0:length]
