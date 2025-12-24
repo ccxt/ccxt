@@ -53,7 +53,7 @@ export default class bydfi extends bydfiRest {
                     'frequency': '1000ms', // 100ms, 1000ms
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true, // or true
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'timeframes': {
@@ -75,7 +75,7 @@ export default class bydfi extends bydfiRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 12000, // todo check interval
+                'keepAlive': 119000, // 2 minutes
             },
         });
     }
