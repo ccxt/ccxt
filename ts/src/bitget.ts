@@ -5672,9 +5672,9 @@ export default class bitget extends Exchange {
         const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice', this.numberToString (price));
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'newCallbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1) {
-            throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
-        }
+        // if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1) {
+        //     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
         params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ]);
         let response = undefined;
         let productType = undefined;
