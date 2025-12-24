@@ -360,6 +360,7 @@ export default class bydfi extends Exchange {
                     '600': BadRequest, // 600 Parameter Error
                     'Position does not exist': BadRequest, // {"code":100036,"message":"Position does not exist"}
                     'Requires transaction permissions': PermissionDenied, // {"code":101107,"message":"Requires transaction permissions"}
+                    'Service error': ExchangeError, // { msg: 'Service error', code: '-1' }
                     'transfer failed': InsufficientFunds, // {"code":500,"message":"transfer failed","success":false}
                 },
                 'broad': {
@@ -701,11 +702,6 @@ export default class bydfi extends Exchange {
         params = this.handleSinceAndUntil ('fetchMyTrades', since, params);
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        const orderType = this.safeStringUpper (params, 'orderType');
-        if (orderType !== undefined) {
-            params = this.omit (params, 'orderType');
-            request['orderType'] = orderType;
         }
         const response = await this.privateGetV1SwapTradeHistoryTrade (this.extend (request, params));
         //
@@ -1295,8 +1291,6 @@ export default class bydfi extends Exchange {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         } else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
             throw new NotSupported (this.id + ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
-        } else if (reduceOnly) {
-            throw new NotSupported (this.id + ' createOrder() closePosition cannot be used with reduceOnly');
         }
         let timeInForce = this.handleTimeInForce (params);
         let postOnly = false;
@@ -1666,11 +1660,6 @@ export default class bydfi extends Exchange {
         params = this.handleSinceAndUntil ('fetchCanceledAndClosedOrders', since, params);
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        const orderType = this.safeStringUpper (params, 'orderType');
-        if (orderType !== undefined) {
-            params = this.omit (params, 'orderType');
-            request['type'] = orderType;
         }
         const response = await this.privateGetV1SwapTradeHistoryOrder (this.extend (request, params));
         //
