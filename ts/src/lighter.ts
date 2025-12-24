@@ -92,7 +92,7 @@ export default class lighter extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': false,
@@ -441,7 +441,7 @@ export default class lighter extends Exchange {
         const market = this.market (symbol);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         if (orderRequest['nonce'] === undefined) {
-            const nonce = await this.publicGetApikeys ({ 'account_index': orderRequest['account_index'], 'api_key_index': orderRequest['api_key_index'] })
+            const nonce = await this.publicGetApikeys ({ 'account_index': orderRequest['account_index'], 'api_key_index': orderRequest['api_key_index'] });
             const keys = this.safeList (nonce, 'api_keys', []);
             const api = this.safeDict (keys, 0, {});
             orderRequest['nonce'] = this.safeInteger (api, 'nonce');
@@ -1279,6 +1279,77 @@ export default class lighter extends Exchange {
             'marginMode': marginMode,
             'percentage': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://apidocs.lighter.xyz/reference/accountactiveorders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an accountIndex parameter');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market_id': market['id'],
+            'account_index': accountIndex,
+        };
+        const response = await this.privateGetAccountActiveOrders (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "orders": [
+        //             {
+        //                 "order_index": 281474977354074,
+        //                 "client_order_index": 0,
+        //                 "order_id": "281474977354074",
+        //                 "client_order_id": "0",
+        //                 "market_index": 0,
+        //                 "owner_account_index": 1077,
+        //                 "initial_base_amount": "36.0386",
+        //                 "price": "2221.60",
+        //                 "nonce": 643418,
+        //                 "remaining_base_amount": "0.0000",
+        //                 "is_ask": true,
+        //                 "base_size": 0,
+        //                 "base_price": 222160,
+        //                 "filled_base_amount": "0.0000",
+        //                 "filled_quote_amount": "0.000000",
+        //                 "side": "",
+        //                 "type": "market",
+        //                 "time_in_force": "immediate-or-cancel",
+        //                 "reduce_only": false,
+        //                 "trigger_price": "0.00",
+        //                 "order_expiry": 0,
+        //                 "status": "canceled-margin-not-allowed",
+        //                 "trigger_status": "na",
+        //                 "trigger_time": 0,
+        //                 "parent_order_index": 0,
+        //                 "parent_order_id": "0",
+        //                 "to_trigger_order_id_0": "0",
+        //                 "to_trigger_order_id_1": "0",
+        //                 "to_cancel_order_id_0": "0",
+        //                 "block_height": 102202,
+        //                 "timestamp": 1766387932,
+        //                 "created_at": 1766387932,
+        //                 "updated_at": 1766387932
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'orders', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**
