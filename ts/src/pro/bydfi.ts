@@ -1,8 +1,8 @@
 //  ---------------------------------------------------------------------------
 
 import bydfiRest from '../bydfi.js';
-import { ArgumentsRequired } from '../base/errors.js';
-import type { Dict, Int, OHLCV, Strings, Ticker, Tickers } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import type { Dict, Int, OHLCV, OrderBook, Strings, Ticker, Tickers } from '../base/types.js';
 import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -17,8 +17,8 @@ export default class bydfi extends bydfiRest {
                 'watchBalance': false,
                 'watchBidsAsks': false,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': false,
                 'watchOrderBookForSymbols': false,
                 'watchOrders': false,
@@ -28,8 +28,8 @@ export default class bydfi extends bydfiRest {
                 'watchTrades': false,
                 'watchTradesForSymbols': false,
                 'unwatchBidsAsks': false,
-                'unwatchOHLCV': false,
-                'unwatchOHLCVForSymbols': false,
+                'unwatchOHLCV': true,
+                'unwatchOHLCVForSymbols': true,
                 'unwatchOrderBook': false,
                 'unwatchOrderBookForSymbols': false,
                 'unwatchTicker': true,
@@ -48,6 +48,10 @@ export default class bydfi extends bydfiRest {
                 },
             },
             'options': {
+                'watchOrderBookForSymbols': {
+                    'depth': '100', // 10, 50, 100
+                    'frequency': '1000ms', // 100ms, 1000ms
+                },
                 'timeframes': {
                     '1m': '1m',
                     '3m': '3m',
@@ -397,6 +401,127 @@ export default class bydfi extends bydfiRest {
         client.resolve ([ symbol, timeframe, ohlcv ], messageHash);
     }
 
+    /**
+     * @method
+     * @name bydfi#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (default and maxi is 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name bydfi#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name bydfi#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        let depth = '100';
+        [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
+        let frequency = '100ms';
+        [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'frequency', frequency);
+        let channelSuffix = '';
+        if (frequency === '100ms') {
+            channelSuffix = '@100ms';
+        }
+        const channels = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            channels.push (market['id'] + '@depth' + depth + channelSuffix);
+            messageHashes.push ('orderbook::' + symbol);
+        }
+        const orderbook = await this.watchPublic (messageHashes, channels, params);
+        return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name bydfi#unWatchOrderBookForSymbols
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developers.bydfi.com/en/swap/websocket-market#limited-depth-information
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        let depth = '100';
+        [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
+        let frequency = '100ms';
+        [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'frequency', frequency);
+        let channelSuffix = '';
+        if (frequency === '100ms') {
+            channelSuffix = '@100ms';
+        }
+        const channels = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            channels.push (market['id'] + '@depth' + depth + channelSuffix);
+            messageHashes.push ('unsubscribe::orderbook::' + symbol);
+        }
+        const subscription: Dict = {
+            'topic': 'orderbook',
+            'symbols': symbols,
+        };
+        params = this.extend (params, { 'unsubscribe': true });
+        return await this.watchPublic (messageHashes, channels, params, subscription);
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "a": [ [ 150000, 15 ], ... ],
+        //         "b": [ [ 90450.7, 3615 ], ... ],
+        //         "s": "BTC-USDT",
+        //         "e": "depthUpdate",
+        //         "E": 1766577624512
+        //     }
+        //
+        const marketId = this.safeString (message, 's');
+        const symbol = this.safeSymbol (marketId);
+        const timestamp = this.safeInteger (message, 'E');
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        const parsed = this.parseOrderBook (message, symbol, timestamp, 'b', 'a');
+        orderbook.reset (parsed);
+        const messageHash = 'orderbook::' + symbol;
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
@@ -461,7 +586,27 @@ export default class bydfi extends bydfiRest {
         return message;
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //     {
+        //         "msg": "Service error",
+        //         "code": "-1"
+        //     }
+        //
+        const code = this.safeString (message, 'code');
+        const msg = this.safeString (message, 'msg');
+        const feedback = this.id + ' ' + this.json (message);
+        this.throwExactlyMatchedException (this.exceptions['exact'], msg, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        throw new ExchangeError (feedback);
+    }
+
     handleMessage (client: Client, message) {
+        const code = this.safeString (message, 'code');
+        if (code !== undefined && (code !== '0')) {
+            return this.handleErrorMessage (client, message);
+        }
         const result = this.safeString (message, 'result');
         if (result === 'pong') {
             this.handlePong (client, message);
@@ -473,6 +618,8 @@ export default class bydfi extends bydfiRest {
                 this.handleTicker (client, message);
             } else if (event === 'kline') {
                 this.handleOHLCV (client, message);
+            } else if (event === 'depthUpdate') {
+                this.handleOrderBook (client, message);
             }
         }
     }
