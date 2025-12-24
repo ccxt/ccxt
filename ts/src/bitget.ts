@@ -75,7 +75,7 @@ export default class bitget extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -3076,6 +3076,51 @@ export default class bitget extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
+    }
+
+    /**
+     * @method
+     * @name bitget#fetchDepositAddresses
+     * @description fetch deposit addresses for currencies, returns deposit address information
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+     * @param {string[]} codes unified currency codes, if undefined returns for all currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.coin] currency id to fetch address for
+     * @param {string} [params.chain] chain name
+     * @returns {object[]} an array of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddresses (codes: Str[] = undefined, params = {}): Promise<DepositAddress[]> {
+        await this.loadMarkets ();
+        let code = undefined;
+        if (codes !== undefined) {
+            const codesLength = codes.length;
+            if (codesLength > 1) {
+                throw new BadRequest (this.id + ' fetchDepositAddresses() does not support fetching multiple codes at once');
+            }
+            code = codes[0];
+        }
+        let currency = undefined;
+        const request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        const response = await this.privateSpotGetSpotV1WalletDepositAddress (this.extend (request, params));
+        //
+        //  {
+        //      "code": "00000",
+        //      "msg": "success",
+        //      "data": {
+        //          "address": "1HPn8Rx2y6nNSfagQBKy27G***",
+        //          "chain": "BTC-Bitcoin",
+        //          "coin": "BTC",
+        //          "tag": "",
+        //          "url": "https://btc.com/1HPn8Rx2y6nNSfagQBKy27G***"
+        //      }
+        //  }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return [ this.parseDepositAddress (data, currency) ];
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
