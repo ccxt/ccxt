@@ -3105,7 +3105,7 @@ export default class bitget extends Exchange {
             currency = this.currency (code);
             request['coin'] = currency['id'];
         }
-        const response = await this.privateSpotGetSpotV1WalletDepositAddress (this.extend (request, params));
+        const response = await this.privateSpotGetV2SpotWalletDepositAddress (this.extend (request, params));
         //
         //  {
         //      "code": "00000",
