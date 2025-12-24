@@ -2134,6 +2134,8 @@
         }
     },
      "bullish": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw": "not provided",
