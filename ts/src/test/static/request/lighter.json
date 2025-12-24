@@ -27,6 +27,14 @@
                 "input": []
             }
         ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/assetDetails",
+                "input": []
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",

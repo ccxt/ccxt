@@ -3,7 +3,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ export default class lighter extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': false,
@@ -171,6 +171,7 @@ export default class lighter extends Exchange {
                         'apikeys': 1,
                         // order
                         'exchangeStats': 1,
+                        'assetDetails': 1,
                         'orderBookDetails': 1,
                         'orderBookOrders': 1,
                         'orderBooks': 1,
@@ -631,6 +632,67 @@ export default class lighter extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
+            });
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://apidocs.lighter.xyz/reference/assetdetails
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.publicGetAssetDetails (params);
+        //
+        //     {
+        //         "code": 200,
+        //         "asset_details": [
+        //             {
+        //                 "asset_id": 3,
+        //                 "symbol": "USDC",
+        //                 "l1_decimals": 6,
+        //                 "decimals": 6,
+        //                 "min_transfer_amount": "1.000000",
+        //                 "min_withdrawal_amount": "1.000000",
+        //                 "margin_mode": "enabled",
+        //                 "index_price": "1.000000",
+        //                 "l1_address": "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'asset_details', []);
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString (entry, 'asset_id');
+            const code = this.safeCurrencyCode (this.safeString (entry, 'symbol'));
+            result[code] = this.safeCurrencyStructure ({
+                'id': id,
+                'name': code,
+                'code': code,
+                'precision': this.safeInteger (entry, 'decimals'),
+                'active': true,
+                'fee': undefined,
+                'networks': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'type': 'crypto',
+                'limits': {
+                    'deposit': {
+                        'min': this.safeNumber (entry, 'min_transfer_amount'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (entry, 'min_withdrawal_amount'),
+                        'max': undefined,
+                    },
+                },
+                'info': entry,
             });
         }
         return result;

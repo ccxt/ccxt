@@ -177,6 +177,66 @@
                 ]
             }
         ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "asset_details": [
+                        {
+                            "asset_id": 3,
+                            "symbol": "USDC",
+                            "l1_decimals": 6,
+                            "decimals": 6,
+                            "min_transfer_amount": "1.000000",
+                            "min_withdrawal_amount": "1.000000",
+                            "margin_mode": "enabled",
+                            "index_price": "1.000000",
+                            "l1_address": "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDC": {
+                        "info": {
+                            "asset_id": 3,
+                            "symbol": "USDC",
+                            "l1_decimals": 6,
+                            "decimals": 6,
+                            "min_transfer_amount": "1.000000",
+                            "min_withdrawal_amount": "1.000000",
+                            "margin_mode": "enabled",
+                            "index_price": "1.000000",
+                            "l1_address": "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
+                        },
+                        "id": "3",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": 6,
+                        "type": "crypto",
+                        "name": "USDC",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "deposit": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",
