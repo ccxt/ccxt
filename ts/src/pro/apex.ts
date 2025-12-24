@@ -1010,7 +1010,7 @@ export default class apex extends apexRest {
         try {
             await client.send ({ 'args': [ timeStamp.toString () ], 'op': 'pong' });
         } catch (e) {
-            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.exceptionMessage (e));
             client.reset (error);
         }
     }
