@@ -2182,12 +2182,12 @@
                         "amount": 4,
                         "cost": 11.77044,
                         "fee": {
-                            "currency": null,
+                            "currency": "USDC",
                             "cost": 0.01
                         },
                         "fees": [
                             {
-                                "currency": null,
+                                "currency": "USDC",
                                 "cost": 0.01
                             }
                         ]
