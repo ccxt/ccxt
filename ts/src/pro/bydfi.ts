@@ -1,9 +1,10 @@
 //  ---------------------------------------------------------------------------
 
 import bydfiRest from '../bydfi.js';
+import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, OHLCV, OrderBook, Strings, Ticker, Tickers } from '../base/types.js';
-import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
@@ -19,9 +20,10 @@ export default class bydfi extends bydfiRest {
                 'watchMyTrades': false,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
-                'watchOrderBook': false,
-                'watchOrderBookForSymbols': false,
-                'watchOrders': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
+                'watchOrders': true,
+                'watchOrdersForSymbols': true,
                 'watchPositions': false,
                 'watchTicker': true,
                 'watchTickers': true,
@@ -30,21 +32,19 @@ export default class bydfi extends bydfiRest {
                 'unwatchBidsAsks': false,
                 'unwatchOHLCV': true,
                 'unwatchOHLCVForSymbols': true,
-                'unwatchOrderBook': false,
-                'unwatchOrderBookForSymbols': false,
+                'unwatchOrderBook': true,
+                'unwatchOrderBookForSymbols': true,
                 'unwatchTicker': true,
                 'unwatchTickers': true,
                 'unWatchTrades': false,
                 'unWatchTradesForSymbols': false,
                 'unWatchOrders': false,
+                'unWatchOrdersForSymbols': false,
                 'unWatchPositions': false,
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://stream.bydfi.com/v1/public/swap',
-                        'private': 'wss://stream.bydfi.com/v1/public/swap',
-                    },
+                    'ws': 'wss://stream.bydfi.com/v1/public/swap',
                 },
             },
             'options': {
@@ -92,7 +92,7 @@ export default class bydfi extends bydfiRest {
     }
 
     async watchPublic (messageHashes, channels, params = {}, subscription = {}) {
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws'];
         const id = this.requestId ();
         const subscriptionParams: Dict = {
             'id': id,
@@ -111,6 +111,33 @@ export default class bydfi extends bydfiRest {
             'params': channels,
         };
         return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, this.extend (subscriptionParams, subscription));
+    }
+
+    async watchPrivate (messageHashes, params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const subHash = 'private';
+        const client = this.client (url);
+        const privateSubscription = this.safeValue (client.subscriptions, subHash);
+        const subscription: Dict = {};
+        if (privateSubscription === undefined) {
+            const id = this.requestId ();
+            const timestamp = this.milliseconds ().toString ();
+            const payload = this.apiKey + timestamp;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+            const request: Dict = {
+                'id': id,
+                'method': 'LOGIN',
+                'params': {
+                    'apiKey': this.apiKey,
+                    'timestamp': timestamp,
+                    'sign': signature,
+                },
+            };
+            params = this.deepExtend (request, params);
+            subscription['id'] = id;
+        }
+        return await this.watchMultiple (url, messageHashes, params, [ 'private' ], subscription);
     }
 
     /**
@@ -522,29 +549,165 @@ export default class bydfi extends bydfiRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async authenticate (params = {}) {
-        this.checkRequiredCredentials ();
-        const messageHash = 'authenticated';
-        const url = this.urls['api']['ws']['private'];
-        const client = this.client (url);
-        const future = client.reusableFuture (messageHash);
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            const timestamp = this.milliseconds ().toString ();
-            const payload = this.apiKey + timestamp;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
-            const request: Dict = {
-                'id': this.requestId (),
-                'method': 'LOGIN',
-                'params': {
-                    'apiKey': this.apiKey,
-                    'timestamp': timestamp,
-                    'sign': signature,
-                },
-            };
-            this.watch (url, messageHash, this.deepExtend (request, params), messageHash, future);
+    /**
+     * @method
+     * @name bydfi#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        let symbols: Strings = undefined;
+        if (symbol !== undefined) {
+            symbols = [ symbol ];
         }
-        return await future;
+        return await this.watchOrdersForSymbols (symbols, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name bydfi#watchOrdersForSymbols
+     * @description watches information on multiple orders made by the user
+     * @see https://developers.bydfi.com/en/swap/websocket-account#order-trade-update-push
+     * @param {string[]} symbols unified symbol of the market to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const messageHashes = [];
+        if (symbols === undefined) {
+            messageHashes.push ('orders');
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push ('orders::' + symbol);
+            }
+        }
+        const orders = await this.watchPrivate (messageHashes, params);
+        if (this.newUpdates) {
+            const first = this.safeValue (orders, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = orders.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //     {
+        //         "T": 1766588450558,
+        //         "E": 1766588450685,
+        //         "e": "ORDER_TRADE_UPDATE",
+        //         "o": {
+        //             "S": "BUY",
+        //             "ap": "0",
+        //             "cpt": false,
+        //             "ct": "future",
+        //             "ev": "0",
+        //             "fee": "0",
+        //             "lv": 2,
+        //             "mt": "isolated",
+        //             "o": "7409609004526010368",
+        //             "p": "1000",
+        //             "ps": "BOTH",
+        //             "pt": "ONE_WAY",
+        //             "ro": false,
+        //             "s": "ETH-USDC",
+        //             "st": "NEW",
+        //             "t": "LIMIT",
+        //             "tp": "0",
+        //             "u": "0.001",
+        //             "v": "2"
+        //         }
+        //     }
+        //
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        const rawOrder = this.safeDict (message, 'o', {});
+        const order = this.parseWsOrder (rawOrder);
+        const lastUpdateTimestamp = this.safeInteger (message, 'T');
+        order['lastUpdateTimestamp'] = lastUpdateTimestamp;
+        orders.append (order);
+        let messageHash = 'orders';
+        client.resolve (orders, messageHash);
+        messageHash = 'orders:' + order['symbol'];
+        client.resolve (orders, messageHash);
+    }
+
+    parseWsOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "S": "BUY",
+        //         "ap": "0",
+        //         "cpt": false,
+        //         "ct": "future",
+        //         "ev": "0",
+        //         "fee": "0",
+        //         "lv": 2,
+        //         "mt": "isolated",
+        //         "o": "7409609004526010368",
+        //         "p": "1000",
+        //         "ps": "BOTH",
+        //         "pt": "ONE_WAY",
+        //         "ro": false,
+        //         "s": "ETH-USDC",
+        //         "st": "NEW",
+        //         "t": "LIMIT",
+        //         "tp": "0",
+        //         "u": "0.001",
+        //         "v": "2"
+        //     }
+        //
+        const marketId = this.safeString (order, 's');
+        market = this.safeMarket (marketId, market);
+        const rawStatus = this.safeString (order, 'st');
+        const rawType = this.safeString (order, 't');
+        let fee = undefined;
+        const feeCost = this.safeString (order, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': Precise.stringAbs (feeCost),
+                'currency': market['quote'],
+            };
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'o'),
+            'clientOrderId': this.safeString (order, 'cid'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'status': this.parseOrderStatus (rawStatus),
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (rawType),
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'reduceOnly': this.safeBool (order, 'ro'),
+            'side': this.safeStringLower (order, 'S'),
+            'price': this.safeString (order, 'p'),
+            'triggerPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'amount': this.safeString (order, 'v'),
+            'filled': this.safeString (order, 'ev'),
+            'remaining': this.safeString (order, 'qty'),
+            'cost': undefined,
+            'trades': undefined,
+            'fee': fee,
+            'average': this.omitZero (this.safeString (order, 'ap')),
+        }, market);
     }
 
     handleSubscriptionStatus (client: Client, message) {
@@ -605,7 +768,7 @@ export default class bydfi extends bydfiRest {
     handleMessage (client: Client, message) {
         const code = this.safeString (message, 'code');
         if (code !== undefined && (code !== '0')) {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
         }
         const result = this.safeString (message, 'result');
         if (result === 'pong') {
@@ -620,6 +783,8 @@ export default class bydfi extends bydfiRest {
                 this.handleOHLCV (client, message);
             } else if (event === 'depthUpdate') {
                 this.handleOrderBook (client, message);
+            } else if (event === 'ORDER_TRADE_UPDATE') {
+                this.handleOrder (client, message);
             }
         }
     }
