@@ -583,6 +583,11 @@ public class BaseTest {
         //     id = "ccxt.pro." + id;
         // }
 
+        if (id == "Exchange") {
+            // Exchange is a special case because lives in a different package
+            return new Exchange(exchangeArgs);
+        }
+
         return Exchange.dynamicallyCreateInstance(id, exchangeArgs, false);
     }
 
