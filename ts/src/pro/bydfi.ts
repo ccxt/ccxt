@@ -561,7 +561,7 @@ export default class bydfi extends bydfiRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        let symbols: Strings = undefined;
+        let symbols = undefined;
         if (symbol !== undefined) {
             symbols = [ symbol ];
         }
