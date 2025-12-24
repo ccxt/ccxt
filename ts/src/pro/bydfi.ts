@@ -3,7 +3,7 @@
 import bydfiRest from '../bydfi.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers } from '../base/types.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -15,7 +15,7 @@ export default class bydfi extends bydfiRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchBidsAsks': false,
                 'watchMyTrades': false,
                 'watchOHLCV': true,
@@ -51,6 +51,10 @@ export default class bydfi extends bydfiRest {
                 'watchOrderBookForSymbols': {
                     'depth': '100', // 10, 50, 100
                     'frequency': '1000ms', // 100ms, 1000ms
+                },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true, // or true
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'timeframes': {
                     '1m': '1m',
@@ -892,6 +896,119 @@ export default class bydfi extends bydfiRest {
         return this.safeString (sides, rawPositionSide, rawPositionSide);
     }
 
+    /**
+     * @method
+     * @name bydfi#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://developers.bydfi.com/en/swap/websocket-account#balance-and-position-update-push
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        this.fetchBalanceSnapshot (client);
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future ('fetchBalanceSnapshot');
+        }
+        const messageHash = 'balance';
+        return await this.watchPrivate ([ messageHash ], params);
+    }
+
+    fetchBalanceSnapshot (client: Client) {
+        const options = this.safeValue (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot) {
+            const messageHash = 'fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash);
+            }
+        }
+    }
+
+    async loadBalanceSnapshot (client, messageHash) {
+        const params: Dict = {
+            'type': 'swap',
+        };
+        const response = await this.fetchBalance (params);
+        this.balance = this.extend (response, this.balance);
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve ();
+        client.resolve (this.balance, 'balance');
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        //     {
+        //         "a": {
+        //             "B": [
+        //                 {
+        //                     "a": "USDC",
+        //                     "ba": "0",
+        //                     "im": "1.46282986",
+        //                     "om": "0",
+        //                     "tfm": "1.46282986",
+        //                     "wb": "109.86879703"
+        //                 }
+        //             ],
+        //             "m": "ORDER",
+        //             "p": [
+        //                 {
+        //                     "S": "1",
+        //                     "ap": "2925.81666667",
+        //                     "c": "USDC",
+        //                     "ct": "FUTURE",
+        //                     "l": 2,
+        //                     "lq": "1471.1840621072728637",
+        //                     "lv": "0",
+        //                     "ma": "0",
+        //                     "mt": "ISOLATED",
+        //                     "pm": "1.4628298566666665",
+        //                     "pt": "ONEWAY",
+        //                     "rp": "-0.00036721",
+        //                     "s": "ETH-USDC",
+        //                     "t": "0",
+        //                     "uq": "0.001",
+        //                     "v": "1"
+        //                 }
+        //             ]
+        //         },
+        //         "T": 1766592694451,
+        //         "E": 1766592694554,
+        //         "e": "ACCOUNT_UPDATE"
+        //     }
+        //
+        const messageHash = 'balance';
+        if (messageHash in client.futures) {
+            const data = this.safeDict (message, 'a', {});
+            const balances = this.safeList (data, 'B', []);
+            const timestamp = this.safeInteger (message, 'T');
+            const result: Dict = {
+                'info': message,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            };
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'a');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'wb');
+                account['used'] = this.safeString (balance, 'tfm');
+                result[code] = account;
+            }
+            const parsedBalance = this.safeBalance (result);
+            this.balance = this.extend (this.balance, parsedBalance);
+            client.resolve (this.balance, messageHash);
+        }
+    }
+
     handleSubscriptionStatus (client: Client, message) {
         //
         //     {
@@ -969,7 +1086,11 @@ export default class bydfi extends bydfiRest {
                 this.handleOrder (client, message);
             } else if (event === 'ACCOUNT_UPDATE') {
                 const account = this.safeDict (message, 'a', {});
-                // const balances = this.safeList (account, 'B', []);
+                const balances = this.safeList (account, 'B', []);
+                const balancesLength = balances.length;
+                if (balancesLength > 0) {
+                    this.handleBalance (client, message);
+                }
                 const positions = this.safeList (account, 'p', []);
                 const positionsLength = positions.length;
                 if (positionsLength > 0) {
