@@ -112,7 +112,7 @@ export default class lighter extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
@@ -1610,6 +1610,95 @@ export default class lighter extends Exchange {
             'Unknown': undefined,
         };
         return this.safeString (timeInForces, tif, tif);
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://apidocs.lighter.xyz/reference/transfer_history
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of  transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchClosedOrders', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an accountIndex parameter');
+        }
+        const request: Dict = {
+            'account_index': accountIndex,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetTransferHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "transfers": [
+        //             {
+        //                 "id": "3085014",
+        //                 "asset_id": 3,
+        //                 "amount": "11.000000",
+        //                 "fee": "0.000000",
+        //                 "timestamp": 1766387292752,
+        //                 "type": "L2TransferOutflow",
+        //                 "from_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "to_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "from_account_index": 1077,
+        //                 "to_account_index": 281474976710608,
+        //                 "from_route": "spot",
+        //                 "to_route": "spot",
+        //                 "tx_hash": "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
+        //             }
+        //         ],
+        //         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
+        //     }
+        //
+        const rows = this.safeList (response, 'transfers', []);
+        return this.parseTransfers (rows, currency, since, limit, params);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        //     {
+        //         "id": "3085014",
+        //         "asset_id": 3,
+        //         "amount": "11.000000",
+        //         "fee": "0.000000",
+        //         "timestamp": 1766387292752,
+        //         "type": "L2TransferOutflow",
+        //         "from_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //         "to_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //         "from_account_index": 1077,
+        //         "to_account_index": 281474976710608,
+        //         "from_route": "spot",
+        //         "to_route": "spot",
+        //         "tx_hash": "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'asset_id');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const fromAccount = this.safeDict (transfer, 'from', {});
+        const toAccount = this.safeDict (transfer, 'to', {});
+        return {
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (fromAccount, 'from_account_index'),
+            'toAccount': this.safeString (toAccount, 'to_account_index'),
+            'status': undefined,
+            'info': transfer,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
