@@ -1,6 +1,7 @@
 {
     "exchange": "apex",
     "skipKeys": ["signature", "clientId", "expiration"],
+    "disabledJava": true,
     "disabledPy": true,
     "disabledPHP": true,
     "disabledCS": true,

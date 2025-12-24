@@ -1368,6 +1368,10 @@ class testMainClass {
                 if (isDisabledGo && (this.lang === 'GO')) {
                     continue;
                 }
+                const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
+                if (isDisabledJava && (this.lang === 'java')) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);
