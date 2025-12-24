@@ -1084,7 +1084,11 @@
     },
     "dydx": {
         "skipMethods": {
-            "watchOrderBook": {
+            "loadMarkets": {
+                "taker": "missing",
+                "maker": "missing"
+            },
+            "orderBook": {
                 "timestamp": "not provided"
             }
         }
