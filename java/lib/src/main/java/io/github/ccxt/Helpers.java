@@ -706,7 +706,7 @@ public class Helpers {
         String s     = String.valueOf(baseString);
         String find  = (search == null) ? "" : String.valueOf(search);
         String repl  = (replacement == null) ? "" : String.valueOf(replacement);
-        return s.replaceFirst(find, repl); // literal (non-regex) replacement
+        return s.replaceFirst(java.util.regex.Pattern.quote(find),  java.util.regex.Matcher.quoteReplacement(repl)); // literal (non-regex) replacement
     }
 
     public static String replaceAll(Object baseString, Object search, Object replacement) {
