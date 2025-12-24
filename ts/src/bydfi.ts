@@ -778,7 +778,7 @@ export default class bydfi extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': undefined,
+                'currency': market['settle'],
             };
         }
         const orderId = this.safeString (trade, 'orderId');
@@ -828,18 +828,18 @@ export default class bydfi extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
-            'symbol': market['id'],
-            'interval': interval,
-        };
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
+        const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const request = {
+            'symbol': market['id'],
+            'interval': interval,
+        };
         let startTime = since;
         const numberOfCandles = limit ? limit : maxLimit;
         let until = undefined;
@@ -977,29 +977,29 @@ export default class bydfi extends Exchange {
         //         "time": 1766169423872
         //     }
         //
-        const marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString2 (ticker, 'symbol', 's');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (ticker, 'time');
-        const last = this.safeString (ticker, 'last');
+        const timestamp = this.safeInteger2 (ticker, 'time', 'E');
+        const last = this.safeString2 (ticker, 'last', 'c');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
+            'high': this.safeString2 (ticker, 'high', 'h'),
+            'low': this.safeString2 (ticker, 'low', 'l'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
+            'open': this.safeString2 (ticker, 'open', 'o'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'vol'),
+            'baseVolume': this.safeString2 (ticker, 'vol', 'v'),
             'quoteVolume': undefined,
             'markPrice': undefined,
             'indexPrice': undefined,
