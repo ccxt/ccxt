@@ -221,7 +221,7 @@ type ICoreExchange interface {
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
 	GetProperty(obj interface{}, property interface{}) interface{}
-	exceptionMessage(exc interface{}, includeStack interface{}) interface{}
+	ExceptionMessage(exc interface{}, includeStack interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
