@@ -1134,7 +1134,7 @@ export default class gate extends Exchange {
                     'POSITION_HOLDING': BadRequest,
                     'USER_LOAN_EXCEEDED': BadRequest, // {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
                     'NO_CHANGE': InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
-                    'PRICE_THRESHOLD_EXCEEDED' : InvalidOrder, // {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
+                    'PRICE_THRESHOLD_EXCEEDED': InvalidOrder, // {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
                 'broad': {},
             },
