@@ -895,6 +895,8 @@ class bybit extends Exchange {
                     '170229' => '\\ccxt\\InvalidOrder', // The sell quantity per order exceeds the estimated maximum sell quantity.
                     '170234' => '\\ccxt\\ExchangeError', // System Error
                     '170241' => '\\ccxt\\ManualInteractionNeeded', // To proceed with trading, users must read through and confirm that they fully understand the project's risk disclosure document.
+                    '170371' => '\\ccxt\\InvalidOrder', // array("retCode":170371,"retMsg":"Order price cannot be lower than 0.0025, the price limitation.","result":array(),"retExtInfo":array(),"time":1766500057720)
+                    '170372' => '\\ccxt\\InvalidOrder', // array("retCode":170372,"retMsg":"Order price cannot be higher than 24.2175, the price limitation","result":array(),"retExtInfo":array(),"time":1766500129105)
                     '175000' => '\\ccxt\\InvalidOrder', // The serialNum is already in use.
                     '175001' => '\\ccxt\\InvalidOrder', // Daily purchase limit has been exceeded. Please try again later.
                     '175002' => '\\ccxt\\InvalidOrder', // There's a large number of purchase orders. Please try again later.
