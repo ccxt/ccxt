@@ -1187,7 +1187,7 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 	}
 }
 
-func (this *Exchange) exceptionMessage(err interface{}, includeStack interface{}) string {
+func (this *Exchange) exceptionMessage(err interface{}, includeStack interface{}) interface{} {
 	var message string
 
 	if includeStack.(bool) {
