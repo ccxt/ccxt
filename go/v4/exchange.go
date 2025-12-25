@@ -1187,13 +1187,18 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 	}
 }
 
-func (this *Exchange) ExceptionMessage(err interface{}, includeStack interface{}) interface{} {
+func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{} {
+	include := true
+	if len(includeStack) > 0 {
+		include = includeStack[0].(bool)
+	}
+
 	var message string
 
-	if includeStack.(bool) {
-		message = fmt.Sprintf("[%T] %+v", err, err)
+	if include {
+		message = fmt.Sprintf("[%T] %+v", exc, exc)
 	} else {
-		message = fmt.Sprintf("[%T] %v", err, err)
+		message = fmt.Sprintf("[%T] %v", exc, exc)
 	}
 
 	length := len(message)
