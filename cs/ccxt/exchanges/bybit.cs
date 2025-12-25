@@ -831,6 +831,8 @@ public partial class bybit : Exchange
                     { "170229", typeof(InvalidOrder) },
                     { "170234", typeof(ExchangeError) },
                     { "170241", typeof(ManualInteractionNeeded) },
+                    { "170371", typeof(InvalidOrder) },
+                    { "170372", typeof(InvalidOrder) },
                     { "175000", typeof(InvalidOrder) },
                     { "175001", typeof(InvalidOrder) },
                     { "175002", typeof(InvalidOrder) },
