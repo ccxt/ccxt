@@ -157,6 +157,7 @@
     "request-php": "npm run request-php-sync && npm run request-php-async",
     "request-cs": "npm run ti-cs  -- --requestTests",
     "request-java": "cd java/ &&  ./gradlew :tests:run -- --args=\"--requestTests\" && cd ../",
+    "response-java": "cd java/ &&  ./gradlew :tests:run -- --args=\"--responseTests\" && cd ../",
     "request-go": "npm run ti-go -- --requestTests",
     "request-tests//withoutGo": "npm run request-js && npm run request-py && npm run request-php && npm run request-cs",
     "request-tests": "npm run request-js && npm run request-py && npm run request-php && npm run request-cs && npm run request-go",

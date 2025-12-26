@@ -1070,7 +1070,7 @@ class testMainClass {
                 const newValue = newOutput[key];
                 this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
+        } else if ((storedOutput !== undefined) && Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
             const storedArrayLength = storedOutput.length;
             const newArrayLength = newOutput.length;
             this.assertStaticError (storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
