@@ -525,6 +525,7 @@ export default class kucoin extends Exchange {
                     'The amount increment is invalid.': BadRequest,
                     'The quantity is below the minimum requirement.': InvalidOrder, // {"msg":"The quantity is below the minimum requirement.","code":"400100"}
                     'not in the given range!': BadRequest, // {"msg":"price not in the given range!","code":"400100"}
+                    'recAccountType not in the given range': BadRequest, // {"msg":"recAccountType not in the given range","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
