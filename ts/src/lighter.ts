@@ -3,7 +3,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ export default class lighter extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -115,7 +115,7 @@ export default class lighter extends Exchange {
                 'fetchTransfers': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -1699,6 +1699,174 @@ export default class lighter extends Exchange {
             'status': undefined,
             'info': transfer,
         };
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://apidocs.lighter.xyz/reference/deposit_history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.address] l1_address
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchDeposits', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an accountIndex parameter');
+        }
+        let address = undefined;
+        [ address, params ] = this.handleOptionAndParams2 (params, 'fetchDeposits', 'address', 'l1_address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {
+            'account_index': accountIndex,
+            'l1_address': address,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        const response = await this.privateGetDepositHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "deposits": [
+        //             {
+        //                 "id": "2901843",
+        //                 "asset_id": 5,
+        //                 "amount": "100000.0",
+        //                 "timestamp": 1766112729741,
+        //                 "status": "completed",
+        //                 "l1_tx_hash": "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d"
+        //             }
+        //         ],
+        //         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
+        //     }
+        //
+        const data = this.safeList (response, 'deposits', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://apidocs.lighter.xyz/reference/withdraw_history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchWithdrawals', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires an accountIndex parameter');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {
+            'account_index': accountIndex,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        const response = await this.privateGetWithdrawHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200",
+        //         "message": "string",
+        //         "withdraws": [
+        //             {
+        //                 "id": "string",
+        //                 "amount": "0.1",
+        //                 "timestamp": "1640995200",
+        //                 "status": "failed",
+        //                 "type": "secure",
+        //                 "l1_tx_hash": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+        //             }
+        //         ],
+        //         "cursor": "string"
+        //     }
+        //
+        const data = this.safeList (response, 'withdraws', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
+        //     {
+        //         "id": "2901843",
+        //         "asset_id": 5,
+        //         "amount": "100000.0",
+        //         "timestamp": 1766112729741,
+        //         "status": "completed",
+        //         "l1_tx_hash": "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d",
+        //     }
+        //
+        // fetchWithdrawals
+        //     {
+        //         "id": "string",
+        //         "amount": "0.1",
+        //         "timestamp": "1640995200",
+        //         "status": "failed",
+        //         "type": "secure",
+        //         "l1_tx_hash": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+        //     }
+        //
+        let type = this.safeString (transaction, 'type');
+        if (type === undefined) {
+            type = 'deposit';
+        } else {
+            type = 'withdrawal';
+        }
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const status = this.safeString (transaction, 'status');
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'l1_tx_hash'),
+            'type': type,
+            'currency': this.safeCurrencyCode (this.safeString (transaction, 'asset_id'), currency),
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (status),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'internal': undefined,
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'failed': 'failed',
+            'pending': 'pending',
+            'completed': 'ok',
+            'claimable': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
