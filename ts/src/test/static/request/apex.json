@@ -48,6 +48,7 @@
         ],
         "createOrder": [
             {
+                "disabledJava": true,
                 "description": "market sell order",
                 "method": "createOrder",
                 "url": "https://omni.apex.exchange/api/v3/order",
@@ -61,6 +62,7 @@
                 "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508216685-821082&expiration=1765100216&limitFee=0.01&price=89&side=SELL&signature=295d28f6be45e960ec303efd9cbfc478646d1db8995e71027fdada7b2fb4b8a63c70ca07cd538b7fe78bbfa78c1f6adb4923f4ed455ef8fee9aa212426280200&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
             },
             {
+                "disabledJava": true,
                 "description": "market buy order",
                 "method": "createOrder",
                 "url": "https://omni.apex.exchange/api/v3/order",
@@ -74,6 +76,7 @@
                 "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508201268-436951&expiration=1765100200&limitFee=0.01&price=89&side=BUY&signature=079f4fd6b73603555629d50ad92dbafd04874f5d08272d9c3dee35b6618067937c45cfbdb75879f9708e675e08b3422426fc28fc9dd082470fa37bfaad3c0e04&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&type=MARKET"
             },
             {
+                "disabledJava": true,
                 "description": "create takeProfitOrder",
                 "method": "createOrder",
                 "url": "https://omni.apex.exchange/api/v3/order",
@@ -90,6 +93,7 @@
                 "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762508115388-460567&expiration=1765100114&limitFee=0.01&price=120&side=SELL&signature=cd148791024d7f12553661832b12a2ff69c4226f8fef085633ae848e331cb3a612693995d5756edaee260bfcd9a85f3cd2e2af1896527b9c98631551ded75700&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&triggerPrice=120&type=TAKE_PROFIT_LIMIT"
             },
             {
+                "disabledJava": true,
                 "description": "create stopLossPrice",
                 "method": "createOrder",
                 "url": "https://omni.apex.exchange/api/v3/order",
@@ -106,6 +110,7 @@
                 "output": "brokerId=6956&clientId=apexomni-695274990579220590-1762506999345-58380&expiration=1765098998&limitFee=0.01&price=51&side=SELL&signature=55ae828896d33f9bd0d301ea5ff3ebefa14ee6bfc363a9246ba68e3a04e53589feb316b5d883e99f25800d9fc0429956806de54869ff6656da2e5ec9300f0a01&size=0.1&symbol=LTC-USDT&timeInForce=GOOD_TIL_CANCEL&triggerPrice=50&type=STOP_LIMIT"
             },
             {
+                "disabledJava": true,
                 "description": "swap reduceOnly order",
                 "method": "createOrder",
                 "url": "https://omni.apex.exchange/api/v3/order",
@@ -125,6 +130,7 @@
                 "description": "swap market sell order",
                 "method": "createOrder",
                 "url": "https://omni.apex.exchange/api/v3/order",
+                "disabledJava": true,
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -136,6 +142,7 @@
             },
             {
                 "description": "swap market buy order",
+                "disabledJava": true,
                 "method": "createOrder",
                 "url": "https://omni.apex.exchange/api/v3/order",
                 "input": [

@@ -6,9 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -1020,14 +1018,25 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
         return t;
     }
 
+//    public static Object split(Object str, Object splitter) {
+//        if (str == null || splitter == null) {
+//            return new String[0];
+//        }
+//
+//        String s = String.valueOf(str);
+//        String delim = String.valueOf(splitter);
+//
+//        return s.split(Pattern.quote(delim));
+//    }
+
     public static Object split(Object str, Object splitter) {
         if (str == null || splitter == null) {
-            return new String[0];
+            return Collections.emptyList();
         }
 
         String s = String.valueOf(str);
         String delim = String.valueOf(splitter);
 
-        return s.split(Pattern.quote(delim));
+        return Arrays.asList(s.split(Pattern.quote(delim)));
     }
 }

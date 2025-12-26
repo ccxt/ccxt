@@ -1939,7 +1939,7 @@ public class Exchange {
 
     public CompletableFuture<Void> getZKContractSignatureObj(Object seed, Object parameters)
     {
-        throw new RuntimeException("Apex currently does not support create order in C# language");
+        throw new RuntimeException("Apex currently does not support create order in java language");
     }
 
     public String strip(Object str) {
