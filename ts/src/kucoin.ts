@@ -5865,16 +5865,26 @@ export default class kucoin extends Exchange {
         let request: Dict = {
             'bizType': 'Transfer',
         };
+        const until = this.safeInteger (params, 'until');
+        const now = this.milliseconds ();
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endAt'] = until;
+        } else {
+            request['endAt'] = this.milliseconds ();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startAt'] = since;
+            request['startAt'] = now;
         }
         if (limit !== undefined) {
             request['pageSize'] = limit;
+        } else {
+            request['pageSize'] = 500;
         }
         [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this.privateGetAccountsLedgers (this.extend (request, params));
