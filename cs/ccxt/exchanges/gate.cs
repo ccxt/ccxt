@@ -946,7 +946,7 @@ public partial class gate : Exchange
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
-                    { "INVALID_PARAM_VALUE", typeof(BadRequest) },
+                    { "INVALID_PARAM_VALUE", typeof(InvalidOrder) },
                     { "INVALID_PROTOCOL", typeof(BadRequest) },
                     { "INVALID_ARGUMENT", typeof(BadRequest) },
                     { "INVALID_REQUEST_BODY", typeof(BadRequest) },
@@ -1042,6 +1042,7 @@ public partial class gate : Exchange
                     { "POSITION_HOLDING", typeof(BadRequest) },
                     { "USER_LOAN_EXCEEDED", typeof(BadRequest) },
                     { "NO_CHANGE", typeof(InvalidOrder) },
+                    { "PRICE_THRESHOLD_EXCEEDED", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },

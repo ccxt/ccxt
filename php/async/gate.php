@@ -1046,7 +1046,7 @@ class gate extends Exchange {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions' => array(
                 'exact' => array(
-                    'INVALID_PARAM_VALUE' => '\\ccxt\\BadRequest',
+                    'INVALID_PARAM_VALUE' => '\\ccxt\\InvalidOrder', // array("label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT")
                     'INVALID_PROTOCOL' => '\\ccxt\\BadRequest',
                     'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
                     'INVALID_REQUEST_BODY' => '\\ccxt\\BadRequest',
@@ -1142,6 +1142,7 @@ class gate extends Exchange {
                     'POSITION_HOLDING' => '\\ccxt\\BadRequest',
                     'USER_LOAN_EXCEEDED' => '\\ccxt\\BadRequest', // array("label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded")
                     'NO_CHANGE' => '\\ccxt\\InvalidOrder', // array("label":"NO_CHANGE","message":"No change is made")
+                    'PRICE_THRESHOLD_EXCEEDED' => '\\ccxt\\InvalidOrder', // array("label":"PRICE_THRESHOLD_EXCEEDED","message":" => 0.45288")
                 ),
                 'broad' => array(),
             ),
