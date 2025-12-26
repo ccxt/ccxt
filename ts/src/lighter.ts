@@ -3,7 +3,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ export default class lighter extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -570,7 +570,7 @@ export default class lighter extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeInteger (market, 'market_id');
+            const id = this.safeString (market, 'market_id');
             const baseId = this.safeString (market, 'symbol');
             const quoteId = 'USDC';
             const settleId = 'USDC';
@@ -1871,6 +1871,144 @@ export default class lighter extends Exchange {
             'claimable': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://apidocs.lighter.xyz/reference/trades
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an accountIndex parameter');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {
+            'sort_by': 'block_height',
+            'limit': 100,
+            'account_index': accountIndex,
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 100);
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market_id'] = market['id'];
+        }
+        const response = await this.privateGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 17609,
+        //                 "tx_hash": "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "10.2304",
+        //                 "price": "2958.75",
+        //                 "usd_amount": "30269.196000",
+        //                 "ask_id": 281474977339869,
+        //                 "bid_id": 562949952870533,
+        //                 "ask_client_id": 0,
+        //                 "bid_client_id": 0,
+        //                 "ask_account_id": 20,
+        //                 "bid_account_id": 1077,
+        //                 "is_maker_ask": true,
+        //                 "block_height": 102070,
+        //                 "timestamp": 1766386112741,
+        //                 "taker_position_size_before": "0.0000",
+        //                 "taker_entry_quote_before": "0.000000",
+        //                 "taker_position_sign_changed": true,
+        //                 "maker_position_size_before": "-1856.8547",
+        //                 "maker_entry_quote_before": "5491685.069325",
+        //                 "maker_initial_margin_fraction_before": 500
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'trades', []);
+        for (let i = 0; i < data.length; i++) {
+            data[i]['account_index'] = accountIndex;
+        }
+        return this.parseTrades (data, market, since, limit, params);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "trade_id": 17609,
+        //         "tx_hash": "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
+        //         "type": "trade",
+        //         "market_id": 0,
+        //         "size": "10.2304",
+        //         "price": "2958.75",
+        //         "usd_amount": "30269.196000",
+        //         "ask_id": 281474977339869,
+        //         "bid_id": 562949952870533,
+        //         "ask_client_id": 0,
+        //         "bid_client_id": 0,
+        //         "ask_account_id": 20,
+        //         "bid_account_id": 1077,
+        //         "is_maker_ask": true,
+        //         "block_height": 102070,
+        //         "timestamp": 1766386112741,
+        //         "taker_position_size_before": "0.0000",
+        //         "taker_entry_quote_before": "0.000000",
+        //         "taker_position_sign_changed": true,
+        //         "maker_position_size_before": "-1856.8547",
+        //         "maker_entry_quote_before": "5491685.069325",
+        //         "maker_initial_margin_fraction_before": 500
+        //     }
+        //
+        const marketId = this.safeString (trade, 'market_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const accountIndex = this.safeString (trade, 'account_index');
+        const askAccountId = this.safeString (trade, 'ask_account_id');
+        const bidAccountId = this.safeString (trade, 'bid_account_id');
+        const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
+        let side = undefined;
+        let orderId = undefined;
+        if (accountIndex !== undefined) {
+            if (accountIndex === askAccountId) {
+                side = 'sell';
+                orderId = this.safeString (trade, 'ask_id');
+            } else if (accountIndex === bidAccountId) {
+                side = 'buy';
+                orderId = this.safeString (trade, 'bid_id');
+            }
+        }
+        let takerOrMaker = undefined;
+        if (side !== undefined && isMakerAsk !== undefined) {
+            const isMaker = (side === 'sell') ? isMakerAsk : !isMakerAsk;
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'trade_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': orderId,
+            'type': this.safeString (trade, 'type'),
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': this.safeString (trade, 'usd_amount'),
+            'fee': undefined,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
