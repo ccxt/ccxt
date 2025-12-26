@@ -1168,6 +1168,10 @@ export default class lighter extends Exchange {
         const accounts = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
+            const perpUSDC = this.safeString (account, 'collateral');
+            const perpBalance = this.safeDict (result, 'USDC(PERP)', this.account ());
+            perpBalance['total'] = Precise.stringAdd (perpBalance['total'], perpUSDC);
+            result['USDC(PERP)'] = perpBalance;
             const assets = this.safeList (account, 'assets', []);
             for (let j = 0; j < assets.length; j++) {
                 const asset = assets[j];

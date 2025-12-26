@@ -753,6 +753,11 @@
                             }
                         ]
                     },
+                    "USDC(PERP)": {
+                        "free": null,
+                        "used": null,
+                        "total": 9130.242706
+                    },
                     "ETH": {
                         "free": 3,
                         "used": 0,
@@ -764,14 +769,17 @@
                         "total": 1000
                     },
                     "free": {
+                        "USDC(PERP)": null,
                         "ETH": 3,
                         "USDC": 900
                     },
                     "used": {
+                        "USDC(PERP)": null,
                         "ETH": 0,
                         "USDC": 100
                     },
                     "total": {
+                        "USDC(PERP)": 9130.242706,
                         "ETH": 3,
                         "USDC": 1000
                     }
