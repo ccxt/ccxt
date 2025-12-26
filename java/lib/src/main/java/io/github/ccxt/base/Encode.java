@@ -285,7 +285,8 @@ public final class Encode {
                     out.add(key + "=" + String.valueOf(item));
                 }
             } else {
-                out.add(key + "=" + String.valueOf(value));
+                String encodedValue = urlEncode(value.toString());
+                out.add(key + "=" + encodedValue);
             }
         }
         return String.join("&", out);
@@ -347,18 +348,39 @@ public final class Encode {
         return String.join("&", query);
     }
 
-    // RFC3986-ish encodeURIComponent (unreserved: A-Z a-z 0-9 - _ . ~)
+//    // RFC3986-ish encodeURIComponent (unreserved: A-Z a-z 0-9 - _ . ~)
+//    public static String encodeURIComponent(Object str2) {
+//        String str = (String) str2;
+//        String unreserved = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~[]"; // keep [ ] like C# output
+//        StringBuilder result = new StringBuilder(str.length() * 3);
+//        for (int i = 0; i < str.length(); i++) {
+//            char ch = str.charAt(i);
+//            if (unreserved.indexOf(ch) != -1) {
+//                result.append(ch);
+//            } else {
+//                result.append('%');
+//                result.append(String.format("%02X", (int) ch));
+//            }
+//        }
+//        return result.toString();
+//    }
+
     public static String encodeURIComponent(Object str2) {
         String str = (String) str2;
-        String unreserved = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~[]"; // keep [ ] like C# output
+        String unreserved = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~[]";
+
         StringBuilder result = new StringBuilder(str.length() * 3);
-        for (int i = 0; i < str.length(); i++) {
-            char ch = str.charAt(i);
+
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        for (byte b : bytes) {
+            int c = b & 0xFF;
+            char ch = (char) c;
+
             if (unreserved.indexOf(ch) != -1) {
                 result.append(ch);
             } else {
                 result.append('%');
-                result.append(String.format("%02X", (int) ch));
+                result.append(String.format("%02X", c));
             }
         }
         return result.toString();

@@ -1827,7 +1827,9 @@ public class Exchange {
 
     public Object packb(Object data) {
         // throw new RuntimeException("Not implemented");
-        return ""; // to do later
+//        return ""; // to do later
+        byte[] res = {};
+        return res;
     }
 
     public int binaryLength(Object binary) {
@@ -4203,7 +4205,7 @@ public Object describe()
         {
             return ((Helpers.isTrue((!Helpers.isEqual(defaultValue, null))))) ? defaultValue : methodDict;
         }
-        Object splited = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)paramName).split((String)"."))); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        Object splited = Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = Helpers.GetValue(splited, 0);
         Object subKey = this.safeString(splited, 1);
         if (!Helpers.isTrue((Helpers.inOp(methodDict, parentKey))))
@@ -5865,12 +5867,12 @@ public Object describe()
                 Object content = response;
                 if (Helpers.isTrue(!Helpers.isEqual(startRegex, null)))
                 {
-                    Object splitted_by_start = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)content).split((String)startRegex)));
+                    Object splitted_by_start = Helpers.split(content, startRegex);
                     content = Helpers.GetValue(splitted_by_start, 1); // we need second part after start
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(endRegex, null)))
                 {
-                    Object splitted_by_end = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)content).split((String)endRegex)));
+                    Object splitted_by_end = Helpers.split(content, endRegex);
                     content = Helpers.GetValue(splitted_by_end, 0); // we need first part after start
                 }
                 if (Helpers.isTrue(Helpers.isTrue(returnAsJson) && Helpers.isTrue(((content instanceof String)))))
@@ -7270,7 +7272,7 @@ public Object describe()
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(delimiter, null)) && Helpers.isTrue(!Helpers.isEqual(delimiter, ""))))
             {
-                Object parts = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)marketId).split((String)delimiter)));
+                Object parts = Helpers.split(marketId, delimiter);
                 Object partsLength = Helpers.getArrayLength(parts);
                 final Object finalMarketId = marketId;
                 Object result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{

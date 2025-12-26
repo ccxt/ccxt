@@ -411,6 +411,10 @@ public class Helpers {
         // Strings: index access
         if (value2 instanceof String) {
             String str = (String) value2;
+            // check if key is int
+            if (!(key instanceof Long) && !(key instanceof Integer) && !(key instanceof Double)) {
+                return null;
+            }
             int idx = toInt(key);
             if (idx < 0 || idx >= str.length()) return null;
             return String.valueOf(str.charAt(idx));
@@ -531,24 +535,67 @@ public class Helpers {
     // }
 
 
-    public static CompletableFuture<Object> callDynamically(Object obj, Object methodName, Object[] args) {
-        if (args == null) {
-            args = new Object[]{};
-        }
+public static CompletableFuture<Object> callDynamically(Object obj, Object methodName, Object[] args) {
+    if (args == null) args = new Object[]{};
 
-        String name = (String) methodName;
-        Method m = findMethod(obj.getClass(), name, args.length);
+    String name = (String) methodName;
+    Method m = findMethod(obj.getClass(), name, args.length);
 
-        try {
-            m.setAccessible(true);
-            Object result = m.invoke(obj, args);
-            return CompletableFuture.completedFuture(result);
-        } catch (Exception e) {
-            CompletableFuture<Object> failed = new CompletableFuture<>();
-            failed.completeExceptionally(e);
-            return failed;
+    try {
+        m.setAccessible(true);
+
+        Object[] invokeArgs = adaptForVarArgs(m, args);
+
+        Object result = m.invoke(obj, invokeArgs);
+
+        if (result instanceof CompletableFuture<?> cf) {
+            @SuppressWarnings("unchecked")
+            CompletableFuture<Object> cast = (CompletableFuture<Object>) cf;
+            return cast;
         }
+        return CompletableFuture.completedFuture(result);
+
+    } catch (Exception e) {
+        CompletableFuture<Object> failed = new CompletableFuture<>();
+        failed.completeExceptionally(e);
+        return failed;
     }
+}
+
+private static Object[] adaptForVarArgs(Method m, Object[] args) {
+    if (!m.isVarArgs()) return args;
+
+    Class<?>[] ptypes = m.getParameterTypes();
+    int fixedCount = ptypes.length - 1;              // last is the vararg array param
+    Class<?> varArrayType = ptypes[ptypes.length - 1]; // e.g. Object[]
+    Class<?> componentType = varArrayType.getComponentType();
+
+    // Build the final invocation array with exactly ptypes.length slots
+    Object[] invokeArgs = new Object[ptypes.length];
+
+    // Copy fixed arguments (or null if missing)
+    for (int i = 0; i < fixedCount; i++) {
+        invokeArgs[i] = (i < args.length) ? args[i] : null;
+    }
+
+    // If caller already provided an array for the varargs slot AND argument count matches,
+    // keep it as-is (common case: args already has Object[]{..., new Object[]{price}})
+    if (args.length == ptypes.length && args[fixedCount] != null && args[fixedCount].getClass().isArray()) {
+        // (Optionally) you could also check assignability to varArrayType here.
+        invokeArgs[fixedCount] = args[fixedCount];
+        return invokeArgs;
+    }
+
+    // Otherwise, pack remaining args into the varargs array
+    int varCount = Math.max(0, args.length - fixedCount);
+    Object varArray = Array.newInstance(componentType, varCount);
+    for (int j = 0; j < varCount; j++) {
+        Array.set(varArray, j, args[fixedCount + j]);
+    }
+
+    invokeArgs[fixedCount] = varArray;
+    return invokeArgs;
+}
 
     public static Object callDynamicallyAsync(Object obj, Object methodName, Object[] args) {
         if (args == null) args = new Object[]{};
