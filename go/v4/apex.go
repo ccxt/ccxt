@@ -367,7 +367,7 @@ func (this *ApexCore) ParseBalance(response interface{}) interface{} {
  * @description query for account info
  * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *ApexCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -406,7 +406,7 @@ func (this *ApexCore) ParseAccount(account interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *ApexCore) FetchAccount(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -833,7 +833,7 @@ func (this *ApexCore) ParseTicker(ticker interface{}, optionalArgs ...interface{
  * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ApexCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -869,7 +869,7 @@ func (this *ApexCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
  * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
  * @param {string} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ApexCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -978,7 +978,7 @@ func (this *ApexCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *ApexCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1052,7 +1052,7 @@ func (this *ApexCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *ApexCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1155,7 +1155,7 @@ func (this *ApexCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
  * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *ApexCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1225,11 +1225,11 @@ func (this *ApexCore) ParseOpenInterest(interest interface{}, optionalArgs ...in
  * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *ApexCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1434,14 +1434,14 @@ func (this *ApexCore) ParseOrderStatus(status interface{}) interface{} {
 }
 func (this *ApexCore) ParseOrderType(typeVar interface{}) interface{} {
 	var types interface{} = map[string]interface{}{
-		"LIMIT":              "LIMIT",
-		"MARKET":             "MARKET",
-		"STOP_LIMIT":         "STOP_LIMIT",
-		"STOP_MARKET":        "STOP_MARKET",
-		"TAKE_PROFIT_LIMIT":  "TAKE_PROFIT_LIMIT",
-		"TAKE_PROFIT_MARKET": "TAKE_PROFIT_MARKET",
+		"LIMIT":              "limit",
+		"MARKET":             "market",
+		"STOP_LIMIT":         "limit",
+		"STOP_MARKET":        "market",
+		"TAKE_PROFIT_LIMIT":  "limit",
+		"TAKE_PROFIT_MARKET": "market",
 	}
-	return this.SafeStringUpper(types, typeVar, typeVar)
+	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *ApexCore) SafeMarket(optionalArgs ...interface{}) interface{} {
 	marketId := GetArg(optionalArgs, 0, nil)
@@ -1524,11 +1524,13 @@ func (this *ApexCore) GetAccountId() <-chan interface{} {
  * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
  * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1540,8 +1542,8 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13368 := (<-this.LoadMarkets())
-		PanicOnError(retRes13368)
+		retRes13388 := (<-this.LoadMarkets())
+		PanicOnError(retRes13388)
 		var market interface{} = this.Market(symbol)
 		var orderType interface{} = ToUpper(typeVar)
 		var orderSide interface{} = ToUpper(side)
@@ -1551,11 +1553,20 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 			orderPrice = this.PriceToPrecision(symbol, price)
 		}
 		var fees interface{} = this.SafeDict(this.Fees, "swap", map[string]interface{}{})
-		var taker interface{} = this.SafeNumber(fees, "taker", 0.0005)
-		var maker interface{} = this.SafeNumber(fees, "maker", 0.0002)
-		var limitFee interface{} = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), ToString(taker)), ToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
+		var taker interface{} = this.SafeString(fees, "taker", "0.0005")
+		var maker interface{} = this.SafeString(fees, "maker", "0.0002")
+		var limitFee interface{} = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 		var timeNow interface{} = this.Milliseconds()
-		// const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+		var triggerPrice interface{} = this.SafeString(params, "triggerPrice")
+		var stopLossPrice interface{} = this.SafeString(params, "stopLossPrice")
+		var takeProfitPrice interface{} = this.SafeString(params, "takeProfitPrice")
+		if IsTrue(!IsEqual(stopLossPrice, nil)) {
+			orderType = Ternary(IsTrue((IsEqual(orderType, "MARKET"))), "STOP_MARKET", "STOP_LIMIT")
+			triggerPrice = stopLossPrice
+		} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
+			orderType = Ternary(IsTrue((IsEqual(orderType, "MARKET"))), "TAKE_PROFIT_MARKET", "TAKE_PROFIT_LIMIT")
+			triggerPrice = takeProfitPrice
+		}
 		var isMarket interface{} = IsEqual(orderType, "MARKET")
 		if IsTrue(IsTrue(isMarket) && IsTrue((IsEqual(price, nil)))) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for market orders")))
@@ -1581,7 +1592,7 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			clientOrderId = this.GenerateRandomClientIdOmni(accountId)
 		}
-		params = this.Omit(params, []interface{}{"clientId", "clientOrderId", "client_order_id"})
+		params = this.Omit(params, []interface{}{"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"})
 		var orderToSign interface{} = map[string]interface{}{
 			"accountId":    accountId,
 			"slotId":       clientOrderId,
@@ -1590,8 +1601,11 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 			"size":         orderSize,
 			"price":        orderPrice,
 			"direction":    orderSide,
-			"makerFeeRate": ToString(maker),
-			"takerFeeRate": ToString(taker),
+			"makerFeeRate": maker,
+			"takerFeeRate": taker,
+		}
+		if IsTrue(!IsEqual(triggerPrice, nil)) {
+			AddElementToObject(orderToSign, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 		}
 
 		signature := (<-this.GetZKContractSignatureObj(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
@@ -1607,6 +1621,9 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 			"timeInForce": timeInForce,
 			"clientId":    clientOrderId,
 			"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
+		}
+		if IsTrue(!IsEqual(triggerPrice, nil)) {
+			AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 		}
 		AddElementToObject(request, "signature", signature)
 
@@ -1631,7 +1648,7 @@ func (this *ApexCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.transferId] UUID, which is unique across the platform
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *ApexCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1641,8 +1658,8 @@ func (this *ApexCore) Transfer(code interface{}, amount interface{}, fromAccount
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes14188 := (<-this.LoadMarkets())
-		PanicOnError(retRes14188)
+		retRes14358 := (<-this.LoadMarkets())
+		PanicOnError(retRes14358)
 
 		configResponse := (<-this.PublicGetV3Symbols(params))
 		PanicOnError(configResponse)
@@ -1808,7 +1825,7 @@ func (this *ApexCore) ParseTransfer(transfer interface{}, optionalArgs ...interf
  * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ApexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1820,8 +1837,8 @@ func (this *ApexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15678 := (<-this.LoadMarkets())
-		PanicOnError(retRes15678)
+		retRes15848 := (<-this.LoadMarkets())
+		PanicOnError(retRes15848)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1848,7 +1865,7 @@ func (this *ApexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
  * @param {string} id order id
  * @param symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ApexCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1893,7 +1910,7 @@ func (this *ApexCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ApexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1905,8 +1922,8 @@ func (this *ApexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes16188 := (<-this.LoadMarkets())
-		PanicOnError(retRes16188)
+		retRes16358 := (<-this.LoadMarkets())
+		PanicOnError(retRes16358)
 		var request interface{} = map[string]interface{}{}
 		var clientOrderId interface{} = this.SafeStringN(params, []interface{}{"clientId", "clientOrderId", "client_order_id"})
 		var response interface{} = nil
@@ -1940,7 +1957,7 @@ func (this *ApexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ApexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1956,8 +1973,8 @@ func (this *ApexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16468 := (<-this.LoadMarkets())
-		PanicOnError(retRes16468)
+		retRes16638 := (<-this.LoadMarkets())
+		PanicOnError(retRes16638)
 
 		response := (<-this.PrivateGetV3OpenOrders(params))
 		PanicOnError(response)
@@ -1985,7 +2002,7 @@ func (this *ApexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
  * @param {string} [params.type] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
  * @param {string} [params.orderType] "ACTIVE","CONDITION","HISTORY"
  * @param {boolean} [params.page] Page numbers start from 0
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ApexCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2001,8 +2018,8 @@ func (this *ApexCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16708 := (<-this.LoadMarkets())
-		PanicOnError(retRes16708)
+		retRes16878 := (<-this.LoadMarkets())
+		PanicOnError(retRes16878)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2043,7 +2060,7 @@ func (this *ApexCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *ApexCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2059,8 +2076,8 @@ func (this *ApexCore) FetchOrderTrades(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17078 := (<-this.LoadMarkets())
-		PanicOnError(retRes17078)
+		retRes17248 := (<-this.LoadMarkets())
+		PanicOnError(retRes17248)
 		var request interface{} = map[string]interface{}{}
 		var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "clientId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -2095,7 +2112,7 @@ func (this *ApexCore) FetchOrderTrades(id interface{}, optionalArgs ...interface
  * @param {boolean} [params.side] BUY or SELL
  * @param {string} [params.orderType] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
  * @param {boolean} [params.page] Page numbers start from 0
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *ApexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2111,8 +2128,8 @@ func (this *ApexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17388 := (<-this.LoadMarkets())
-		PanicOnError(retRes17388)
+		retRes17558 := (<-this.LoadMarkets())
+		PanicOnError(retRes17558)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2155,7 +2172,7 @@ func (this *ApexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
  * @param {object} [params.until] end time, ms
  * @param {boolean} [params.side] BUY or SELL
  * @param {boolean} [params.page] Page numbers start from 0
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *ApexCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2171,8 +2188,8 @@ func (this *ApexCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17778 := (<-this.LoadMarkets())
-		PanicOnError(retRes17778)
+		retRes17948 := (<-this.LoadMarkets())
+		PanicOnError(retRes17948)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2258,8 +2275,8 @@ func (this *ApexCore) SetLeverage(leverage interface{}, optionalArgs ...interfac
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes18468 := (<-this.LoadMarkets())
-		PanicOnError(retRes18468)
+		retRes18638 := (<-this.LoadMarkets())
+		PanicOnError(retRes18638)
 		var market interface{} = this.Market(symbol)
 		var leverageString interface{} = this.NumberToString(leverage)
 		var initialMarginRate interface{} = Precise.StringDiv("1", leverageString, 4)
@@ -2286,7 +2303,7 @@ func (this *ApexCore) SetLeverage(leverage interface{}, optionalArgs ...interfac
  * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ApexCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2298,8 +2315,8 @@ func (this *ApexCore) FetchPositions(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18698 := (<-this.LoadMarkets())
-		PanicOnError(retRes18698)
+		retRes18868 := (<-this.LoadMarkets())
+		PanicOnError(retRes18868)
 
 		response := (<-this.PrivateGetV3Account(params))
 		PanicOnError(response)

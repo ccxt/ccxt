@@ -85,6 +85,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "blofin":
         itf := NewBlofin(options)
         return itf
+    case "bullish":
+        itf := NewBullish(options)
+        return itf
     case "bybit":
         itf := NewBybit(options)
         return itf
@@ -118,6 +121,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
     case "cryptocom":
         itf := NewCryptocom(options)
         return itf
+    case "deepcoin":
+        itf := NewDeepcoin(options)
+        return itf
     case "defx":
         itf := NewDefx(options)
         return itf
@@ -126,6 +132,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
         return itf
     case "derive":
         itf := NewDerive(options)
+        return itf
+    case "dydx":
+        itf := NewDydx(options)
         return itf
     case "exmo":
         itf := NewExmo(options)

@@ -606,6 +606,8 @@ func GetArrayLength(value interface{}) int {
 		return len(v) // should we do it here?
 	case IOrderBookSide:
 		return v.Len()
+	case IArrayCache:
+		return len(v.ToArray())
 	case interface{}:
 		if array, ok := value.([]interface{}); ok {
 			return len(array)
@@ -627,6 +629,10 @@ func GetArrayLength(value interface{}) int {
 		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
 		if obs, ok := value.(IOrderBookSide); ok {
 			return obs.Len()
+		}
+		// Check for IArrayCache in default case
+		if cache, ok := value.(IArrayCache); ok {
+			return len(cache.ToArray())
 		}
 	}
 

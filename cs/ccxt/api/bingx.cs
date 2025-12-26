@@ -156,6 +156,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("spotV2PublicGetMarketKline",parameters);
     }
 
+    public async Task<object> spotV2PublicGetTickerPrice (object parameters = null)
+    {
+        return await this.callAsync ("spotV2PublicGetTickerPrice",parameters);
+    }
+
     public async Task<object> spotV3PrivateGetGetAssetTransfer (object parameters = null)
     {
         return await this.callAsync ("spotV3PrivateGetGetAssetTransfer",parameters);
@@ -259,6 +264,11 @@ public partial class bingx : Exchange
     public async Task<object> swapV1PrivateGetUserMarginAssets (object parameters = null)
     {
         return await this.callAsync ("swapV1PrivateGetUserMarginAssets",parameters);
+    }
+
+    public async Task<object> swapV1PrivatePostTradeAmend (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivatePostTradeAmend",parameters);
     }
 
     public async Task<object> swapV1PrivatePostTradeCancelReplace (object parameters = null)
@@ -796,6 +806,46 @@ public partial class bingx : Exchange
         return await this.callAsync ("copyTradingV1PrivateGetSwapTraceCurrentTrack",parameters);
     }
 
+    public async Task<object> copyTradingV1PrivateGetPFuturesTraderDetail (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivateGetPFuturesTraderDetail",parameters);
+    }
+
+    public async Task<object> copyTradingV1PrivateGetPFuturesProfitHistorySummarys (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivateGetPFuturesProfitHistorySummarys",parameters);
+    }
+
+    public async Task<object> copyTradingV1PrivateGetPFuturesProfitDetail (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivateGetPFuturesProfitDetail",parameters);
+    }
+
+    public async Task<object> copyTradingV1PrivateGetPFuturesTradingPairs (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivateGetPFuturesTradingPairs",parameters);
+    }
+
+    public async Task<object> copyTradingV1PrivateGetSpotTraderDetail (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivateGetSpotTraderDetail",parameters);
+    }
+
+    public async Task<object> copyTradingV1PrivateGetSpotProfitHistorySummarys (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivateGetSpotProfitHistorySummarys",parameters);
+    }
+
+    public async Task<object> copyTradingV1PrivateGetSpotProfitDetail (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivateGetSpotProfitDetail",parameters);
+    }
+
+    public async Task<object> copyTradingV1PrivateGetSpotHistoryOrder (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivateGetSpotHistoryOrder",parameters);
+    }
+
     public async Task<object> copyTradingV1PrivatePostSwapTraceCloseTrackOrder (object parameters = null)
     {
         return await this.callAsync ("copyTradingV1PrivatePostSwapTraceCloseTrackOrder",parameters);
@@ -804,6 +854,11 @@ public partial class bingx : Exchange
     public async Task<object> copyTradingV1PrivatePostSwapTraceSetTPSL (object parameters = null)
     {
         return await this.callAsync ("copyTradingV1PrivatePostSwapTraceSetTPSL",parameters);
+    }
+
+    public async Task<object> copyTradingV1PrivatePostPFuturesSetCommission (object parameters = null)
+    {
+        return await this.callAsync ("copyTradingV1PrivatePostPFuturesSetCommission",parameters);
     }
 
     public async Task<object> copyTradingV1PrivatePostSpotTraderSellOrder (object parameters = null)

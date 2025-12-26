@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.15'
+__version__ = '4.5.29'
 
 # -----------------------------------------------------------------------------
 
@@ -98,6 +98,7 @@ from ccxt.async_support.btcalpha import btcalpha                                
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
+from ccxt.async_support.bullish import bullish                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
@@ -114,11 +115,13 @@ from ccxt.async_support.coinsph import coinsph                                  
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
 from ccxt.async_support.cryptomus import cryptomus                              # noqa: F401
+from ccxt.async_support.deepcoin import deepcoin                                # noqa: F401
 from ccxt.async_support.defx import defx                                        # noqa: F401
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
+from ccxt.async_support.dydx import dydx                                        # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
@@ -169,6 +172,7 @@ from ccxt.async_support.woofipro import woofipro                                
 from ccxt.async_support.xt import xt                                            # noqa: F401
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
+from ccxt.async_support.zebpay import zebpay                                    # noqa: F401
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
@@ -206,6 +210,7 @@ exchanges = [
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'bullish',
     'bybit',
     'cex',
     'coinbase',
@@ -222,11 +227,13 @@ exchanges = [
     'coinspot',
     'cryptocom',
     'cryptomus',
+    'deepcoin',
     'defx',
     'delta',
     'deribit',
     'derive',
     'digifinex',
+    'dydx',
     'exmo',
     'fmfwio',
     'foxbit',
@@ -277,6 +284,7 @@ exchanges = [
     'xt',
     'yobit',
     'zaif',
+    'zebpay',
     'zonda',
 ]
 

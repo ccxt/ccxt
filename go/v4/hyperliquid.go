@@ -98,9 +98,10 @@ func (this *HyperliquidCore) Describe() interface{} {
 			"fetchPositions":                       true,
 			"fetchPositionsRisk":                   false,
 			"fetchPremiumIndexOHLCV":               false,
+			"fetchStatus":                          true,
 			"fetchTicker":                          "emulated",
 			"fetchTickers":                         true,
-			"fetchTime":                            false,
+			"fetchTime":                            true,
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      true,
 			"fetchTradingFees":                     false,
@@ -213,10 +214,11 @@ func (this *HyperliquidCore) Describe() interface{} {
 		"precisionMode":    TICK_SIZE,
 		"commonCurrencies": map[string]interface{}{},
 		"options": map[string]interface{}{
-			"defaultType":     "swap",
-			"sandboxMode":     false,
-			"defaultSlippage": 0.05,
-			"zeroAddress":     "0x0000000000000000000000000000000000000000",
+			"defaultType":       "swap",
+			"sandboxMode":       false,
+			"defaultSlippage":   0.05,
+			"marketHelperProps": []interface{}{"hip3TokensByName", "cachedCurrenciesById"},
+			"zeroAddress":       "0x0000000000000000000000000000000000000000",
 			"spotCurrencyMapping": map[string]interface{}{
 				"UDZ":    "2Z",
 				"UBONK":  "BONK",
@@ -230,6 +232,13 @@ func (this *HyperliquidCore) Describe() interface{} {
 				"USDT0":  "USDT",
 				"XAUT0":  "XAUT",
 				"UXPL":   "XPL",
+			},
+			"fetchMarkets": map[string]interface{}{
+				"types": []interface{}{"spot", "swap", "hip3"},
+				"hip3": map[string]interface{}{
+					"limit": 10,
+					"dexes": []interface{}{},
+				},
 			},
 		},
 		"features": map[string]interface{}{
@@ -350,58 +359,91 @@ func (this *HyperliquidCore) Market(symbol interface{}) interface{} {
 	if IsTrue(IsEqual(this.Markets, nil)) {
 		panic(ExchangeError(Add(this.Id, " markets not loaded")))
 	}
-	if IsTrue(InOp(this.Markets, symbol)) {
-		var market interface{} = GetValue(this.Markets, symbol)
-		if IsTrue(GetValue(market, "spot")) {
-			var baseName interface{} = this.SafeString(market, "baseName")
-			var spotCurrencyMapping interface{} = this.SafeDict(this.Options, "spotCurrencyMapping", map[string]interface{}{})
-			if IsTrue(InOp(spotCurrencyMapping, baseName)) {
-				var unifiedBaseName interface{} = this.SafeString(spotCurrencyMapping, baseName)
-				var quote interface{} = this.SafeString(market, "quote")
-				var newSymbol interface{} = Add(Add(this.SafeCurrencyCode(unifiedBaseName), "/"), quote)
-				if IsTrue(InOp(this.Markets, newSymbol)) {
-					return GetValue(this.Markets, newSymbol)
-				}
+	if IsTrue(IsTrue((!IsEqual(symbol, nil))) && !IsTrue((InOp(this.Markets, symbol)))) {
+		var symbolParts interface{} = Split(symbol, "/")
+		var baseName interface{} = this.SafeString(symbolParts, 0)
+		var spotCurrencyMapping interface{} = this.SafeDict(this.Options, "spotCurrencyMapping", map[string]interface{}{})
+		if IsTrue(InOp(spotCurrencyMapping, baseName)) {
+			var unifiedBaseName interface{} = this.SafeString(spotCurrencyMapping, baseName)
+			var quote interface{} = this.SafeString(symbolParts, 1)
+			var newSymbol interface{} = Add(Add(this.SafeCurrencyCode(unifiedBaseName), "/"), quote)
+			if IsTrue(InOp(this.Markets, newSymbol)) {
+				return GetValue(this.Markets, newSymbol)
 			}
 		}
 	}
-	var res interface{} = this.Exchange.Market(symbol)
-	return res
+	return this.Exchange.Market(symbol)
 }
-func (this *HyperliquidCore) SafeMarket(optionalArgs ...interface{}) interface{} {
-	marketId := GetArg(optionalArgs, 0, nil)
-	_ = marketId
-	market := GetArg(optionalArgs, 1, nil)
-	_ = market
-	delimiter := GetArg(optionalArgs, 2, nil)
-	_ = delimiter
-	marketType := GetArg(optionalArgs, 3, nil)
-	_ = marketType
-	if IsTrue(!IsEqual(marketId, nil)) {
-		if IsTrue(IsTrue((!IsEqual(this.Markets_by_id, nil))) && IsTrue((InOp(this.Markets_by_id, marketId)))) {
-			var markets interface{} = GetValue(this.Markets_by_id, marketId)
-			var numMarkets interface{} = GetArrayLength(markets)
-			if IsTrue(IsEqual(numMarkets, 1)) {
-				return GetValue(markets, 0)
-			} else {
-				if IsTrue(IsGreaterThan(numMarkets, 2)) {
-					panic(ExchangeError(Add(Add(this.Id, " safeMarket() found more than two markets with the same market id "), marketId)))
-				}
-				var firstMarket interface{} = GetValue(markets, 0)
-				var secondMarket interface{} = GetValue(markets, 1)
-				if IsTrue(!IsEqual(this.SafeString(firstMarket, "type"), this.SafeString(secondMarket, "type"))) {
-					panic(ExchangeError(Add(Add(this.Id, " safeMarket() found two different market types with the same market id "), marketId)))
-				}
-				var baseCurrency interface{} = this.SafeString(firstMarket, "base")
-				var spotCurrencyMapping interface{} = this.SafeDict(this.Options, "spotCurrencyMapping", map[string]interface{}{})
-				if IsTrue(InOp(spotCurrencyMapping, baseCurrency)) {
-					return secondMarket
-				}
-				return firstMarket
-			}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStatus
+ * @description the latest known information on the availability of the exchange API
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
+func (this *HyperliquidCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+		var request interface{} = map[string]interface{}{
+			"type": "exchangeStatus",
 		}
-	}
-	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
+
+		response := (<-this.PublicPostInfo(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//     {
+		//         "status": "ok"
+		//     }
+		//
+		var status interface{} = this.SafeString(response, "specialStatuses")
+
+		ch <- map[string]interface{}{
+			"status":  Ternary(IsTrue((IsEqual(status, nil))), "ok", "maintenance"),
+			"updated": this.SafeInteger(response, "time"),
+			"eta":     nil,
+			"url":     nil,
+			"info":    response,
+		}
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int} the current integer timestamp in milliseconds from the exchange server
+ */
+func (this *HyperliquidCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+		var request interface{} = map[string]interface{}{
+			"type": "exchangeStatus",
+		}
+
+		response := (<-this.PublicPostInfo(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		// { specialStatuses: null, time: '1764617438643' }
+		//
+		ch <- this.SafeInteger(response, "time")
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -421,11 +463,11 @@ func (this *HyperliquidCore) FetchCurrencies(optionalArgs ...interface{}) <-chan
 		_ = params
 		if IsTrue(this.CheckRequiredCredentials(false)) {
 
-			retRes41612 := (<-this.HandleBuilderFeeApproval())
-			PanicOnError(retRes41612)
+			retRes44012 := (<-this.InitializeClient())
+			PanicOnError(retRes44012)
 		}
 		var request interface{} = map[string]interface{}{
-			"type": "meta",
+			"type": "spotMeta",
 		}
 
 		response := (<-this.PublicPostInfo(this.Extend(request, params)))
@@ -444,18 +486,23 @@ func (this *HyperliquidCore) FetchCurrencies(optionalArgs ...interface{}) <-chan
 		//         }
 		//     ]
 		//
-		var meta interface{} = this.SafeList(response, "universe", []interface{}{})
+		// const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
+		var tokens interface{} = this.SafeList(response, "tokens", []interface{}{})
+		// const meta = this.safeList (response, 'universe', []);
+		AddElementToObject(this.Options, "cachedCurrenciesById", map[string]interface{}{}) // used to map hip3 markets
 		var result interface{} = map[string]interface{}{}
-		for i := 0; IsLessThan(i, GetArrayLength(meta)); i++ {
-			var data interface{} = this.SafeDict(meta, i, map[string]interface{}{})
-			var id interface{} = i
+		for i := 0; IsLessThan(i, GetArrayLength(tokens)); i++ {
+			var data interface{} = this.SafeDict(tokens, i, map[string]interface{}{})
+			// const id = i;
+			var id interface{} = this.SafeString(data, "index")
 			var name interface{} = this.SafeString(data, "name")
 			var code interface{} = this.SafeCurrencyCode(name)
+			AddElementToObject(GetValue(this.Options, "cachedCurrenciesById"), id, name)
 			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
 				"id":        id,
 				"name":      name,
 				"code":      code,
-				"precision": nil,
+				"precision": this.ParsePrecision(this.SafeString(data, "weiDecimals")),
 				"info":      data,
 				"active":    nil,
 				"deposit":   nil,
@@ -474,6 +521,20 @@ func (this *HyperliquidCore) FetchCurrencies(optionalArgs ...interface{}) <-chan
 					},
 				},
 			}))
+			// add in wrapped map
+			var fullName interface{} = this.SafeString(data, "fullName")
+			if IsTrue(IsTrue(!IsEqual(fullName, nil)) && IsTrue(!IsEqual(name, nil))) {
+				var isWrapped interface{} = IsTrue(StartsWith(fullName, "Unit ")) && IsTrue(StartsWith(name, "U"))
+				if IsTrue(isWrapped) {
+					var parts interface{} = Split(name, "U")
+					var nameWithoutU interface{} = ""
+					for j := 0; IsLessThan(j, GetArrayLength(parts)); j++ {
+						nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
+					}
+					var baseCode interface{} = this.SafeCurrencyCode(nameWithoutU)
+					AddElementToObject(GetValue(this.Options, "spotCurrencyMapping"), code, baseCode)
+				}
+			}
 		}
 
 		ch <- result
@@ -499,14 +560,177 @@ func (this *HyperliquidCore) FetchMarkets(optionalArgs ...interface{}) <-chan in
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
-		var rawPromises interface{} = []interface{}{this.FetchSwapMarkets(params), this.FetchSpotMarkets(params)}
+		var options interface{} = this.SafeDict(this.Options, "fetchMarkets", map[string]interface{}{})
+		var types interface{} = this.SafeList(options, "types")
+		var rawPromises interface{} = []interface{}{}
+		for i := 0; IsLessThan(i, GetArrayLength(types)); i++ {
+			var marketType interface{} = GetValue(types, i)
+			if IsTrue(IsEqual(marketType, "swap")) {
+				AppendToArray(&rawPromises, this.FetchSwapMarkets(params))
+			} else if IsTrue(IsEqual(marketType, "spot")) {
+				AppendToArray(&rawPromises, this.FetchSpotMarkets(params))
+			} else if IsTrue(IsEqual(marketType, "hip3")) {
+				AppendToArray(&rawPromises, this.FetchHip3Markets(params))
+			}
+		}
 
 		promises := (<-promiseAll(rawPromises))
 		PanicOnError(promises)
-		var swapMarkets interface{} = GetValue(promises, 0)
-		var spotMarkets interface{} = GetValue(promises, 1)
+		var result interface{} = []interface{}{}
+		for i := 0; IsLessThan(i, GetArrayLength(promises)); i++ {
+			result = this.ArrayConcat(result, GetValue(promises, i))
+		}
 
-		ch <- this.ArrayConcat(swapMarkets, spotMarkets)
+		ch <- result
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchHip3Markets
+ * @description retrieves data on all hip3 markets for hyperliquid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
+func (this *HyperliquidCore) FetchHip3Markets(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		fetchDexes := (<-this.PublicPostInfo(map[string]interface{}{
+			"type": "perpDexs",
+		}))
+		PanicOnError(fetchDexes)
+		//
+		//     [
+		//         null,
+		//         {
+		//             "name": "xyz",
+		//             "fullName": "XYZ",
+		//             "deployer": "0x88806a71d74ad0a510b350545c9ae490912f0888",
+		//             "oracleUpdater": "0x1234567890545d1df9ee64b35fdd16966e08acec",
+		//             "feeRecipient": "0x79c0650064b10f73649b7b64c5ebf0b319606140",
+		//             "assetToStreamingOiCap": [
+		//                 [
+		//                     "xyz:XYZ100",
+		//                     "100000000.0"
+		//                 ]
+		//             ]
+		//         }
+		//     ]
+		//
+		var perpDexesOffset interface{} = map[string]interface{}{}
+		for i := 1; IsLessThan(i, GetArrayLength(fetchDexes)); i++ {
+			// builder-deployed perp dexs start at 110000
+			var dex interface{} = GetValue(fetchDexes, i)
+			var offset interface{} = Add(110000, Multiply((Subtract(i, 1)), 10000))
+			AddElementToObject(perpDexesOffset, GetValue(dex, "name"), offset)
+		}
+		var fetchDexesList interface{} = []interface{}{}
+		var options interface{} = this.SafeDict(this.Options, "fetchMarkets", map[string]interface{}{})
+		var hip3 interface{} = this.SafeDict(options, "hip3", map[string]interface{}{})
+		var dexesProvided interface{} = this.SafeList(hip3, "dexes") // let users provide their own list of dexes to load
+		var maxLimit interface{} = this.SafeInteger(hip3, "limit", 10)
+		if IsTrue(!IsEqual(dexesProvided, nil)) {
+			var userProvidedDexesLength interface{} = GetArrayLength(dexesProvided)
+			if IsTrue(IsGreaterThan(userProvidedDexesLength, 0)) {
+				fetchDexesList = dexesProvided
+			}
+		} else {
+			for i := 1; IsLessThan(i, maxLimit); i++ {
+				var dex interface{} = this.SafeDict(fetchDexes, i, map[string]interface{}{})
+				var dexName interface{} = this.SafeString(dex, "name")
+				AppendToArray(&fetchDexesList, dexName)
+			}
+		}
+		var rawPromises interface{} = []interface{}{}
+		for i := 0; IsLessThan(i, GetArrayLength(fetchDexesList)); i++ {
+			var request interface{} = map[string]interface{}{
+				"type": "metaAndAssetCtxs",
+				"dex":  this.SafeString(fetchDexesList, i),
+			}
+			AppendToArray(&rawPromises, this.PublicPostInfo(this.Extend(request, params)))
+		}
+
+		promises := (<-promiseAll(rawPromises))
+		PanicOnError(promises)
+		AddElementToObject(this.Options, "hip3TokensByName", map[string]interface{}{})
+		var markets interface{} = []interface{}{}
+		for i := 0; IsLessThan(i, GetArrayLength(promises)); i++ {
+			var dexName interface{} = GetValue(fetchDexesList, i)
+			var offset interface{} = GetValue(perpDexesOffset, dexName)
+			var response interface{} = GetValue(promises, i)
+			var meta interface{} = this.SafeDict(response, 0, map[string]interface{}{})
+			var collateralToken interface{} = this.SafeString(meta, "collateralToken")
+			var universe interface{} = this.SafeList(meta, "universe", []interface{}{})
+			var assetCtxs interface{} = this.SafeList(response, 1, []interface{}{})
+			var result interface{} = []interface{}{}
+			// helper because some endpoints return just the coin name like: flx:crcl
+			// and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
+			for j := 0; IsLessThan(j, GetArrayLength(universe)); j++ {
+				var data interface{} = this.Extend(this.SafeDict(universe, j, map[string]interface{}{}), this.SafeDict(assetCtxs, j, map[string]interface{}{}))
+				AddElementToObject(data, "baseId", Add(j, offset))
+				AddElementToObject(data, "collateralToken", collateralToken)
+				AddElementToObject(data, "hip3", true)
+				AddElementToObject(data, "dex", dexName)
+				var cachedCurrencies interface{} = this.SafeDict(this.Options, "cachedCurrenciesById", map[string]interface{}{})
+				// injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
+				if IsTrue(InOp(cachedCurrencies, collateralToken)) {
+					var name interface{} = this.SafeString(data, "name")
+					var collateralTokenCode interface{} = this.SafeString(cachedCurrencies, collateralToken)
+					AddElementToObject(data, "collateralTokenName", collateralTokenCode)
+					// eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
+					var safeCode interface{} = this.SafeCurrencyCode(name)
+					AddElementToObject(GetValue(this.Options, "hip3TokensByName"), name, map[string]interface{}{
+						"quote": collateralTokenCode,
+						"code":  Replace(safeCode, ":", "-"),
+					})
+				}
+				AppendToArray(&result, data)
+			}
+			markets = this.ArrayConcat(markets, this.ParseMarkets(result))
+		}
+
+		//
+		//     [
+		//         {
+		//             "universe": [
+		//                 {
+		//                     "maxLeverage": 50,
+		//                     "name": "SOL",
+		//                     "onlyIsolated": false,
+		//                     "szDecimals": 2
+		//                 }
+		//             ]
+		//         },
+		//         [
+		//             {
+		//                 "dayNtlVlm": "9450588.2273",
+		//                 "funding": "0.0000198",
+		//                 "impactPxs": [
+		//                     "108.04",
+		//                     "108.06"
+		//                 ],
+		//                 "markPx": "108.04",
+		//                 "midPx": "108.05",
+		//                 "openInterest": "10764.48",
+		//                 "oraclePx": "107.99",
+		//                 "premium": "0.00055561",
+		//                 "prevDayPx": "111.81"
+		//             }
+		//         ]
+		//     ]
+		//
+		//
+		ch <- markets
 		return nil
 
 	}()
@@ -795,18 +1019,6 @@ func (this *HyperliquidCore) FetchSpotMarkets(optionalArgs ...interface{}) <-cha
 				"info":    this.Extend(extraData, market),
 			}
 			AppendToArray(&markets, this.SafeMarketStructure(entry))
-			// backward support
-			var base interface{} = this.SafeCurrencyCode(baseName)
-			var quote interface{} = this.SafeCurrencyCode(quoteId)
-			var newEntry interface{} = this.Extend(map[string]interface{}{}, entry)
-			var symbol interface{} = Add(Add(base, "/"), quote)
-			if IsTrue(!IsEqual(symbol, mappedSymbol)) {
-				AddElementToObject(newEntry, "symbol", symbol)
-				AddElementToObject(newEntry, "base", base)
-				AddElementToObject(newEntry, "quote", quote)
-				AddElementToObject(newEntry, "baseName", baseName)
-				AppendToArray(&markets, this.SafeMarketStructure(newEntry))
-			}
 		}
 
 		ch <- markets
@@ -834,14 +1046,17 @@ func (this *HyperliquidCore) ParseMarket(market interface{}) interface{} {
 	//         "oraclePx": "2367.3",
 	//         "premium": "0.00090821",
 	//         "prevDayPx": "2381.5"
+	//         "collateralToken": "0" hip3 tokens only
 	//     }
 	//
-	var quoteId interface{} = "USDC"
+	var collateralTokenCode interface{} = this.SafeString(market, "collateralTokenName")
+	var quoteId interface{} = Ternary(IsTrue((IsEqual(collateralTokenCode, nil))), "USDC", collateralTokenCode)
+	var settleId interface{} = Ternary(IsTrue((IsEqual(collateralTokenCode, nil))), "USDC", collateralTokenCode)
 	var baseName interface{} = this.SafeString(market, "name")
 	var base interface{} = this.SafeCurrencyCode(baseName)
+	base = Replace(base, ":", "-") // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
 	var quote interface{} = this.SafeCurrencyCode(quoteId)
 	var baseId interface{} = this.SafeString(market, "baseId")
-	var settleId interface{} = "USDC"
 	var settle interface{} = this.SafeCurrencyCode(settleId)
 	var symbol interface{} = Add(Add(base, "/"), quote)
 	var contract interface{} = true
@@ -931,8 +1146,9 @@ func (this *HyperliquidCore) ParseMarket(market interface{}) interface{} {
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
  * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+ * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *HyperliquidCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1047,7 +1263,7 @@ func (this *HyperliquidCore) FetchBalance(optionalArgs ...interface{}) <-chan in
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *HyperliquidCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1059,8 +1275,8 @@ func (this *HyperliquidCore) FetchOrderBook(symbol interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9828 := (<-this.LoadMarkets())
-		PanicOnError(retRes9828)
+		retRes11788 := (<-this.LoadMarkets())
+		PanicOnError(retRes11788)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"type": "l2Book",
@@ -1114,7 +1330,8 @@ func (this *HyperliquidCore) FetchOrderBook(symbol interface{}, optionalArgs ...
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap', by default fetches both
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *HyperliquidCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1126,14 +1343,33 @@ func (this *HyperliquidCore) FetchTickers(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes10328 := (<-this.LoadMarkets())
-		PanicOnError(retRes10328)
+		retRes12298 := (<-this.LoadMarkets())
+		PanicOnError(retRes12298)
 		symbols = this.MarketSymbols(symbols)
 		// at this stage, to get tickers data, we use fetchMarkets endpoints
 		var response interface{} = []interface{}{}
 		var typeVar interface{} = this.SafeString(params, "type")
 		params = this.Omit(params, "type")
-		if IsTrue(IsEqual(typeVar, "spot")) {
+		var hip3 interface{} = false
+		hip3paramsVariable := this.HandleOptionAndParams(params, "fetchTickers", "hip3", false)
+		hip3 = GetValue(hip3paramsVariable, 0)
+		params = GetValue(hip3paramsVariable, 1)
+		if IsTrue(!IsEqual(symbols, nil)) {
+			// infer from first symbol
+			var firstSymbol interface{} = this.SafeString(symbols, 0)
+			if IsTrue(!IsEqual(firstSymbol, nil)) {
+				var market interface{} = this.Market(firstSymbol)
+				if IsTrue(this.SafeBool(this.SafeDict(market, "info"), "hip3")) {
+					hip3 = true
+				}
+			}
+		}
+		if IsTrue(hip3) {
+			params = this.Omit(params, "hip3")
+
+			response = (<-this.FetchHip3Markets(params))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(typeVar, "spot")) {
 
 			response = (<-this.FetchSpotMarkets(params))
 			PanicOnError(response)
@@ -1302,6 +1538,9 @@ func (this *HyperliquidCore) ParseTicker(ticker interface{}, optionalArgs ...int
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
+	var name interface{} = this.SafeString(ticker, "name")
+	var marketId interface{} = this.CoinToMarketId(name)
+	market = this.SafeMarket(marketId, market)
 	var bidAsk interface{} = this.SafeList(ticker, "impactPxs")
 	return this.SafeTicker(map[string]interface{}{
 		"symbol":        GetValue(market, "symbol"),
@@ -1343,8 +1582,8 @@ func (this *HyperliquidCore) FetchOHLCV(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes12108 := (<-this.LoadMarkets())
-		PanicOnError(retRes12108)
+		retRes14258 := (<-this.LoadMarkets())
+		PanicOnError(retRes14258)
 		var market interface{} = this.Market(symbol)
 		var until interface{} = this.SafeInteger(params, "until", this.Milliseconds())
 		var useTail interface{} = IsEqual(since, nil)
@@ -1432,7 +1671,7 @@ func (this *HyperliquidCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...inter
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.user] wallet address that made trades
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HyperliquidCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1450,9 +1689,12 @@ func (this *HyperliquidCore) FetchTrades(symbol interface{}, optionalArgs ...int
 		userAddress = GetValue(userAddressparamsVariable, 0)
 		params = GetValue(userAddressparamsVariable, 1)
 
-		retRes13028 := (<-this.LoadMarkets())
-		PanicOnError(retRes13028)
-		var market interface{} = this.SafeMarket(symbol)
+		retRes15178 := (<-this.LoadMarkets())
+		PanicOnError(retRes15178)
+		var market interface{} = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+		}
 		var request interface{} = map[string]interface{}{
 			"user": userAddress,
 		}
@@ -1534,7 +1776,9 @@ func (this *HyperliquidCore) ConstructPhantomAgent(hash interface{}, optionalArg
 		"connectionId": hash,
 	}
 }
-func (this *HyperliquidCore) ActionHash(action interface{}, vaultAddress interface{}, nonce interface{}) interface{} {
+func (this *HyperliquidCore) ActionHash(action interface{}, vaultAddress interface{}, nonce interface{}, optionalArgs ...interface{}) interface{} {
+	expiresAfter := GetArg(optionalArgs, 0, nil)
+	_ = expiresAfter
 	var dataBinary interface{} = this.Packb(action)
 	var dataHex interface{} = this.BinaryToBase16(dataBinary)
 	var data interface{} = dataHex
@@ -1545,12 +1789,18 @@ func (this *HyperliquidCore) ActionHash(action interface{}, vaultAddress interfa
 		data = Add(data, "01")
 		data = Add(data, vaultAddress)
 	}
+	if IsTrue(!IsEqual(expiresAfter, nil)) {
+		data = Add(data, "00")
+		data = Add(data, Add("00000", this.IntToBase16(expiresAfter)))
+	}
 	return this.Hash(this.Base16ToBinary(data), keccak, "binary")
 }
 func (this *HyperliquidCore) SignL1Action(action interface{}, nonce interface{}, optionalArgs ...interface{}) interface{} {
 	vaultAdress := GetArg(optionalArgs, 0, nil)
 	_ = vaultAdress
-	var hash interface{} = this.ActionHash(action, vaultAdress, nonce)
+	expiresAfter := GetArg(optionalArgs, 1, nil)
+	_ = expiresAfter
+	var hash interface{} = this.ActionHash(action, vaultAdress, nonce, expiresAfter)
 	var isTestnet interface{} = this.SafeBool(this.Options, "sandboxMode", false)
 	var phantomAgent interface{} = this.ConstructPhantomAgent(hash, isTestnet)
 	// const data: Dict = {
@@ -1663,6 +1913,24 @@ func (this *HyperliquidCore) BuildWithdrawSig(message interface{}) interface{} {
 	}
 	return this.SignUserSignedAction(messageTypes, message)
 }
+func (this *HyperliquidCore) BuildUserDexAbstractionSig(message interface{}) interface{} {
+	var messageTypes interface{} = map[string]interface{}{
+		"HyperliquidTransaction:UserDexAbstraction": []interface{}{map[string]interface{}{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]interface{}{
+			"name": "user",
+			"type": "address",
+		}, map[string]interface{}{
+			"name": "enabled",
+			"type": "bool",
+		}, map[string]interface{}{
+			"name": "nonce",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
 func (this *HyperliquidCore) BuildApproveBuilderFeeSig(message interface{}) interface{} {
 	var messageTypes interface{} = map[string]interface{}{
 		"HyperliquidTransaction:ApproveBuilderFee": []interface{}{map[string]interface{}{
@@ -1680,6 +1948,62 @@ func (this *HyperliquidCore) BuildApproveBuilderFeeSig(message interface{}) inte
 		}},
 	}
 	return this.SignUserSignedAction(messageTypes, message)
+}
+func (this *HyperliquidCore) SetRef() <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		if IsTrue(this.SafeBool(this.Options, "refSet", false)) {
+
+			ch <- true
+			return nil
+		}
+		AddElementToObject(this.Options, "refSet", true)
+		var action interface{} = map[string]interface{}{
+			"type": "setReferrer",
+			"code": this.SafeString(this.Options, "ref", "CCXT1"),
+		}
+		var nonce interface{} = this.Milliseconds()
+		var signature interface{} = this.SignL1Action(action, nonce)
+		var request interface{} = map[string]interface{}{
+			"action":    action,
+			"nonce":     nonce,
+			"signature": signature,
+		}
+		var response interface{} = nil
+
+		{
+			func(this *HyperliquidCore) (ret_ interface{}) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *HyperliquidCore) interface{} {
+							// catch block:
+							response = nil // ignore this
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				response = (<-this.PrivatePostExchange(request))
+				PanicOnError(response)
+
+				ch <- response
+				return nil
+
+			}(this)
+
+		}
+
+		ch <- response
+		return nil
+
+	}()
+	return ch
 }
 func (this *HyperliquidCore) ApproveBuilderFee(builder interface{}, maxFeeRate interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1710,8 +2034,8 @@ func (this *HyperliquidCore) ApproveBuilderFee(builder interface{}, maxFeeRate i
 			"vaultAddress": nil,
 		}
 
-		retRes153615 := (<-this.PrivatePostExchange(request))
-		PanicOnError(retRes153615)
+		retRes179615 := (<-this.PrivatePostExchange(request))
+		PanicOnError(retRes179615)
 		//
 		// {
 		//     "status": "ok",
@@ -1720,7 +2044,44 @@ func (this *HyperliquidCore) ApproveBuilderFee(builder interface{}, maxFeeRate i
 		//     }
 		// }
 		//
-		ch <- retRes153615
+		ch <- retRes179615
+		return nil
+
+	}()
+	return ch
+}
+func (this *HyperliquidCore) InitializeClient() <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+
+		{
+			func(this *HyperliquidCore) (ret_ interface{}) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *HyperliquidCore) interface{} {
+							// catch block:
+
+							ch <- false
+							return nil
+
+						}(this)
+					}
+				}()
+				// try block:
+
+				retRes180112 := (<-promiseAll([]interface{}{this.HandleBuilderFeeApproval(), this.SetRef()}))
+				PanicOnError(retRes180112)
+				return nil
+			}(this)
+
+		}
+
+		ch <- true
 		return nil
 
 	}()
@@ -1762,8 +2123,8 @@ func (this *HyperliquidCore) HandleBuilderFeeApproval() <-chan interface{} {
 				var builder interface{} = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 				var maxFeeRate interface{} = this.SafeString(this.Options, "feeRate", "0.01%")
 
-				retRes155112 := (<-this.ApproveBuilderFee(builder, maxFeeRate))
-				PanicOnError(retRes155112)
+				retRes182012 := (<-this.ApproveBuilderFee(builder, maxFeeRate))
+				PanicOnError(retRes182012)
 				AddElementToObject(this.Options, "approvedBuilderFee", true)
 				return nil
 			}(this)
@@ -1771,6 +2132,57 @@ func (this *HyperliquidCore) HandleBuilderFeeApproval() <-chan interface{} {
 		}
 
 		ch <- true
+		return nil
+
+	}()
+	return ch
+}
+func (this *HyperliquidCore) EnableUserDexAbstraction(enabled interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+		var userAddress interface{} = nil
+		userAddressparamsVariable := this.HandlePublicAddress("enableUserDexAbstraction", params)
+		userAddress = GetValue(userAddressparamsVariable, 0)
+		params = GetValue(userAddressparamsVariable, 1)
+		var nonce interface{} = this.Milliseconds()
+		var isSandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
+		var payload interface{} = map[string]interface{}{
+			"hyperliquidChain": Ternary(IsTrue(isSandboxMode), "Testnet", "Mainnet"),
+			"user":             userAddress,
+			"enabled":          enabled,
+			"nonce":            nonce,
+		}
+		var sig interface{} = this.BuildUserDexAbstractionSig(payload)
+		var action interface{} = map[string]interface{}{
+			"hyperliquidChain": GetValue(payload, "hyperliquidChain"),
+			"signatureChainId": "0x66eee",
+			"enabled":          GetValue(payload, "enabled"),
+			"user":             GetValue(payload, "user"),
+			"nonce":            nonce,
+			"type":             "userDexAbstraction",
+		}
+		var request interface{} = map[string]interface{}{
+			"action":       action,
+			"nonce":        nonce,
+			"signature":    sig,
+			"vaultAddress": nil,
+		}
+
+		retRes186215 := (<-this.PrivatePostExchange(request))
+		PanicOnError(retRes186215)
+		//
+		// {
+		//     "status": "ok",
+		//     "response": {
+		//         "type": "default"
+		//     }
+		// }
+		//
+		ch <- retRes186215
 		return nil
 
 	}()
@@ -1796,7 +2208,7 @@ func (this *HyperliquidCore) HandleBuilderFeeApproval() <-chan interface{} {
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1808,8 +2220,8 @@ func (this *HyperliquidCore) CreateOrder(symbol interface{}, typeVar interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15818 := (<-this.LoadMarkets())
-		PanicOnError(retRes15818)
+		retRes18878 := (<-this.LoadMarkets())
+		PanicOnError(retRes18878)
 		orderglobalParamsVariable := this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
 		order := GetValue(orderglobalParamsVariable, 0)
 		globalParams := GetValue(orderglobalParamsVariable, 1)
@@ -1831,7 +2243,7 @@ func (this *HyperliquidCore) CreateOrder(symbol interface{}, typeVar interface{}
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1841,11 +2253,11 @@ func (this *HyperliquidCore) CreateOrders(orders interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes15978 := (<-this.LoadMarkets())
-		PanicOnError(retRes15978)
+		retRes19038 := (<-this.LoadMarkets())
+		PanicOnError(retRes19038)
 
-		retRes15988 := (<-this.HandleBuilderFeeApproval())
-		PanicOnError(retRes15988)
+		retRes19048 := (<-this.InitializeClient())
+		PanicOnError(retRes19048)
 		var request interface{} = this.CreateOrdersRequest(orders, params)
 
 		response := (<-this.PrivatePostExchange(request))
@@ -1963,7 +2375,7 @@ func (this *HyperliquidCore) CreateOrdersRequest(orders interface{}, optionalArg
 	 * @description create a list of trade orders
 	 * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
 	 * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+	 * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
 	 */
 	params := GetArg(optionalArgs, 0, map[string]interface{}{})
 	_ = params
@@ -2007,11 +2419,12 @@ func (this *HyperliquidCore) CreateOrdersRequest(orders interface{}, optionalArg
 		AddElementToObject(orderParams, "slippage", slippage)
 		var stopLoss interface{} = this.SafeValue(orderParams, "stopLoss")
 		var takeProfit interface{} = this.SafeValue(orderParams, "takeProfit")
-		var isTrigger interface{} = (IsTrue(stopLoss) || IsTrue(takeProfit))
+		var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+		var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 		orderParams = this.Omit(orderParams, []interface{}{"stopLoss", "takeProfit"})
 		var mainOrderObj interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		AppendToArray(&orderReq, mainOrderObj)
-		if IsTrue(isTrigger) {
+		if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 			// grouping opposed orders for sl/tp
 			var stopLossOrderTriggerPrice interface{} = this.SafeStringN(stopLoss, []interface{}{"triggerPrice", "stopPrice"})
 			var stopLossOrderType interface{} = this.SafeString(stopLoss, "type", "limit")
@@ -2027,14 +2440,14 @@ func (this *HyperliquidCore) CreateOrdersRequest(orders interface{}, optionalArg
 			} else {
 				triggerOrderSide = "buy"
 			}
-			if IsTrue(!IsEqual(takeProfit, nil)) {
+			if IsTrue(hasTakeProfit) {
 				var orderObj interface{} = this.CreateOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.Extend(orderParams, map[string]interface{}{
 					"takeProfitPrice": takeProfitOrderTriggerPrice,
 					"reduceOnly":      true,
 				}))
 				AppendToArray(&orderReq, orderObj)
 			}
-			if IsTrue(!IsEqual(stopLoss, nil)) {
+			if IsTrue(hasStopLoss) {
 				var orderObj interface{} = this.CreateOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]interface{}{
 					"stopLossPrice": stopLossOrderTriggerPrice,
 					"reduceOnly":    true,
@@ -2085,7 +2498,7 @@ func (this *HyperliquidCore) CreateOrdersRequest(orders interface{}, optionalArg
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2119,7 +2532,7 @@ func (this *HyperliquidCore) CancelOrder(id interface{}, optionalArgs ...interfa
  * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2135,8 +2548,11 @@ func (this *HyperliquidCore) CancelOrders(ids interface{}, optionalArgs ...inter
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes18488 := (<-this.LoadMarkets())
-		PanicOnError(retRes18488)
+		retRes21558 := (<-this.LoadMarkets())
+		PanicOnError(retRes21558)
+
+		retRes21568 := (<-this.InitializeClient())
+		PanicOnError(retRes21568)
 		var request interface{} = this.CancelOrdersRequest(ids, symbol, params)
 
 		response := (<-this.PrivatePostExchange(request))
@@ -2247,7 +2663,7 @@ func (this *HyperliquidCore) CancelOrdersRequest(ids interface{}, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2258,8 +2674,11 @@ func (this *HyperliquidCore) CancelOrdersForSymbols(orders interface{}, optional
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes19528 := (<-this.LoadMarkets())
-		PanicOnError(retRes19528)
+		retRes22608 := (<-this.LoadMarkets())
+		PanicOnError(retRes22608)
+
+		retRes22618 := (<-this.InitializeClient())
+		PanicOnError(retRes22618)
 		var nonce interface{} = this.Milliseconds()
 		var request interface{} = map[string]interface{}{
 			"nonce": nonce,
@@ -2351,8 +2770,11 @@ func (this *HyperliquidCore) CancelAllOrdersAfter(timeout interface{}, optionalA
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes20278 := (<-this.LoadMarkets())
-		PanicOnError(retRes20278)
+		retRes23368 := (<-this.LoadMarkets())
+		PanicOnError(retRes23368)
+
+		retRes23378 := (<-this.InitializeClient())
+		PanicOnError(retRes23378)
 		params = this.Omit(params, []interface{}{"clientOrderId", "client_id"})
 		var nonce interface{} = this.Milliseconds()
 		var request interface{} = map[string]interface{}{
@@ -2532,7 +2954,7 @@ func (this *HyperliquidCore) EditOrdersRequest(orders interface{}, optionalArgs 
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2546,8 +2968,8 @@ func (this *HyperliquidCore) EditOrder(id interface{}, symbol interface{}, typeV
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes22018 := (<-this.LoadMarkets())
-		PanicOnError(retRes22018)
+		retRes25118 := (<-this.LoadMarkets())
+		PanicOnError(retRes25118)
 		if IsTrue(IsEqual(id, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an id argument")))
 		}
@@ -2572,7 +2994,7 @@ func (this *HyperliquidCore) EditOrder(id interface{}, symbol interface{}, typeV
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) EditOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2582,8 +3004,11 @@ func (this *HyperliquidCore) EditOrders(orders interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22208 := (<-this.LoadMarkets())
-		PanicOnError(retRes22208)
+		retRes25308 := (<-this.LoadMarkets())
+		PanicOnError(retRes25308)
+
+		retRes25318 := (<-this.InitializeClient())
+		PanicOnError(retRes25318)
 		var request interface{} = this.EditOrdersRequest(orders, params)
 
 		response := (<-this.PrivatePostExchange(request))
@@ -2653,8 +3078,8 @@ func (this *HyperliquidCore) CreateVault(name interface{}, description interface
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes22768 := (<-this.LoadMarkets())
-		PanicOnError(retRes22768)
+		retRes25878 := (<-this.LoadMarkets())
+		PanicOnError(retRes25878)
 		var nonce interface{} = this.Milliseconds()
 		var request interface{} = map[string]interface{}{
 			"nonce": nonce,
@@ -2697,10 +3122,10 @@ func (this *HyperliquidCore) CreateVault(name interface{}, description interface
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *HyperliquidCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2716,8 +3141,8 @@ func (this *HyperliquidCore) FetchFundingRateHistory(optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes23188 := (<-this.LoadMarkets())
-		PanicOnError(retRes23188)
+		retRes26298 := (<-this.LoadMarkets())
+		PanicOnError(retRes26298)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
@@ -2770,6 +3195,15 @@ func (this *HyperliquidCore) FetchFundingRateHistory(optionalArgs ...interface{}
 	}()
 	return ch
 }
+func (this *HyperliquidCore) GetDexFromHip3Symbol(market interface{}) interface{} {
+	var baseName interface{} = this.SafeString(market, "baseName", "")
+	var part interface{} = Split(baseName, ":")
+	var partsLength interface{} = GetArrayLength(part)
+	if IsTrue(IsGreaterThan(partsLength, 1)) {
+		return this.SafeString(part, 0)
+	}
+	return nil
+}
 
 /**
  * @method
@@ -2783,7 +3217,8 @@ func (this *HyperliquidCore) FetchFundingRateHistory(optionalArgs ...interface{}
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.dex] perp dex name. default is null
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2807,12 +3242,20 @@ func (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan
 		method = GetValue(methodparamsVariable, 0)
 		params = GetValue(methodparamsVariable, 1)
 
-		retRes23848 := (<-this.LoadMarkets())
-		PanicOnError(retRes23848)
-		var market interface{} = this.SafeMarket(symbol)
+		retRes27068 := (<-this.LoadMarkets())
+		PanicOnError(retRes27068)
 		var request interface{} = map[string]interface{}{
 			"type": method,
 			"user": userAddress,
+		}
+		var market interface{} = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+			// check if is hip3 symbol
+			var dexName interface{} = this.GetDexFromHip3Symbol(market)
+			if IsTrue(!IsEqual(dexName, nil)) {
+				AddElementToObject(request, "dex", dexName)
+			}
 		}
 
 		response := (<-this.PublicPostInfo(this.Extend(request, params)))
@@ -2856,7 +3299,7 @@ func (this *HyperliquidCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2872,8 +3315,8 @@ func (this *HyperliquidCore) FetchClosedOrders(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes24288 := (<-this.LoadMarkets())
-		PanicOnError(retRes24288)
+		retRes27588 := (<-this.LoadMarkets())
+		PanicOnError(retRes27588)
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
 		PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2895,7 +3338,7 @@ func (this *HyperliquidCore) FetchClosedOrders(optionalArgs ...interface{}) <-ch
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2911,8 +3354,8 @@ func (this *HyperliquidCore) FetchCanceledOrders(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes24468 := (<-this.LoadMarkets())
-		PanicOnError(retRes24468)
+		retRes27768 := (<-this.LoadMarkets())
+		PanicOnError(retRes27768)
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
 		PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2934,7 +3377,7 @@ func (this *HyperliquidCore) FetchCanceledOrders(optionalArgs ...interface{}) <-
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2950,8 +3393,8 @@ func (this *HyperliquidCore) FetchCanceledAndClosedOrders(optionalArgs ...interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes24648 := (<-this.LoadMarkets())
-		PanicOnError(retRes24648)
+		retRes27948 := (<-this.LoadMarkets())
+		PanicOnError(retRes27948)
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
 		PanicOnError(orders) // don't filter here because we don't want to catch open orders
@@ -2974,7 +3417,8 @@ func (this *HyperliquidCore) FetchCanceledAndClosedOrders(optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.dex] perp dex name. default is null
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2994,12 +3438,20 @@ func (this *HyperliquidCore) FetchOrders(optionalArgs ...interface{}) <-chan int
 		userAddress = GetValue(userAddressparamsVariable, 0)
 		params = GetValue(userAddressparamsVariable, 1)
 
-		retRes24858 := (<-this.LoadMarkets())
-		PanicOnError(retRes24858)
-		var market interface{} = this.SafeMarket(symbol)
+		retRes28168 := (<-this.LoadMarkets())
+		PanicOnError(retRes28168)
+		var market interface{} = nil
 		var request interface{} = map[string]interface{}{
 			"type": "historicalOrders",
 			"user": userAddress,
+		}
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+			// check if is hip3 symbol
+			var dexName interface{} = this.GetDexFromHip3Symbol(market)
+			if IsTrue(!IsEqual(dexName, nil)) {
+				AddElementToObject(request, "dex", dexName)
+			}
 		}
 
 		response := (<-this.PublicPostInfo(this.Extend(request, params)))
@@ -3036,7 +3488,7 @@ func (this *HyperliquidCore) FetchOrders(optionalArgs ...interface{}) <-chan int
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HyperliquidCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3052,9 +3504,12 @@ func (this *HyperliquidCore) FetchOrder(id interface{}, optionalArgs ...interfac
 		userAddress = GetValue(userAddressparamsVariable, 0)
 		params = GetValue(userAddressparamsVariable, 1)
 
-		retRes25248 := (<-this.LoadMarkets())
-		PanicOnError(retRes25248)
-		var market interface{} = this.SafeMarket(symbol)
+		retRes28638 := (<-this.LoadMarkets())
+		PanicOnError(retRes28638)
+		var market interface{} = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+		}
 		var clientOrderId interface{} = this.SafeString(params, "clientOrderId")
 		var request interface{} = map[string]interface{}{
 			"type": "orderStatus",
@@ -3305,7 +3760,7 @@ func (this *HyperliquidCore) ParseOrderType(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HyperliquidCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3325,9 +3780,12 @@ func (this *HyperliquidCore) FetchMyTrades(optionalArgs ...interface{}) <-chan i
 		userAddress = GetValue(userAddressparamsVariable, 0)
 		params = GetValue(userAddressparamsVariable, 1)
 
-		retRes27768 := (<-this.LoadMarkets())
-		PanicOnError(retRes27768)
-		var market interface{} = this.SafeMarket(symbol)
+		retRes31188 := (<-this.LoadMarkets())
+		PanicOnError(retRes31188)
+		var market interface{} = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+		}
 		var request interface{} = map[string]interface{}{
 			"user": userAddress,
 		}
@@ -3441,7 +3899,7 @@ func (this *HyperliquidCore) ParseTrade(trade interface{}, optionalArgs ...inter
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *HyperliquidCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3460,6 +3918,31 @@ func (this *HyperliquidCore) FetchPosition(symbol interface{}, optionalArgs ...i
 	}()
 	return ch
 }
+func (this *HyperliquidCore) GetDexFromSymbols(methodName interface{}, optionalArgs ...interface{}) interface{} {
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	if IsTrue(IsEqual(symbols, nil)) {
+		return nil
+	}
+	var symbolsLength interface{} = GetArrayLength(symbols)
+	if IsTrue(IsEqual(symbolsLength, 0)) {
+		return nil
+	}
+	var dexName interface{} = nil
+	for i := 0; IsLessThan(i, symbolsLength); i++ {
+		if IsTrue(IsEqual(dexName, nil)) {
+			var market interface{} = this.Market(GetValue(symbols, i))
+			dexName = this.GetDexFromHip3Symbol(market)
+		} else {
+			var market interface{} = this.Market(GetValue(symbols, i))
+			var currentDexName interface{} = this.GetDexFromHip3Symbol(market)
+			if IsTrue(!IsEqual(currentDexName, dexName)) {
+				panic(NotSupported(Add(Add(Add(this.Id, " "), methodName), " only supports fetching positions for one DEX at a time for HIP3 markets")))
+			}
+		}
+	}
+	return dexName
+}
 
 /**
  * @method
@@ -3470,7 +3953,8 @@ func (this *HyperliquidCore) FetchPosition(symbol interface{}, optionalArgs ...i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @param {string} [params.dex] perp dex name, eg: XYZ
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *HyperliquidCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3482,8 +3966,8 @@ func (this *HyperliquidCore) FetchPositions(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes29028 := (<-this.LoadMarkets())
-		PanicOnError(retRes29028)
+		retRes32728 := (<-this.LoadMarkets())
+		PanicOnError(retRes32728)
 		var userAddress interface{} = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -3492,6 +3976,10 @@ func (this *HyperliquidCore) FetchPositions(optionalArgs ...interface{}) <-chan 
 		var request interface{} = map[string]interface{}{
 			"type": "clearinghouseState",
 			"user": userAddress,
+		}
+		var dexName interface{} = this.GetDexFromSymbols("fetchPositions", symbols)
+		if IsTrue(!IsEqual(dexName, nil)) {
+			AddElementToObject(request, "dex", dexName)
 		}
 
 		response := (<-this.PublicPostInfo(this.Extend(request, params)))
@@ -3659,8 +4147,8 @@ func (this *HyperliquidCore) SetMarginMode(marginMode interface{}, optionalArgs 
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes30598 := (<-this.LoadMarkets())
-		PanicOnError(retRes30598)
+		retRes34338 := (<-this.LoadMarkets())
+		PanicOnError(retRes34338)
 		var market interface{} = this.Market(symbol)
 		var leverage interface{} = this.SafeInteger(params, "leverage")
 		if IsTrue(IsEqual(leverage, nil)) {
@@ -3736,8 +4224,8 @@ func (this *HyperliquidCore) SetLeverage(leverage interface{}, optionalArgs ...i
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes31188 := (<-this.LoadMarkets())
-		PanicOnError(retRes31188)
+		retRes34928 := (<-this.LoadMarkets())
+		PanicOnError(retRes34928)
 		var market interface{} = this.Market(symbol)
 		var marginMode interface{} = this.SafeString(params, "marginMode", "cross")
 		var isCross interface{} = (IsEqual(marginMode, "cross"))
@@ -3794,7 +4282,7 @@ func (this *HyperliquidCore) SetLeverage(leverage interface{}, optionalArgs ...i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
 func (this *HyperliquidCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3804,9 +4292,9 @@ func (this *HyperliquidCore) AddMargin(symbol interface{}, amount interface{}, o
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes317015 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes317015)
-		ch <- retRes317015
+		retRes354415 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes354415)
+		ch <- retRes354415
 		return nil
 
 	}()
@@ -3823,7 +4311,7 @@ func (this *HyperliquidCore) AddMargin(symbol interface{}, amount interface{}, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
 func (this *HyperliquidCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3833,9 +4321,9 @@ func (this *HyperliquidCore) ReduceMargin(symbol interface{}, amount interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes318615 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes318615)
-		ch <- retRes318615
+		retRes356015 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes356015)
+		ch <- retRes356015
 		return nil
 
 	}()
@@ -3849,8 +4337,8 @@ func (this *HyperliquidCore) ModifyMarginHelper(symbol interface{}, amount inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes31908 := (<-this.LoadMarkets())
-		PanicOnError(retRes31908)
+		retRes35648 := (<-this.LoadMarkets())
+		PanicOnError(retRes35648)
 		var market interface{} = this.Market(symbol)
 		var asset interface{} = this.ParseToInt(GetValue(market, "baseId"))
 		var sz interface{} = this.ParseToInt(Precise.StringMul(this.AmountToPrecision(symbol, amount), "1000000"))
@@ -3931,7 +4419,7 @@ func (this *HyperliquidCore) ParseMarginModification(data interface{}, optionalA
  * @param {string} toAccount account to transfer to *swap, spot or address*
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address for order
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *HyperliquidCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3942,8 +4430,8 @@ func (this *HyperliquidCore) Transfer(code interface{}, amount interface{}, from
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes32668 := (<-this.LoadMarkets())
-		PanicOnError(retRes32668)
+		retRes36408 := (<-this.LoadMarkets())
+		PanicOnError(retRes36408)
 		var isSandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode")
 		var nonce interface{} = this.Milliseconds()
 		if IsTrue(this.InArray(fromAccount, []interface{}{"spot", "swap", "perp"})) {
@@ -4078,7 +4566,7 @@ func (this *HyperliquidCore) ParseTransfer(transfer interface{}, optionalArgs ..
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] vault address withdraw from
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HyperliquidCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4091,8 +4579,8 @@ func (this *HyperliquidCore) Withdraw(code interface{}, amount interface{}, addr
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes33898 := (<-this.LoadMarkets())
-		PanicOnError(retRes33898)
+		retRes37638 := (<-this.LoadMarkets())
+		PanicOnError(retRes37638)
 		this.CheckAddress(address)
 		if IsTrue(!IsEqual(code, nil)) {
 			code = ToUpper(code)
@@ -4214,7 +4702,7 @@ func (this *HyperliquidCore) ParseTransaction(transaction interface{}, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *HyperliquidCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4224,8 +4712,8 @@ func (this *HyperliquidCore) FetchTradingFee(symbol interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes35048 := (<-this.LoadMarkets())
-		PanicOnError(retRes35048)
+		retRes38788 := (<-this.LoadMarkets())
+		PanicOnError(retRes38788)
 		var userAddress interface{} = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchTradingFee", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -4343,7 +4831,7 @@ func (this *HyperliquidCore) ParseTradingFee(fee interface{}, optionalArgs ...in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *HyperliquidCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4359,8 +4847,8 @@ func (this *HyperliquidCore) FetchLedger(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes36158 := (<-this.LoadMarkets())
-		PanicOnError(retRes36158)
+		retRes39898 := (<-this.LoadMarkets())
+		PanicOnError(retRes39898)
 		var userAddress interface{} = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchLedger", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -4463,7 +4951,7 @@ func (this *HyperliquidCore) ParseLedgerEntryType(typeVar interface{}) interface
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.vaultAddress] vault address
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HyperliquidCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4479,8 +4967,8 @@ func (this *HyperliquidCore) FetchDeposits(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes37128 := (<-this.LoadMarkets())
-		PanicOnError(retRes37128)
+		retRes40868 := (<-this.LoadMarkets())
+		PanicOnError(retRes40868)
 		var userAddress interface{} = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -4555,7 +5043,7 @@ func (this *HyperliquidCore) FetchDeposits(optionalArgs ...interface{}) <-chan i
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
  * @param {string} [params.vaultAddress] vault address
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HyperliquidCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4571,8 +5059,8 @@ func (this *HyperliquidCore) FetchWithdrawals(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes37798 := (<-this.LoadMarkets())
-		PanicOnError(retRes37798)
+		retRes41538 := (<-this.LoadMarkets())
+		PanicOnError(retRes41538)
 		var userAddress interface{} = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -4639,7 +5127,7 @@ func (this *HyperliquidCore) FetchWithdrawals(optionalArgs ...interface{}) <-cha
  * @description Retrieves the open interest for a list of symbols
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *HyperliquidCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4651,8 +5139,8 @@ func (this *HyperliquidCore) FetchOpenInterests(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes38388 := (<-this.LoadMarkets())
-		PanicOnError(retRes38388)
+		retRes42128 := (<-this.LoadMarkets())
+		PanicOnError(retRes42128)
 		symbols = this.MarketSymbols(symbols)
 
 		swapMarkets := (<-this.FetchSwapMarkets())
@@ -4671,7 +5159,7 @@ func (this *HyperliquidCore) FetchOpenInterests(optionalArgs ...interface{}) <-c
  * @description retrieves the open interest of a contract trading pair
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *HyperliquidCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4682,8 +5170,8 @@ func (this *HyperliquidCore) FetchOpenInterest(symbol interface{}, optionalArgs 
 		_ = params
 		symbol = this.Symbol(symbol)
 
-		retRes38548 := (<-this.LoadMarkets())
-		PanicOnError(retRes38548)
+		retRes42288 := (<-this.LoadMarkets())
+		PanicOnError(retRes42288)
 
 		ois := (<-this.FetchOpenInterests([]interface{}{symbol}, params))
 		PanicOnError(ois)
@@ -4740,7 +5228,7 @@ func (this *HyperliquidCore) ParseOpenInterest(interest interface{}, optionalArg
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *HyperliquidCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4756,8 +5244,8 @@ func (this *HyperliquidCore) FetchFundingHistory(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes39068 := (<-this.LoadMarkets())
-		PanicOnError(retRes39068)
+		retRes42808 := (<-this.LoadMarkets())
+		PanicOnError(retRes42808)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4879,6 +5367,49 @@ func (this *HyperliquidCore) ReserveRequestWeight(weight interface{}, optionalAr
 	}()
 	return ch
 }
+
+/**
+ * @method
+ * @name hyperliquid#createAccount
+ * @description creates a sub-account under the main account
+ * @param {string} name the name of the sub-account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
+ * @returns {object} a response object
+ */
+func (this *HyperliquidCore) CreateSubAccount(name interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+		var nonce interface{} = this.Milliseconds()
+		var request interface{} = map[string]interface{}{
+			"nonce": nonce,
+		}
+		var action interface{} = map[string]interface{}{
+			"type": "createSubAccount",
+			"name": name,
+		}
+		var expiresAfter interface{} = this.SafeInteger(params, "expiresAfter")
+		if IsTrue(!IsEqual(expiresAfter, nil)) {
+			params = this.Omit(params, "expiresAfter")
+			AddElementToObject(request, "expiresAfter", expiresAfter)
+		}
+		var signature interface{} = this.SignL1Action(action, nonce, nil, expiresAfter)
+		AddElementToObject(request, "action", action)
+		AddElementToObject(request, "signature", signature)
+
+		response := (<-this.PrivatePostExchange(this.Extend(request, params)))
+		PanicOnError(response)
+
+		ch <- response
+		return nil
+
+	}()
+	return ch
+}
 func (this *HyperliquidCore) ExtractTypeFromDelta(optionalArgs ...interface{}) interface{} {
 	data := GetArg(optionalArgs, 0, []interface{}{})
 	_ = data
@@ -4919,8 +5450,22 @@ func (this *HyperliquidCore) HandlePublicAddress(methodName interface{}, params 
 	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside \\'params\\' or the wallet address set")))
 }
 func (this *HyperliquidCore) CoinToMarketId(coin interface{}) interface{} {
+	// handle also hip3 tokens like flx:CRCL
+	if IsTrue(IsEqual(coin, nil)) {
+		return nil
+	}
+	var hi3TokensByname interface{} = this.SafeDict(this.Options, "hip3TokensByName", map[string]interface{}{})
+	if IsTrue(this.SafeDict(hi3TokensByname, coin)) {
+		var hip3Dict interface{} = this.SafeDict(hi3TokensByname, coin)
+		var quote interface{} = this.SafeString(hip3Dict, "quote", "USDC")
+		var code interface{} = this.SafeString(hip3Dict, "code", coin)
+		return Add(Add(Add(Add(code, "/"), quote), ":"), quote)
+	}
 	if IsTrue(IsTrue(IsGreaterThan(GetIndexOf(coin, "/"), OpNeg(1))) || IsTrue(IsGreaterThan(GetIndexOf(coin, "@"), OpNeg(1)))) {
 		return coin // spot
+	}
+	if IsTrue(IsGreaterThan(GetIndexOf(coin, ":"), OpNeg(1))) {
+		coin = Replace(coin, ":", "-") // hip3
 	}
 	return Add(this.SafeCurrencyCode(coin), "/USDC:USDC")
 }

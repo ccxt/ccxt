@@ -678,6 +678,18 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "uta spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.kucoin.com/api/ua/v1/market/ticker?symbol=BTC-USDT&tradeType=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
+                ]
             }
         ],
         "fetchTrades": [
@@ -695,6 +707,20 @@
                 "url": "https://api.kucoin.com/api/v1/market/histories?symbol=BTC-USDT",
                 "input": [
                     "BTC/USDT"
+                ]
+            },
+            {
+                "description": "uta fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.kucoin.com/api/ua/v1/market/trade?symbol=BTC-USDT&tradeType=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    3,
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
                 ]
             }
         ],
@@ -714,6 +740,19 @@
                 "url": "https://api.kucoin.com/api/v3/market/orderbook/level2?symbol=BTC-USDT",
                 "input": [
                     "BTC/USDT"
+                ]
+            },
+            {
+                "description": "uta orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/ua/v1/market/orderbook?symbol=BTC-USDT&tradeType=SPOT&limit=20",
+                "input": [
+                    "BTC/USDT",
+                    20,
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
                 ]
             }
         ],
@@ -735,6 +774,21 @@
                 "url": "https://api.kucoin.com/api/v1/market/candles?symbol=BTC-USDT&type=1min&endAt=1709992989",
                 "input": [
                     "BTC/USDT"
+                ]
+            },
+            {
+                "description": "uta spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.kucoin.com/api/ua/v1/market/kline?symbol=BTC-USDT&startAt=1762240065&endAt=1762240245&tradeType=SPOT&interval=1min",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    3,
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
                 ]
             }
         ],
@@ -893,6 +947,25 @@
                   {
                     "marginMode": "isolated"
                   }
+                ]
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetch the status",
+                "method": "fetchStatus",
+                "url": "https://api.kucoin.com/api/v1/status",
+                "input": []
+            },
+            {
+                "description": "uta fetch status",
+                "method": "fetchStatus",
+                "url": "https://api.kucoin.com/api/ua/v1/server/status?tradeType=SPOT",
+                "input": [
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
                 ]
             }
         ]

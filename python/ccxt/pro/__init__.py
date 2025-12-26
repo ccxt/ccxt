@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.15'
+__version__ = '4.5.29'
 
 # ----------------------------------------------------------------------------
 
@@ -80,6 +80,7 @@ from ccxt.pro.bittrade import bittrade                                    # noqa
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.pro.blofin import blofin                                        # noqa: F401
+from ccxt.pro.bullish import bullish                                      # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
@@ -91,9 +92,11 @@ from ccxt.pro.coincheck import coincheck                                  # noqa
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
+from ccxt.pro.deepcoin import deepcoin                                    # noqa: F401
 from ccxt.pro.defx import defx                                            # noqa: F401
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.derive import derive                                        # noqa: F401
+from ccxt.pro.dydx import dydx                                            # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
@@ -155,6 +158,7 @@ exchanges = [
     'bitvavo',
     'blockchaincom',
     'blofin',
+    'bullish',
     'bybit',
     'cex',
     'coinbase',
@@ -166,9 +170,11 @@ exchanges = [
     'coinex',
     'coinone',
     'cryptocom',
+    'deepcoin',
     'defx',
     'deribit',
     'derive',
+    'dydx',
     'exmo',
     'gate',
     'gateio',

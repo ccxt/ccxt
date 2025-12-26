@@ -90,6 +90,44 @@
             }
         }
     },
-    "UBTC": null,
-    "HPENGU": null
+    "HPENGU": null,
+    "USDH": {
+        "info": {
+            "name": "USDH",
+            "szDecimals": "2",
+            "weiDecimals": "8",
+            "index": "360",
+            "tokenId": "0x54e00a5988577cb0b0c9ab0cb6ef7f4b",
+            "isCanonical": false,
+            "evmContract": {
+                "address": "0x111111a1a0667d36bd57c0a9f569b98057111111",
+                "evm_extra_wei_decimals": "-2"
+            },
+            "fullName": "USDH",
+            "deployerTradingFeeShare": "0.0"
+        },
+        "id": "360",
+        "numericId": null,
+        "code": "USDH",
+        "precision": "0.00000001",
+        "type": "crypto",
+        "name": "USDH",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "FLX-CRCL": null
 }

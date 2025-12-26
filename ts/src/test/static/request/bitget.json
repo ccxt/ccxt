@@ -729,6 +729,23 @@
         ],
         "editOrder": [
             {
+                "description": "edit spot order with clientOrderId",
+                "method": "editOrder",
+                "url": "https://api.bitget.com/api/v2/spot/trade/cancel-replace-order",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.11,
+                    85,
+                    {
+                        "clientOrderId": "bitget1"
+                    }
+                ],
+                "output": "{\"clientOid\":\"bitget1\",\"size\":\"0.11\",\"orderType\":\"limit\",\"price\":\"85\",\"symbol\":\"LTCUSDT\"}"
+            },
+            {
                 "description": "Spot edit a trigger order",
                 "method": "editOrder",
                 "url": "https://api.bitget.com/api/v2/spot/trade/modify-plan-order",
@@ -1753,30 +1770,6 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\"}"
             },
             {
-                "description": "Cross margin cancel all orders",
-                "method": "cancelAllOrders",
-                "url": "https://api.bitget.com/api/margin/v1/cross/order/batchCancelOrder",
-                "input": [
-                    "BTC/USDT",
-                    {
-                        "marginMode": "cross"
-                    }
-                ],
-                "output": "{\"symbol\":\"BTCUSDT\"}"
-            },
-            {
-                "description": "Isolated margin cancel all orders",
-                "method": "cancelAllOrders",
-                "url": "https://api.bitget.com/api/margin/v1/isolated/order/batchCancelOrder",
-                "input": [
-                    "BTC/USDT",
-                    {
-                        "marginMode": "isolated"
-                    }
-                ],
-                "output": "{\"symbol\":\"BTCUSDT\"}"
-            },
-            {
                 "description": "uta spot cancelAllOrders",
                 "method": "cancelAllOrders",
                 "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
@@ -1895,6 +1888,30 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "futures 2h candle",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=2H&limit=10&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "2h",
+                    null,
+                    10
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch 3min candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=3min&limit=100",
+                "input": [
+                    "BTC/USDT",
+                    "3m",
+                    null,
+                    100
+                ],
+                "output": null
+            },
             {
                 "description": "spot ohlcv should retrieve 1000 candles",
                 "method": "fetchOHLCV",

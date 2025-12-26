@@ -11,6 +11,6 @@ func TestDeepExtend() interface{} {
 	exchange.InitParent(map[string]interface{}{
 		"id": "sampleexchange",
 	}, map[string]interface{}{}, exchange)
-	Assert(IsEqual(exchange.ParseToNumeric("1"), 1))
+	Assert(ccxt.IsEqual(exchange.ParseToNumeric("1"), 1))
 	return true // dummy for now
 }

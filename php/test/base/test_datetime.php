@@ -10,7 +10,7 @@ namespace ccxt;
 
 
 function test_datetime() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'regirock',
     ));
     assert($exchange->iso8601(514862627000) === '1986-04-26T01:23:47.000Z');

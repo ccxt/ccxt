@@ -1132,6 +1132,11 @@ public partial class Exchange
         var res = await this.createStopMarketOrderWs(symbol, side, amount, triggerPrice, parameters);
         return new Order(res);
     }
+    public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSubAccount(name, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
@@ -1314,6 +1319,7 @@ public class  Btcalpha: btcalpha { public Btcalpha(object args = null) : base(ar
 public class  Btcbox: btcbox { public Btcbox(object args = null) : base(args) { } }
 public class  Btcmarkets: btcmarkets { public Btcmarkets(object args = null) : base(args) { } }
 public class  Btcturk: btcturk { public Btcturk(object args = null) : base(args) { } }
+public class  Bullish: bullish { public Bullish(object args = null) : base(args) { } }
 public class  Bybit: bybit { public Bybit(object args = null) : base(args) { } }
 public class  Cex: cex { public Cex(object args = null) : base(args) { } }
 public class  Coinbase: coinbase { public Coinbase(object args = null) : base(args) { } }
@@ -1330,11 +1336,13 @@ public class  Coinsph: coinsph { public Coinsph(object args = null) : base(args)
 public class  Coinspot: coinspot { public Coinspot(object args = null) : base(args) { } }
 public class  Cryptocom: cryptocom { public Cryptocom(object args = null) : base(args) { } }
 public class  Cryptomus: cryptomus { public Cryptomus(object args = null) : base(args) { } }
+public class  Deepcoin: deepcoin { public Deepcoin(object args = null) : base(args) { } }
 public class  Defx: defx { public Defx(object args = null) : base(args) { } }
 public class  Delta: delta { public Delta(object args = null) : base(args) { } }
 public class  Deribit: deribit { public Deribit(object args = null) : base(args) { } }
 public class  Derive: derive { public Derive(object args = null) : base(args) { } }
 public class  Digifinex: digifinex { public Digifinex(object args = null) : base(args) { } }
+public class  Dydx: dydx { public Dydx(object args = null) : base(args) { } }
 public class  Exmo: exmo { public Exmo(object args = null) : base(args) { } }
 public class  Fmfwio: fmfwio { public Fmfwio(object args = null) : base(args) { } }
 public class  Foxbit: foxbit { public Foxbit(object args = null) : base(args) { } }
@@ -1385,4 +1393,5 @@ public class  Woofipro: woofipro { public Woofipro(object args = null) : base(ar
 public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
+public class  Zebpay: zebpay { public Zebpay(object args = null) : base(args) { } }
 public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }
