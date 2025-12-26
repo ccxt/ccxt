@@ -80,7 +80,7 @@ jobs:
         done
     - name: Response tests
       if: env.important_modified == 'true'
-      run: npm run response-cs
+      run: npm run response-java
     - name: Response tests (specific)
       if: env.important_modified == 'false'
       run: |

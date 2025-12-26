@@ -792,8 +792,8 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
                 l.add(args[0]); // append
                 return;
             }
-            if (args.length == 2 && args[0] instanceof Integer idx) {
-                int i = idx;
+            if (args.length == 2 && IsInteger(args[0])) {
+                int i = toInt(args[0]);
                 if (i < 0 || i > l.size()) {
                     throw new IndexOutOfBoundsException("Index " + i + " out of bounds [0," + l.size() + "]");
                 }
