@@ -399,7 +399,7 @@ func (this *ToobitCore) Describe() interface{} {
  * @description the latest known information on the availability of the exchange API
  * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *ToobitCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -924,7 +924,7 @@ func (this *ToobitCore) ParseMarket(market interface{}) interface{} {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *ToobitCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -994,7 +994,7 @@ func (this *ToobitCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *ToobitCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1223,7 +1223,7 @@ func (this *ToobitCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ToobitCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1388,7 +1388,7 @@ func (this *ToobitCore) ParseLastPrice(entry interface{}, optionalArgs ...interf
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ToobitCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1465,7 +1465,7 @@ func (this *ToobitCore) ParseBidAskCustom(ticker interface{}) interface{} {
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+ * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
  */
 func (this *ToobitCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1542,11 +1542,11 @@ func (this *ToobitCore) ParseFundingRate(contract interface{}, optionalArgs ...i
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1622,7 +1622,7 @@ func (this *ToobitCore) ParseFundingRateHistory(contract interface{}, optionalAr
  * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
  * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *ToobitCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1686,7 +1686,7 @@ func (this *ToobitCore) ParseBalance(response interface{}) interface{} {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1831,11 +1831,13 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol interface{}, typeVar i
 	}
 	var stopLoss interface{} = this.SafeDict(params, "stopLoss")
 	var takeProfit interface{} = this.SafeDict(params, "takeProfit")
+	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 	var triggerPriceTypes interface{} = map[string]interface{}{
 		"mark": "MARK_PRICE",
 		"last": "CONTRACT_PRICE",
 	}
-	if IsTrue(!IsEqual(stopLoss, nil)) {
+	if IsTrue(hasStopLoss) {
 		AddElementToObject(request, "stopLoss", this.SafeValue(stopLoss, "triggerPrice"))
 		var limitPrice interface{} = this.SafeValue(stopLoss, "price")
 		if IsTrue(!IsEqual(limitPrice, nil)) {
@@ -1848,7 +1850,7 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol interface{}, typeVar i
 		}
 		params = this.Omit(params, "stopLoss")
 	}
-	if IsTrue(!IsEqual(takeProfit, nil)) {
+	if IsTrue(hasTakeProfit) {
 		AddElementToObject(request, "takeProfit", this.SafeValue(takeProfit, "triggerPrice"))
 		var limitPrice interface{} = this.SafeValue(takeProfit, "price")
 		if IsTrue(!IsEqual(limitPrice, nil)) {
@@ -1995,7 +1997,7 @@ func (this *ToobitCore) ParseOrderType(status interface{}) interface{} {
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2053,7 +2055,7 @@ func (this *ToobitCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
  * @param {string} symbol unified symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2065,8 +2067,8 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18688 := (<-this.LoadMarkets())
-		PanicOnError(retRes18688)
+		retRes18708 := (<-this.LoadMarkets())
+		PanicOnError(retRes18708)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2109,7 +2111,7 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2121,8 +2123,8 @@ func (this *ToobitCore) CancelOrders(ids interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19118 := (<-this.LoadMarkets())
-		PanicOnError(retRes19118)
+		retRes19138 := (<-this.LoadMarkets())
+		PanicOnError(retRes19138)
 		var idsString interface{} = Join(ids, ",")
 		var request interface{} = map[string]interface{}{
 			"ids": idsString,
@@ -2166,7 +2168,7 @@ func (this *ToobitCore) CancelOrders(ids interface{}, optionalArgs ...interface{
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2181,8 +2183,8 @@ func (this *ToobitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes19698 := (<-this.LoadMarkets())
-		PanicOnError(retRes19698)
+		retRes19718 := (<-this.LoadMarkets())
+		PanicOnError(retRes19718)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 		}
@@ -2243,7 +2245,7 @@ func (this *ToobitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2259,8 +2261,8 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20248 := (<-this.LoadMarkets())
-		PanicOnError(retRes20248)
+		retRes20268 := (<-this.LoadMarkets())
+		PanicOnError(retRes20268)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2301,7 +2303,7 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2317,8 +2319,8 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20848 := (<-this.LoadMarkets())
-		PanicOnError(retRes20848)
+		retRes20868 := (<-this.LoadMarkets())
+		PanicOnError(retRes20868)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -2363,7 +2365,7 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2380,8 +2382,8 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21498 := (<-this.LoadMarkets())
-		PanicOnError(retRes21498)
+		retRes21518 := (<-this.LoadMarkets())
+		PanicOnError(retRes21518)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2431,7 +2433,7 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *ToobitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2450,8 +2452,8 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes22188 := (<-this.LoadMarkets())
-		PanicOnError(retRes22188)
+		retRes22208 := (<-this.LoadMarkets())
+		PanicOnError(retRes22208)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -2496,7 +2498,7 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
  * @param {string} fromAccount 'spot', 'swap'
  * @param {string} toAccount 'spot', 'swap'
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *ToobitCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2506,8 +2508,8 @@ func (this *ToobitCore) Transfer(code interface{}, amount interface{}, fromAccou
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22988 := (<-this.LoadMarkets())
-		PanicOnError(retRes22988)
+		retRes23008 := (<-this.LoadMarkets())
+		PanicOnError(retRes23008)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -2567,7 +2569,7 @@ func (this *ToobitCore) ParseTransfer(transfer interface{}, optionalArgs ...inte
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *ToobitCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2583,8 +2585,8 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes23538 := (<-this.LoadMarkets())
-		PanicOnError(retRes23538)
+		retRes23558 := (<-this.LoadMarkets())
+		PanicOnError(retRes23558)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2684,7 +2686,7 @@ func (this *ToobitCore) ParseLedgerType(typeVar interface{}) interface{} {
  * @description fetch the trading fees for multiple markets
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *ToobitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2694,8 +2696,8 @@ func (this *ToobitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes24438 := (<-this.LoadMarkets())
-		PanicOnError(retRes24438)
+		retRes24458 := (<-this.LoadMarkets())
+		PanicOnError(retRes24458)
 		var response interface{} = nil
 		var marketType interface{} = nil
 		var market interface{} = nil
@@ -2764,7 +2766,7 @@ func (this *ToobitCore) ParseTradingFee(data interface{}, optionalArgs ...interf
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposit structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ToobitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2780,9 +2782,9 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes250315 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
-		PanicOnError(retRes250315)
-		ch <- retRes250315
+		retRes250515 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
+		PanicOnError(retRes250515)
+		ch <- retRes250515
 		return nil
 
 	}()
@@ -2798,7 +2800,7 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawal structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ToobitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2814,9 +2816,9 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes251815 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
-		PanicOnError(retRes251815)
-		ch <- retRes251815
+		retRes252015 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
+		PanicOnError(retRes252015)
+		ch <- retRes252015
 		return nil
 
 	}()
@@ -2828,8 +2830,8 @@ func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar interface{}, co
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes25228 := (<-this.LoadMarkets())
-		PanicOnError(retRes25228)
+		retRes25248 := (<-this.LoadMarkets())
+		PanicOnError(retRes25248)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2963,7 +2965,7 @@ func (this *ToobitCore) ParseTransactionStatus(status interface{}) interface{} {
  * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *ToobitCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2973,8 +2975,8 @@ func (this *ToobitCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes26968 := (<-this.LoadMarkets())
-		PanicOnError(retRes26968)
+		retRes26988 := (<-this.LoadMarkets())
+		PanicOnError(retRes26988)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin": GetValue(currency, "id"),
@@ -3031,7 +3033,7 @@ func (this *ToobitCore) ParseDepositAddress(depositAddress interface{}, optional
  * @param {string} address the address to withdraw to
  * @param {string} tag a memo for the transaction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ToobitCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3051,14 +3053,15 @@ func (this *ToobitCore) Withdraw(code interface{}, amount interface{}, address i
 			panic(ArgumentsRequired(Add(this.Id, " withdraw() : param[\"network\"] is required")))
 		}
 
-		retRes27528 := (<-this.LoadMarkets())
-		PanicOnError(retRes27528)
+		retRes27548 := (<-this.LoadMarkets())
+		PanicOnError(retRes27548)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
-			"coin":     GetValue(currency, "id"),
-			"address":  address,
-			"quantity": this.CurrencyToPrecision(GetValue(currency, "code"), amount),
-			"network":  networkCode,
+			"coin":          GetValue(currency, "id"),
+			"address":       address,
+			"quantity":      this.CurrencyToPrecision(GetValue(currency, "code"), amount),
+			"chainType":     networkCode,
+			"clientOrderId": this.Milliseconds(),
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "addressExt", tag)
@@ -3106,8 +3109,8 @@ func (this *ToobitCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes27908 := (<-this.LoadMarkets())
-		PanicOnError(retRes27908)
+		retRes27938 := (<-this.LoadMarkets())
+		PanicOnError(retRes27938)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
@@ -3154,8 +3157,8 @@ func (this *ToobitCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes28218 := (<-this.LoadMarkets())
-		PanicOnError(retRes28218)
+		retRes28248 := (<-this.LoadMarkets())
+		PanicOnError(retRes28248)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":   GetValue(market, "id"),
@@ -3182,7 +3185,7 @@ func (this *ToobitCore) SetLeverage(leverage interface{}, optionalArgs ...interf
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *ToobitCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3192,8 +3195,8 @@ func (this *ToobitCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28448 := (<-this.LoadMarkets())
-		PanicOnError(retRes28448)
+		retRes28478 := (<-this.LoadMarkets())
+		PanicOnError(retRes28478)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -3241,7 +3244,7 @@ func (this *ToobitCore) ParseLeverage(leverage interface{}, optionalArgs ...inte
  * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ToobitCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3253,8 +3256,8 @@ func (this *ToobitCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes28878 := (<-this.LoadMarkets())
-		PanicOnError(retRes28878)
+		retRes28908 := (<-this.LoadMarkets())
+		PanicOnError(retRes28908)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {

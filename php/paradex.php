@@ -376,7 +376,7 @@ class paradex extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+         * @see https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -394,10 +394,10 @@ class paradex extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-system-state
+         * @see https://docs.paradex.trade/api/prod/system/get-state
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
         $response = $this->publicGetSystemState ($params);
         //
@@ -419,7 +419,7 @@ class paradex extends Exchange {
         /**
          * retrieves $data on all markets for bitget
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -618,9 +618,9 @@ class paradex extends Exchange {
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          *
-         * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-$symbol
+         * @see https://docs.paradex.trade/api/prod/markets/klines
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -628,6 +628,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {string} [$params->price] "last", "mark", "index", default is "last"
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -639,7 +640,11 @@ class paradex extends Exchange {
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe);
         $until = $this->safe_integer_2($params, 'until', 'till', $now);
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $price = $this->safe_string($params, 'price');
+        if ($price !== null) {
+            $request['price_kind'] = $price;
+        }
+        $params = $this->omit($params, array( 'until', 'till', 'price' ));
         if ($since !== null) {
             $request['start_at'] = $since;
             if ($limit !== null) {
@@ -699,11 +704,11 @@ class paradex extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -740,11 +745,11 @@ class paradex extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -834,12 +839,12 @@ class paradex extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-$market-$orderbook
+         * @see https://docs.paradex.trade/api/prod/markets/get-$orderbook
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -877,7 +882,7 @@ class paradex extends Exchange {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
-         * @see https://docs.api.testnet.paradex.trade/#trade-tape
+         * @see https://docs.paradex.trade/api/prod/trades/trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -885,7 +890,7 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -998,11 +1003,11 @@ class paradex extends Exchange {
         /**
          * retrieves the open $interest of a contract trading pair
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open $interest structurearray(@link https://docs.ccxt.com/#/?id=open-$interest-structure)
+         * @return {array} an open $interest structurearray(@link https://docs.ccxt.com/?id=open-$interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1370,7 +1375,7 @@ class paradex extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://docs.api.prod.paradex.trade/#create-$order
+         * @see https://docs.paradex.trade/api/prod/orders/new
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1386,7 +1391,7 @@ class paradex extends Exchange {
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
          * @param {string} [$params->clientOrderId] a unique id for the $order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -1530,14 +1535,14 @@ class paradex extends Exchange {
         /**
          * cancels an open order
          *
-         * @see https://docs.api.prod.paradex.trade/#cancel-order
-         * @see https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-$id
+         * @see https://docs.paradex.trade/api/prod/orders/cancel
+         * @see https://docs.paradex.trade/api/prod/orders/cancel-by-client-$id
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique $id for the order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -1561,11 +1566,11 @@ class paradex extends Exchange {
         /**
          * cancel all open orders in a $market
          *
-         * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+         * @see https://docs.paradex.trade/api/prod/orders/cancel-all
          *
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -1587,14 +1592,14 @@ class paradex extends Exchange {
         /**
          * fetches information on an order made by the user
          *
-         * @see https://docs.api.prod.paradex.trade/#get-order
-         * @see https://docs.api.prod.paradex.trade/#get-order-by-client-$id
+         * @see https://docs.paradex.trade/api/prod/orders/get
+         * @see https://docs.paradex.trade/api/prod/orders/get-by-client-$id
          *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique $id for the order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -1642,7 +1647,7 @@ class paradex extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://docs.api.prod.paradex.trade/#get-$orders
+         * @see https://docs.paradex.trade/api/prod/orders/get-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1651,7 +1656,7 @@ class paradex extends Exchange {
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->paginate] set to true if you want to fetch $orders with pagination
          * @param {int} $params->until timestamp in ms of the latest order to fetch
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -1723,13 +1728,13 @@ class paradex extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-$orders
+         * @see https://docs.paradex.trade/api/prod/orders/get-open-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -1780,10 +1785,10 @@ class paradex extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.api.prod.paradex.trade/#list-balances
+         * @see https://docs.paradex.trade/api/prod/account/get-balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -1820,7 +1825,7 @@ class paradex extends Exchange {
         /**
          * fetch all $trades made by the user
          *
-         * @see https://docs.api.prod.paradex.trade/#list-fills
+         * @see https://docs.paradex.trade/api/prod/account/list-fills
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1828,7 +1833,7 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -1885,11 +1890,11 @@ class paradex extends Exchange {
         /**
          * fetch data on an open position
          *
-         * @see https://docs.api.prod.paradex.trade/#list-open-$positions
+         * @see https://docs.paradex.trade/api/prod/account/get-$positions
          *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -1902,11 +1907,11 @@ class paradex extends Exchange {
         /**
          * fetch all open positions
          *
-         * @see https://docs.api.prod.paradex.trade/#list-open-positions
+         * @see https://docs.paradex.trade/api/prod/account/get-positions
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -2003,14 +2008,14 @@ class paradex extends Exchange {
         /**
          * retrieves the public liquidations of a trading pair
          *
-         * @see https://docs.api.prod.paradex.trade/#list-liquidations
+         * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
          * @param {int} [$limit] the maximum number of liquidation structures to retrieve
          * @param {array} [$params] exchange specific parameters for the huobi api endpoint
          * @param {int} [$params->until] timestamp in ms of the latest liquidation
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         $this->authenticate_rest();
         $request = array();
@@ -2062,7 +2067,7 @@ class paradex extends Exchange {
         /**
          * fetch all $deposits made to an account
          *
-         * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+         * @see https://docs.paradex.trade/api/prod/transfers/get
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch $deposits for
@@ -2070,7 +2075,7 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -2124,7 +2129,7 @@ class paradex extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+         * @see https://docs.paradex.trade/api/prod/transfers/get
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2132,7 +2137,7 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -2249,11 +2254,11 @@ class paradex extends Exchange {
         /**
          * fetches the margin mode of a specific $symbol
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+         * @see https://docs.paradex.trade/api/prod/account/get-account-margin
          *
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -2293,7 +2298,7 @@ class paradex extends Exchange {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
-         * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+         * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
          *
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
@@ -2319,11 +2324,11 @@ class paradex extends Exchange {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+         * @see https://docs.paradex.trade/api/prod/account/get-account-margin
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->authenticate_rest();
         $this->load_markets();
@@ -2373,7 +2378,7 @@ class paradex extends Exchange {
         /**
          * set the level of $leverage for a $market
          *
-         * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+         * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
          *
          * @param {float} $leverage the rate of $leverage
          * @param {string} [$symbol] unified $market $symbol (is mandatory for swap markets)
@@ -2399,11 +2404,11 @@ class paradex extends Exchange {
         /**
          * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $greeks for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$greeks-structure $greeks structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$greeks-structure $greeks structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2454,11 +2459,11 @@ class paradex extends Exchange {
         /**
          * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols, null, true, true, true);
@@ -2576,7 +2581,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of funding $rate structures
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding $rate to fetch
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-$rate-history-structure funding $rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');

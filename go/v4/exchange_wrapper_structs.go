@@ -3894,6 +3894,18 @@ func WithCreateStopMarketOrderWsParams(params map[string]interface{}) CreateStop
 	}
 }
 
+type CreateSubAccountOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type CreateSubAccountOptions func(opts *CreateSubAccountOptionsStruct)
+
+func WithCreateSubAccountParams(params map[string]interface{}) CreateSubAccountOptions {
+	return func(opts *CreateSubAccountOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchLastPricesOptionsStruct struct {
 	Symbols *[]string
 	Params  *map[string]interface{}

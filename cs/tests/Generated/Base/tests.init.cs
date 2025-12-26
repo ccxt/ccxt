@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        public void baseTestsInit()
+        async public Task baseTestsInit()
         {
             testLanguageSpecific();
             testAfterConstructor();
@@ -30,5 +30,6 @@ public partial class BaseTest
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
             testArraysConcat();
+            await testSleep();
         }
 }

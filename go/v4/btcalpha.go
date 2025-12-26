@@ -19,6 +19,7 @@ func (this *BtcalphaCore) Describe() interface{} {
 		"name":      "BTC-Alpha",
 		"countries": []interface{}{"US"},
 		"version":   "v1",
+		"rateLimit": 10,
 		"has": map[string]interface{}{
 			"CORS":                                   nil,
 			"spot":                                   true,
@@ -146,11 +147,28 @@ func (this *BtcalphaCore) Describe() interface{} {
 		},
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
-				"get": []interface{}{"currencies/", "pairs/", "orderbook/{pair_name}", "exchanges/", "charts/{pair}/{type}/chart/", "ticker/"},
+				"get": map[string]interface{}{
+					"currencies/":                 1,
+					"pairs/":                      1,
+					"orderbook/{pair_name}":       1,
+					"exchanges/":                  1,
+					"charts/{pair}/{type}/chart/": 1,
+					"ticker/":                     1,
+				},
 			},
 			"private": map[string]interface{}{
-				"get":  []interface{}{"wallets/", "orders/own/", "order/{id}/", "exchanges/own/", "deposits/", "withdraws/"},
-				"post": []interface{}{"order/", "order-cancel/"},
+				"get": map[string]interface{}{
+					"wallets/":       50,
+					"orders/own/":    50,
+					"order/{id}/":    50,
+					"exchanges/own/": 50,
+					"deposits/":      50,
+					"withdraws/":     50,
+				},
+				"post": map[string]interface{}{
+					"order/":        50,
+					"order-cancel/": 50,
+				},
 			},
 		},
 		"fees": map[string]interface{}{
@@ -360,7 +378,7 @@ func (this *BtcalphaCore) ParseMarket(market interface{}) interface{} {
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BtcalphaCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -372,8 +390,8 @@ func (this *BtcalphaCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes3728 := (<-this.LoadMarkets())
-		PanicOnError(retRes3728)
+		retRes3738 := (<-this.LoadMarkets())
+		PanicOnError(retRes3738)
 
 		response := (<-this.PublicGetTicker(params))
 		PanicOnError(response)
@@ -408,7 +426,7 @@ func (this *BtcalphaCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BtcalphaCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -418,8 +436,8 @@ func (this *BtcalphaCore) FetchTicker(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4038 := (<-this.LoadMarkets())
-		PanicOnError(retRes4038)
+		retRes4048 := (<-this.LoadMarkets())
+		PanicOnError(retRes4048)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"pair": GetValue(market, "id"),
@@ -500,7 +518,7 @@ func (this *BtcalphaCore) ParseTicker(ticker interface{}, optionalArgs ...interf
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BtcalphaCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -512,8 +530,8 @@ func (this *BtcalphaCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes4798 := (<-this.LoadMarkets())
-		PanicOnError(retRes4798)
+		retRes4808 := (<-this.LoadMarkets())
+		PanicOnError(retRes4808)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"pair_name": GetValue(market, "id"),
@@ -609,7 +627,7 @@ func (this *BtcalphaCore) ParseTrade(trade interface{}, optionalArgs ...interfac
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BtcalphaCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -623,8 +641,8 @@ func (this *BtcalphaCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes5658 := (<-this.LoadMarkets())
-		PanicOnError(retRes5658)
+		retRes5668 := (<-this.LoadMarkets())
+		PanicOnError(retRes5668)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -654,7 +672,7 @@ func (this *BtcalphaCore) FetchTrades(symbol interface{}, optionalArgs ...interf
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BtcalphaCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -670,8 +688,8 @@ func (this *BtcalphaCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes5918 := (<-this.LoadMarkets())
-		PanicOnError(retRes5918)
+		retRes5928 := (<-this.LoadMarkets())
+		PanicOnError(retRes5928)
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -708,7 +726,7 @@ func (this *BtcalphaCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BtcalphaCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -724,8 +742,8 @@ func (this *BtcalphaCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6228 := (<-this.LoadMarkets())
-		PanicOnError(retRes6228)
+		retRes6238 := (<-this.LoadMarkets())
+		PanicOnError(retRes6238)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -854,8 +872,8 @@ func (this *BtcalphaCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes7358 := (<-this.LoadMarkets())
-		PanicOnError(retRes7358)
+		retRes7368 := (<-this.LoadMarkets())
+		PanicOnError(retRes7368)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"pair": GetValue(market, "id"),
@@ -906,7 +924,7 @@ func (this *BtcalphaCore) ParseBalance(response interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://btc-alpha.github.io/api-docs/#list-own-wallets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BtcalphaCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -916,8 +934,8 @@ func (this *BtcalphaCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes7818 := (<-this.LoadMarkets())
-		PanicOnError(retRes7818)
+		retRes7828 := (<-this.LoadMarkets())
+		PanicOnError(retRes7828)
 
 		response := (<-this.PrivateGetWallets(params))
 		PanicOnError(response)
@@ -1021,7 +1039,7 @@ func (this *BtcalphaCore) ParseOrder(order interface{}, optionalArgs ...interfac
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcalphaCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1036,8 +1054,8 @@ func (this *BtcalphaCore) CreateOrder(symbol interface{}, typeVar interface{}, s
 			panic(InvalidOrder(Add(this.Id, " only limits orders are supported")))
 		}
 
-		retRes8848 := (<-this.LoadMarkets())
-		PanicOnError(retRes8848)
+		retRes8858 := (<-this.LoadMarkets())
+		PanicOnError(retRes8858)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"pair":   GetValue(market, "id"),
@@ -1071,7 +1089,7 @@ func (this *BtcalphaCore) CreateOrder(symbol interface{}, typeVar interface{}, s
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcalphaCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1109,7 +1127,7 @@ func (this *BtcalphaCore) CancelOrder(id interface{}, optionalArgs ...interface{
  * @param {string} id the order id
  * @param {string} symbol not used by btcalpha fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcalphaCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1121,8 +1139,8 @@ func (this *BtcalphaCore) FetchOrder(id interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9378 := (<-this.LoadMarkets())
-		PanicOnError(retRes9378)
+		retRes9388 := (<-this.LoadMarkets())
+		PanicOnError(retRes9388)
 		var request interface{} = map[string]interface{}{
 			"id": id,
 		}
@@ -1146,7 +1164,7 @@ func (this *BtcalphaCore) FetchOrder(id interface{}, optionalArgs ...interface{}
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcalphaCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1162,8 +1180,8 @@ func (this *BtcalphaCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes9578 := (<-this.LoadMarkets())
-		PanicOnError(retRes9578)
+		retRes9588 := (<-this.LoadMarkets())
+		PanicOnError(retRes9588)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1193,7 +1211,7 @@ func (this *BtcalphaCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcalphaCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1212,9 +1230,9 @@ func (this *BtcalphaCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
 			"status": "1",
 		}
 
-		retRes98615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes98615)
-		ch <- retRes98615
+		retRes98715 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes98715)
+		ch <- retRes98715
 		return nil
 
 	}()
@@ -1230,7 +1248,7 @@ func (this *BtcalphaCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcalphaCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1249,9 +1267,9 @@ func (this *BtcalphaCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
 			"status": "3",
 		}
 
-		retRes100415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes100415)
-		ch <- retRes100415
+		retRes100515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes100515)
+		ch <- retRes100515
 		return nil
 
 	}()
@@ -1267,7 +1285,7 @@ func (this *BtcalphaCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan 
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BtcalphaCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1283,8 +1301,8 @@ func (this *BtcalphaCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes10198 := (<-this.LoadMarkets())
-		PanicOnError(retRes10198)
+		retRes10208 := (<-this.LoadMarkets())
+		PanicOnError(retRes10208)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			var market interface{} = this.Market(symbol)

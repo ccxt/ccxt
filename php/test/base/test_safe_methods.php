@@ -13,7 +13,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheBySymbolBySide;
 
 function test_safe_methods() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'regirock',
     ));
     $input_dict = array(
