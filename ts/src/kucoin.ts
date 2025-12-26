@@ -5871,7 +5871,7 @@ export default class kucoin extends Exchange {
             params = this.omit (params, 'until');
             request['endAt'] = until;
         } else {
-            request['endAt'] = this.milliseconds ();
+            request['endAt'] = now;
         }
         let currency = undefined;
         if (code !== undefined) {
@@ -5879,7 +5879,7 @@ export default class kucoin extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startAt'] = now;
+            request['startAt'] = since;
         }
         if (limit !== undefined) {
             request['pageSize'] = limit;
