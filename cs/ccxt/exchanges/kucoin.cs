@@ -96,7 +96,7 @@ public partial class kucoin : Exchange
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
                 { "fetchTransactionFee", true },
-                { "fetchTransfers", false },
+                { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "repayCrossMargin", true },
                 { "repayIsolatedMargin", true },
@@ -478,6 +478,8 @@ public partial class kucoin : Exchange
                     { "Unsuccessful! Exceeded the max. funds out-transfer limit", typeof(InsufficientFunds) },
                     { "The amount increment is invalid.", typeof(BadRequest) },
                     { "The quantity is below the minimum requirement.", typeof(InvalidOrder) },
+                    { "not in the given range!", typeof(BadRequest) },
+                    { "recAccountType not in the given range", typeof(BadRequest) },
                     { "400", typeof(BadRequest) },
                     { "401", typeof(AuthenticationError) },
                     { "403", typeof(NotSupported) },
@@ -4777,16 +4779,51 @@ public partial class kucoin : Exchange
         //         "updatedAt": 1616545569000
         //     }
         //
+        // ledger entry - from account ledgers API (for fetchTransfers)
+        //
+        // {
+        //     "id": "611a1e7c6a053300067a88d9",
+        //     "currency": "USDT",
+        //     "amount": "10.00059547",
+        //     "fee": "0",
+        //     "balance": "0",
+        //     "accountType": "MAIN",
+        //     "bizType": "Transfer",
+        //     "direction": "in",
+        //     "createdAt": 1629101692950,
+        //     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        // }
+        //
         object timestamp = this.safeInteger(transfer, "createdAt");
         object currencyId = this.safeString(transfer, "currency");
         object rawStatus = this.safeString(transfer, "status");
-        object accountFromRaw = this.safeStringLower(transfer, "payAccountType");
-        object accountToRaw = this.safeStringLower(transfer, "recAccountType");
+        object bizType = this.safeString(transfer, "bizType");
+        object isLedgerEntry = (!isEqual(bizType, null));
+        object accountFromRaw = null;
+        object accountToRaw = null;
+        if (isTrue(isLedgerEntry))
+        {
+            // Ledger entry format: uses accountType + direction
+            object accountType = this.safeStringLower(transfer, "accountType");
+            object direction = this.safeString(transfer, "direction");
+            if (isTrue(isEqual(direction, "out")))
+            {
+                accountFromRaw = accountType;
+            } else if (isTrue(isEqual(direction, "in")))
+            {
+                accountToRaw = accountType;
+            }
+        } else
+        {
+            // Transfer API format: uses payAccountType/recAccountType
+            accountFromRaw = this.safeStringLower(transfer, "payAccountType");
+            accountToRaw = this.safeStringLower(transfer, "recAccountType");
+        }
         object accountsByType = this.safeDict(this.options, "accountsByType");
         object accountFrom = this.safeString(accountsByType, accountFromRaw, accountFromRaw);
         object accountTo = this.safeString(accountsByType, accountToRaw, accountToRaw);
         return new Dictionary<string, object>() {
-            { "id", this.safeString2(transfer, "applyId", "orderId") },
+            { "id", this.safeStringN(transfer, new List<object>() {"id", "applyId", "orderId"}) },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -5991,5 +6028,90 @@ public partial class kucoin : Exchange
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters);
+        }
+        object request = new Dictionary<string, object>() {
+            { "bizType", "TRANSFER" },
+        };
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["endAt"] = until;
+        }
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startAt"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = 500;
+        }
+        var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.privateGetAccountsLedgers(this.extend(request, parameters));
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //         "currentPage": 1,
+        //         "pageSize": 50,
+        //         "totalNum": 1,
+        //         "totalPage": 1,
+        //         "items": [
+        //             {
+        //                 "id": "611a1e7c6a053300067a88d9",
+        //                 "currency": "USDT",
+        //                 "amount": "10.00059547",
+        //                 "fee": "0",
+        //                 "balance": "0",
+        //                 "accountType": "MAIN",
+        //                 "bizType": "Transfer",
+        //                 "direction": "in",
+        //                 "createdAt": 1629101692950,
+        //                 "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object items = this.safeList(data, "items", new List<object>() {});
+        return this.parseTransfers(items, currency, since, limit);
     }
 }
