@@ -4416,6 +4416,68 @@
                     }
                 ]
             }
+        ],
+        "fetchAutoDeLeverageRank": [
+            {
+                "description": "linear swap fetch adl risk rank",
+                "method": "fetchAutoDeLeverageRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "adlRisk": "LOW",
+                    "updateTime": "1766827800453"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "adlRisk": "LOW",
+                        "updateTime": "1766827800453"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": null,
+                    "rating": "low",
+                    "percentage": null,
+                    "timestamp": 1766827800453,
+                    "datetime": "2025-12-27T09:30:00.453Z"
+                }
+            }
+        ],
+        "fetchPositionAutoDeLeverageRank": [
+            {
+                "description": "linear swap fetchPositionAutoDeLeverageRank",
+                "method": "fetchPositionAutoDeLeverageRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "adlQuantile": {
+                            "SHORT": "0",
+                            "LONG": "0",
+                            "BOTH": "1"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "adlQuantile": {
+                            "SHORT": "0",
+                            "LONG": "0",
+                            "BOTH": "1"
+                        }
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": 1,
+                    "rating": null,
+                    "percentage": null,
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
         ]
     }
 }
