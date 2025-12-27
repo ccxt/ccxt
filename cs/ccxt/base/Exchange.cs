@@ -1023,6 +1023,24 @@ public partial class Exchange
             prop.SetValue(obj, defaultValue);
         }
     }
+
+    public string exceptionMessage(object exc)
+    {
+        var e = exc as Exception;
+        if (e != null && e is System.AggregateException)
+        {
+            //     foreach (var innerExc in e.InnerExceptions) {
+            //         message += innerExc.Message + '\n';
+            var inner = e.InnerException;
+            if (inner != null)
+            {
+                e = inner;
+            }
+        }
+        var message = e != null ? e.ToString() : "Exception occurred, but no message available.";
+        return message.Substring(0, Math.Min(100000, message.Length));
+    }
+
     public object getProperty(object obj, object property, object defaultValue = null)
     {
         var type = obj.GetType();
