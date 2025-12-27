@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.28';
+$version = '4.5.29';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.28';
+    const VERSION = '4.5.29';
 
     public $browser;
     public $marketsLoading = null;
@@ -5617,6 +5617,10 @@ class Exchange extends \ccxt\Exchange {
             $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, 'market', $side, $amount, null, $query));
         }) ();
+    }
+
+    public function create_sub_account(string $name, $params = array ()) {
+        throw new NotSupported($this->id . ' createSubAccount() is not supported yet');
     }
 
     public function safe_currency_code(?string $currencyId, ?array $currency = null) {

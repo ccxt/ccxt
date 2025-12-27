@@ -1772,7 +1772,7 @@ func (this *BullishCore) FetchOrders(optionalArgs ...interface{}) <-chan interfa
 			//     [
 			//         {
 			//             "clientOrderId": "187",
-			//             "orderId": "297735387747975680",
+			//             "orderId": "297735387747975681",
 			//             "symbol": "BTCUSDC",
 			//             "price": "1.00000000",
 			//             "averageFillPrice": "1.00000000",

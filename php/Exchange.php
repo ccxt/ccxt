@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.28';
+$version = '4.5.29';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.28';
+    const VERSION = '4.5.29';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -7534,6 +7534,10 @@ class Exchange {
         }
         $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
         return $this->create_order_ws($symbol, 'market', $side, $amount, null, $query);
+    }
+
+    public function create_sub_account(string $name, $params = array ()) {
+        throw new NotSupported($this->id . ' createSubAccount() is not supported yet');
     }
 
     public function safe_currency_code(?string $currencyId, ?array $currency = null) {

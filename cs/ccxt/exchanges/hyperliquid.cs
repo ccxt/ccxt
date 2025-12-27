@@ -1666,7 +1666,7 @@ public partial class hyperliquid : Exchange
         };
     }
 
-    public virtual object actionHash(object action, object vaultAddress, object nonce)
+    public virtual object actionHash(object action, object vaultAddress, object nonce, object expiresAfter = null)
     {
         object dataBinary = this.packb(action);
         object dataHex = this.binaryToBase16(dataBinary);
@@ -1680,12 +1680,17 @@ public partial class hyperliquid : Exchange
             data = add(data, "01");
             data = add(data, vaultAddress);
         }
+        if (isTrue(!isEqual(expiresAfter, null)))
+        {
+            data = add(data, "00");
+            data = add(data, add("00000", this.intToBase16(expiresAfter)));
+        }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
 
-    public virtual object signL1Action(object action, object nonce, object vaultAdress = null)
+    public virtual object signL1Action(object action, object nonce, object vaultAdress = null, object expiresAfter = null)
     {
-        object hash = this.actionHash(action, vaultAdress, nonce);
+        object hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
         object isTestnet = this.safeBool(this.options, "sandboxMode", false);
         object phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         // const data: Dict = {
@@ -4778,6 +4783,39 @@ public partial class hyperliquid : Exchange
             { "weight", weight },
         };
         object signature = this.signL1Action(action, nonce);
+        ((IDictionary<string,object>)request)["action"] = action;
+        ((IDictionary<string,object>)request)["signature"] = signature;
+        object response = await this.privatePostExchange(this.extend(request, parameters));
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#createAccount
+     * @description creates a sub-account under the main account
+     * @param {string} name the name of the sub-account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
+     * @returns {object} a response object
+     */
+    public async override Task<object> createSubAccount(object name, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object nonce = this.milliseconds();
+        object request = new Dictionary<string, object>() {
+            { "nonce", nonce },
+        };
+        object action = new Dictionary<string, object>() {
+            { "type", "createSubAccount" },
+            { "name", name },
+        };
+        object expiresAfter = this.safeInteger(parameters, "expiresAfter");
+        if (isTrue(!isEqual(expiresAfter, null)))
+        {
+            parameters = this.omit(parameters, "expiresAfter");
+            ((IDictionary<string,object>)request)["expiresAfter"] = expiresAfter;
+        }
+        object signature = this.signL1Action(action, nonce, null, expiresAfter);
         ((IDictionary<string,object>)request)["action"] = action;
         ((IDictionary<string,object>)request)["signature"] = signature;
         object response = await this.privatePostExchange(this.extend(request, parameters));

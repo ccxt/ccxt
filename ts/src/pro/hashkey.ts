@@ -753,9 +753,11 @@ export default class hashkey extends hashkeyRest {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve ();
-        client.resolve (this.balance[type], 'balance:' + type);
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve ();
+            client.resolve (this.balance[type], 'balance:' + type);
+        }
     }
 
     handleBalance (client: Client, message) {

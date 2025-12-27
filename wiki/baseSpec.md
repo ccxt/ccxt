@@ -613,6 +613,26 @@ closes open positions for a market
 
 ---
 
+<a name="createAccount" id="createaccount"></a>
+
+## createAccount
+creates a sub-account under the main account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| name | <code>string</code> | Yes | the name of the sub-account |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the sub-account will expire |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#createaccount)
+
+---
+
 <a name="createConvertTrade" id="createconverttrade"></a>
 
 ## createConvertTrade
@@ -2319,18 +2339,20 @@ fetch the deposit address for a currency associated with this account
 <a name="fetchDepositAddresses" id="fetchdepositaddresses"></a>
 
 ## fetchDepositAddresses
-fetch deposit addresses for multiple currencies and chain types
+fetch deposit addresses for multiple currencies (when available)
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by currency code
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified currency codes, default is undefined |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes, default is undefined (all currencies) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountId | <code>string</code> | No | account ID to fetch deposit addresses for |
 
 ##### Supported exchanges
+* [coinbase](/exchanges/coinbase.md#fetchdepositaddresses)
 * [coinone](/exchanges/coinone.md#fetchdepositaddresses)
 * [deepcoin](/exchanges/deepcoin.md#fetchdepositaddresses)
 * [hollaex](/exchanges/hollaex.md#fetchdepositaddresses)
@@ -5883,6 +5905,7 @@ fetch a history of internal transfers made on an account
 * [deribit](/exchanges/deribit.md#fetchtransfers)
 * [digifinex](/exchanges/digifinex.md#fetchtransfers)
 * [dydx](/exchanges/dydx.md#fetchtransfers)
+* [kucoin](/exchanges/kucoin.md#fetchtransfers)
 * [latoken](/exchanges/latoken.md#fetchtransfers)
 * [mexc](/exchanges/mexc.md#fetchtransfers)
 * [okx](/exchanges/okx.md#fetchtransfers)

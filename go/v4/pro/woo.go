@@ -1668,9 +1668,11 @@ func  (this *WooCore) LoadPositionsSnapshot(client interface{}, messageHash inte
                 }
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(cache, "positions")
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(cache, "positions")
+            }
                 return nil
             }()
             return ch
@@ -1737,8 +1739,8 @@ func  (this *WooCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes13648 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13648)
+            retRes13668 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13668)
             var topic interface{} = "balance"
             var messageHash interface{} = topic
             var request interface{} = map[string]interface{} {
@@ -1747,9 +1749,9 @@ func  (this *WooCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes137215 :=  (<-this.WatchPrivate(messageHash, message))
-                ccxt.PanicOnError(retRes137215)
-                ch <- retRes137215
+                retRes137415 :=  (<-this.WatchPrivate(messageHash, message))
+                ccxt.PanicOnError(retRes137415)
+                ch <- retRes137415
                 return nil
         
             }()

@@ -10,6 +10,15 @@
         "hf": false  
     },
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.kucoin.com/api/v1/accounts/ledgers?bizType=TRANSFER&pageSize=500",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy order",

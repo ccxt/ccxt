@@ -3057,10 +3057,11 @@ func (this *ToobitCore) Withdraw(code interface{}, amount interface{}, address i
 		PanicOnError(retRes27548)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
-			"coin":     GetValue(currency, "id"),
-			"address":  address,
-			"quantity": this.CurrencyToPrecision(GetValue(currency, "code"), amount),
-			"network":  networkCode,
+			"coin":          GetValue(currency, "id"),
+			"address":       address,
+			"quantity":      this.CurrencyToPrecision(GetValue(currency, "code"), amount),
+			"chainType":     networkCode,
+			"clientOrderId": this.Milliseconds(),
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "addressExt", tag)
@@ -3108,8 +3109,8 @@ func (this *ToobitCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes27928 := (<-this.LoadMarkets())
-		PanicOnError(retRes27928)
+		retRes27938 := (<-this.LoadMarkets())
+		PanicOnError(retRes27938)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
@@ -3156,8 +3157,8 @@ func (this *ToobitCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes28238 := (<-this.LoadMarkets())
-		PanicOnError(retRes28238)
+		retRes28248 := (<-this.LoadMarkets())
+		PanicOnError(retRes28248)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":   GetValue(market, "id"),
@@ -3194,8 +3195,8 @@ func (this *ToobitCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28468 := (<-this.LoadMarkets())
-		PanicOnError(retRes28468)
+		retRes28478 := (<-this.LoadMarkets())
+		PanicOnError(retRes28478)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -3255,8 +3256,8 @@ func (this *ToobitCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes28898 := (<-this.LoadMarkets())
-		PanicOnError(retRes28898)
+		retRes28908 := (<-this.LoadMarkets())
+		PanicOnError(retRes28908)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {

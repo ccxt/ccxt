@@ -1387,9 +1387,11 @@ func  (this *BingxCore) LoadBalanceSnapshot(client interface{}, messageHash inte
             ccxt.PanicOnError(response)
             ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]interface{} {})))
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve()
-            client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve()
+                client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+            }
                 return nil
             }()
             return ch
@@ -1474,10 +1476,10 @@ func  (this *BingxCore) KeepAliveListenKey(optionalArgs ...interface{}) <- chan 
                         }()
             		    // try block:
                         
-                    retRes117712 := (<-this.UserAuthPrivatePutUserDataStream(map[string]interface{} {
+                    retRes117912 := (<-this.UserAuthPrivatePutUserDataStream(map[string]interface{} {
                         "listenKey": listenKey,
                     }))
-                    ccxt.PanicOnError(retRes117712) // extend the expiry
+                    ccxt.PanicOnError(retRes117912) // extend the expiry
             		    return nil
             	    }(this)
                 
@@ -1535,17 +1537,17 @@ func  (this *BingxCore) Pong(client interface{}, message interface{}) <- chan in
             		    // try block:
                                 if ccxt.IsTrue(ccxt.IsEqual(message, "Ping")) {
             
-                        retRes122316 := (<-client.(ccxt.ClientInterface).Send("Pong"))
-                        ccxt.PanicOnError(retRes122316)
+                        retRes122516 := (<-client.(ccxt.ClientInterface).Send("Pong"))
+                        ccxt.PanicOnError(retRes122516)
                     } else {
                         var ping interface{} = this.SafeString(message, "ping")
                         var time interface{} = this.SafeString(message, "time")
             
-                        retRes122716 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+                        retRes122916 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
                             "pong": ping,
                             "time": time,
                         }))
-                        ccxt.PanicOnError(retRes122716)
+                        ccxt.PanicOnError(retRes122916)
                     }
             		    return nil
             	    }(this)

@@ -8086,6 +8086,18 @@ func (this *Exchange) CreateStopMarketOrderWs(symbol interface{}, side interface
 	}()
 	return ch
 }
+func (this *Exchange) CreateSubAccount(name interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+		panic(NotSupported(Add(this.Id, " createSubAccount() is not supported yet")))
+
+	}()
+	return ch
+}
 func (this *Exchange) SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{} {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
@@ -8596,8 +8608,8 @@ func (this *Exchange) FetchFundingRate(symbol interface{}, optionalArgs ...inter
 		_ = params
 		if IsTrue(GetValue(this.Has, "fetchFundingRates")) {
 
-			retRes747112 := (<-this.LoadMarkets())
-			PanicOnError(retRes747112)
+			retRes747512 := (<-this.LoadMarkets())
+			PanicOnError(retRes747512)
 
 			var market interface{} = this.DerivedExchange.Market(symbol)
 			PanicOnError(market)
@@ -8632,8 +8644,8 @@ func (this *Exchange) FetchFundingInterval(symbol interface{}, optionalArgs ...i
 		_ = params
 		if IsTrue(GetValue(this.Has, "fetchFundingIntervals")) {
 
-			retRes749112 := (<-this.LoadMarkets())
-			PanicOnError(retRes749112)
+			retRes749512 := (<-this.LoadMarkets())
+			PanicOnError(retRes749512)
 
 			var market interface{} = this.DerivedExchange.Market(symbol)
 			PanicOnError(market)
@@ -8688,9 +8700,9 @@ func (this *Exchange) FetchMarkOHLCV(symbol interface{}, optionalArgs ...interfa
 				"price": "mark",
 			}
 
-			retRes752519 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-			PanicOnError(retRes752519)
-			ch <- retRes752519
+			retRes752919 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+			PanicOnError(retRes752919)
+			ch <- retRes752919
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchMarkOHLCV () is not supported yet")))
@@ -8728,9 +8740,9 @@ func (this *Exchange) FetchIndexOHLCV(symbol interface{}, optionalArgs ...interf
 				"price": "index",
 			}
 
-			retRes754719 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-			PanicOnError(retRes754719)
-			ch <- retRes754719
+			retRes755119 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+			PanicOnError(retRes755119)
+			ch <- retRes755119
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchIndexOHLCV () is not supported yet")))
@@ -8768,9 +8780,9 @@ func (this *Exchange) FetchPremiumIndexOHLCV(symbol interface{}, optionalArgs ..
 				"price": "premiumIndex",
 			}
 
-			retRes756919 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-			PanicOnError(retRes756919)
-			ch <- retRes756919
+			retRes757319 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+			PanicOnError(retRes757319)
+			ch <- retRes757319
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchPremiumIndexOHLCV () is not supported yet")))
@@ -9020,9 +9032,9 @@ func (this *Exchange) FetchTransactions(optionalArgs ...interface{}) <-chan inte
 		_ = params
 		if IsTrue(GetValue(this.Has, "fetchDepositsWithdrawals")) {
 
-			retRes777919 := <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
-			PanicOnError(retRes777919)
-			ch <- retRes777919
+			retRes778319 := <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
+			PanicOnError(retRes778319)
+			ch <- retRes778319
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchTransactions () is not supported yet")))
@@ -9259,15 +9271,15 @@ func (this *Exchange) SafeDeterministicCall(method interface{}, optionalArgs ...
 					// try block:
 					if IsTrue(IsTrue(timeframe) && IsTrue(!IsEqual(method, "fetchFundingRateHistory"))) {
 
-						retRes791527 := (<-this.CallDynamically(method, symbol, timeframe, since, limit, params))
-						PanicOnError(retRes791527)
-						ch <- retRes791527
+						retRes791927 := (<-this.CallDynamically(method, symbol, timeframe, since, limit, params))
+						PanicOnError(retRes791927)
+						ch <- retRes791927
 						return nil
 					} else {
 
-						retRes791727 := (<-this.CallDynamically(method, symbol, since, limit, params))
-						PanicOnError(retRes791727)
-						ch <- retRes791727
+						retRes792127 := (<-this.CallDynamically(method, symbol, since, limit, params))
+						PanicOnError(retRes792127)
+						ch <- retRes792127
 						return nil
 					}
 

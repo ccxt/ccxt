@@ -1573,7 +1573,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'connectionId': hash,
         };
     }
-    actionHash(action, vaultAddress, nonce) {
+    actionHash(action, vaultAddress, nonce, expiresAfter = undefined) {
         const dataBinary = this.packb(action);
         const dataHex = this.binaryToBase16(dataBinary);
         let data = dataHex;
@@ -1585,10 +1585,14 @@ class hyperliquid extends hyperliquid$1["default"] {
             data += '01';
             data += vaultAddress;
         }
+        if (expiresAfter !== undefined) {
+            data += '00';
+            data += '00000' + this.intToBase16(expiresAfter);
+        }
         return this.hash(this.base16ToBinary(data), sha3.keccak_256, 'binary');
     }
-    signL1Action(action, nonce, vaultAdress = undefined) {
-        const hash = this.actionHash(action, vaultAdress, nonce);
+    signL1Action(action, nonce, vaultAdress = undefined, expiresAfter = undefined) {
+        const hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
         const isTestnet = this.safeBool(this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         // const data: Dict = {
@@ -4302,6 +4306,35 @@ class hyperliquid extends hyperliquid$1["default"] {
             'weight': weight,
         };
         const signature = this.signL1Action(action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange(this.extend(request, params));
+        return response;
+    }
+    /**
+     * @method
+     * @name hyperliquid#createAccount
+     * @description creates a sub-account under the main account
+     * @param {string} name the name of the sub-account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
+     * @returns {object} a response object
+     */
+    async createSubAccount(name, params = {}) {
+        const nonce = this.milliseconds();
+        const request = {
+            'nonce': nonce,
+        };
+        const action = {
+            'type': 'createSubAccount',
+            'name': name,
+        };
+        const expiresAfter = this.safeInteger(params, 'expiresAfter');
+        if (expiresAfter !== undefined) {
+            params = this.omit(params, 'expiresAfter');
+            request['expiresAfter'] = expiresAfter;
+        }
+        const signature = this.signL1Action(action, nonce, undefined, expiresAfter);
         request['action'] = action;
         request['signature'] = signature;
         const response = await this.privatePostExchange(this.extend(request, params));

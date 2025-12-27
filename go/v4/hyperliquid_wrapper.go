@@ -1481,6 +1481,24 @@ func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptio
 	}
 	return NewFundingHistoryArray(res), nil
 }
+func (this *Hyperliquid) CreateSubAccount(name string, options ...CreateSubAccountOptions) (map[string]interface{}, error) {
+
+	opts := CreateSubAccountOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CreateSubAccount(name, params)
+	if IsError(res) {
+		return map[string]interface{}{}, CreateReturnError(res)
+	}
+	return res.(map[string]interface{}), nil
+}
 
 // missing typed methods from base
 // nolint

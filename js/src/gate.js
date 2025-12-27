@@ -1041,7 +1041,7 @@ export default class gate extends Exchange {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
-                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PARAM_VALUE': InvalidOrder,
                     'INVALID_PROTOCOL': BadRequest,
                     'INVALID_ARGUMENT': BadRequest,
                     'INVALID_REQUEST_BODY': BadRequest,
@@ -1136,7 +1136,8 @@ export default class gate extends Exchange {
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder,
                     'POSITION_HOLDING': BadRequest,
                     'USER_LOAN_EXCEEDED': BadRequest,
-                    'NO_CHANGE': InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
+                    'NO_CHANGE': InvalidOrder,
+                    'PRICE_THRESHOLD_EXCEEDED': InvalidOrder, // {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
                 'broad': {},
             },

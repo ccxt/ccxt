@@ -72,7 +72,7 @@ public partial class coinbase : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", "emulated" },
-                { "fetchDepositAddresses", false },
+                { "fetchDepositAddresses", true },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDepositMethodId", true },
                 { "fetchDepositMethodIds", true },
@@ -4601,6 +4601,19 @@ public partial class coinbase : Exchange
         //        }
         //    }
         //
+        // {
+        //     "id":"3f2434234943-8c1c-50ef-a5a1-342213bbf45d",
+        //     "address":"0x123123126F5921XXXXX",
+        //     "currency":"USDC",
+        //     "name":"",
+        //     "network":"ethereum",
+        //     "created_at":"2022-03-17T09:20:17.002Z",
+        //     "updated_at":"2022-03-17T09:20:17.002Z",
+        //     "resource":"addresses",
+        //     "resource_path":"v2/accounts/b1091c6e-9ef2-5e4d-b352-665d0cf8f742/addresses/32fd0943-8c1c-50ef-a5a1-342213bbf45d",
+        //     "destination_tag":""
+        // }
+        //
         object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         object networkId = this.safeString(depositAddress, "network");
@@ -4611,6 +4624,9 @@ public partial class coinbase : Exchange
         {
             object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             currencyId = this.safeString(splitAddressLabel, 0);
+        } else
+        {
+            currencyId = this.safeString(depositAddress, "currency");
         }
         object addressInfo = this.safeDict(depositAddress, "address_info");
         return new Dictionary<string, object>() {
@@ -5661,5 +5677,25 @@ public partial class coinbase : Exchange
             throw new ExchangeError ((string)add(add(this.id, " failed due to a malformed response "), this.json(response))) ;
         }
         return null;
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies (when available)
+     * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+     * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] account ID to fetch deposit addresses for
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
+     */
+    public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = this.prepareAccountRequest(null, parameters);
+        object response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters));
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseDepositAddresses(data, codes, false, new Dictionary<string, object>() {});
     }
 }

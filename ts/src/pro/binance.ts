@@ -2617,9 +2617,11 @@ export default class binance extends binanceRest {
         const response = await this.fetchBalance (params);
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve ();
-        client.resolve (this.balance[type], type + ':balance');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve ();
+            client.resolve (this.balance[type], type + ':balance');
+        }
     }
 
     /**
@@ -4069,9 +4071,11 @@ export default class binance extends binanceRest {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve (cache);
-        client.resolve (cache, type + ':position');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (cache, type + ':position');
+        }
     }
 
     handlePositions (client, message) {

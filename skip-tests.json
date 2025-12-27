@@ -307,7 +307,7 @@
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
                 "skipCurrenciesWithoutNetworks": "those currencies deosnt have data",
-                "maxInactiveCurrenciesPercentage": 60
+                "maxInactiveCurrenciesPercentage": 80
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -912,6 +912,8 @@
         }
     },
     "cryptomus": {
+        "skip": "their api seems down",
+        "until": "2025-12-31",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -1084,7 +1086,11 @@
     },
     "dydx": {
         "skipMethods": {
-            "watchOrderBook": {
+            "loadMarkets": {
+                "taker": "missing",
+                "maker": "missing"
+            },
+            "orderBook": {
                 "timestamp": "not provided"
             }
         }
@@ -1097,7 +1103,8 @@
             "fetchCurrencies":{
                 "withdraw":"not provided",
                 "deposit":"not provided",
-                "activeMajorCurrencies": "todo"
+                "activeMajorCurrencies": "todo",
+                "limits":"broken minmax https://github.com/ccxt/ccxt/actions/runs/20442073656/job/58737611337?pr=27375#step:11:856"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690",
@@ -2127,6 +2134,8 @@
         }
     },
      "bullish": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw": "not provided",

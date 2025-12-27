@@ -507,9 +507,9 @@ export default class dydx extends Exchange {
         const marketId = this.safeString (market, 'ticker');
         const parts = marketId.split ('-');
         const baseName = this.safeString (parts, 0);
-        const base = this.safeCurrencyCode (baseName);
+        const baseId = this.safeString (market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
+        const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const baseId = this.safeString (market, 'baseId');
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -540,11 +540,11 @@ export default class dydx extends Exchange {
             'option': false,
             'active': active,
             'contract': contract,
+            'contractSize': this.parseNumber ('1'), // trades seem in absolute size
             'linear': true,
             'inverse': false,
             'taker': undefined,
             'maker': undefined,
-            'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,

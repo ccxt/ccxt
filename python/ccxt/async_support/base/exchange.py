@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.28'
+__version__ = '4.5.29'
 
 # -----------------------------------------------------------------------------
 
@@ -1854,6 +1854,9 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' createStopMarketOrderWs() is not supported yet')
         query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order_ws(symbol, 'market', side, amount, None, query)
+
+    async def create_sub_account(self, name: str, params={}):
+        raise NotSupported(self.id + ' createSubAccount() is not supported yet')
 
     async def fetch_last_prices(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')

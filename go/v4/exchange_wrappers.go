@@ -4668,6 +4668,24 @@ func (this *ExchangeTyped) CreateStopMarketOrderWs(symbol string, side string, a
 	}
 	return NewOrder(res), nil
 }
+func (this *ExchangeTyped) CreateSubAccount(name string, options ...CreateSubAccountOptions) (map[string]interface{}, error) {
+
+	opts := CreateSubAccountOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateSubAccount(name, params)
+	if IsError(res) {
+		return map[string]interface{}{}, CreateReturnError(res)
+	}
+	return res.(map[string]interface{}), nil
+}
 func (this *ExchangeTyped) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
 
 	opts := FetchLastPricesOptionsStruct{}
