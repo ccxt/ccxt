@@ -3219,7 +3219,7 @@ export default class Exchange {
                 this.features[marketType] = undefined;
             } else {
                 if (marketType === 'spot') {
-                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType, undefined);
+                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType);
                 } else {
                     this.features[marketType] = {};
                     for (let j = 0; j < subTypes.length; j++) {
@@ -5056,7 +5056,7 @@ export default class Exchange {
         positions = this.toArray (positions);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.extend (this.parsePosition (positions[i], undefined), params);
+            const position = this.extend (this.parsePosition (positions[i]), params);
             result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
