@@ -2047,8 +2047,55 @@ export default class bybit extends bybitRest {
                 }
             }
         }
+        const client = this.client (url);
+        this.setBalanceCache (client, type, subType, isUnifiedAccount, messageHash, params);
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future (type + ':fetchBalanceSnapshot');
+        }
         const topics = [ this.safeValue (topicByMarket, this.getPrivateType (url)) ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
+    }
+
+    setBalanceCache (client: Client, type, subType, isUnifiedAccount, subscriptionHash, params) {
+        if (subscriptionHash in client.subscriptions) {
+            return;
+        }
+        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type, subType, isUnifiedAccount);
+            }
+        } else {
+            this.balance[type] = {};
+        }
+    }
+
+    async loadBalanceSnapshot (client, messageHash, type, subType, isUnifiedAccount) {
+        const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
+        let accountType = undefined;
+        if (isUnifiedAccount) {
+            if (subType === 'inverse') {
+                accountType = 'contract';
+            } else {
+                accountType = 'unified';
+            }
+        } else {
+            if (type === 'spot') {
+                accountType = 'spot';
+            } else {
+                accountType = 'contract';
+            }
+        }
+        this.balance[accountType] = this.extend (response, this.safeValue (this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve ();
+        client.resolve (this.balance[type], type + ':balance');
     }
 
     handleBalance (client: Client, message) {
