@@ -1,0 +1,139 @@
+{
+  "raw": {
+    "total": 3,
+    "rows": [
+      {
+        "timestamp": 1661500800000,
+        "asset": "USDT",
+        "amount": "1000.00",
+        "type": "MAIN_UMFUTURE",
+        "status": "CONFIRMED",
+        "tranId": 100000001
+      },
+      {
+        "timestamp": 1661504400000,
+        "asset": "BTC",
+        "amount": "0.05",
+        "type": "UMFUTURE_MAIN",
+        "status": "CONFIRMED",
+        "tranId": 100000002
+      },
+      {
+        "timestamp": 1661508000000,
+        "asset": "ETH",
+        "amount": "2.5",
+        "type": "MAIN_FUNDING",
+        "status": "PENDING",
+        "tranId": 100000003
+      },
+      {
+        "timestamp": 1661511600000,
+        "asset": "USDT",
+        "amount": "500.00",
+        "type": "FUNDING_MAIN",
+        "status": "CONFIRMED",
+        "tranId": 100000004
+      },
+      {
+        "timestamp": 1661515200000,
+        "asset": "BNB",
+        "amount": "10.00",
+        "type": "MAIN_MARGIN",
+        "status": "FAILED",
+        "tranId": 100000005
+      }
+    ]
+  },
+  "expected": [
+    {
+      "info": {
+        "timestamp": 1661500800000,
+        "asset": "USDT",
+        "amount": "1000.00",
+        "type": "MAIN_UMFUTURE",
+        "status": "CONFIRMED",
+        "tranId": 100000001
+      },
+      "id": "100000001",
+      "timestamp": 1661500800000,
+      "datetime": "2022-08-26T10:00:00.000Z",
+      "currency": "USDT",
+      "amount": 1000.00,
+      "fromAccount": "spot",
+      "toAccount": "future",
+      "status": "ok"
+    },
+    {
+      "info": {
+        "timestamp": 1661504400000,
+        "asset": "BTC",
+        "amount": "0.05",
+        "type": "UMFUTURE_MAIN",
+        "status": "CONFIRMED",
+        "tranId": 100000002
+      },
+      "id": "100000002",
+      "timestamp": 1661504400000,
+      "datetime": "2022-08-26T11:00:00.000Z",
+      "currency": "BTC",
+      "amount": 0.05,
+      "fromAccount": "future",
+      "toAccount": "spot",
+      "status": "ok"
+    },
+    {
+      "info": {
+        "timestamp": 1661508000000,
+        "asset": "ETH",
+        "amount": "2.5",
+        "type": "MAIN_FUNDING",
+        "status": "PENDING",
+        "tranId": 100000003
+      },
+      "id": "100000003",
+      "timestamp": 1661508000000,
+      "datetime": "2022-08-26T12:00:00.000Z",
+      "currency": "ETH",
+      "amount": 2.5,
+      "fromAccount": "spot",
+      "toAccount": "funding",
+      "status": "pending"
+    },
+    {
+      "info": {
+        "timestamp": 1661511600000,
+        "asset": "USDT",
+        "amount": "500.00",
+        "type": "FUNDING_MAIN",
+        "status": "CONFIRMED",
+        "tranId": 100000004
+      },
+      "id": "100000004",
+      "timestamp": 1661511600000,
+      "datetime": "2022-08-26T13:00:00.000Z",
+      "currency": "USDT",
+      "amount": 500.00,
+      "fromAccount": "funding",
+      "toAccount": "spot",
+      "status": "ok"
+    },
+    {
+      "info": {
+        "timestamp": 1661515200000,
+        "asset": "BNB",
+        "amount": "10.00",
+        "type": "MAIN_MARGIN",
+        "status": "FAILED",
+        "tranId": 100000005
+      },
+      "id": "100000005",
+      "timestamp": 1661515200000,
+      "datetime": "2022-08-26T14:00:00.000Z",
+      "currency": "BNB",
+      "amount": 10.00,
+      "fromAccount": "spot",
+      "toAccount": "margin",
+      "status": "failed"
+    }
+  ]
+}

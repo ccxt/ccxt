@@ -1,0 +1,390 @@
+# Example: Wallet Operations in EDL
+# This demonstrates how to define wallet operations for an exchange
+
+exchange:
+  id: example_wallet
+  name: Example Exchange with Wallet Operations
+  countries: [US]
+  rateLimit: 1000
+
+urls:
+  api: https://api.example.com
+  www: https://www.example.com
+  doc:
+    - https://docs.example.com/api
+
+has:
+  # Wallet capabilities
+  fetchBalance: true
+  fetchDeposits: true
+  fetchWithdrawals: true
+  fetchTransfers: true
+  withdraw: true
+  fetchDepositAddress: true
+  transfer: true
+
+auth:
+  type: hmac
+  algorithm: sha256
+  encoding: hex
+
+api:
+  private:
+    get:
+      account/balance:
+        cost: 1
+        params:
+          currency:
+            type: string
+            required: false
+            description: "Filter balance by currency"
+
+      account/deposits:
+        cost: 2
+        params:
+          currency:
+            type: string
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "100"
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+
+      account/withdrawals:
+        cost: 2
+        params:
+          currency:
+            type: string
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "100"
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+
+      account/transfers:
+        cost: 2
+        params:
+          type:
+            type: string
+            required: false
+            description: "Filter by transfer type (MAIN_MARGIN, MAIN_FUTURES, etc.)"
+          limit:
+            type: int
+            required: false
+            default: "100"
+
+      wallet/deposit/address:
+        cost: 1
+        params:
+          currency:
+            type: string
+            required: true
+          network:
+            type: string
+            required: false
+            description: "Network for multi-chain currencies (e.g., ETH, TRX, BSC)"
+
+    post:
+      wallet/withdraw:
+        cost: 1
+        params:
+          currency:
+            type: string
+            required: true
+          address:
+            type: string
+            required: true
+          amount:
+            type: float
+            required: true
+          network:
+            type: string
+            required: false
+          tag:
+            type: string
+            required: false
+            description: "Memo/tag for currencies that require it (XRP, XLM, etc.)"
+          name:
+            type: string
+            required: false
+            description: "Address label/name"
+
+      wallet/transfer:
+        cost: 1
+        params:
+          currency:
+            type: string
+            required: true
+          amount:
+            type: float
+            required: true
+          fromAccount:
+            type: string
+            required: true
+            description: "Source account type (spot, margin, futures)"
+          toAccount:
+            type: string
+            required: true
+            description: "Destination account type (spot, margin, futures)"
+
+# Wallet operations configuration
+wallet:
+  fetchBalance:
+    endpoint: account/balance
+    params:
+      currency:
+        type: string
+        required: false
+
+  fetchDeposits:
+    endpoint: account/deposits
+    params:
+      currency:
+        type: string
+        required: false
+      limit:
+        type: int
+        default: 100
+      startTime:
+        type: timestamp_ms
+        required: false
+      endTime:
+        type: timestamp_ms
+        required: false
+
+  fetchWithdrawals:
+    endpoint: account/withdrawals
+    params:
+      currency:
+        type: string
+        required: false
+      limit:
+        type: int
+        default: 100
+      startTime:
+        type: timestamp_ms
+        required: false
+      endTime:
+        type: timestamp_ms
+        required: false
+
+  fetchTransfers:
+    endpoint: account/transfers
+    params:
+      type:
+        type: string
+        required: false
+      limit:
+        type: int
+        default: 100
+
+  withdraw:
+    endpoint: wallet/withdraw
+    params:
+      currency:
+        type: string
+        required: true
+      address:
+        type: string
+        required: true
+      amount:
+        type: float
+        required: true
+      network:
+        type: string
+        required: false
+      tag:
+        type: string
+        required: false
+
+  fetchDepositAddress:
+    endpoint: wallet/deposit/address
+    params:
+      currency:
+        type: string
+        required: true
+      network:
+        type: string
+        required: false
+
+  transfer:
+    endpoint: wallet/transfer
+    params:
+      currency:
+        type: string
+        required: true
+      amount:
+        type: float
+        required: true
+      fromAccount:
+        type: string
+        required: true
+      toAccount:
+        type: string
+        required: true
+
+# Parsers for wallet operations
+parsers:
+  deposit:
+    source: account/deposits
+    path: null
+    iterator: array
+    mapping:
+      id:
+        path: depositId
+        transform: parse_string
+      txid:
+        path: txHash
+      type:
+        literal: deposit
+      currency:
+        path: coin
+        transform: parse_currency_code
+      amount:
+        path: amount
+        transform: parse_number
+      status:
+        path: status
+        map:
+          "0": pending
+          "1": ok
+          "2": failed
+        default: pending
+      address:
+        path: address
+      addressFrom:
+        path: fromAddress
+      tag:
+        path: addressTag
+      network:
+        path: network
+      fee:
+        path: transferFee
+        transform: parse_number
+      timestamp:
+        path: insertTime
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      info:
+        from_context: rawData
+
+  withdrawal:
+    source: account/withdrawals
+    path: null
+    iterator: array
+    mapping:
+      id:
+        path: id
+        transform: parse_string
+      txid:
+        path: txId
+      type:
+        literal: withdrawal
+      currency:
+        path: coin
+        transform: parse_currency_code
+      amount:
+        path: amount
+        transform: parse_number
+      status:
+        path: status
+        map:
+          "0": pending
+          "1": pending
+          "2": ok
+          "3": failed
+          "4": pending
+          "5": failed
+          "6": ok
+        default: pending
+      address:
+        path: address
+      addressTo:
+        path: address
+      tag:
+        path: addressTag
+      network:
+        path: network
+      fee:
+        path: transactionFee
+        transform: parse_number
+      timestamp:
+        path: applyTime
+        transform: parse_timestamp_ms
+      updated:
+        path: successTime
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      info:
+        from_context: rawData
+
+  transfer:
+    source: account/transfers
+    path: null
+    iterator: array
+    mapping:
+      id:
+        path: tranId
+        transform: parse_string
+      txid:
+        literal: null
+      type:
+        literal: transfer
+      currency:
+        path: asset
+        transform: parse_currency_code
+      amount:
+        path: amount
+        transform: parse_number
+      status:
+        path: status
+        map:
+          CONFIRMED: ok
+          PENDING: pending
+          FAILED: failed
+        default: pending
+      internal:
+        literal: true
+      timestamp:
+        path: timestamp
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      comment:
+        compute: "fromAccount + ' -> ' + toAccount"
+        dependencies: [fromAccount, toAccount]
+      info:
+        from_context: rawData
+
+  depositAddress:
+    source: wallet/deposit/address
+    path: null
+    mapping:
+      currency:
+        path: coin
+        transform: parse_currency_code
+      address:
+        path: address
+      tag:
+        path: tag
+      network:
+        path: network
+      info:
+        from_context: rawData
