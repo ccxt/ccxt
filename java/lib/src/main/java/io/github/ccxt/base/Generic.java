@@ -276,6 +276,9 @@ public class Generic {
                 double parsed = Double.parseDouble(s);
                 if (parsed == 0.0d) return null;
             }
+            if (value instanceof Integer i) {
+                if (i == 0) return null;
+            }
             return value;
         } catch (Exception e) {
             return value;

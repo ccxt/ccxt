@@ -797,7 +797,12 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
                 if (i < 0 || i > l.size()) {
                     throw new IndexOutOfBoundsException("Index " + i + " out of bounds [0," + l.size() + "]");
                 }
-                l.add(i, args[1]);
+//                l.add(i, args[1]);
+                if (i == l.size()) {
+                    l.add(args[1]);          // append
+                } else {
+                    l.set(i, args[1]);       // overwrite existing
+                }
                 return;
             }
             throw new IllegalArgumentException(
