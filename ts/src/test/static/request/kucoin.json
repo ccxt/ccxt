@@ -7,9 +7,17 @@
     ],
     "outputType": "json",
     "options": {
-        "hf": false
     },
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.kucoin.com/api/v1/accounts/ledgers?bizType=TRANSFER&pageSize=500",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy order",
@@ -606,18 +614,6 @@
                     "spot"
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"clientOid\":\"c1bef535-afd2-49f0-a09b-2ab1d7aade85\",\"fromAccountType\":\"MAIN\",\"toAccountType\":\"TRADE\",\"type\":\"INTERNAL\"}"
-            },
-            {
-                "description": "transfer from trade to hf account",
-                "method": "transfer",
-                "url": "https://api.kucoin.com/api/v2/accounts/inner-transfer",
-                "input": [
-                    "USDT",
-                    5,
-                    "trade",
-                    "trade_hf"
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"from\":\"trade\",\"to\":\"trade_hf\",\"clientOid\":\"d0da1feb-d76c-4562-b727-ddfabec6ca45\"}"
             }
         ],
         "withdraw": [
