@@ -1568,9 +1568,9 @@ export default class bitget extends Exchange {
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
-                    'ARBONE': 'ArbitrumOne',
+                    'ARBITRUM': 'ArbitrumOne',
                     'ARBNOVA': 'ArbitrumNova',
-                    'AVAXC': 'C-Chain',
+                    'AVAXC': 'AVAXC-CHAIN',
                     'AVAXX': 'X-Chain',
                     'AR': 'Arweave',
                     'BCH': 'BCH',
@@ -1643,6 +1643,7 @@ export default class bitget extends Exchange {
                     'AZERO': 'AZERO',
                     'TRC10': 'TRC10',
                     'JUNO': 'JUNO',
+                    'STACKS': 'STX',
                     // undetected: USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
                     // todo: uncomment below after unification
                     // 'TERRACLASSIC': 'Terra', // tbd, that network id is also assigned to TERRANEW network
