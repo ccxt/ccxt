@@ -5905,6 +5905,7 @@ fetch a history of internal transfers made on an account
 * [deribit](/exchanges/deribit.md#fetchtransfers)
 * [digifinex](/exchanges/digifinex.md#fetchtransfers)
 * [dydx](/exchanges/dydx.md#fetchtransfers)
+* [kucoin](/exchanges/kucoin.md#fetchtransfers)
 * [latoken](/exchanges/latoken.md#fetchtransfers)
 * [mexc](/exchanges/mexc.md#fetchtransfers)
 * [okx](/exchanges/okx.md#fetchtransfers)
