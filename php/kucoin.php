@@ -100,7 +100,7 @@ class kucoin extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactionFee' => true,
-                'fetchTransfers' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'repayCrossMargin' => true,
                 'repayIsolatedMargin' => true,
@@ -519,6 +519,8 @@ class kucoin extends Exchange {
                     'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
                     'The amount increment is invalid.' => '\\ccxt\\BadRequest',
                     'The quantity is below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("msg":"The quantity is below the minimum requirement.","code":"400100")
+                    'not in the given range!' => '\\ccxt\\BadRequest', // array("msg":"price not in the given range!","code":"400100")
+                    'recAccountType not in the given range' => '\\ccxt\\BadRequest', // array("msg":"recAccountType not in the given range","code":"400100")
                     '400' => '\\ccxt\\BadRequest',
                     '401' => '\\ccxt\\AuthenticationError',
                     '403' => '\\ccxt\\NotSupported',
@@ -4688,16 +4690,47 @@ class kucoin extends Exchange {
         //         "updatedAt" => 1616545569000
         //     }
         //
+        // ledger entry - from account ledgers API (for fetchTransfers)
+        //
+        // {
+        //     "id" => "611a1e7c6a053300067a88d9",
+        //     "currency" => "USDT",
+        //     "amount" => "10.00059547",
+        //     "fee" => "0",
+        //     "balance" => "0",
+        //     "accountType" => "MAIN",
+        //     "bizType" => "Transfer",
+        //     "direction" => "in",
+        //     "createdAt" => 1629101692950,
+        //     "context" => "array(\"orderId\":\"611a1e7c6a053300067a88d9\")"
+        // }
+        //
         $timestamp = $this->safe_integer($transfer, 'createdAt');
         $currencyId = $this->safe_string($transfer, 'currency');
         $rawStatus = $this->safe_string($transfer, 'status');
-        $accountFromRaw = $this->safe_string_lower($transfer, 'payAccountType');
-        $accountToRaw = $this->safe_string_lower($transfer, 'recAccountType');
+        $bizType = $this->safe_string($transfer, 'bizType');
+        $isLedgerEntry = ($bizType !== null);
+        $accountFromRaw = null;
+        $accountToRaw = null;
+        if ($isLedgerEntry) {
+            // Ledger entry format => uses $accountType . $direction
+            $accountType = $this->safe_string_lower($transfer, 'accountType');
+            $direction = $this->safe_string($transfer, 'direction');
+            if ($direction === 'out') {
+                $accountFromRaw = $accountType;
+            } elseif ($direction === 'in') {
+                $accountToRaw = $accountType;
+            }
+        } else {
+            // Transfer API format => uses payAccountType/recAccountType
+            $accountFromRaw = $this->safe_string_lower($transfer, 'payAccountType');
+            $accountToRaw = $this->safe_string_lower($transfer, 'recAccountType');
+        }
         $accountsByType = $this->safe_dict($this->options, 'accountsByType');
         $accountFrom = $this->safe_string($accountsByType, $accountFromRaw, $accountFromRaw);
         $accountTo = $this->safe_string($accountsByType, $accountToRaw, $accountToRaw);
         return array(
-            'id' => $this->safe_string_2($transfer, 'applyId', 'orderId'),
+            'id' => $this->safe_string_n($transfer, array( 'id', 'applyId', 'orderId' )),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -5802,5 +5835,78 @@ class kucoin extends Exchange {
             throw new ExchangeError($feedback);
         }
         return null;
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch a history of internal transfers made on an account
+         *
+         * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+         *
+         * @param {string} [$code] unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of transfer structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params);
+        }
+        $request = array(
+            'bizType' => 'TRANSFER',
+        );
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['endAt'] = $until;
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startAt'] = $since;
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        } else {
+            $request['pageSize'] = 500;
+        }
+        list($request, $params) = $this->handle_until_option('endAt', $request, $params);
+        $response = $this->privateGetAccountsLedgers ($this->extend($request, $params));
+        //
+        // {
+        //     "code" => "200000",
+        //     "data" => {
+        //         "currentPage" => 1,
+        //         "pageSize" => 50,
+        //         "totalNum" => 1,
+        //         "totalPage" => 1,
+        //         "items" => array(
+        //             {
+        //                 "id" => "611a1e7c6a053300067a88d9",
+        //                 "currency" => "USDT",
+        //                 "amount" => "10.00059547",
+        //                 "fee" => "0",
+        //                 "balance" => "0",
+        //                 "accountType" => "MAIN",
+        //                 "bizType" => "Transfer",
+        //                 "direction" => "in",
+        //                 "createdAt" => 1629101692950,
+        //                 "context" => "array(\"orderId\":\"611a1e7c6a053300067a88d9\")"
+        //             }
+        //         )
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $items = $this->safe_list($data, 'items', array());
+        return $this->parse_transfers($items, $currency, $since, $limit);
     }
 }
