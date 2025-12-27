@@ -4735,7 +4735,7 @@ export default class kucoin extends Exchange {
         const accountFrom = this.safeString (accountsByType, accountFromRaw, accountFromRaw);
         const accountTo = this.safeString (accountsByType, accountToRaw, accountToRaw);
         return {
-            'id': this.safeString2 (transfer, 'applyId', 'orderId'),
+            'id': this.safeStringN (transfer, [ 'id', 'applyId', 'orderId' ]),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5863,15 +5863,12 @@ export default class kucoin extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params) as TransferEntry[];
         }
         let request: Dict = {
-            'bizType': 'Transfer',
+            'bizType': 'TRANSFER',
         };
         const until = this.safeInteger (params, 'until');
-        const now = this.milliseconds ();
         if (until !== undefined) {
             params = this.omit (params, 'until');
             request['endAt'] = until;
-        } else {
-            request['endAt'] = now;
         }
         let currency = undefined;
         if (code !== undefined) {
