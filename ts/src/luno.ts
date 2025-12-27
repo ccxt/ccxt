@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/luno.js';
-import { ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currency, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
@@ -39,6 +39,10 @@ export default class luno extends Exchange {
                 'closePosition': false,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': false,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchAccounts': true,
                 'fetchAllGreeks': false,
@@ -1149,8 +1153,15 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const isMarketOrder = type === 'market';
+        let isPostOnly = undefined;
+        [ isPostOnly, params ] = this.handlePostOnly (isMarketOrder, undefined, params);
         let response = undefined;
-        if (type === 'market') {
+        if (isMarketOrder) {
+            if (triggerPrice !== undefined) {
+                throw new BadRequest (this.id + ' createOrder () does not allow stop market orders');
+            }
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
@@ -1163,6 +1174,18 @@ export default class luno extends Exchange {
             request['volume'] = this.amountToPrecision (market['symbol'], amount);
             request['price'] = this.priceToPrecision (market['symbol'], price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
+            if (triggerPrice !== undefined) {
+                request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+                request['stop_direction'] = 'BELOW';  // overwritten if params['stop_direction'] is passed
+            }
+            if (isPostOnly) {
+                request['post_only'] = true;
+            }
+            const timeInForce = this.safeString (params, 'timeInForce');
+            if (timeInForce !== undefined) {
+                request['time_in_force'] = timeInForce;
+            }
+            params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'timeInForce' ]);
             response = await this.privatePostPostorder (this.extend (request, params));
         }
         return this.safeOrder ({
