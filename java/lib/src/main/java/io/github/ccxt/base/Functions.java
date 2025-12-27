@@ -74,12 +74,14 @@ public final class Functions {
     // omit overloads
     // -------------------------------------------------
     public static Object omit(Object a, Object... parameters) {
+        if (a == null) return null;
         List<Object> keys = new ArrayList<>();
         Collections.addAll(keys, parameters);
         return omit(a, (Object) keys);
     }
 
     public static Object omit(Object aa, Object k) {
+        if (aa == null || k == null) return null;
         if (aa instanceof List<?>) {
             // return as-is (same as C#)
             return aa;

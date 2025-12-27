@@ -121,6 +121,11 @@ public final class Time {
 
             // ISO 8601 with Z, e.g. "1986-04-26T01:23:47.000Z"
             if (datetime.indexOf('T') >= 0) {
+                // If it has no zone/offset, parse as LocalDateTime and assume UTC
+                if (!datetime.endsWith("Z") && !datetime.matches(".*[+-]\\d{2}:?\\d{2}$")) {
+                    LocalDateTime ldt = LocalDateTime.parse(datetime);
+                    return ldt.toInstant(ZoneOffset.UTC).toEpochMilli();
+                }
                 return Instant.parse(datetime).toEpochMilli();
             }
 

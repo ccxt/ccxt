@@ -70,8 +70,9 @@ public final class SafeMethods {
     // safeTimestamp*
     // ----------------------------
 
-    public static Object safeTimestampN(Object obj, List<Object> keys, Object... defaultValue) {
-        Object result = SafeValueN(obj, keys, defaultValue);
+    public static Object safeTimestampN(Object obj, List<Object> keys, Object... defaultValue2) {
+        Object defaultValue = opt(defaultValue2);
+        Object result = SafeValueN(obj, keys);
         if (result == null) return defaultValue;
 
         // string with '.' → treat as seconds, multiply by 1000 after parsing double
@@ -82,7 +83,7 @@ public final class SafeMethods {
         }
         // otherwise parse as integer then *1000
         long base = Long.parseLong(String.valueOf(result));
-        return base * 1000L;
+        return base * 1000;
     }
 
     public static Object safeTimestamp(Object obj, Object key, Object... defaultValue) {
