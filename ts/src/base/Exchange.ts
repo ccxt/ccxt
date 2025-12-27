@@ -1896,6 +1896,21 @@ export default class Exchange {
         return undefined;  // c# stub
     }
 
+    // eslint-disable-next-line no-unused-vars
+    loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+        return undefined;
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    signAndCreateLighterOrder (signer, orderRequest) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    createLighterAuth (signer, orderRequest) {
+        return undefined;
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 

@@ -99,6 +99,10 @@ try:
 except ImportError:
     zklink_sdk = None
 
+# lighter
+import os
+from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth
+
 # -----------------------------------------------------------------------------
 
 __all__ = [
@@ -572,6 +576,24 @@ class Exchange(object):
         # end of proxies & headers
 
         request_body = body
+        content_type_key = None
+        files = None
+        for k, v in request_headers.items():
+            lk = k.lower()
+            if lk == 'content-type':
+                if v == 'multipart/form-data':
+                    content_type_key = k
+                    files = ()
+                    for k, v in body.items():
+                        files += ((k, (None, v)), )
+                    body = None
+                    break
+                else:
+                    break
+        if files is not None:
+            # requests would handle it for multipart/form-data
+            del request_headers[content_type_key]
+            print(request_headers)
         if body:
             body = body.encode()
 
@@ -589,7 +611,8 @@ class Exchange(object):
                 headers=request_headers,
                 timeout=(self.timeout / 1000),
                 proxies=proxies,
-                verify=self.verify and self.validateServerSsl
+                verify=self.verify and self.validateServerSsl,
+                files=files
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
@@ -2141,6 +2164,52 @@ class Exchange(object):
 
     def unlock_id(self):
         return None
+
+    def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        if path is None:
+            raise NotSupported(self.id + ' requires absolute path for shared library to send orders')
+
+        if not os.path.isfile(path):
+            raise NotSupported(self.id + ' the library is not existed')
+
+        lighterSigner = load_lighter_library(path)
+
+        url = self.implode_hostname(self.urls['api']['public'])
+        lighterSigner.CreateClient(
+            url.encode("utf-8"),
+            privateKey.encode("utf-8"),
+            chainId,
+            apiKeyIndex,
+            accountIndex,
+        )
+        return lighterSigner
+
+    def sign_and_create_lighter_order(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateOrder(
+            int(request['market_index']),
+            request['client_order_index'],
+            request['base_amount'],
+            request['avg_execution_price'],
+            request['is_ask'],
+            request['order_type'],
+            request['time_in_force'],
+            request['reduce_only'],
+            0,  # trigger price
+            request['order_expiry'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        print(tx_type, tx_info, tx_hash, error)
+        return [tx_type, tx_info]
+
+    def create_lighter_auth(self, signer, request):
+        auth, error = decode_auth(signer.CreateAuthToken(
+            request['deadline'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        return auth
 
     # ########################################################################
     # ########################################################################
