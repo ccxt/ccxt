@@ -1990,6 +1990,9 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchFundingRateInterval (symbol, params)`
 - `fetchFundingRateIntervals (symbols, params)`
 - `fetchLongShortRatio (symbol, params)`
+- `fetchAutoDeLeverageRank (symbol, params)`
+- `fetchPositionAutoDeLeverageRank (symbol, params)`
+- `fetchPositionsAutoDeLeverageRank (symbols, params)`
 - ...
 
 ```text
@@ -2366,6 +2369,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Liquidations](#liquidations)
 - [Greeks](#greeks)
 - [OptionChain](#option-chain)
+- [Auto De Leverage](#auto-de-leverage)
 
 ## Order Book
 
@@ -3810,6 +3814,39 @@ Returns
 }
 ```
 
+## Auto De Leverage
+
+*contract only*
+
+Use the `fetchAutoDeLeverageRank` method to get the public details of a symbols auto de leverage rank from the exchange.
+
+```javascript
+fetchAutoDeLeverageRank (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "futures"}`)
+
+Returns
+
+- An [auto de leverage structure](#auto-de-leverage)
+
+### Auto De Leverage Stucture
+
+```javascript
+{
+    'info': { ... },                            // the original decoded JSON as is
+    'symbol': 'BTC/USDT:USDT',                  // unified CCXT market symbol
+    'rank': 5,                                  // a quantile rank from 1 to 5 with 5 being the highest risk
+    'rating': 'high',                           // a string risk rating as either low, medium or high
+    'percent': 72.86,                           // the risk percentage with a higher percentage being a higher risk of auto de leverage
+    'timestamp': 1699593511632,                 // unix timestamp in milliseconds
+    'datetime': '2023-11-10T05:18:31.632Z',     // ISO8601 datetime with milliseconds
+}
+```
+
 # Private API
 
 - [Authentication](#authentication)
@@ -3833,6 +3870,7 @@ Returns
 - [Positions](#positions)
 - [Funding History](#funding-history)
 - [Conversion](#conversion)
+- [Auto De Leverage](#auto-de-leverage)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -6968,6 +7006,52 @@ Returns
     toAmount: 2.9722,
     price: 0.97,
     fee: 0.0
+}
+```
+
+## Auto De Leverage
+
+*contract only*
+
+Use the `fetchPositionAutoDeLeverageRank` or `fetchPositionsAutoDeLeverageRank` methods to get the private details of a positions auto de leverage rank from the exchange.
+
+```javascript
+fetchPositionAutoDeLeverageRank (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "futures"}`)
+
+Returns
+
+- An [auto de leverage structure](#auto-de-leverage)
+
+```javascript
+fetchPositionsAutoDeLeverageRank (symbols, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) A list of unified CCXT symbols (e.g. `[ "BTC/USDT:USDT" ]`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "futures"}`)
+
+Returns
+
+- A list of [auto de leverage structures](#auto-de-leverage)
+
+### Auto De Leverage Stucture
+
+```javascript
+{
+    'info': { ... },                            // the original decoded JSON as is
+    'symbol': 'BTC/USDT:USDT',                  // unified CCXT market symbol
+    'rank': 5,                                  // a quantile rank from 1 to 5 with 5 being the highest risk
+    'rating': 'high',                           // a string risk rating as either low, medium or high
+    'percent': 72.86,                           // the risk percentage with a higher percentage being a higher risk of auto de leverage
+    'timestamp': 1699593511632,                 // unix timestamp in milliseconds
+    'datetime': '2023-11-10T05:18:31.632Z',     // ISO8601 datetime with milliseconds
 }
 ```
 
