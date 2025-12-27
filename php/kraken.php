@@ -251,6 +251,9 @@ class kraken extends Exchange {
             'options' => array(
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'fetchBalance' => array(
+                    'autocorrectAbbreviations' => false,
+                ),
                 'marketsByAltname' => array(),
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
@@ -1558,7 +1561,55 @@ class kraken extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function parse_balance_new($response): array {
+        $balances = $this->safe_value($response, 'result', array());
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        // see all details in fetchBalance comments
+        $earningSuffix = '.F';
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $this->safe_dict($balances, $currencyId, array());
+            $account = $this->account();
+            $account['used'] = $this->safe_string($balance, 'hold_trade');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['info'] = $balance;
+            $account['info']['originalId'] = $currencyId;
+            // now handle the key
+            $unifiedCode = null;
+            $endsWithF = str_ends_with($currencyId, $earningSuffix);
+            if ($endsWithF) {
+                // map e.g. XBT.F to XXBT
+                $sourceCurrencyId = str_replace($earningSuffix, '', $currencyId);
+                $unifiedCode = $this->common_currency_code($sourceCurrencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (is_array($result) && array_key_exists($unifiedCode, $result)) {
+                    $newId = $unifiedCode . '_EARNING';
+                    $result[$newId] = $result[$unifiedCode];
+                }
+                $result[$unifiedCode] = $account;
+            } else {
+                $unifiedCode = $this->common_currency_code($currencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (is_array($result) && array_key_exists($unifiedCode, $result)) {
+                    $newId = $unifiedCode . '_EARNING';
+                    $result[$newId] = $account;
+                } else {
+                    $result[$unifiedCode] = $account;
+                }
+            }
+        }
+        return $this->safe_balance($result);
+    }
+
     public function parse_balance($response): array {
+        if ($this->handle_option('fetchBalance', 'autocorrectAbbreviations', false)) {
+            return $this->parse_balance_new($response);
+        }
         $balances = $this->safe_value($response, 'result', array());
         $result = array(
             'info' => $response,
@@ -1597,12 +1648,34 @@ class kraken extends Exchange {
         //                 "balance" => 25435.21,
         //                 "hold_trade" => 8249.76
         //             ),
-        //             "XXBT" => {
+        //             "XXBT" => array(
         //                 "balance" => 1.2435,
         //                 "hold_trade" => 0.8423
-        //             }
+        //             ),
+        //             "SOL" => array(
+        //                 "balance" => "1.2340000000",
+        //                 "hold_trade" => "0.0000000000"
+        //             ),
         //         }
         //     }
+        //
+        // if "earning(rewards)" activated (see https://github.com/ccxt/ccxt/issues/24663), then some coins get .F suffix (such suffixed coins are not provided in fetchCurrencies $response, unlike .M suffixed coins)
+        //
+        //     {
+        //         "error" => array(),
+        //         "result" => {
+        //             "SOL" => array(
+        //                 "balance" => "0.0000000000",
+        //                 "hold_trade" => "0.0000000000"
+        //             ),
+        //             "SOL.F" => array(
+        //                 "balance" => "1.2340000000",
+        //                 "hold_trade" => "0.0000000000"
+        //             ),
+        //         }
+        //     }
+        //
+        // for more info, about prefix and suffix parts, see comments in "fetchCurrencies"
         //
         return $this->parse_balance($response);
     }
