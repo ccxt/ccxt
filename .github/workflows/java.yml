@@ -76,7 +76,7 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run request-cs -- $exchange
+          npm run request-java -- $exchange
         done
     - name: Response tests
       if: env.important_modified == 'true'
@@ -86,7 +86,7 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run response-cs -- $exchange
+          npm run response-java -- $exchange
         done
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
@@ -94,20 +94,20 @@ jobs:
           name: shared_env
           path: shared_env.txt
 
-    - name: Upload Cs Files
+    - name: Upload Java Files
       uses: actions/upload-artifact@v4
       with:
-        name: cs-files
-        path: cs/
-    - name: Push C# changes to master
+        name: java-files
+        path: java/
+    - name: Push Java changes to master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: github.ref == 'refs/heads/master'
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add cs/
-          git commit -m "[Automated changes] C# files" || echo "No changes to commit."
+          git add java/
+          git commit -m "[Automated changes] Java files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false
           git pull --rebase --autostash origin master
