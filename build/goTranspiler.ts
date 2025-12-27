@@ -2394,6 +2394,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
+                [ / assert\(/g, ' Assert('], // buggy transpilation, can't find reason atm
                 // Match ArrayCache variables and cast to appropriate type based on variable name
                 // Order matters: check most specific types first
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolBySide).Hashmap'],
