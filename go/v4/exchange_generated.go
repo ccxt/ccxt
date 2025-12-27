@@ -2509,7 +2509,8 @@ func (this *Exchange) SetMarkets(markets interface{}, optionalArgs ...interface{
 			AppendToArray(&resultingCurrencies, highestPrecisionCurrency)
 		}
 		var sortedCurrencies interface{} = this.SortBy(resultingCurrencies, "code")
-		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, this.IndexBy(sortedCurrencies, "code")))
+		key := "code"
+		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, this.IndexBy(sortedCurrencies, key)))
 	}
 	this.Currencies_by_id = this.IndexBySafe(this.Currencies, "id")
 	var currenciesSortedByCode interface{} = this.Keysort(this.Currencies)
