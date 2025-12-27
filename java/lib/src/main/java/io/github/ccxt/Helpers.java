@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.ccxt.base.JsonHelper;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
@@ -111,11 +112,10 @@ public class Helpers {
         }
     }
 
-    // NOTE: In C# this used JsonHelper.Deserialize((string)json).
     // In Java, wire up your preferred JSON lib and return Map/List accordingly.
     public static Object parseJson(Object json) {
         // placeholder: return the string itself (or plug in Jackson/Gson here)
-        return (json instanceof String) ? (String) json : null;
+        return  JsonHelper.deserialize((String) json);
     }
 
     public static boolean isTrue(Object value) {
@@ -295,8 +295,7 @@ public class Helpers {
         if (a == null || b == null) return null;
 
         if (a instanceof Long && b instanceof Long) {
-            // C# integer division; keep behavior
-            return ((Long) a) / ((Long) b);
+            return ((Long) a).doubleValue() / ((Long) b); // we want the reminder hence the cast
         } else if (a instanceof Double && b instanceof Double) {
             return ((Double) a) / ((Double) b);
         } else {

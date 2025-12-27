@@ -1444,6 +1444,10 @@ class testMainClass {
                 if (isDisabledGO && (this.lang === 'GO')) {
                     continue;
                 }
+                const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
+                if (isDisabledJava && (this.lang === 'java')) {
+                    continue;
+                }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
@@ -1493,6 +1497,11 @@ class testMainClass {
         const isDisabledGO = exchange.safeBool (exchangeData, 'disabledGO', false);
         if (isDisabledGO && (this.lang === 'GO')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
+            return true;
+        }
+        const isDisabledJava = exchange.safeBool (exchangeData, 'disabledJava', false);
+        if (isDisabledJava && (this.lang === 'java')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in java');
             return true;
         }
         return false;

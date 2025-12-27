@@ -1796,7 +1796,7 @@ public class Exchange {
         String str = (String)content;
         str = str.replace("\\", "");
         str = str.replace("\"{", "{");
-        str = str.replace("}\"", "\"}");
+        str = str.replace("}\"", "}");
         return str;
     }
 
