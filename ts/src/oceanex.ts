@@ -26,6 +26,7 @@ export default class oceanex extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
                 'api': {
                     'rest': 'https://api.oceanex.pro',
+                    'contract': 'https://contract.oceanex.cc/api/v1/ifcontract',
                 },
                 'www': 'https://www.oceanex.pro.com',
                 'doc': 'https://api.oceanex.pro/doc/v1',
@@ -121,6 +122,38 @@ export default class oceanex extends Exchange {
                         '/deposit_history',
                         '/withdraw_history',
                     ],
+                },
+                'contract': {
+                    'public': {
+                        'get': [
+                            'quote',
+                            'tickers',
+                            'trades',
+                            'depth',
+                            'contracts',
+                            'fundingrate',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'profile',
+                            'funds/transfer',
+                            'insuranceBalance',
+                            'userLiqRecords',
+                            'orderTrades',
+                            'userTrades',
+                            'accounts',
+                            'userOrders',
+                            'userPositions',
+                        ],
+                        'post': [
+                            'marginOper',
+                            'cancelOrder',
+                            'submitOrder',
+                            'funds/transfer',
+                            'createContractAccount',
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -1097,9 +1130,21 @@ export default class oceanex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        const apiType = this.safeString (api, 0);
+        const isContract = (apiType === 'contract');
+        const access = this.safeString (api, 1);
+        let url = undefined;
+        if (isContract) {
+            url = this.urls['api']['contract'] + '/' + this.implodeParams (path, params);
+            // params = this.omit (params, this.extractParams (path));
+            // if (access === 'public') {
+            // } else if (api === 'private') {
+            // }
+        } else {
+            url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        }
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (access === 'public') {
             if (path === 'tickers_multi' || path === 'order_book/multi') {
                 let request = '?';
                 const markets = this.safeValue (params, 'markets');
