@@ -1408,6 +1408,10 @@ class Exchange(object):
         return abi.encode(types, args)
 
     @staticmethod
+    def eth_encode_structured_data_only(domain, messageTypes, message):
+        return account.messages.encode_typed_data(domain, messageTypes, message)
+
+    @staticmethod
     def eth_encode_structured_data(domain, messageTypes, message):
         encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
@@ -1621,7 +1625,10 @@ class Exchange(object):
     @staticmethod
     def json(data, params=None):
         if orjson:
-            return orjson.dumps(data).decode('utf-8')
+            try:
+                return orjson.dumps(data).decode('utf-8')
+            except Exception:
+                pass
         return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod

@@ -14,7 +14,15 @@ let add_static_result;
 try {
     add_static_result = (await import ('../../utils/update-static-tests-data.js')).add_static_result;
 } catch (e) {
-    // noop
+    try {
+        const metaUrl = import.meta.url
+        let __dirname = new URL('.', metaUrl).pathname;
+        add_static_result = (await import (__dirname + '/../../../utils/update-static-tests-data.js'));
+    }
+    catch (e1) {
+        console.log ('Error loading update-static-tests-data.js:', e, e1);
+        process.exit (1);
+    }
 }
 let ccxt;
 try {
@@ -539,14 +547,15 @@ async function loadSettingsAndCreateExchange (
         exchange.verbose = true;
     }
 
+    if (cliOptions.signIn && exchange.has.signIn) {
+        await exchange.signIn ();
+    }
+
     const no_load_markets = cliOptions.noSend ? true : cliOptions.noLoadMarkets;
     if (!no_load_markets && !printUsageOnly) {
         await handleMarketsLoading (exchange, cliOptions.refreshMarkets);
     }
 
-    if (cliOptions.signIn && exchange.has.signIn) {
-        await exchange.signIn ();
-    }
 
     exchange.verbose = cliOptions.verbose;
 

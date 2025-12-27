@@ -1,0 +1,248 @@
+{
+    "BTC/USDT:USDT": {
+        "id": "BTC_USDT_Perp",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.1,
+            "base": 1e-9,
+            "quote": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1764841891245,
+        "info": {
+            "instrument": "BTC_USDT_Perp",
+            "instrument_hash": "0x030501",
+            "base": "BTC",
+            "quote": "USDT",
+            "kind": "PERPETUAL",
+            "venues": [
+                "ORDERBOOK",
+                "RFQ"
+            ],
+            "settlement_period": "PERPETUAL",
+            "base_decimals": "9",
+            "quote_decimals": "6",
+            "tick_size": "0.1",
+            "min_size": "0.001",
+            "create_time": "1764841891245136588",
+            "max_position_size": "1000.0",
+            "funding_interval_hours": "8",
+            "adjusted_funding_rate_cap": "0.3",
+            "adjusted_funding_rate_floor": "-0.3"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADA_USDT_Perp",
+        "lowercaseId": null,
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-100,
+            "price": 0.0001,
+            "base": 0.000001,
+            "quote": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 100,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1764841891245,
+        "info": {
+            "instrument": "ADA_USDT_Perp",
+            "instrument_hash": "0x032101",
+            "base": "ADA",
+            "quote": "USDT",
+            "kind": "PERPETUAL",
+            "venues": [
+                "ORDERBOOK",
+                "RFQ"
+            ],
+            "settlement_period": "PERPETUAL",
+            "base_decimals": "6",
+            "quote_decimals": "6",
+            "tick_size": "0.0001",
+            "min_size": "100.0",
+            "create_time": "1764841891245127268",
+            "max_position_size": "3333004.0",
+            "funding_interval_hours": "8",
+            "adjusted_funding_rate_cap": "0.375",
+            "adjusted_funding_rate_floor": "-0.375"
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH_USDT_Perp",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01,
+            "base": 1e-9,
+            "quote": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1764841891245,
+        "info": {
+            "instrument": "ETH_USDT_Perp",
+            "instrument_hash": "0x030401",
+            "base": "ETH",
+            "quote": "USDT",
+            "kind": "PERPETUAL",
+            "venues": [
+                "ORDERBOOK",
+                "RFQ"
+            ],
+            "settlement_period": "PERPETUAL",
+            "base_decimals": "9",
+            "quote_decimals": "6",
+            "tick_size": "0.01",
+            "min_size": "0.01",
+            "create_time": "1764841891245140448",
+            "max_position_size": "30000.0",
+            "funding_interval_hours": "8",
+            "adjusted_funding_rate_cap": "0.3",
+            "adjusted_funding_rate_floor": "-0.3"
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}

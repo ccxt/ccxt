@@ -1,0 +1,138 @@
+{
+    "BTC": {
+        "info": {
+            "id": "5",
+            "symbol": "BTC",
+            "balance_decimals": "9",
+            "quantity_multiplier": "1000000000"
+        },
+        "id": "BTC",
+        "numericId": 5,
+        "code": "BTC",
+        "precision": 1e-9,
+        "type": "crypto",
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "id": "3",
+            "symbol": "USDT",
+            "balance_decimals": "6",
+            "quantity_multiplier": "1000000"
+        },
+        "id": "USDT",
+        "numericId": 3,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ADA": {
+        "info": {
+            "id": "33",
+            "symbol": "ADA",
+            "balance_decimals": "6",
+            "quantity_multiplier": "1000000"
+        },
+        "id": "ADA",
+        "numericId": 33,
+        "code": "ADA",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "id": "4",
+            "symbol": "ETH",
+            "balance_decimals": "9",
+            "quantity_multiplier": "1000000000"
+        },
+        "id": "ETH",
+        "numericId": 4,
+        "code": "ETH",
+        "precision": 1e-9,
+        "type": "crypto",
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}
