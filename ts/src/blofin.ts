@@ -2301,9 +2301,9 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2325,7 +2325,20 @@ export default class blofin extends Exchange {
             'instId': market['id'],
         };
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
-        return response;
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "leverage": "100",
+        //             "marginMode": "cross",
+        //             "instId": "BTC-USDT",
+        //             "positionSide": "long"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**
@@ -2452,9 +2465,9 @@ export default class blofin extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} [symbol] unified market symbol (not used in blofin setMarginMode)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         this.checkRequiredArgument ('setMarginMode', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
         await this.loadMarkets ();
         let market = undefined;

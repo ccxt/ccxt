@@ -226,9 +226,13 @@
                     "marginType": "CROSS"
                 },
                 "parsedResponse": {
-                    "code": "200",
-                    "symbolId": "ETH-SWAP-USDT",
-                    "marginType": "CROSS"
+                    "info": {
+                        "code": "200",
+                        "symbolId": "ETH-SWAP-USDT",
+                        "marginType": "CROSS"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "cross"
                 }
             }
         ],
@@ -503,9 +507,15 @@
                     "leverage": "3"
                 },
                 "parsedResponse": {
-                    "code": "200",
-                    "symbolId": "ETH-SWAP-USDT",
-                    "leverage": "3"
+                    "info": {
+                        "code": "200",
+                        "symbolId": "ETH-SWAP-USDT",
+                        "leverage": "3"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": 3,
+                    "shortLeverage": 3
                 }
             }
         ],
