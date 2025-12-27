@@ -1247,6 +1247,28 @@ class Exchange(BaseExchange):
     async def fetch_position_mode(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
 
+    async def fetch_auto_de_leverage_rank(self, symbol: str, params = {}):
+         raise NotSupported(self.id + ' fetchAutoDeLeverageRank() is not supported yet')
+    }
+
+    async def fetch_positions_auto_de_leverage_rank (self, symbols: Strings = None, params = {}):
+         raise NotSupported(self.id + ' fetchPositionsAutoDeLeverageRank() is not supported yet')
+    }
+
+    async def fetch_position_auto_de_leverage_rank (self, symbol: str, params = {}):
+        if self.has['fetchPositionsAutoDeLeverageRank']:
+            await self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            ranks = await self.fetch_positions_auto_de_leverage_rank([symbol], params)
+            rank = self.safe_dict(ranks, 0)
+            if rank is None:
+                raise NullResponse(self.id + ' fetchPositionsAutoDeLeverageRank() could not find a rank for ' + symbol)
+            else:
+                return rank
+        else:
+            raise NotSupported(self.id + ' fetchPositionsAutoDeLeverageRank() is not supported yet')
+
     async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount

@@ -2023,3 +2023,25 @@ public struct LongShortRatio
         longShortRatio = Exchange.SafeFloat(lsRatio, "longShortRatio");
     }
 }
+
+public struct AutoDeLeverage
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public Int64? rank;
+    public string? rating;
+    public double? percentage;
+    public Int64? timestamp;
+    public string? datetime;
+
+    public AutoDeLeverage(object ADLObj)
+    {
+        info = Helper.GetInfo(ADLObj);
+        symbol = Exchange.SafeString(ADLObj, "symbol");
+        rank = Exchange.SafeInteger(ADLObj, "rank");
+        rating = Exchange.SafeString(ADLObj, "rating");
+        percentage = Exchange.SafeFloat(ADLObj, "percentage");
+        timestamp = Exchange.SafeInteger(ADLObj, "timestamp");
+        datetime = Exchange.SafeString(ADLObj, "datetime");
+    }
+}
