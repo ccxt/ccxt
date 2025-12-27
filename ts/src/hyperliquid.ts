@@ -584,16 +584,23 @@ export default class hyperliquid extends Exchange {
         let fetchDexesList = [];
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict (options, 'hip3', {});
-        const dexesProvided = this.safeList (hip3, 'dexes'); // let users provide their own list of dexes to load
+        const dexesProvided = this.safeList (hip3, 'dexes', []); // let users provide their own list of dexes to load
         const maxLimit = this.safeInteger (hip3, 'limit', 10);
-        if (dexesProvided !== undefined) {
-            const userProvidedDexesLength = dexesProvided.length;
+        const userProvidedDexesLength = dexesProvided.length;
+        if (userProvidedDexesLength > 0) {
             if (userProvidedDexesLength > 0) {
                 fetchDexesList = dexesProvided;
             }
         } else {
+            const fetchDexesLength = fetchDexes.length;
             for (let i = 1; i < maxLimit; i++) {
+                if (i >= fetchDexesLength) {
+                    break;
+                }
                 const dex = this.safeDict (fetchDexes, i, {});
+                if (dex === undefined) {
+                    continue;
+                }
                 const dexName = this.safeString (dex, 'name');
                 fetchDexesList.push (dexName);
             }
