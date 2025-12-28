@@ -5608,7 +5608,7 @@ func (this *BingxCore) ParseTransactionStatus(status interface{}) interface{} {
 		"3":  "rejected",
 		"4":  "pending",
 		"5":  "rejected",
-		"6":  "pending",
+		"6":  "ok",
 	}
 	return this.SafeString(statuses, status, status)
 }
