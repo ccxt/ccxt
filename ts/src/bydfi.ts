@@ -186,7 +186,7 @@ export default class bydfi extends Exchange {
                 'ws': true,
             },
             'urls': {
-                'logo': '', // todo
+                'logo': 'https://github.com/user-attachments/assets/bfffb73d-29bd-465d-b75b-98e210491769',
                 'api': {
                     'public': 'https://api.bydfi.com/api',
                     'private': 'https://api.bydfi.com/api',
@@ -196,6 +196,7 @@ export default class bydfi extends Exchange {
             },
             'fees': {
             },
+            'referral': 'https://partner.bydfi.com/j/DilWutCI',
             'api': {
                 'public': {
                     'get': {
