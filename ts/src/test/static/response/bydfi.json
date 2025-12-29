@@ -1,0 +1,59 @@
+{
+    "exchange": "bydfi",
+    "skipKeys": [],
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker",
+                "method": "fetchTicker",
+                "input": ["BTCUSDT"],
+                "httpResponse": {
+                    "code": 200,
+                    "message": "success",
+                    "success": true,
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "open": "110336.7",
+                            "high": "111732.7",
+                            "low": "108335.7",
+                            "last": "111184.5",
+                            "vol": "8485468",
+                            "time": 1756892491278
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTCUSDT",
+                    "high": 111732.7,
+                    "low": 108335.7,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 110336.7,
+                    "close": 111184.5,
+                    "last": 111184.5,
+                    "previousClose": null,
+                    "change": 847.8,
+                    "percentage": 0.7683753456465527,
+                    "average": 110760.6,
+                    "baseVolume": 8485468,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "open": "110336.7",
+                        "high": "111732.7",
+                        "low": "108335.7",
+                        "last": "111184.5",
+                        "vol": "8485468",
+                        "time": 1756892491278
+                    }
+                }
+            }
+        ]
+    }
+}

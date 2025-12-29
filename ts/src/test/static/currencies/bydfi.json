@@ -1,0 +1,44 @@
+{
+  "BTC": {
+      "id": "BTC",
+      "code": "BTC",
+      "name": "Bitcoin",
+      "active": true,
+      "deposit": true,
+      "withdraw": true,
+      "fee": null,
+      "precision": 1e-8,
+      "limits": {
+          "amount": {
+              "min": null,
+              "max": null
+          },
+          "withdraw": {
+              "min": null,
+              "max": null
+          }
+      },
+      "info": {}
+  },
+  "USDT": {
+      "id": "USDT",
+      "code": "USDT",
+      "name": "Tether USD",
+      "active": true,
+      "deposit": true,
+      "withdraw": true,
+      "fee": null,
+      "precision": 1e-6,
+      "limits": {
+          "amount": {
+              "min": null,
+              "max": null
+          },
+          "withdraw": {
+              "min": null,
+              "max": null
+          }
+      },
+      "info": {}
+  }
+}
