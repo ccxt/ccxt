@@ -14,7 +14,8 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
-            }
+            },
+            "fetchOHLCV": "new api doesnt work atm"
         }
     },
     "alpaca": {
