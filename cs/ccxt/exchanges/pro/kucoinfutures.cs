@@ -441,9 +441,12 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         object cache = this.positions;
         callDynamically(cache, "append", new object[] {position});
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve(cache);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {position, add("position:", symbol)});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {position, add("position:", symbol)});
+        }
     }
 
     public virtual void handlePosition(WebSocketClient client, object message)
