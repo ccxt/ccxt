@@ -581,9 +581,10 @@ class xt(ccxt.async_support.xt):
             if contracts > 0:
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, 'position::contract')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, 'position::contract')
 
     def handle_position(self, client, message):
         #

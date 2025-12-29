@@ -568,15 +568,20 @@ class hyperliquid(Exchange, ImplicitAPI):
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         hip3 = self.safe_dict(options, 'hip3', {})
-        dexesProvided = self.safe_list(hip3, 'dexes')  # users provide their own list of dexes to load
+        dexesProvided = self.safe_list(hip3, 'dexes', [])  # users provide their own list of dexes to load
         maxLimit = self.safe_integer(hip3, 'limit', 10)
-        if dexesProvided is not None:
-            userProvidedDexesLength = len(dexesProvided)
+        userProvidedDexesLength = len(dexesProvided)
+        if userProvidedDexesLength > 0:
             if userProvidedDexesLength > 0:
                 fetchDexesList = dexesProvided
         else:
+            fetchDexesLength = len(fetchDexes)
             for i in range(1, maxLimit):
+                if i >= fetchDexesLength:
+                    break
                 dex = self.safe_dict(fetchDexes, i, {})
+                if dex is None:
+                    continue
                 dexName = self.safe_string(dex, 'name')
                 fetchDexesList.append(dexName)
         rawPromises = []

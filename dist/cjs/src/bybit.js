@@ -901,6 +901,8 @@ class bybit extends bybit$1["default"] {
                     '170229': errors.InvalidOrder,
                     '170234': errors.ExchangeError,
                     '170241': errors.ManualInteractionNeeded,
+                    '170371': errors.InvalidOrder,
+                    '170372': errors.InvalidOrder,
                     '175000': errors.InvalidOrder,
                     '175001': errors.InvalidOrder,
                     '175002': errors.InvalidOrder,

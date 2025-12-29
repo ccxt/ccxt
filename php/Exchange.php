@@ -377,6 +377,7 @@ class Exchange {
         'btcturk',
         'bullish',
         'bybit',
+        'bydfi',
         'cex',
         'coinbase',
         'coinbaseadvanced',

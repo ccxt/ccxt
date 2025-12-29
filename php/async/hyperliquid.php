@@ -592,16 +592,23 @@ class hyperliquid extends Exchange {
             $fetchDexesList = array();
             $options = $this->safe_dict($this->options, 'fetchMarkets', array());
             $hip3 = $this->safe_dict($options, 'hip3', array());
-            $dexesProvided = $this->safe_list($hip3, 'dexes'); // $users provide their own list of dexes to load
+            $dexesProvided = $this->safe_list($hip3, 'dexes', array()); // $users provide their own list of dexes to load
             $maxLimit = $this->safe_integer($hip3, 'limit', 10);
-            if ($dexesProvided !== null) {
-                $userProvidedDexesLength = count($dexesProvided);
+            $userProvidedDexesLength = count($dexesProvided);
+            if ($userProvidedDexesLength > 0) {
                 if ($userProvidedDexesLength > 0) {
                     $fetchDexesList = $dexesProvided;
                 }
             } else {
+                $fetchDexesLength = count($fetchDexes);
                 for ($i = 1; $i < $maxLimit; $i++) {
+                    if ($i >= $fetchDexesLength) {
+                        break;
+                    }
                     $dex = $this->safe_dict($fetchDexes, $i, array());
+                    if ($dex === null) {
+                        continue;
+                    }
                     $dexName = $this->safe_string($dex, 'name');
                     $fetchDexesList[] = $dexName;
                 }

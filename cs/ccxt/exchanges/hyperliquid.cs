@@ -597,20 +597,29 @@ public partial class hyperliquid : Exchange
         object fetchDexesList = new List<object>() {};
         object options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         object hip3 = this.safeDict(options, "hip3", new Dictionary<string, object>() {});
-        object dexesProvided = this.safeList(hip3, "dexes"); // let users provide their own list of dexes to load
+        object dexesProvided = this.safeList(hip3, "dexes", new List<object>() {}); // let users provide their own list of dexes to load
         object maxLimit = this.safeInteger(hip3, "limit", 10);
-        if (isTrue(!isEqual(dexesProvided, null)))
+        object userProvidedDexesLength = getArrayLength(dexesProvided);
+        if (isTrue(isGreaterThan(userProvidedDexesLength, 0)))
         {
-            object userProvidedDexesLength = getArrayLength(dexesProvided);
             if (isTrue(isGreaterThan(userProvidedDexesLength, 0)))
             {
                 fetchDexesList = dexesProvided;
             }
         } else
         {
+            object fetchDexesLength = getArrayLength(fetchDexes);
             for (object i = 1; isLessThan(i, maxLimit); postFixIncrement(ref i))
             {
+                if (isTrue(isGreaterThanOrEqual(i, fetchDexesLength)))
+                {
+                    break;
+                }
                 object dex = this.safeDict(fetchDexes, i, new Dictionary<string, object>() {});
+                if (isTrue(isEqual(dex, null)))
+                {
+                    continue;
+                }
                 object dexName = this.safeString(dex, "name");
                 ((IList<object>)fetchDexesList).Add(dexName);
             }

@@ -3,6 +3,60 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 500,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "id": "694fb52b8e7d350007b00c64",
+                                "currency": "USDT",
+                                "amount": "100",
+                                "fee": "0",
+                                "balance": "0",
+                                "accountType": "MAIN",
+                                "bizType": "Transfer",
+                                "direction": "out",
+                                "createdAt": 1766831403876,
+                                "context": ""
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "694fb52b8e7d350007b00c64",
+                        "currency": "USDT",
+                        "timestamp": 1766831403876,
+                        "datetime": "2025-12-27T10:30:03.876Z",
+                        "amount": 100,
+                        "fromAccount": "main",
+                        "toAccount": null,
+                        "status": null,
+                        "info": {
+                            "id": "694fb52b8e7d350007b00c64",
+                            "currency": "USDT",
+                            "amount": "100",
+                            "fee": "0",
+                            "balance": "0",
+                            "accountType": "MAIN",
+                            "bizType": "Transfer",
+                            "direction": "out",
+                            "createdAt": 1766831403876,
+                            "context": ""
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "fetch spot open order",

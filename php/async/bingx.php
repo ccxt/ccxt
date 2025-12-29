@@ -5509,7 +5509,7 @@ class bingx extends Exchange {
             '3' => 'rejected',
             '4' => 'pending',
             '5' => 'rejected',
-            '6' => 'pending',
+            '6' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }

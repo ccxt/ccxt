@@ -123,7 +123,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
-                'fetchTransfers': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'repayCrossMargin': True,
                 'repayIsolatedMargin': True,
@@ -542,6 +542,8 @@ class kucoin(Exchange, ImplicitAPI):
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,  # {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     'The amount increment is invalid.': BadRequest,
                     'The quantity is below the minimum requirement.': InvalidOrder,  # {"msg":"The quantity is below the minimum requirement.","code":"400100"}
+                    'not in the given range!': BadRequest,  # {"msg":"price not in the given range!","code":"400100"}
+                    'recAccountType not in the given range': BadRequest,  # {"msg":"recAccountType not in the given range","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -4494,16 +4496,45 @@ class kucoin(Exchange, ImplicitAPI):
         #         "updatedAt": 1616545569000
         #     }
         #
+        # ledger entry - from account ledgers API(for fetchTransfers)
+        #
+        # {
+        #     "id": "611a1e7c6a053300067a88d9",
+        #     "currency": "USDT",
+        #     "amount": "10.00059547",
+        #     "fee": "0",
+        #     "balance": "0",
+        #     "accountType": "MAIN",
+        #     "bizType": "Transfer",
+        #     "direction": "in",
+        #     "createdAt": 1629101692950,
+        #     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        # }
+        #
         timestamp = self.safe_integer(transfer, 'createdAt')
         currencyId = self.safe_string(transfer, 'currency')
         rawStatus = self.safe_string(transfer, 'status')
-        accountFromRaw = self.safe_string_lower(transfer, 'payAccountType')
-        accountToRaw = self.safe_string_lower(transfer, 'recAccountType')
+        bizType = self.safe_string(transfer, 'bizType')
+        isLedgerEntry = (bizType is not None)
+        accountFromRaw = None
+        accountToRaw = None
+        if isLedgerEntry:
+            # Ledger entry format: uses accountType + direction
+            accountType = self.safe_string_lower(transfer, 'accountType')
+            direction = self.safe_string(transfer, 'direction')
+            if direction == 'out':
+                accountFromRaw = accountType
+            elif direction == 'in':
+                accountToRaw = accountType
+        else:
+            # Transfer API format: uses payAccountType/recAccountType
+            accountFromRaw = self.safe_string_lower(transfer, 'payAccountType')
+            accountToRaw = self.safe_string_lower(transfer, 'recAccountType')
         accountsByType = self.safe_dict(self.options, 'accountsByType')
         accountFrom = self.safe_string(accountsByType, accountFromRaw, accountFromRaw)
         accountTo = self.safe_string(accountsByType, accountToRaw, accountToRaw)
         return {
-            'id': self.safe_string_2(transfer, 'applyId', 'orderId'),
+            'id': self.safe_string_n(transfer, ['id', 'applyId', 'orderId']),
             'currency': self.safe_currency_code(currencyId, currency),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -5537,3 +5568,70 @@ class kucoin(Exchange, ImplicitAPI):
         if errorCode != '200000' and errorCode != '200':
             raise ExchangeError(feedback)
         return None
+
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+        """
+        fetch a history of internal transfers made on an account
+
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+
+        :param str [code]: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of transfer structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params)
+        request: dict = {
+            'bizType': 'TRANSFER',
+        }
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['endAt'] = until
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        else:
+            request['pageSize'] = 500
+        request, params = self.handle_until_option('endAt', request, params)
+        response = await self.privateGetAccountsLedgers(self.extend(request, params))
+        #
+        # {
+        #     "code": "200000",
+        #     "data": {
+        #         "currentPage": 1,
+        #         "pageSize": 50,
+        #         "totalNum": 1,
+        #         "totalPage": 1,
+        #         "items": [
+        #             {
+        #                 "id": "611a1e7c6a053300067a88d9",
+        #                 "currency": "USDT",
+        #                 "amount": "10.00059547",
+        #                 "fee": "0",
+        #                 "balance": "0",
+        #                 "accountType": "MAIN",
+        #                 "bizType": "Transfer",
+        #                 "direction": "in",
+        #                 "createdAt": 1629101692950,
+        #                 "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        #             }
+        #         ]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        items = self.safe_list(data, 'items', [])
+        return self.parse_transfers(items, currency, since, limit)
