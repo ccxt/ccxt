@@ -96,6 +96,15 @@ type SubAccountTransferMessage struct {
 	Usd            int    `mapstructure:"usd" msgpack:"usd"`
 }
 
+// Vault transfer message
+
+type VaultTransferMessage struct {
+	Type         string `mapstructure:"type" msgpack:"type"`
+	VaultAddress string `mapstructure:"vaultAddress" msgpack:"vaultAddress"`
+	IsDeposit    bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd          int    `mapstructure:"usd" msgpack:"usd"`
+}
+
 // withdraw
 // {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","destination":"0xc950889d14a3717f541ec246bc253d7a9e98c78f","amount":"100000","time":1737458231937,"type":"withdraw3"}
 type WithdrawMessage struct {
@@ -134,6 +143,20 @@ type UpdateLeverageMessage struct {
 	Asset    int    `mapstructure:"asset" msgpack:"asset"`
 	IsCross  bool   `mapstructure:"isCross" msgpack:"isCross"`
 	Leverage int    `mapstructure:"leverage" msgpack:"leverage"`
+}
+
+// UpdateIsolatedMargin message
+
+type UpdateIsolatedMarginMessage struct {
+	Type  string `mapstructure:"type" msgpack:"type"`
+	Asset int    `mapstructure:"asset" msgpack:"asset"`
+	IsBuy bool   `mapstructure:"isBuy" msgpack:"isBuy"`
+	Ntli  int    `mapstructure:"Ntli" msgpack:"Ntli"`
+}
+
+type ReserveRequestWeightMessage struct {
+	Type   string `mapstructure:"type" msgpack:"type"`
+	Weight int    `mapstructure:"weight" msgpack:"weight"`
 }
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -465,6 +488,45 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(leverageMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "updateIsolatedMargin":
+		var isolatedMarginMsg UpdateIsolatedMarginMessage
+
+		err := mapstructure.Decode(converted, &isolatedMarginMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(isolatedMarginMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "vaultTransfer":
+		var vaultTransferMsg VaultTransferMessage
+
+		err := mapstructure.Decode(converted, &vaultTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(vaultTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "reserveRequestWeight":
+		var reserveRequestWeightMsg ReserveRequestWeightMessage
+
+		err := mapstructure.Decode(converted, &reserveRequestWeightMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(reserveRequestWeightMsg)
 		if err != nil {
 			panic(err)
 		}
