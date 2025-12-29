@@ -325,16 +325,16 @@ export default class cow extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const parameters = this.extend ({}, params);
-        const tokenListUrl = this.safeString (parameters, 'tokenListUrl', this.safeString (this.options, 'tokenListUrl', 'https://files.cow.fi/tokens/CowSwap.json'));
-        const overrideTokens = this.safeList (parameters, 'tokens');
-        const overrideQuotes = this.safeValue (parameters, 'quoteSymbols');
-        const overrideChainId = this.safeInteger (parameters, 'chainId');
+        const request = this.extend ({}, params);
+        const tokenListUrl = this.safeString (request, 'tokenListUrl', this.safeString (this.options, 'tokenListUrl', 'https://files.cow.fi/tokens/CowSwap.json'));
+        const overrideTokens = this.safeList (request, 'tokens');
+        const overrideQuotes = this.safeValue (request, 'quoteSymbols');
+        const overrideChainId = this.safeInteger (request, 'chainId');
         let tokenList: Dict = undefined;
         if (overrideTokens !== undefined) {
             tokenList = { 'tokens': overrideTokens };
         } else {
-            tokenList = await this.fetch (tokenListUrl, 'GET', undefined, undefined);
+            tokenList = await this.fetch (tokenListUrl, 'GET', {}, undefined);
         }
         const tokens = this.safeList (tokenList, 'tokens', []);
         const targetChainId = (overrideChainId === undefined) ? this.getChainIdOption () : overrideChainId;
@@ -1096,7 +1096,8 @@ export default class cow extends Exchange {
         }
         const response = await this.publicPostApiV1Orders (orderBody);
         const uid = this.safeString2 (response, 'orderUid', 'uid');
-        const parsed = this.parseOrder (this.extend ({}, orderBody, { 'uid': uid, 'info': response, 'status': 'open' }), market);
+        const orderData = this.extend (orderBody, { 'uid': uid, 'info': response, 'status': 'open' });
+        const parsed = this.parseOrder (orderData, market);
         return this.extend (parsed, { 'info': response });
     }
 
@@ -1502,12 +1503,12 @@ export default class cow extends Exchange {
         return '0x' + this.intToBase16 (prefixValue) + paddedLengthHex + concatenated;
     }
 
-    decimalToHex (decimal: Str): Str {
+    decimalToHex (decimalValue: Str): Str {
         // Convert decimal string to hex without using BigInt (for Go compatibility)
-        if ((decimal === '0') || (decimal === undefined)) {
+        if ((decimalValue === '0') || (decimalValue === undefined)) {
             return '0';
         }
-        let num = decimal;
+        let num = decimalValue;
         let hex = '';
         const sixteen = '16';
         const hexChars = '0123456789abcdef';
