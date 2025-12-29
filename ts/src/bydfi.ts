@@ -193,10 +193,10 @@ export default class bydfi extends Exchange {
                 },
                 'www': 'https://bydfi.com/',
                 'doc': 'https://developers.bydfi.com/en/',
+                'referral': 'https://partner.bydfi.com/j/DilWutCI',
             },
             'fees': {
             },
-            'referral': 'https://partner.bydfi.com/j/DilWutCI',
             'api': {
                 'public': {
                     'get': {
