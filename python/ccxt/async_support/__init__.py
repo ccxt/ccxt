@@ -100,6 +100,7 @@ from ccxt.async_support.btcmarkets import btcmarkets                            
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
 from ccxt.async_support.bullish import bullish                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
+from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
 from ccxt.async_support.coinbaseadvanced import coinbaseadvanced                # noqa: F401
@@ -212,6 +213,7 @@ exchanges = [
     'btcturk',
     'bullish',
     'bybit',
+    'bydfi',
     'cex',
     'coinbase',
     'coinbaseadvanced',

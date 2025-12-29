@@ -1040,7 +1040,7 @@ class gate extends gate$1["default"] {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
-                    'INVALID_PARAM_VALUE': errors.BadRequest,
+                    'INVALID_PARAM_VALUE': errors.InvalidOrder,
                     'INVALID_PROTOCOL': errors.BadRequest,
                     'INVALID_ARGUMENT': errors.BadRequest,
                     'INVALID_REQUEST_BODY': errors.BadRequest,
@@ -1135,7 +1135,8 @@ class gate extends gate$1["default"] {
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': errors.InvalidOrder,
                     'POSITION_HOLDING': errors.BadRequest,
                     'USER_LOAN_EXCEEDED': errors.BadRequest,
-                    'NO_CHANGE': errors.InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
+                    'NO_CHANGE': errors.InvalidOrder,
+                    'PRICE_THRESHOLD_EXCEEDED': errors.InvalidOrder, // {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
                 'broad': {},
             },

@@ -105,7 +105,7 @@ export default class kucoin extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
@@ -524,6 +524,8 @@ export default class kucoin extends Exchange {
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     'The amount increment is invalid.': BadRequest,
                     'The quantity is below the minimum requirement.': InvalidOrder, // {"msg":"The quantity is below the minimum requirement.","code":"400100"}
+                    'not in the given range!': BadRequest, // {"msg":"price not in the given range!","code":"400100"}
+                    'recAccountType not in the given range': BadRequest, // {"msg":"recAccountType not in the given range","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -4693,16 +4695,47 @@ export default class kucoin extends Exchange {
         //         "updatedAt": 1616545569000
         //     }
         //
+        // ledger entry - from account ledgers API (for fetchTransfers)
+        //
+        // {
+        //     "id": "611a1e7c6a053300067a88d9",
+        //     "currency": "USDT",
+        //     "amount": "10.00059547",
+        //     "fee": "0",
+        //     "balance": "0",
+        //     "accountType": "MAIN",
+        //     "bizType": "Transfer",
+        //     "direction": "in",
+        //     "createdAt": 1629101692950,
+        //     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        // }
+        //
         const timestamp = this.safeInteger (transfer, 'createdAt');
         const currencyId = this.safeString (transfer, 'currency');
         const rawStatus = this.safeString (transfer, 'status');
-        const accountFromRaw = this.safeStringLower (transfer, 'payAccountType');
-        const accountToRaw = this.safeStringLower (transfer, 'recAccountType');
+        const bizType = this.safeString (transfer, 'bizType');
+        const isLedgerEntry = (bizType !== undefined);
+        let accountFromRaw = undefined;
+        let accountToRaw = undefined;
+        if (isLedgerEntry) {
+            // Ledger entry format: uses accountType + direction
+            const accountType = this.safeStringLower (transfer, 'accountType');
+            const direction = this.safeString (transfer, 'direction');
+            if (direction === 'out') {
+                accountFromRaw = accountType;
+            } else if (direction === 'in') {
+                accountToRaw = accountType;
+            }
+        } else {
+            // Transfer API format: uses payAccountType/recAccountType
+            accountFromRaw = this.safeStringLower (transfer, 'payAccountType');
+            accountToRaw = this.safeStringLower (transfer, 'recAccountType');
+        }
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         const accountFrom = this.safeString (accountsByType, accountFromRaw, accountFromRaw);
         const accountTo = this.safeString (accountsByType, accountToRaw, accountToRaw);
         return {
-            'id': this.safeString2 (transfer, 'applyId', 'orderId'),
+            'id': this.safeStringN (transfer, [ 'id', 'applyId', 'orderId' ]),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5807,5 +5840,78 @@ export default class kucoin extends Exchange {
             throw new ExchangeError (feedback);
         }
         return undefined;
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params) as TransferEntry[];
+        }
+        let request: Dict = {
+            'bizType': 'TRANSFER',
+        };
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endAt'] = until;
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        } else {
+            request['pageSize'] = 500;
+        }
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        const response = await this.privateGetAccountsLedgers (this.extend (request, params));
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //         "currentPage": 1,
+        //         "pageSize": 50,
+        //         "totalNum": 1,
+        //         "totalPage": 1,
+        //         "items": [
+        //             {
+        //                 "id": "611a1e7c6a053300067a88d9",
+        //                 "currency": "USDT",
+        //                 "amount": "10.00059547",
+        //                 "fee": "0",
+        //                 "balance": "0",
+        //                 "accountType": "MAIN",
+        //                 "bizType": "Transfer",
+        //                 "direction": "in",
+        //                 "createdAt": 1629101692950,
+        //                 "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const items = this.safeList (data, 'items', []);
+        return this.parseTransfers (items, currency, since, limit);
     }
 }
