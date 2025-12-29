@@ -127,6 +127,15 @@ type CreateSubAccountMessage struct {
 	Name string `mapstructure:"name" msgpack:"name"`
 }
 
+// UpdateLeverage message
+
+type UpdateLeverageMessage struct {
+	Type     string `mapstructure:"type" msgpack:"type"`
+	Asset    int    `mapstructure:"asset" msgpack:"asset"`
+	IsCross  bool   `mapstructure:"isCross" msgpack:"isCross"`
+	Leverage int    `mapstructure:"leverage" msgpack:"leverage"`
+}
+
 // =====================================  Hyperliquid Structs ===================================== //
 
 func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain, messageTypes map[string][]apitypes.Type, messageData map[string]interface{}) (string, error) {
@@ -443,6 +452,19 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(createSubAccountMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "updateLeverage":
+		var leverageMsg UpdateLeverageMessage
+
+		err := mapstructure.Decode(converted, &leverageMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(leverageMsg)
 		if err != nil {
 			panic(err)
 		}
