@@ -251,16 +251,16 @@ public class Exchange {
 
         // credentials init
         this.requiredCredentials = (Map<String, Object>) SafeMethods.SafeValue(extendedProperties, "requiredCredentials");
-        this.apiKey        = SafeMethods.SafeStringTyped(extendedProperties, "apiKey", "");
-        this.secret        = SafeMethods.SafeStringTyped(extendedProperties, "secret", "");
-        this.password      = SafeMethods.SafeStringTyped(extendedProperties, "password", "");
-        this.login         = SafeMethods.SafeStringTyped(extendedProperties, "login", "");
-        this.twofa         = SafeMethods.SafeStringTyped(extendedProperties, "twofa", "");
-        this.privateKey    = SafeMethods.SafeStringTyped(extendedProperties, "privateKey", "");
-        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAddress", "");
-        this.token         = SafeMethods.SafeStringTyped(extendedProperties, "token", "");
-        this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid", "");
-        this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId", "");
+        this.apiKey        = SafeMethods.SafeStringTyped(extendedProperties, "apiKey", null);
+        this.secret        = SafeMethods.SafeStringTyped(extendedProperties, "secret", null   );
+        this.password      = SafeMethods.SafeStringTyped(extendedProperties, "password", null);
+        this.login         = SafeMethods.SafeStringTyped(extendedProperties, "login", null );
+        this.twofa         = SafeMethods.SafeStringTyped(extendedProperties, "twofa", null );
+        this.privateKey    = SafeMethods.SafeStringTyped(extendedProperties, "privateKey", null );
+        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAdress", null );
+        this.token         = SafeMethods.SafeStringTyped(extendedProperties, "token", null );
+        this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid", null);
+        this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId", null );
 
         var userAgentRes = this.safeValue(extendedProperties, "userAgents", this.userAgents);
         this.userAgents = (Map<String, Object>) userAgentRes;

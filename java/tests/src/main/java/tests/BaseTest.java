@@ -1,14 +1,13 @@
 package tests;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -184,7 +183,7 @@ public class BaseTest {
         return Helpers.divide(a, b);
     }
 
-    public static String toStringOrNull(Object a) {
+    public static Object toStringOrNull(Object a) {
         return Helpers.toStringOrNull(a);
     }
 
@@ -638,8 +637,58 @@ public class BaseTest {
         return ".java";
     }
 
-    public static CompletableFuture<Map<String, Object>> getTestFiles (Object properties, Object tests) {
-        throw new RuntimeException("Not implemented");
+    public static CompletableFuture<Map<String, Object>> getTestFiles(
+            Object properties,
+            boolean ws
+    ) {
+        return CompletableFuture.supplyAsync(() -> getTestFilesHelper(properties, ws));
+    }
+
+
+    public static Map<String, Object> getTestFilesHelper(Object properties, boolean ws) {
+        // Accept either List<?> or any Collection<?>; otherwise treat as empty.
+        final List<String> keys = new ArrayList<>();
+
+        if (properties instanceof Collection<?> c) {
+            for (Object o : c) {
+                if (o != null) keys.add(String.valueOf(o));
+            }
+        }
+
+        keys.add("features");
+
+        final String basePackage = ws ? "tests.exchange.ws" : "tests.exchange";
+        final Map<String, Object> testClasses = new HashMap<>();
+
+        for (String key : keys) {
+            if (key == null || key.isBlank()) continue;
+
+            // "fetchTicker" -> "TestFetchTicker"
+            String className = basePackage + ".Test" + capitalizeFirst(key);
+
+            Class<?> clazz = tryLoadClass(className);
+            if (clazz != null) {
+                testClasses.put(key, clazz);
+            }
+        }
+
+        return testClasses;
+    }
+
+    private static String capitalizeFirst(String s) {
+        if (s == null || s.isEmpty()) return s;
+        char first = s.charAt(0);
+        char upper = Character.toUpperCase(first);
+        if (s.length() == 1) return String.valueOf(upper);
+        return upper + s.substring(1);
+    }
+
+    private static Class<?> tryLoadClass(String fqcn) {
+        try {
+            return Class.forName(fqcn);
+        } catch (ClassNotFoundException ignored) {
+            return null;
+        }
     }
 
     public static Map<String, Object> getTestFilesSync (Object properties, Object tests) {
@@ -651,9 +700,128 @@ public class BaseTest {
         throw new RuntimeException("Not implemented");
     }
 
-    public static CompletableFuture<Object> callMethod(Object testFiles2, Object methodName, Object exchange, Object... args)
-    {
-        throw new RuntimeException("Not implemented");
+
+    public static CompletableFuture<Object> callMethod(
+            Object testFiles2,
+            Object methodName,
+            Object exchange,
+            Object... args
+    ) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Class<?>> testFiles = (Map<String, Class<?>>) testFiles2;
+
+            String key = String.valueOf(methodName);
+            Class<?> testClass = testFiles.get(key);
+            if (testClass == null) {
+                return failedFuture(new IllegalArgumentException("No test class found for key: " + key));
+            }
+
+            // Build argsWithExchange: [exchange, ...args] with List spreading
+            List<Object> argsWithExchange = new ArrayList<>();
+            argsWithExchange.add(exchange);
+
+            if (args != null) {
+                for (Object arg : args) {
+                    if (arg == null) continue;
+
+                    if (arg instanceof List<?> list) {
+                        argsWithExchange.addAll(list);
+                    } else {
+                        argsWithExchange.add(arg);
+                    }
+                }
+            }
+
+            // key "fetchTicker" -> method "testFetchTicker"
+            String javaMethodName = "test" + capitalizeFirst(key);
+
+            Object testInstance = createInstance(testClass);
+
+            Method method = findCompatibleMethod(testClass, javaMethodName, argsWithExchange);
+            if (method == null) {
+                return failedFuture(new NoSuchMethodException(
+                        "No compatible method " + javaMethodName + "(...) found on " + testClass.getName()
+                ));
+            }
+            method.setAccessible(true);
+
+            Object result;
+            try {
+                result = method.invoke(testInstance, argsWithExchange.toArray());
+            } catch (Exception e) {
+                // unwrap underlying exception
+                return failedFuture(e);
+            }
+
+            // emulate "await ((Task)res); return null;"
+            if (result instanceof CompletableFuture<?> cf) {
+                return cf.thenApply(ignored -> null);
+            }
+
+            return CompletableFuture.completedFuture(null);
+
+        } catch (Throwable t) {
+            return failedFuture(t);
+        }
+    }
+
+    private static Object createInstance(Class<?> testClass) throws Exception {
+        Constructor<?> ctor = testClass.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        return ctor.newInstance();
+    }
+
+    private static Method findCompatibleMethod(Class<?> cls, String name, List<Object> args) {
+        // prefer public methods first
+        Method m = findCompatibleIn(cls.getMethods(), name, args);
+        if (m != null) return m;
+        // then declared (non-public)
+        return findCompatibleIn(cls.getDeclaredMethods(), name, args);
+    }
+
+    private static Method findCompatibleIn(Method[] methods, String name, List<Object> args) {
+        for (Method m : methods) {
+            if (!m.getName().equals(name)) continue;
+
+            Class<?>[] p = m.getParameterTypes();
+            if (p.length != args.size()) continue;
+
+            boolean ok = true;
+            for (int i = 0; i < p.length; i++) {
+                Object a = args.get(i);
+                if (a == null) continue;
+                if (!isAssignable(p[i], a.getClass())) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) return m;
+        }
+        return null;
+    }
+
+    private static boolean isAssignable(Class<?> paramType, Class<?> argType) {
+        if (paramType.isPrimitive()) paramType = boxPrimitive(paramType);
+        return paramType.isAssignableFrom(argType);
+    }
+
+    private static Class<?> boxPrimitive(Class<?> c) {
+        if (c == boolean.class) return Boolean.class;
+        if (c == byte.class) return Byte.class;
+        if (c == short.class) return Short.class;
+        if (c == int.class) return Integer.class;
+        if (c == long.class) return Long.class;
+        if (c == float.class) return Float.class;
+        if (c == double.class) return Double.class;
+        if (c == char.class) return Character.class;
+        return c;
+    }
+
+    private static <T> CompletableFuture<T> failedFuture(Throwable t) {
+        CompletableFuture<T> cf = new CompletableFuture<>();
+        cf.completeExceptionally(t);
+        return cf;
     }
 
 }

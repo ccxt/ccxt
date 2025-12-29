@@ -30,6 +30,7 @@ const langKeys = {
     '--csharp': false,  // run C# tests only
     '--php-async': false,    // run php async tests only,
     '--go': false,      // run GO tests only
+    '--java': false,    // run Java tests only
 }
 
 const debugKeys = {
@@ -227,6 +228,15 @@ const sequentialMap = async (input, fn) => {
     return result
 }
 
+const getJavaArgs = (args) => {
+    let res = "--args=\"";
+    for (const arg of args) {
+        res += `${arg.trim()} `;
+    }
+    res += `"`;
+    return [res];
+}
+
 //  ------------------------------------------------------------------------ //
 
 const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
@@ -278,6 +288,7 @@ const testExchange = async (exchange) => {
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
         { key: '--go',           language: 'GO',           exec: [ 'go', 'run', '-C', 'go', './tests/main.go',          ...args] },
+        { key: '--java',         language: 'Java',         exec: [ './java/gradlew', '-p', 'java', 'tests:run', getJavaArgs(args)] },
     ];
 
     // select tests based on cli arguments

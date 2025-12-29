@@ -113,37 +113,38 @@ jobs:
           git pull --rebase --autostash origin master
           git push
 
-  # live-tests:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Download shared_env
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: shared_env
-  #     - uses: actions/setup-dotnet@v4
-  #       with:
-  #         dotnet-version: '9.0.x'
-  #         dotnet-quality: 'preview'
-  #     - name: Download CS Files
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: cs-files
-  #         path: cs/
-  #     - name: Restore shared_env
-  #       run: ./utils/restore_shared_env.sh
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
-  #         cache: 'npm'
-  #     - name: Install npm dependencies
-  #       run: npm ci --include=dev
-  #     - name: Export exchanges
-  #       run: npm run export-exchanges
-  #     - name: Live tests
-  #       if: env.important_modified == 'true'
-  #       run: ./run-tests-simul.sh --csharp
-  #     - name: Live tests (specific)
-  #       if: env.important_modified == 'false'
-  #       run: ./run-tests-simul.sh --csharp "${{ env.rest_files }}" "${{ env.ws_files }}"
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'   # or '20' – but match what :lib is targeting
+      - name: Download Java Files
+        uses: actions/download-artifact@v4
+        with:
+          name: java-files
+          path: java/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: Live tests
+        if: env.important_modified == 'true'
+        run: npm run live-tests-java
+      - name: Live tests (specific)
+        if: env.important_modified == 'false'
+        run: ./run-tests-simul.sh --java "${{ env.rest_files }}" "${{ env.ws_files }}"

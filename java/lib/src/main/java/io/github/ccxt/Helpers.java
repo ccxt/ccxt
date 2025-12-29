@@ -482,9 +482,9 @@ public class Helpers {
                 });
     }
 
-    public static String toStringOrNull(Object value) {
+    public static Object toStringOrNull(Object value) {
         if (value == null) return null;
-        return (String) value;
+        return value;
     }
 
     public static String toString(Object value) {
