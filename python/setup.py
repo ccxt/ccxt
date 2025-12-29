@@ -104,4 +104,9 @@ setup(
         ],
     },
     project_urls=project_urls,
+
+    include_package_data=True,
+    package_data={
+        "ccxt": ["static_dependencies/mnemonic/wordlist/**/*"],
+    },
 )
