@@ -123,7 +123,7 @@ export default class lighter extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -299,7 +299,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        return this.createLighterAuth (signer, rs);
+        return this.signAndCreateLighterAuth (signer, rs);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1614,6 +1614,68 @@ export default class lighter extends Exchange {
             'Unknown': undefined,
         };
         return this.safeString (timeInForces, tif, tif);
+    }
+
+    /**
+     * @method
+     * @name lighter#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from (spot, perp)
+     * @param {string} toAccount account to transfer to (spot, perp)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.toAccountIndex] to account index, defaults to fromAccountIndex
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' transfer() requires an accountIndex parameter');
+        }
+        let toAccountIndex = undefined;
+        [ toAccountIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex);
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' transfer() requires an apiKeyIndex parameter');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const fromRouteType = (fromAccount === 'spot') ? 0 : 1; // i guess 0 is spot, 1 is perp, need test
+        const toRouteType = (toAccount === 'spot') ? 0 : 1; // i guess 0 is spot, 1 is perp, need test
+        const signRaw: Dict = {
+            'to_account_index': toAccountIndex,
+            'asset_index': this.parseToInt (currency['id']),
+            'from_route_type': fromRouteType,
+            'to_route_type': toRouteType,
+            'amount': this.parseToInt (this.currencyToPrecision (code, amount)),
+            'usdc_fee': 0,
+            'memo': this.encode ('0x000000000000000000000000000000'),
+            'nonce': this.nonce (),
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = this.loadAccount (304, this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.signAndCreateLighterTransfer (signer, signRaw);
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        return {
+            'info': response,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
     }
 
     /**

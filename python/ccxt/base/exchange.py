@@ -2201,7 +2201,23 @@ class Exchange(object):
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
 
-    def create_lighter_auth(self, signer, request):
+    def sign_and_create_lighter_transfer(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignTransfer(
+            request['to_account_index'],
+            request['asset_index'],
+            request['from_route_type'],
+            request['to_route_type'],
+            request['amount'],
+            request['usdc_fee'],
+            request['memo'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        print(tx_type, tx_info, tx_hash, error)
+        return [tx_type, tx_info]
+
+    def sign_and_create_lighter_auth(self, signer, request):
         auth, error = decode_auth(signer.CreateAuthToken(
             request['deadline'],
             request['api_key_index'],

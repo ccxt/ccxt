@@ -1900,12 +1900,17 @@ export default class Exchange {
     }
 
     // eslint-disable-next-line no-unused-vars
-    signAndCreateLighterOrder (signer, orderRequest) {
+    signAndCreateLighterOrder (signer, request) {
         return [ undefined, undefined ];
     }
 
     // eslint-disable-next-line no-unused-vars
-    createLighterAuth (signer, orderRequest) {
+    signAndCreateLighterTransfer (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    signAndCreateLighterAuth (signer, request) {
         return undefined;
     }
 
