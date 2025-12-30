@@ -257,7 +257,7 @@ public class Exchange {
         this.login         = SafeMethods.SafeStringTyped(extendedProperties, "login", null );
         this.twofa         = SafeMethods.SafeStringTyped(extendedProperties, "twofa", null );
         this.privateKey    = SafeMethods.SafeStringTyped(extendedProperties, "privateKey", null );
-        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAdress", null );
+        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAddress", null );
         this.token         = SafeMethods.SafeStringTyped(extendedProperties, "token", null );
         this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid", null);
         this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId", null );
