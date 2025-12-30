@@ -3,7 +3,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ export default class lighter extends Exchange {
                 'createStopOrder': false,
                 'createTriggerOrder': false,
                 'editOrder': false,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -1345,6 +1345,95 @@ export default class lighter extends Exchange {
             'marginMode': marginMode,
             'percentage': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://apidocs.lighter.xyz/reference/account-1
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+     * @param {string} [params.value] fetch balance value, account index or l1 address
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
+     */
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        await this.loadMarkets ();
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchAccounts', 'accountIndex', 'account_index');
+        const request: Dict = {
+            'by': this.safeString (params, 'by', 'index'),
+            'value': accountIndex,
+        };
+        const response = await this.publicGetAccount (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200",
+        //         "total": "1",
+        //         "accounts": [
+        //             {
+        //                 "code": "0",
+        //                 "account_type": "0",
+        //                 "index": "1077",
+        //                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time": "0",
+        //                 "total_order_count": "1",
+        //                 "total_isolated_order_count": "0",
+        //                 "pending_order_count": "0",
+        //                 "available_balance": "7996.489834",
+        //                 "status": "1",
+        //                 "collateral": "9000.000000",
+        //                 "account_index": "1077",
+        //                 "name": "",
+        //                 "description": "",
+        //                 "can_invite": true,
+        //                 "referral_points_percentage": "",
+        //                 "positions": [],
+        //                 "assets": [],
+        //                 "total_asset_value": "9536.789088",
+        //                 "cross_asset_value": "9536.789088",
+        //                 "shares": []
+        //             }
+        //         ]
+        //     }
+        //
+        const accounts = this.safeList (response, 'accounts', []);
+        return this.parseAccounts (accounts, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "code": "0",
+        //         "account_type": "0",
+        //         "index": "1077",
+        //         "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //         "cancel_all_time": "0",
+        //         "total_order_count": "1",
+        //         "total_isolated_order_count": "0",
+        //         "pending_order_count": "0",
+        //         "available_balance": "7996.489834",
+        //         "status": "1",
+        //         "collateral": "9000.000000",
+        //         "account_index": "1077",
+        //         "name": "",
+        //         "description": "",
+        //         "can_invite": true,
+        //         "referral_points_percentage": "",
+        //         "positions": [],
+        //         "assets": [],
+        //         "total_asset_value": "9536.789088",
+        //         "cross_asset_value": "9536.789088",
+        //         "shares": []
+        //     }
+        //
+        const accountType = this.safeString (account, 'account_type');
+        return {
+            'id': this.safeString (account, 'account_index'),
+            'type': (accountType === '0') ? 'main' : 'subaccount',
+            'code': undefined,
+            'info': account,
+        };
     }
 
     /**
