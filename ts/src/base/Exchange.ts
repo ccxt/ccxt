@@ -1900,18 +1900,48 @@ export default class Exchange {
     }
 
     // eslint-disable-next-line no-unused-vars
-    signAndCreateLighterOrder (signer, request) {
+    lighterSignCreateOrder (signer, request) {
         return [ undefined, undefined ];
     }
 
     // eslint-disable-next-line no-unused-vars
-    signAndCreateLighterTransfer (signer, request) {
+    lighterSignCancelOrder (signer, request) {
         return [ undefined, undefined ];
     }
 
     // eslint-disable-next-line no-unused-vars
-    signAndCreateLighterAuth (signer, request) {
+    lighterSignWithdraw (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateSubAccount (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCancelAllOrders (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignTransfer (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignUpdateLeverage (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterCreateAuthToken (signer, request) {
         return undefined;
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignUpdateMargin (signer, request) {
+        return [ undefined, undefined ];
     }
 
     /* eslint-enable */

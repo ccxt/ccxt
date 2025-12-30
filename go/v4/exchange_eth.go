@@ -455,11 +455,11 @@ func (this *Exchange) loadLighterLibrary(path string, chainId uint32, privateKey
 	return txClient
 }
 
-func (this *Exchange) SignAndCreateLighterOrder(signer interface{}, request interface{}) interface{} {
-	return this.signAndCreateLighterOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignCreateOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateOrder(signer.(*client.TxClient), request.(map[string]interface{}))
 }
 
-func (this *Exchange) signAndCreateLighterOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
 	marketIndex := int16(request["market_index"].(int64))
 	clientOrderIndex := int64(request["client_order_index"].(int))
 	baseAmount := request["base_amount"].(int64)
@@ -511,11 +511,11 @@ func (this *Exchange) signAndCreateLighterOrder(signer *client.TxClient, request
 	return res
 }
 
-func (this *Exchange) CreateLighterAuth(signer interface{}, request interface{}) interface{} {
-	return this.createLighterAuth(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterCreateAuthToken(signer interface{}, request interface{}) interface{} {
+	return this.lighterCreateAuthToken(signer.(*client.TxClient), request.(map[string]interface{}))
 }
 
-func (this *Exchange) createLighterAuth(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]interface{}) interface{} {
 	// TODO
 	return nil
 }

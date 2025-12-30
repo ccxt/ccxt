@@ -299,7 +299,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        return this.signAndCreateLighterAuth (signer, rs);
+        return this.lighterCreateAuthToken (signer, rs);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -448,7 +448,7 @@ export default class lighter extends Exchange {
             orderRequest['nonce'] = this.safeInteger (api, 'nonce');
         }
         const signer = this.loadAccount (304, this.privateKey, orderRequest['api_key_index'], orderRequest['account_index']);
-        const [ txType, txInfo ] = this.signAndCreateLighterOrder (signer, orderRequest);
+        const [ txType, txInfo ] = this.lighterSignCreateOrder (signer, orderRequest);
         const request = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -1748,7 +1748,7 @@ export default class lighter extends Exchange {
             'account_index': accountIndex,
         };
         const signer = this.loadAccount (304, this.privateKey, apiKeyIndex, accountIndex);
-        const [ txType, txInfo ] = this.signAndCreateLighterTransfer (signer, signRaw);
+        const [ txType, txInfo ] = this.lighterSignTransfer (signer, signRaw);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
