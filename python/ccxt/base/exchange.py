@@ -76,7 +76,7 @@ from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as Type
 # dydx
 try:
     from ccxt.static_dependencies.mnemonic import Mnemonic
-    from ccxt.static_dependencies.bip import Bip44
+    from ccxt.static_dependencies.bip.bip44 import Bip44
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
         AuthInfo,
