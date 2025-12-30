@@ -85,7 +85,7 @@ export default class kucoin extends Exchange {
                 'fetchMarkPrices': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -362,6 +362,7 @@ export default class kucoin extends Exchange {
                         'status': 6, // 4PW
                         // ?
                         'level2/message/query': 1.3953,
+                        'api/ua/v1/market/open-interest': 10,
                     },
                     'post': {
                         // ws
@@ -5734,6 +5735,64 @@ export default class kucoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchOpenInterest
+     * @description Retrieves the open interest of a derivative trading pair
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] Exchange specific parameters
+     * @returns {object} An open interest structure https://docs.ccxt.com/#/?id=open-interest-structure
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap'] && !market['future']) {
+            throw new BadSymbol (this.id + ' fetchOpenInterest() supports swap and future markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await (this as any).futuresPublicGetApiUaV1MarketOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "XBTUSDTM",
+        //                 "openInterest": "5379586",
+        //                 "ts": 1767061269417
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseOpenInterest (first, market);
+    }
+
+    parseOpenInterest (interest: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "XBTUSDTM",
+        //         "openInterest": "1850767",
+        //         "ts": 1767061269417
+        //     }
+        //
+        const marketId = this.safeString (interest, 'symbol');
+        const timestamp = this.safeInteger (interest, 'ts');
+        const symbol = this.safeSymbol (marketId, market);
+        const openInterestAmount = this.safeNumber (interest, 'openInterest');
+        return this.safeOpenInterest ({
+            'symbol': symbol,
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
