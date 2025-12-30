@@ -67,7 +67,7 @@ export default class aftermath extends aftermathRest {
      * @method
      * @name aftermath#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Stream/iperps_api%3A%3Accxt%3A%3Astream%3A%3Atrades
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/service%3A%3Ahandlers%3A%3Accxt%3A%3Astream%3A%3Atrades
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -125,7 +125,7 @@ export default class aftermath extends aftermathRest {
     /**
      * @method
      * @name aftermath#watchOrderBook
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Stream/iperps_api%3A%3Accxt%3A%3Astream%3A%3Aorderbook
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/service%3A%3Ahandlers%3A%3Accxt%3A%3Astream%3A%3Aorderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
@@ -230,7 +230,7 @@ export default class aftermath extends aftermathRest {
     /**
      * @method
      * @name aftermath#watchPositions
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Stream/iperps_api%3A%3Accxt%3A%3Astream%3A%3Apositions
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/service%3A%3Ahandlers%3A%3Accxt%3A%3Astream%3A%3Apositions
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch positions for

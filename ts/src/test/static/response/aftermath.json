@@ -695,32 +695,34 @@
                 "input": [
                     "BTC/USD:USDC"
                 ],
-                "httpResponse": [
-                    {
-                        "amount": 0.01,
-                        "price": 92009.333,
-                        "timestamp": "1740440755362",
-                        "symbol": "BTC/USD:USDC",
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "cost": 920.09333
-                    }
-                ],
+                "httpResponse": {
+                    "trades": [
+                        {
+                            "amount": 0.03378,
+                            "datetime": "2025-12-29 22:43:54.639 UTC",
+                            "price": 87239.09499000001,
+                            "timestamp": 1767048234639,
+                            "side": "buy",
+                            "symbol": "BTC/USD:USDC"
+                        }
+                    ],
+                    "nextCursor": 592
+                },
                 "parsedResponse": [
                     {
-                        "amount": 0.01,
-                        "price": 92009.333,
-                        "timestamp": 1740440755362,
+                        "amount": 0.03378,
+                        "datetime": "2025-12-29 22:43:54.639 UTC",
+                        "price": 87239.09499000001,
+                        "timestamp": 1767048234639,
+                        "side": "buy",
                         "symbol": "BTC/USD:USDC",
+                        "nextCursor": "592",
                         "fee": {
                             "cost": null,
                             "currency": null
                         },
                         "fees": [],
-                        "cost": 920.09333,
+                        "cost": 2946.9366287622,
                         "id": ""
                     }
                 ]

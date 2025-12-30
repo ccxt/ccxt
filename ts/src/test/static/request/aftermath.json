@@ -6,7 +6,7 @@
             {
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/currencies",
+                "url": "http://testnet.aftermath.finance/api/ccxt/currencies",
                 "input": []
             }
         ],
@@ -14,7 +14,7 @@
             {
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/markets",
+                "url": "http://testnet.aftermath.finance/api/ccxt/markets",
                 "input": []
             }
         ],
@@ -22,7 +22,7 @@
             {
                 "description": "fetchTicker",
                 "method": "fetchTicker",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/ticker",
+                "url": "http://testnet.aftermath.finance/api/ccxt/ticker",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -33,7 +33,7 @@
             {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/orderbook",
+                "url": "http://testnet.aftermath.finance/api/ccxt/orderbook",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -44,7 +44,7 @@
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/trades",
+                "url": "http://testnet.aftermath.finance/api/ccxt/trades",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -55,7 +55,7 @@
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/OHLCV",
+                "url": "http://testnet.aftermath.finance/api/ccxt/OHLCV",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -66,7 +66,7 @@
             {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/balance",
+                "url": "http://testnet.aftermath.finance/api/ccxt/balance",
                 "input": [
                     {
                         "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
@@ -79,7 +79,7 @@
             {
                 "description": "fetchAccounts",
                 "method": "fetchAccounts",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/accounts",
+                "url": "http://testnet.aftermath.finance/api/ccxt/accounts",
                 "input": [],
                 "output": "{\"address\":\"wallet\"}"
             }
@@ -88,7 +88,7 @@
             {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/myPendingOrders",
+                "url": "http://testnet.aftermath.finance/api/ccxt/myPendingOrders",
                 "input": [
                     "BTC/USD:USDC",
                     null,
@@ -104,7 +104,7 @@
             {
                 "description": "fetchPosition",
                 "method": "fetchPosition",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/positions",
+                "url": "http://testnet.aftermath.finance/api/ccxt/positions",
                 "input": [
                     "BTC/USD:USDC",
                     {
@@ -118,7 +118,7 @@
             {
                 "description": "createOrder",
                 "method": "createOrder",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/createOrders",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/createOrders",
                 "input": [
                     "BTC/USD:USDC",
                     "limit",
@@ -134,7 +134,7 @@
             {
                 "description": "createOrder - reduce only",
                 "method": "createOrder",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/createOrders",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/createOrders",
                 "input": [
                     "BTC/USD:USDC",
                     "limit",
@@ -153,7 +153,7 @@
             {
                 "description": "cancelOrder",
                 "method": "cancelOrder",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/cancelOrders",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/cancelOrders",
                 "input": [
                     "340280780519394868497198438974058844308",
                     "BTC/USD:USDC",
@@ -168,7 +168,7 @@
             {
                 "description": "addMargin",
                 "method": "addMargin",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/allocate",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/allocate",
                 "input": [
                     "BTC/USD:USDC",
                     1,
@@ -183,7 +183,7 @@
             {
                 "description": "reduceMargin",
                 "method": "reduceMargin",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/deallocate",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/deallocate",
                 "input": [
                     "BTC/USD:USDC",
                     1,
@@ -198,7 +198,7 @@
             {
                 "description": "transfer",
                 "method": "transfer",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/deposit",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/deposit",
                 "input": [
                     "USDC",
                     1,
@@ -212,7 +212,7 @@
             {
                 "description": "withdraw",
                 "method": "withdraw",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/withdraw",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/withdraw",
                 "input": [
                     "USDC",
                     1,
@@ -229,7 +229,7 @@
             {
                 "description": "createAccount",
                 "method": "createAccount",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/createAccount",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/createAccount",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -240,7 +240,7 @@
             {
                 "description": "setLeverage",
                 "method": "setLeverage",
-                "url": "http://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt/build/setLeverage",
+                "url": "http://testnet.aftermath.finance/api/ccxt/build/setLeverage",
                 "input": [
                     1,
                     "BTC/USD:USDC",

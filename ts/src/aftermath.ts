@@ -76,10 +76,10 @@ export default class aftermath extends Exchange {
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807',
                 'api': {
-                    'rest': 'https://aftermath.finance/api/perpetuals/ccxt/ccxt',
+                    'rest': 'https://aftermath.finance/api/ccxt',
                 },
                 'test': {
-                    'rest': 'https://testnet.aftermath.finance/api/perpetuals/ccxt/ccxt',
+                    'rest': 'https://testnet.aftermath.finance/api/ccxt',
                 },
             },
             'api': {
@@ -141,7 +141,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchCurrencies
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/currencies
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/currencies
      * @description fetches all available currencies on an exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
@@ -186,7 +186,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchMarkets
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/markets
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/markets
      * @description retrieves data on all markets for woo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -349,7 +349,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchTradingFee
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/markets
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/markets
      * @description fetch the trading fees for a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -376,7 +376,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchTicker
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/ticker
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/ticker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -447,7 +447,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchOrderBook
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/orderbook
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/orderbook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -484,7 +484,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchTrades
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/trades
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/trades
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -505,17 +505,22 @@ export default class aftermath extends Exchange {
         }
         const response = await this.publicPostTrades (this.extend (request, params));
         //
-        // [
         //     {
-        //         "amount": 0.03364,
-        //         "datetime": "2025-04-06 13:46:34.060 UTC",
-        //         "price": 82341.0271,
-        //         "timestamp": 1743947194060,
-        //         "symbol": "BTC/USD:USDC"
+        //         "trades": [
+        //             {
+        //                 "amount": 0.03378,
+        //                 "datetime": "2025-12-29 22:43:54.639 UTC",
+        //                 "price": 87239.09499000001,
+        //                 "timestamp": 1767048234639,
+        //                 "side": "buy",
+        //                 "symbol": "BTC/USD:USDC"
+        //             }
+        //         ],
+        //         "nextCursor": 573
         //     }
-        // ]
         //
-        return this.parseTrades (response, market, since, limit);
+        const data = this.safeList (response, 'trades', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (rawTrade: Dict, market: Market = undefined): Trade {
@@ -528,7 +533,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchOHLCV
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/ohlcv
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/ohlcv
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -570,7 +575,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchBalance
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/balance
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/balance
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] account object ID, required
@@ -625,7 +630,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchAccounts
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/accounts
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/accounts
      * @description query for accounts owned by the walletAddress. An Account is needed for all trading methods.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Array} a list of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#accounts}
@@ -661,7 +666,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchOpenOrders
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/my_pending_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/my_pending_orders
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -710,7 +715,7 @@ export default class aftermath extends Exchange {
      * @method
      * @name aftermath#fetchPosition
      * @description fetch data on an open position
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/iperps_api%3A%3Accxt%3A%3Afetch%3A%3Apositions
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.accountNumber] account number to query positions for, required
@@ -724,7 +729,7 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#fetchPositions
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Read/iperps_api%3A%3Accxt%3A%3Afetch%3A%3Apositions
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/positions
      * @description fetch all open positions
      * @param {string[]} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -795,8 +800,8 @@ export default class aftermath extends Exchange {
      * @method
      * @name aftermath#createOrder
      * @description create a trade order
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_create_orders
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_create_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_create_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_create_orders
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -819,8 +824,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#createOrders
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_create_orders
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_create_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_create_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_create_orders
      * @description create a list of trade orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -891,8 +896,8 @@ export default class aftermath extends Exchange {
      * @method
      * @name aftermath#cancelOrder
      * @description cancels an open order
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_cancel_orders
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_cancel_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_cancel_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_cancel_orders
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -906,8 +911,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#cancelOrders
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_cancel_orders
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_cancel_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_cancel_orders
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_cancel_orders
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
@@ -989,8 +994,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#addMargin
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_allocate
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_allocate
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_allocate
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_allocate
      * @description add margin
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
@@ -1037,8 +1042,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#reduceMargin
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_deallocate
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_deallocate
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_deallocate
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_deallocate
      * @description remove margin from a position
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to remove
@@ -1085,8 +1090,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#transfer
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_deposit
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_deposit
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_deposit
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_deposit
      * @description transfer currency internally between wallets on the same account
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
@@ -1142,8 +1147,8 @@ export default class aftermath extends Exchange {
     /**
      * @method
      * @name aftermath#withdraw
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_withdraw
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Submit/submit_withdraw
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_withdraw
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_withdraw
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
@@ -1215,7 +1220,8 @@ export default class aftermath extends Exchange {
      * @method
      * @name aftermath#setLeverage
      * @description set the level of leverage for a market
-     * @see https://testnet.aftermath.finance/api/perpetuals/ccxt/swagger-ui/#/Build/build_set_leverage
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/build_set_leverage
+     * @see https://testnet.aftermath.finance/docs/#/CCXT/submit_set_leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
