@@ -2735,7 +2735,7 @@ export default class bydfi extends Exchange {
         return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (type, code, since, limit, params) {
+    async fetchTransactionsHelper (type, code, since, limit, params = {}) {
         const methodName = (type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a code argument');
