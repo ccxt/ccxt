@@ -28,7 +28,7 @@ export default class grvt extends Exchange {
             'rateLimit': 10,
             'certified': false,
             'version': 'v1',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -584,8 +584,8 @@ export default class grvt extends Exchange {
             'percentage': undefined,
             'baseVolume': this.safeNumber (ticker, 'buy_volume_24h_b'),
             'quoteVolume': this.safeNumber (ticker, 'buy_volume_24h_q'),
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeNumber (ticker, 'mark_price'),
+            'indexPrice': this.safeNumber (ticker, 'index_price'),
             'vwap': undefined,
             'average': undefined,
             'previousClose': undefined,
@@ -2622,6 +2622,7 @@ export default class grvt extends Exchange {
 
     async signInAndInit () {
         await this.signIn ();
+        return;
         // don't await the below, let it run loosely without delaying anything else
         await this.initializeClient ();
     }
