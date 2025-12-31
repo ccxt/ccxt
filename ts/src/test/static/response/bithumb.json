@@ -41,7 +41,7 @@
                         "optionType": null,
                         "precision": {
                             "amount": 1e-8,
-                            "price": 1e-8
+                            "price": 1e-4
                         },
                         "limits": {
                             "leverage": {
@@ -57,7 +57,7 @@
                                 "max": null
                             },
                             "cost": {
-                                "min": 500,
+                                "min": 5000,
                                 "max": 5000000000
                             }
                         },

@@ -286,6 +286,10 @@ export default class bithumb extends Exchange {
             'options': {
                 'quoteCurrencies': {
                     'BTC': {
+                        'precision': {
+                            'amount': this.parseNumber ('1e-8'),
+                            'price': this.parseNumber ('1e-8'),
+                        },
                         'limits': {
                             'cost': {
                                 'min': 0.0002,
@@ -294,14 +298,22 @@ export default class bithumb extends Exchange {
                         },
                     },
                     'KRW': {
+                        'precision': {
+                            'amount': this.parseNumber ('1e-8'),
+                            'price': this.parseNumber ('1e-4'),
+                        },
                         'limits': {
                             'cost': {
-                                'min': 500,
+                                'min': 5000,
                                 'max': 5000000000,
                             },
                         },
                     },
                     'USDT': {
+                        'precision': {
+                            'amount': this.parseNumber ('1e-8'),
+                            'price': this.parseNumber ('1e-8'),
+                        },
                         'limits': {
                             'cost': {
                                 'min': undefined,
@@ -449,10 +461,7 @@ export default class bithumb extends Exchange {
                     'expiryDateTime': undefined,
                     'strike': undefined,
                     'optionType': undefined,
-                    'precision': {
-                        'amount': this.parseNumber ('1e-8'),
-                        'price': this.parseNumber ('1e-8'),
-                    },
+                    'precision': {}, // set via quoteCurrencies options
                     'limits': {
                         'leverage': {
                             'min': undefined,
@@ -530,10 +539,7 @@ export default class bithumb extends Exchange {
                 'expiryDateTime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber ('1e-8'),
-                    'price': this.parseNumber ('1e-8'),
-                },
+                'precision': {}, // set via quoteCurrencies options
                 'limits': {
                     'leverage': {
                         'min': undefined,
@@ -898,7 +904,8 @@ export default class bithumb extends Exchange {
                     batchIds.push (marketIds[index]);
                 }
             }
-            if (batchIds.length > 0) {
+            const batchIdsLength = batchIds.length;
+            if (batchIdsLength > 0) {
                 const request: Dict = {
                     'markets': batchIds.join (','),
                 };

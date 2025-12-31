@@ -13,7 +13,7 @@
     "KRW": {
         "id": "KRW",
         "code": "KRW",
-        "precision": 1e-8,
+        "precision": 1,
         "fees": {},
         "networks": {},
         "limits": {

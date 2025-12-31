@@ -18,7 +18,7 @@
         "maker": 0.0025,
         "precision": {
             "amount": 1e-8,
-            "price": 1e-8
+            "price": 1e-4
         },
         "limits": {
             "leverage": {},
