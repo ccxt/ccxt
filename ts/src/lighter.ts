@@ -1,6 +1,6 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/lighter.js';
-import { ArgumentsRequired, ExchangeError } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account } from './base/types.js';
@@ -302,6 +302,24 @@ export default class lighter extends Exchange {
         return this.lighterCreateAuthToken (signer, rs);
     }
 
+    pow (n: string, m: string) {
+        let r = Precise.stringMul (n, '1');
+        const c = this.parseToInt (m);
+        if (c < 0) {
+            throw new BadRequest (this.id + ' pow() requires m > 0.');
+        }
+        if (c === 0) {
+            return '1';
+        }
+        if (c > 100) {
+            throw new BadRequest (this.id + ' pow() requires m < 100.');
+        }
+        for (let i = 1; i < c; i++) {
+            r = Precise.stringMul (r, n);
+        }
+        return r;
+    }
+
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
@@ -342,10 +360,15 @@ export default class lighter extends Exchange {
         } else {
             request['is_ask'] = 1;
         }
+        const marketInfo = this.safeDict (market, 'info');
+        const amountStr = this.amountToPrecision (symbol, amount);
+        const priceStr = this.priceToPrecision (symbol, price);
+        const amountScale = this.pow ('10', marketInfo['size_decimals']);
+        const priceScale = this.pow ('10', marketInfo['price_decimals']);
         request['reduce_only'] = (reduceOnly) ? 1 : 0;
         request['client_order_index'] = 0;
-        request['base_amount'] = this.parseToInt (amount);
-        request['avg_execution_price'] = this.parseToInt (price);
+        request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
+        request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
         // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         // const stopLoss = this.safeValue (params, 'stopLoss');
         // const takeProfit = this.safeValue (params, 'takeProfit');
