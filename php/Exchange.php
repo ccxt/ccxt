@@ -418,6 +418,7 @@ class Exchange {
         'kucoinfutures',
         'latoken',
         'lbank',
+        'lighter',
         'luno',
         'mercado',
         'mexc',
@@ -1424,7 +1425,7 @@ class Exchange {
         return $lighterSigner;
     }
 
-    public function sign_and_create_lighter_order($signer, $request) {
+    public function lighter_sign_create_order($signer, $request) {
         $result = $signer->signCreateOrder(
             $request['market_index'],
             $request['client_order_index'],
@@ -1434,13 +1435,13 @@ class Exchange {
             $request['order_type'],
             $request['time_in_force'],
             $request['reduce_only'],
-            0,  # trigger price
+            $request['trigger_price'],
             $request['order_expiry'],
             $request['nonce'],
             $request['api_key_index'],
             $request['account_index']
         );
-        return $result;
+        return [ $result['txType'], $result['txInfo'] ];
     }
 
     public function create_lighter_auth($signer, $request) {
@@ -1559,7 +1560,14 @@ class Exchange {
             $tmp = $headers;
             $headers = array();
             foreach ($tmp as $key => $value) {
-                $headers[] = $key . ': ' . $value;
+                // handle multipart/form-data
+                if (strtolower($key) == 'content-type') {
+                    if ($value != 'multipart/form-data') {
+                        $headers[] = $key . ': ' . $value;
+                    }
+                } else {
+                    $headers[] = $key . ': ' . $value;
+                }
             }
         }
 
