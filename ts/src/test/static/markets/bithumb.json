@@ -1,6 +1,6 @@
 {
     "BTC/KRW": {
-        "id": "BTC",
+        "id": "KRW-BTC",
         "symbol": "BTC/KRW",
         "base": "BTC",
         "quote": "KRW",
@@ -17,34 +17,27 @@
         "taker": 0.0025,
         "maker": 0.0025,
         "precision": {
-            "amount": 4,
-            "price": 4
+            "amount": 1e-8,
+            "price": 1e-8
         },
         "limits": {
             "leverage": {},
             "amount": {},
             "price": {},
             "cost": {
-                "min": 500,
+                "min": 5000,
                 "max": 5000000000
             }
         },
         "info": {
-            "opening_price": "79934000",
-            "closing_price": "80352000",
-            "min_price": "77734000",
-            "max_price": "81500000",
-            "units_traded": "904.24719571",
-            "acc_trade_value": "71753681286.53223",
-            "prev_closing_price": "79999000",
-            "units_traded_24H": "1368.36985939",
-            "acc_trade_value_24H": "109330765167.68553",
-            "fluctate_24H": "-985000",
-            "fluctate_rate_24H": "-1.21"
+            "market": "KRW-BTC",
+            "korean_name": "비트코인",
+            "english_name": "Bitcoin",
+            "market_warning": "NONE"
         }
     },
     "BTC/USDT": {
-        "id": "BTC",
+        "id": "USDT-BTC",
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
@@ -61,8 +54,8 @@
         "taker": 0.0025,
         "maker": 0.0025,
         "precision": {
-            "amount": 4,
-            "price": 4
+            "amount": 1e-8,
+            "price": 1e-8
         },
         "limits": {
             "leverage": {},
@@ -71,17 +64,10 @@
             "cost": {}
         },
         "info": {
-            "opening_price": "120852.73",
-            "closing_price": "121702.55",
-            "min_price": "120678.15",
-            "max_price": "121807.69",
-            "units_traded": "1.463081",
-            "acc_trade_value": "177551.30118934",
-            "prev_closing_price": "120900",
-            "units_traded_24H": "13.8674",
-            "acc_trade_value_24H": "1669792.6252954",
-            "fluctate_24H": "2099.48",
-            "fluctate_rate_24H": "1.76"
+            "market": "USDT-BTC",
+            "korean_name": "비트코인",
+            "english_name": "Bitcoin",
+            "market_warning": "NONE"
         }
     }
 }
