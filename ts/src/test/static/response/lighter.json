@@ -214,7 +214,7 @@
                         "id": "3",
                         "numericId": null,
                         "code": "USDC",
-                        "precision": 6,
+                        "precision": 0.000001,
                         "type": "crypto",
                         "name": "USDC",
                         "active": true,

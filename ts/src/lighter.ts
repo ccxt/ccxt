@@ -699,11 +699,12 @@ export default class lighter extends Exchange {
             const entry = data[i];
             const id = this.safeString (entry, 'asset_id');
             const code = this.safeCurrencyCode (this.safeString (entry, 'symbol'));
+            const decimals = this.safeString (entry, 'decimals');
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': code,
                 'code': code,
-                'precision': this.safeInteger (entry, 'decimals'),
+                'precision': this.parseNumber ('1e-' + decimals),
                 'active': true,
                 'fee': undefined,
                 'networks': undefined,
@@ -1762,6 +1763,13 @@ export default class lighter extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
+        if (currency['code'] === 'USDC') {
+            amount = this.parseToInt (Precise.stringMul (this.pow ('10', '6'), this.currencyToPrecision (code, amount)));
+        } else if (currency['code'] === 'ETH') {
+            amount = this.parseToInt (Precise.stringMul (this.pow ('10', '8'), this.currencyToPrecision (code, amount)));
+        } else {
+            throw new ExchangeError (this.id + ' transfer() only supports USDC and ETH transfers');
+        }
         const fromRouteType = (fromAccount === 'perp') ? 0 : 1; // i guess 0 is perp, 1 is spot, need test
         const toRouteType = (toAccount === 'perp') ? 0 : 1; // i guess 0 is perp, 1 is spot, need test
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
@@ -1770,7 +1778,7 @@ export default class lighter extends Exchange {
             'asset_index': this.parseToInt (currency['id']),
             'from_route_type': fromRouteType,
             'to_route_type': toRouteType,
-            'amount': this.parseToInt (this.currencyToPrecision (code, amount)),
+            'amount': amount,
             'usdc_fee': 0,
             'memo': this.encode ('0x000000000000000000000000000000'),
             'nonce': nonce,
