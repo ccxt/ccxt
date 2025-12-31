@@ -566,6 +566,16 @@
                 ],
                 "output": "{\"positionMode\":\"long_short_mode\"}"
             }
+        ],
+        "fetchPositionAutoDeLeverageRank": [
+            {
+                "description": "linear swap fetch position auto de leverage rank",
+                "method": "fetchPositionAutoDeLeverageRank",
+                "url": "https://openapi.blofin.com/api/v1/account/positions",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
