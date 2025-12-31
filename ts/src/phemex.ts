@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, AutoDeLeverage } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -77,6 +77,8 @@ export default class phemex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionAutoDeLeverageRank': true,
+                'fetchPositionsAutoDeLeverageRank': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -5305,6 +5307,346 @@ export default class phemex extends Exchange {
             'price': this.safeNumber (quoteArgs, 'price'),
             'fee': undefined,
         } as Conversion;
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchPositionAutoDeLeverageRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://phemex-docs.github.io/#query-account-positions
+     * @see https://phemex-docs.github.io/#query-trading-account-and-positions
+     * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsAutoDeLeverageRank (symbols: Strings = undefined, params = {}): Promise<AutoDeLeverage[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        let subType = undefined;
+        let code = this.safeString2 (params, 'currency', 'code', 'USDT');
+        params = this.omit (params, [ 'currency', 'code' ]);
+        let settle = undefined;
+        let market = undefined;
+        const firstSymbol = this.safeString (symbols, 0);
+        if (firstSymbol !== undefined) {
+            market = this.market (firstSymbol);
+            settle = market['settle'];
+            code = market['settle'];
+        } else {
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositionsAutoDeLeverageRank', 'settle', code);
+        }
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsAutoDeLeverageRank', market, params);
+        const isUSDTSettled = settle === 'USDT';
+        if (isUSDTSettled) {
+            code = 'USDT';
+        } else if (settle === 'BTC') {
+            code = 'BTC';
+        } else if (code === undefined) {
+            code = (subType === 'linear') ? 'USD' : 'BTC';
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        let response = undefined;
+        if (isUSDTSettled) {
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositionsAutoDeLeverageRank', 'method', 'privateGetGAccountsAccountPositions');
+            if (method === 'privateGetGAccountsAccountPositions') {
+                response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
+            } else {
+                response = await this.privateGetGAccountsPositions (this.extend (request, params));
+            }
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "account": {
+            //                 "userID": 940666,
+            //                 "accountId": 9406660003,
+            //                 "currency": "USDT",
+            //                 "accountBalanceRv": "439.96184445932",
+            //                 "totalUsedBalanceRv": "89.22502732",
+            //                 "bonusBalanceRv": "0",
+            //                 "status": 0,
+            //                 "userMode": 1
+            //             },
+            //             "positions": [
+            //                 {
+            //                     "userID": 940666,
+            //                     "accountID": 9406660003,
+            //                     "symbol": "BTCUSDT",
+            //                     "currency": "USDT",
+            //                     "side": "Buy",
+            //                     "positionStatus": "Normal",
+            //                     "crossMargin": true,
+            //                     "leverageRr": "-10",
+            //                     "initMarginReqRr": "0.1",
+            //                     "maintMarginReqRr": "0.005",
+            //                     "riskLimitRv": "20000000",
+            //                     "size": "0.01",
+            //                     "valueRv": "887.531",
+            //                     "avgEntryPriceRp": "88753.1",
+            //                     "avgEntryPrice": "88753.1",
+            //                     "posCostRv": "89.22502732",
+            //                     "assignedPosBalanceRv": "89.29802732",
+            //                     "bankruptCommRv": "0.529812426",
+            //                     "bankruptPriceRp": "44783.79",
+            //                     "positionMarginRv": "88.695214894",
+            //                     "liquidationPriceRp": "45009",
+            //                     "deleveragePercentileRr": "0",
+            //                     "buyValueToCostRr": "0.10114",
+            //                     "sellValueToCostRr": "0.10126",
+            //                     "markPriceRp": "88747.2",
+            //                     "estimatedOrdLossRv": "0",
+            //                     "usedBalanceRv": "89.22502732",
+            //                     "cumClosedPnlRv": "425.97796",
+            //                     "cumFundingFeeRv": "54.892930099379",
+            //                     "cumTransactFeeRv": "1.288782144",
+            //                     "transactTimeNs": 1767176685241254818,
+            //                     "takerFeeRateRr": "-1",
+            //                     "makerFeeRateRr": "-1",
+            //                     "term": 6,
+            //                     "lastTermEndTimeNs": 1759835547751667598,
+            //                     "lastFundingTimeNs": 1759824000000000000,
+            //                     "curTermRealisedPnlRv": "-0.5325186",
+            //                     "execSeq": 47732822790,
+            //                     "posSide": "Long",
+            //                     "posMode": "Hedged",
+            //                     "buyLeavesValueRv": "0",
+            //                     "buyLeavesQtyRq": "0",
+            //                     "sellLeavesValueRv": "0",
+            //                     "sellLeavesQtyRq": "0"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "account": {
+            //                 "userID": 940666,
+            //                 "accountId": 9406660001,
+            //                 "currency": "BTC",
+            //                 "accountBalanceEv": 50050270,
+            //                 "totalUsedBalanceEv": 58,
+            //                 "bonusBalanceEv": 0
+            //             },
+            //             "positions": [
+            //                 {
+            //                     "userID": 940666,
+            //                     "accountID": 9406660001,
+            //                     "symbol": "BTCUSD",
+            //                     "currency": "BTC",
+            //                     "side": "Buy",
+            //                     "positionStatus": "Normal",
+            //                     "crossMargin": false,
+            //                     "leverageEr": -2000000000,
+            //                     "leverage": -20.00000000,
+            //                     "initMarginReqEr": 5000000,
+            //                     "initMarginReq": 0.05000000,
+            //                     "maintMarginReqEr": 500000,
+            //                     "maintMarginReq": 0.00500000,
+            //                     "riskLimitEv": 150000000000,
+            //                     "riskLimit": 1500.00000000,
+            //                     "size": 1,
+            //                     "value": 0.00001128,
+            //                     "valueEv": 1128,
+            //                     "avgEntryPriceEp": 886524823,
+            //                     "avgEntryPrice": 88652.48230000,
+            //                     "posCostEv": 58,
+            //                     "posCost": 5.8E-7,
+            //                     "assignedPosBalanceEv": 58,
+            //                     "assignedPosBalance": 5.8E-7,
+            //                     "bankruptCommEv": 1,
+            //                     "bankruptComm": 1E-8,
+            //                     "bankruptPriceEp": 100000,
+            //                     "bankruptPrice": 10.00000000,
+            //                     "positionMarginEv": 57,
+            //                     "positionMargin": 5.7E-7,
+            //                     "liquidationPriceEp": 100000,
+            //                     "liquidationPrice": 10.00000000,
+            //                     "deleveragePercentileEr": 0,
+            //                     "deleveragePercentile": 0E-8,
+            //                     "buyValueToCostEr": 5123000,
+            //                     "buyValueToCost": 0.05123000,
+            //                     "sellValueToCostEr": 5117000,
+            //                     "sellValueToCost": 0.05117000,
+            //                     "markPriceEp": 886028000,
+            //                     "markPrice": 88602.80000000,
+            //                     "estimatedOrdLossEv": 0,
+            //                     "estimatedOrdLoss": 0E-8,
+            //                     "usedBalanceEv": 58,
+            //                     "usedBalance": 5.8E-7,
+            //                     "cumClosedPnlEv": 127,
+            //                     "cumFundingFeeEv": -146,
+            //                     "cumTransactFeeEv": 3,
+            //                     "transactTimeNs": 1767177964554892106,
+            //                     "takerFeeRateEr": 60000,
+            //                     "makerFeeRateEr": 10000,
+            //                     "term": 2,
+            //                     "lastTermEndTimeNs": 1716225275381802994,
+            //                     "lastFundingTimeNs": 1767168000000000000,
+            //                     "curTermRealisedPnlEv": -1,
+            //                     "execSeq": 1104909332,
+            //                     "freeQty": -1,
+            //                     "freeCostEv": 0,
+            //                     "buyLeavesValueEv": 0,
+            //                     "sellLeavesValueEv": 0,
+            //                     "buyLeavesQty": 0,
+            //                     "sellLeavesQty": 0
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        }
+        const data = this.safeValue (response, 'data', {});
+        const ranks = this.safeValue (data, 'positions', []);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = ranks[i];
+            result.push (this.parseAutoDeLeverageRank (rank));
+        }
+        return this.filterByArrayAutoDeleverageRanks (result, 'symbol', symbols, false);
+    }
+
+    parseAutoDeLeverageRank (info: Dict, market: Market = undefined): AutoDeLeverage {
+        //
+        // fetchPositionAutoDeLeverageRank: linear
+        //
+        //     {
+        //         "userID": 940666,
+        //         "accountID": 9406660003,
+        //         "symbol": "BTCUSDT",
+        //         "currency": "USDT",
+        //         "side": "Buy",
+        //         "positionStatus": "Normal",
+        //         "crossMargin": true,
+        //         "leverageRr": "-10",
+        //         "initMarginReqRr": "0.1",
+        //         "maintMarginReqRr": "0.005",
+        //         "riskLimitRv": "20000000",
+        //         "size": "0.01",
+        //         "valueRv": "887.531",
+        //         "avgEntryPriceRp": "88753.1",
+        //         "avgEntryPrice": "88753.1",
+        //         "posCostRv": "89.22502732",
+        //         "assignedPosBalanceRv": "89.29802732",
+        //         "bankruptCommRv": "0.529812426",
+        //         "bankruptPriceRp": "44783.79",
+        //         "positionMarginRv": "88.695214894",
+        //         "liquidationPriceRp": "45009",
+        //         "deleveragePercentileRr": "0",
+        //         "buyValueToCostRr": "0.10114",
+        //         "sellValueToCostRr": "0.10126",
+        //         "markPriceRp": "88747.2",
+        //         "estimatedOrdLossRv": "0",
+        //         "usedBalanceRv": "89.22502732",
+        //         "cumClosedPnlRv": "425.97796",
+        //         "cumFundingFeeRv": "54.892930099379",
+        //         "cumTransactFeeRv": "1.288782144",
+        //         "transactTimeNs": 1767176685241254818,
+        //         "takerFeeRateRr": "-1",
+        //         "makerFeeRateRr": "-1",
+        //         "term": 6,
+        //         "lastTermEndTimeNs": 1759835547751667598,
+        //         "lastFundingTimeNs": 1759824000000000000,
+        //         "curTermRealisedPnlRv": "-0.5325186",
+        //         "execSeq": 47732822790,
+        //         "posSide": "Long",
+        //         "posMode": "Hedged",
+        //         "buyLeavesValueRv": "0",
+        //         "buyLeavesQtyRq": "0",
+        //         "sellLeavesValueRv": "0",
+        //         "sellLeavesQtyRq": "0"
+        //     }
+        //
+        // fetchPositionAutoDeLeverageRank: inverse
+        //
+        //     {
+        //         "userID": 940666,
+        //         "accountID": 9406660001,
+        //         "symbol": "BTCUSD",
+        //         "currency": "BTC",
+        //         "side": "Buy",
+        //         "positionStatus": "Normal",
+        //         "crossMargin": false,
+        //         "leverageEr": -2000000000,
+        //         "leverage": -20.00000000,
+        //         "initMarginReqEr": 5000000,
+        //         "initMarginReq": 0.05000000,
+        //         "maintMarginReqEr": 500000,
+        //         "maintMarginReq": 0.00500000,
+        //         "riskLimitEv": 150000000000,
+        //         "riskLimit": 1500.00000000,
+        //         "size": 1,
+        //         "value": 0.00001128,
+        //         "valueEv": 1128,
+        //         "avgEntryPriceEp": 886524823,
+        //         "avgEntryPrice": 88652.48230000,
+        //         "posCostEv": 58,
+        //         "posCost": 5.8E-7,
+        //         "assignedPosBalanceEv": 58,
+        //         "assignedPosBalance": 5.8E-7,
+        //         "bankruptCommEv": 1,
+        //         "bankruptComm": 1E-8,
+        //         "bankruptPriceEp": 100000,
+        //         "bankruptPrice": 10.00000000,
+        //         "positionMarginEv": 57,
+        //         "positionMargin": 5.7E-7,
+        //         "liquidationPriceEp": 100000,
+        //         "liquidationPrice": 10.00000000,
+        //         "deleveragePercentileEr": 0,
+        //         "deleveragePercentile": 0E-8,
+        //         "buyValueToCostEr": 5123000,
+        //         "buyValueToCost": 0.05123000,
+        //         "sellValueToCostEr": 5117000,
+        //         "sellValueToCost": 0.05117000,
+        //         "markPriceEp": 886028000,
+        //         "markPrice": 88602.80000000,
+        //         "estimatedOrdLossEv": 0,
+        //         "estimatedOrdLoss": 0E-8,
+        //         "usedBalanceEv": 58,
+        //         "usedBalance": 5.8E-7,
+        //         "cumClosedPnlEv": 127,
+        //         "cumFundingFeeEv": -146,
+        //         "cumTransactFeeEv": 3,
+        //         "transactTimeNs": 1767177964554892106,
+        //         "takerFeeRateEr": 60000,
+        //         "makerFeeRateEr": 10000,
+        //         "term": 2,
+        //         "lastTermEndTimeNs": 1716225275381802994,
+        //         "lastFundingTimeNs": 1767168000000000000,
+        //         "curTermRealisedPnlEv": -1,
+        //         "execSeq": 1104909332,
+        //         "freeQty": -1,
+        //         "freeCostEv": 0,
+        //         "buyLeavesValueEv": 0,
+        //         "sellLeavesValueEv": 0,
+        //         "buyLeavesQty": 0,
+        //         "sellLeavesQty": 0
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'rank': undefined,
+            'rating': undefined,
+            'percentage': this.safeNumber2 (info, 'deleveragePercentileRr', 'deleveragePercentileEr'),
+            'timestamp': undefined,
+            'datetime': undefined,
+        } as AutoDeLeverage;
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
