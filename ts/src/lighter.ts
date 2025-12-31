@@ -120,7 +120,7 @@ export default class lighter extends Exchange {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -1716,6 +1716,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.toAccountIndex] to account index, defaults to fromAccountIndex
+     * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
@@ -1733,8 +1734,8 @@ export default class lighter extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromRouteType = (fromAccount === 'spot') ? 0 : 1; // i guess 0 is spot, 1 is perp, need test
-        const toRouteType = (toAccount === 'spot') ? 0 : 1; // i guess 0 is spot, 1 is perp, need test
+        const fromRouteType = (fromAccount === 'perp') ? 0 : 1; // i guess 0 is perp, 1 is spot, need test
+        const toRouteType = (toAccount === 'perp') ? 0 : 1; // i guess 0 is perp, 1 is spot, need test
         const signRaw: Dict = {
             'to_account_index': toAccountIndex,
             'asset_index': this.parseToInt (currency['id']),
@@ -2160,6 +2161,56 @@ export default class lighter extends Exchange {
             'cost': this.safeString (trade, 'usd_amount'),
             'fee': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name lighter#setLeverage
+     * @description set the level of leverage for a market
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires an accountIndex parameter');
+        }
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires an apiKeyIndex parameter');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode');
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires an marginMode parameter');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const signRaw: Dict = {
+            'market_index': this.parseToInt (market['id']),
+            'initial_margin_fraction': this.parseToInt (1 / leverage * 10000),
+            'margin_mode': (marginMode === 'cross') ? 0 : 1, // i guess 0 is cross, 1 is isolated, need test
+            'nonce': this.nonce (),
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = this.loadAccount (304, this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.lighterSignUpdateLeverage (signer, signRaw);
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        return await this.publicPostSendTx (request);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

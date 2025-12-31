@@ -2200,7 +2200,7 @@ class Exchange(object):
         ))
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
-    
+
     def lighter_sign_cancel_order(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelOrder(
             request['market_index'],
@@ -2211,7 +2211,7 @@ class Exchange(object):
         ))
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
-    
+
     def lighter_sign_withdraw(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignWithdraw(
             request['asset_index'],
@@ -2223,7 +2223,7 @@ class Exchange(object):
         ))
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
-    
+
     def lighter_sign_create_sub_account(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateSubAccount(
             request['nonce'],
@@ -2232,7 +2232,7 @@ class Exchange(object):
         ))
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
-    
+
     def lighter_sign_cancel_all_orders(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelAllOrders(
             request['time_in_force'],
@@ -2243,7 +2243,7 @@ class Exchange(object):
         ))
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
-    
+
     def lighter_sign_transfer(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignTransfer(
             request['to_account_index'],
@@ -2279,7 +2279,7 @@ class Exchange(object):
             request['account_index'],
         ))
         return auth
-    
+
     def lighter_sign_update_margin(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignUpdateMargin(
             request['market_index'],
