@@ -4,7 +4,7 @@
 import grvtRest from '../grvt.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position, Bool } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -63,15 +63,7 @@ export default class grvt extends grvtRest {
         //     feed: {
         //         event_time: "1767198134519661154",
         //         instrument: "BTC_USDT_Perp",
-        //         mark_price: "87813.097386665",
-        //         index_price: "87829.179848534",
-        //         last_price: "87807.7",
-        //         last_size: "0.016",
-        //         mid_price: "87807.65",
-        //         best_bid_price: "87807.6",
-        //         best_bid_size: "5.507",
-        //         best_ask_price: "87807.7",
-        //         best_ask_size: "5.222",
+        //         ...
         //     },
         //     prev_sequence_number: "0",
         //  }
@@ -80,6 +72,8 @@ export default class grvt extends grvtRest {
             return;
         }
         const methods: Dict = {
+            'v1.ticker.s': this.handleTicker,
+            'v1.ticker.d': this.handleTicker,
             'v1.mini.d': this.handleTicker,
             'v1.mini.s': this.handleTicker,
         };
@@ -93,6 +87,16 @@ export default class grvt extends grvtRest {
         if (method !== undefined) {
             method.call (this, client, message);
         }
+    }
+
+    async subscribeMultiple (messageHashes: string[], request: Dict): Promise<any> {
+        const payload: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': request,
+            'id': this.requestId (),
+        };
+        return await this.watchMultiple (this.urls['api']['ws']['public'], messageHashes, payload, messageHashes);
     }
 
     async subscribe (messageHash: string, request: Dict): Promise<any> {
@@ -124,7 +128,7 @@ export default class grvt extends grvtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        const channel = this.safeString (params, 'channel', 'v1.mini.s'); // 'v1.mini.s' or 'v1.mini.d'
+        const channel = this.safeString (params, 'channel', 'v1.ticker.s'); // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
@@ -138,7 +142,83 @@ export default class grvt extends grvtRest {
         return await this.subscribe (messageHash, this.extend (params, request));
     }
 
+    /**
+     * @method
+     * @name grvt#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        const channel = this.safeString (params, 'channel', 'v1.ticker.s'); // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const selectors = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            const interval = this.safeInteger (params, 'interval', 500);
+            const selector = marketId + '@' + interval; // raw, 50, 100, 200, 500, 1000, 5000
+            selectors.push (selector);
+            const messageHash = 'ticker::' + market['symbol'];
+            messageHashes.push (messageHash);
+        }
+        const request = {
+            'stream': channel,
+            'selectors': selectors,
+        };
+        const ticker = await this.subscribeMultiple (messageHashes, this.extend (params, request));
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
     handleTicker (client: Client, message) {
+        //
+        // v1.ticker.s
+        //
+        //    {
+        //        "stream": "v1.ticker.s",
+        //        "selector": "BTC_USDT_Perp@500",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767199535382794823",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "87439.392166151",
+        //            "index_price": "87462.426721779",
+        //            "last_price": "87467.5",
+        //            "last_size": "0.001",
+        //            "mid_price": "87474.35",
+        //            "best_bid_price": "87474.3",
+        //            "best_bid_size": "2.435",
+        //            "best_ask_price": "87474.4",
+        //            "best_ask_size": "3.825",
+        //            "funding_rate_8h_curr": "0.01",
+        //            "funding_rate_8h_avg": "0.01",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "buy_volume_24h_b": "3115.631",
+        //            "sell_volume_24h_b": "3195.236",
+        //            "buy_volume_24h_q": "275739265.1558",
+        //            "sell_volume_24h_q": "282773286.2658",
+        //            "high_price": "89187.2",
+        //            "low_price": "87404.1",
+        //            "open_price": "88667.1",
+        //            "open_interest": "1914.093886738",
+        //            "long_short_ratio": "1.472050",
+        //            "funding_rate": "0.01",
+        //            "funding_interval_hours": 8,
+        //            "next_funding_time": "1767225600000000000"
+        //        },
+        //        "prev_sequence_number": "0"
+        //    }
         //
         // v1.mini.s
         //
