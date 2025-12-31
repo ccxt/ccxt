@@ -34,10 +34,10 @@ export default class grvt extends Exchange {
                 'spot': false,
                 'margin': false,
                 'swap': true,
-                'signIn': true,
                 'future': false,
                 'option': false,
                 'fetchCurrencies': true,
+                'signIn': true,
             },
             'timeframes': {
                 '1m': 'CI_1_M',
@@ -155,48 +155,10 @@ export default class grvt extends Exchange {
                 'networksById': {
                     '1': 'ERC20',
                 },
-                'EIP712_ORDER_MESSAGE_TYPE': {
-                    'Order': [
-                        { 'name': 'subAccountID', 'type': 'uint64' },
-                        { 'name': 'isMarket', 'type': 'bool' },
-                        { 'name': 'timeInForce', 'type': 'uint8' },
-                        { 'name': 'postOnly', 'type': 'bool' },
-                        { 'name': 'reduceOnly', 'type': 'bool' },
-                        { 'name': 'legs', 'type': 'OrderLeg[]' },
-                        { 'name': 'nonce', 'type': 'uint32' },
-                        { 'name': 'expiration', 'type': 'int64' },
-                    ],
-                    'OrderLeg': [
-                        { 'name': 'assetID', 'type': 'uint256' },
-                        { 'name': 'contractSize', 'type': 'uint64' },
-                        { 'name': 'limitPrice', 'type': 'uint64' },
-                        { 'name': 'isBuyingContract', 'type': 'bool' },
-                    ],
-                },
-                'EIP712_TRANSFER_MESSAGE_TYPE': {
-                    'Transfer': [
-                        { 'name': 'fromAccount', 'type': 'address' },
-                        { 'name': 'fromSubAccount', 'type': 'uint64' },
-                        { 'name': 'toAccount', 'type': 'address' },
-                        { 'name': 'toSubAccount', 'type': 'uint64' },
-                        { 'name': 'tokenCurrency', 'type': 'uint8' },
-                        { 'name': 'numTokens', 'type': 'uint64' },
-                        { 'name': 'nonce', 'type': 'uint32' },
-                        { 'name': 'expiration', 'type': 'int64' },
-                    ],
-                },
-                'EIP712_WITHDRAWAL_MESSAGE_TYPE': {
-                    'Withdrawal': [
-                        { 'name': 'fromAccount', 'type': 'address' },
-                        { 'name': 'toEthAddress', 'type': 'address' },
-                        { 'name': 'tokenCurrency', 'type': 'uint8' },
-                        { 'name': 'numTokens', 'type': 'uint64' },
-                        { 'name': 'nonce', 'type': 'uint32' },
-                        { 'name': 'expiration', 'type': 'int64' },
-                    ],
-                },
             },
             'precisionMode': TICK_SIZE,
+            'quoteJsonNumbers': false, // needed for some endpoints (todo: specify in implementations)
+            'builderFee': true,
             'exceptions': {
                 'exact': {
                     '1000': AuthenticationError, // "You need to authenticate prior to using this functionality"
@@ -310,6 +272,61 @@ export default class grvt extends Exchange {
         });
     }
 
+    eipDefinitions () {
+        return {
+            'EIP712_ORDER_MESSAGE_TYPE': {
+                'Order': [
+                    { 'name': 'subAccountID', 'type': 'uint64' },
+                    { 'name': 'isMarket', 'type': 'bool' },
+                    { 'name': 'timeInForce', 'type': 'uint8' },
+                    { 'name': 'postOnly', 'type': 'bool' },
+                    { 'name': 'reduceOnly', 'type': 'bool' },
+                    { 'name': 'legs', 'type': 'OrderLeg[]' },
+                    { 'name': 'nonce', 'type': 'uint32' },
+                    { 'name': 'expiration', 'type': 'int64' },
+                ],
+                'OrderLeg': [
+                    { 'name': 'assetID', 'type': 'uint256' },
+                    { 'name': 'contractSize', 'type': 'uint64' },
+                    { 'name': 'limitPrice', 'type': 'uint64' },
+                    { 'name': 'isBuyingContract', 'type': 'bool' },
+                ],
+            },
+            'EIP712_TRANSFER_MESSAGE_TYPE': {
+                'Transfer': [
+                    { 'name': 'fromAccount', 'type': 'address' },
+                    { 'name': 'fromSubAccount', 'type': 'uint64' },
+                    { 'name': 'toAccount', 'type': 'address' },
+                    { 'name': 'toSubAccount', 'type': 'uint64' },
+                    { 'name': 'tokenCurrency', 'type': 'uint8' },
+                    { 'name': 'numTokens', 'type': 'uint64' },
+                    { 'name': 'nonce', 'type': 'uint32' },
+                    { 'name': 'expiration', 'type': 'int64' },
+                ],
+            },
+            'EIP712_WITHDRAWAL_MESSAGE_TYPE': {
+                'Withdrawal': [
+                    { 'name': 'fromAccount', 'type': 'address' },
+                    { 'name': 'toEthAddress', 'type': 'address' },
+                    { 'name': 'tokenCurrency', 'type': 'uint8' },
+                    { 'name': 'numTokens', 'type': 'uint64' },
+                    { 'name': 'nonce', 'type': 'uint32' },
+                    { 'name': 'expiration', 'type': 'int64' },
+                ],
+            },
+            'EIP712_BUILDER_APPROVAL_TYPE': {
+                'AuthorizeBuilder': [
+                    { 'name': 'mainAccountID', 'type': 'address' },
+                    { 'name': 'builderAccountID', 'type': 'address' },
+                    { 'name': 'maxFutureFeeRate', 'type': 'uint32' },
+                    { 'name': 'maxSpotFeeRate', 'type': 'uint32' },
+                    { 'name': 'nonce', 'type': 'uint32' },
+                    { 'name': 'expiration', 'type': 'int64' },
+                ],
+            },
+        };
+    }
+
     /**
      * @method
      * @name grvt#signIn
@@ -339,7 +356,6 @@ export default class grvt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        await this.signIn ();
         const response = await this.privateMarketPostFullV1AllInstruments (params);
         //
         //    {
@@ -414,7 +430,7 @@ export default class grvt extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'min_size'))), // not base_decimals!
+                'amount': this.safeNumber (market, 'min_size'), // not base_decimals!
                 'price': this.safeNumber (market, 'tick_size'),
                 'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
                 'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_decimals'))),
@@ -451,7 +467,7 @@ export default class grvt extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        await this.signIn ();
+        await this.signInAndInit ();
         const response = await this.privateMarketPostFullV1Currency (params);
         //
         //    {
@@ -1412,16 +1428,19 @@ export default class grvt extends Exchange {
     }
 
     createSignedRequest (request: any, inputMessageData: any, structureType: string): Dict {
-        const domainData = this.get_EIP712_domain_data ();
         let messageData = undefined;
         if (structureType === 'EIP712_TRANSFER_MESSAGE_TYPE') {
-            messageData = this.build_EIP712_transfer_message_data (request, inputMessageData);
+            messageData = this.eipMessageForTransfer (request, inputMessageData);
         } else if (structureType === 'EIP712_WITHDRAWAL_MESSAGE_TYPE') {
-            messageData = this.build_EIP712_withdrawal_message_data (request, inputMessageData);
+            messageData = this.eipMessageForWithdrawal (request, inputMessageData);
         } else if (structureType === 'EIP712_ORDER_MESSAGE_TYPE') {
-            messageData = this.build_EIP712_order_message_data (request, inputMessageData);
+            messageData = this.eipMessageForOrder (request, inputMessageData);
+        } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
+            messageData = this.eipMessageForBuilderApproval (request, inputMessageData);
         }
-        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, this.options[structureType], messageData);
+        const domainData = this.eipDomainData ();
+        const definitions = this.eipDefinitions ();
+        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const privateKey = this.remove0xPrefix (this.secret);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
@@ -1667,7 +1686,7 @@ export default class grvt extends Exchange {
         return parseInt (x);
     }
 
-    build_EIP712_order_message_data (order, params = {}) {
+    eipMessageForOrder (order, params = {}) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
@@ -1707,7 +1726,31 @@ export default class grvt extends Exchange {
         };
     }
 
-    build_EIP712_transfer_message_data (transfer, currency: Currency = undefined) {
+    eipMessageForBuilderApproval (dataObj, currency: Currency = undefined) {
+        const amountMultiplier = this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
+        return {
+            'mainAccountID': dataObj['main_account_id'],
+            'builderAccountID': dataObj['builder_account_id'],
+            'maxFutureFeeRate': this.parseToInt (parseFloat (dataObj['max_futures_fee_rate']) * amountMultiplier),
+            'maxSpotFeeRate': this.parseToInt (parseFloat (dataObj['max_spot_fee_rate']) * amountMultiplier),
+            'nonce': dataObj['signature']['nonce'],
+            'expiration': dataObj['signature']['expiration'],
+        };
+    }
+
+    eipMessageForWithdrawal (withdrawal, currency: Currency = undefined) {
+        const amountMultiplier = this.convertToBigIntCustom ('1000000');
+        return {
+            'fromAccount': withdrawal['from_account_id'],
+            'toEthAddress': withdrawal['to_eth_address'],
+            'tokenCurrency': currency['numericId'],
+            'numTokens': this.parseToInt (withdrawal['num_tokens'] * amountMultiplier),
+            'nonce': withdrawal['signature']['nonce'],
+            'expiration': withdrawal['signature']['expiration'],
+        };
+    }
+
+    eipMessageForTransfer (transfer, currency: Currency = undefined) {
         const amountMultiplier = this.convertToBigIntCustom ('1000000');
         const amountInt = transfer['num_tokens'] * amountMultiplier;
         return {
@@ -1722,20 +1765,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    build_EIP712_withdrawal_message_data (withdrawal, currency: Currency = undefined) {
-        const amountMultiplier = this.convertToBigIntCustom ('1000000');
-        const amountInt = withdrawal['num_tokens'] * amountMultiplier;
-        return {
-            'fromAccount': withdrawal['from_account_id'],
-            'toEthAddress': withdrawal['to_eth_address'],
-            'tokenCurrency': currency['numericId'],
-            'numTokens': this.parseToInt (amountInt),
-            'nonce': withdrawal['signature']['nonce'],
-            'expiration': withdrawal['signature']['expiration'],
-        };
-    }
-
-    get_EIP712_domain_data () {
+    eipDomainData () {
         //     GrvtEnv.DEV.value: 327,
         //     GrvtEnv.STAGING.value: 327,
         //     GrvtEnv.TESTNET.value: 326,
@@ -2590,6 +2620,65 @@ export default class grvt extends Exchange {
         return this.parseOrder (result);
     }
 
+    async signInAndInit () {
+        await this.signIn ();
+        // don't await the below, let it run loosely without delaying anything else
+        await this.initializeClient ();
+    }
+
+    async initializeClient (params = {}) {
+        const buildFee = this.safeBool (this.options, 'builderFee', true);
+        if (!buildFee) {
+            return false; // skip if builder fee is not enabled
+        }
+        const approvedBuilderFee = this.safeBool (this.options, 'builderFeeAlreadyApproved', false);
+        if (approvedBuilderFee) {
+            return true; // skip if builder fee is already approved
+        }
+        const currentBuilders = await this.privateTradingPostFullV1GetAuthorizedBuilders ();
+        //
+        // {
+        //     "results": [{
+        //         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
+        //         "max_futures_fee_rate": 0.001,
+        //         "max_spot_fee_rate": 0.0001
+        //     }]
+        // }
+        //
+        await this.loadAggregatedAccountSummary ();
+        const result = this.safeList (currentBuilders, 'results', []);
+        const length = result.length;
+        let run = false;
+        if (length <= 0) {
+            run = true;
+        }
+        if (run) {
+            try {
+                const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
+                let request: Dict = {
+                    'main_account_id': defaultFromAccountId,
+                    'builder_account_id': this.safeString (this.options, 'builder', '0xbf465e6083a43b170791ea29393f601381c560be'),
+                    'max_futures_fee_rate': this.safeString (this.options, 'feeRate', '0.001'),
+                    'max_spot_fee_rate': this.safeString (this.options, 'feeRate', '0.0001'),
+                    'signature': this.defaultSignature (),
+                };
+                request = this.createSignedRequest (request, {}, 'EIP712_BUILDER_APPROVAL_TYPE');
+                const response = await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
+                //
+                // {
+                //     "result": {
+                //         "ack": "true"
+                //     }
+                // }
+                //
+                this.options['builderFeeAlreadyApproved'] = true;
+            } catch (e) {
+                this.options['builderFee'] = false; // disable builder fee if an error occurs
+            }
+            return true;
+        }
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
@@ -2641,6 +2730,19 @@ export default class grvt extends Exchange {
                 throw new AuthenticationError (this.id + ' signIn() failed to receive auth-cookie or account-id');
             }
             // todo: add expire
+        } else {
+            const errorCode = this.safeString (response, 'code');
+            if (errorCode !== undefined) {
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                throw new ExchangeError (feedback);
+            } else {
+                const message = this.safeString (response, 'message');
+                if (message !== undefined) {
+                    const feedback = this.id + ' ' + body;
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                }
+            }
         }
         return undefined;
     }
