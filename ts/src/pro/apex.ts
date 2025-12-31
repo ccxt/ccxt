@@ -1026,7 +1026,7 @@ export default class apex extends apexRest {
         //
         //   { pong: 1653296711335 }
         //
-        client.lastPong = this.safeInteger (message, 'pong');
+        client.lastPong = this.safeInteger (message, 'pong', this.milliseconds ());
         return message;
     }
 
