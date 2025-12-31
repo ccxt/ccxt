@@ -425,6 +425,14 @@ export default class lighter extends Exchange {
         return this.extend (request, params);
     }
 
+    async fetchNonce (accountIndex, apiKeyIndex) {
+        if ((accountIndex === undefined) || (apiKeyIndex === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchNonce() requires accountIndex and apiKeyIndex.');
+        }
+        const response = await this.publicGetNextNonce ({ 'account_index': accountIndex, 'api_key_index': apiKeyIndex });
+        return this.safeInteger (response, 'nonce');
+    }
+
     /**
      * @method
      * @name lighter#createOrder
@@ -442,10 +450,7 @@ export default class lighter extends Exchange {
         const market = this.market (symbol);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         if (orderRequest['nonce'] === undefined) {
-            const nonce = await this.publicGetApikeys ({ 'account_index': orderRequest['account_index'], 'api_key_index': orderRequest['api_key_index'] });
-            const keys = this.safeList (nonce, 'api_keys', []);
-            const api = this.safeDict (keys, 0, {});
-            orderRequest['nonce'] = this.safeInteger (api, 'nonce');
+            orderRequest['nonce'] = await this.fetchNonce (orderRequest['account_index'], orderRequest['api_key_index']);
         }
         const signer = this.loadAccount (304, this.privateKey, orderRequest['api_key_index'], orderRequest['account_index']);
         const [ txType, txInfo ] = this.lighterSignCreateOrder (signer, orderRequest);
@@ -1736,6 +1741,7 @@ export default class lighter extends Exchange {
         const currency = this.currency (code);
         const fromRouteType = (fromAccount === 'perp') ? 0 : 1; // i guess 0 is perp, 1 is spot, need test
         const toRouteType = (toAccount === 'perp') ? 0 : 1; // i guess 0 is perp, 1 is spot, need test
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
         const signRaw: Dict = {
             'to_account_index': toAccountIndex,
             'asset_index': this.parseToInt (currency['id']),
@@ -1744,7 +1750,7 @@ export default class lighter extends Exchange {
             'amount': this.parseToInt (this.currencyToPrecision (code, amount)),
             'usdc_fee': 0,
             'memo': this.encode ('0x000000000000000000000000000000'),
-            'nonce': this.nonce (),
+            'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
@@ -2196,11 +2202,12 @@ export default class lighter extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
         const signRaw: Dict = {
             'market_index': this.parseToInt (market['id']),
             'initial_margin_fraction': this.parseToInt (1 / leverage * 10000),
             'margin_mode': (marginMode === 'cross') ? 0 : 1, // i guess 0 is cross, 1 is isolated, need test
-            'nonce': this.nonce (),
+            'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
