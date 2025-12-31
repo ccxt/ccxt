@@ -153,6 +153,26 @@ class Exchange extends \ccxt\Exchange {
                     $headers = array_merge($userAgent, $headers);
                 }
             }
+            // multipart/form-data
+            if (is_array($headers)) {
+                $tmp = $headers;
+                foreach ($tmp as $key => $value) {
+                    if (strtolower($key) == 'content-type') {
+                        if ($value == 'multipart/form-data') {
+                            $boundary = '--------------------------' . $this->random_bytes(12);
+                            $eol = "\r\n";
+                            $newBody = '';
+                            foreach ($body as $fKey => $fValue) {
+                                $newBody .= '--' . $boundary . $eol . 'Content-Disposition: form-data; name="' . $fKey . '"' . $eol . $eol . $fValue . $eol;
+                            }
+                            $newBody .= '--' . $boundary . '--' . $eol;
+                            $value .= '; boundary=' . $boundary;
+                            $headers[$key] = $value;
+                            $body = $newBody;
+                        }
+                    }
+                }
+            }
             // set final headers
             $headers = $this->set_headers($headers);
             // log
