@@ -15,6 +15,7 @@ interface Exchange {
     publicGetAccountsByL1Address (params?: {}): Promise<implicitReturnType>;
     publicGetApikeys (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeStats (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetDetails (params?: {}): Promise<implicitReturnType>;
     publicGetOrderBookDetails (params?: {}): Promise<implicitReturnType>;
     publicGetOrderBookOrders (params?: {}): Promise<implicitReturnType>;
     publicGetOrderBooks (params?: {}): Promise<implicitReturnType>;

@@ -1,6 +1,6 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/lighter.js';
-import { ArgumentsRequired, BadRequest, ExchangeError } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account } from './base/types.js';
@@ -241,6 +241,81 @@ export default class lighter extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '21500': ExchangeError, // transaction not found
+                    '21501': ExchangeError, // invalid tx info
+                    '21502': ExchangeError, // marshal tx failed
+                    '21503': ExchangeError, // marshal event failed
+                    '21504': ExchangeError, // fail to l1 signature
+                    '21505': ExchangeError, // unsupported tx type
+                    '21506': ExchangeError, // too many pending txs. Please try again later
+                    '21507': ExchangeError, // account is below maintenance margin, can't execute transaction
+                    '21508': ExchangeError, // account is below initial margin, can't execute transaction
+                    '21511': ExchangeError, // invalid tx type for account
+                    '21512': ExchangeError, // invalid l1 request id
+                    '21600': InvalidOrder, // given order is not an active limit order
+                    '21601': InvalidOrder, // order book is full
+                    '21602': InvalidOrder, // invalid market index
+                    '21603': InvalidOrder, // invalid min amounts for market
+                    '21604': InvalidOrder, // invalid margin fractions for market
+                    '21605': InvalidOrder, // invalid market status
+                    '21606': InvalidOrder, // market already exist for given index
+                    '21607': InvalidOrder, // invalid market fees
+                    '21608': InvalidOrder, // invalid quote multiplier
+                    '21611': InvalidOrder, // invalid interest rate
+                    '21612': InvalidOrder, // invalid open interest
+                    '21613': InvalidOrder, // invalid margin mode
+                    '21614': InvalidOrder, // no position found
+                    '21700': InvalidOrder, // invalid order index
+                    '21701': InvalidOrder, // invalid base amount
+                    '21702': InvalidOrder, // invalid price
+                    '21703': InvalidOrder, // invalid isAsk
+                    '21704': InvalidOrder, // invalid OrderType
+                    '21705': InvalidOrder, // invalid OrderTimeInForce
+                    '21706': InvalidOrder, // invalid order base or quote amount
+                    '21707': InvalidOrder, // account is not owner of the order
+                    '21708': InvalidOrder, // order is empty
+                    '21709': InvalidOrder, // order is inactive
+                    '21710': InvalidOrder, // unsupported order type
+                    '21711': InvalidOrder, // invalid expiry
+                    '21712': InvalidOrder, // account has a queued cancel all orders request
+                    '21713': InvalidOrder, // invalid cancel all time in force
+                    '21714': InvalidOrder, // invalid cancel all time
+                    '21715': InvalidOrder, // given order is not an active order
+                    '21716': InvalidOrder, // order is not expired
+                    '21717': InvalidOrder, // maximum active limit order count reached
+                    '21718': InvalidOrder, // maximum active limit order count per market reached
+                    '21719': InvalidOrder, // maximum pending order count reached
+                    '21720': InvalidOrder, // maximum pending order count per market reached
+                    '21721': InvalidOrder, // maximum twap order count reached
+                    '21722': InvalidOrder, // maximum conditional order count reached
+                    '21723': InvalidOrder, // invalid account health
+                    '21724': InvalidOrder, // invalid liquidation size
+                    '21725': InvalidOrder, // invalid liquidation price
+                    '21726': InvalidOrder, // insurance fund cannot be partially liquidated
+                    '21727': InvalidOrder, // invalid client order index
+                    '21728': InvalidOrder, // client order index already exists
+                    '21729': InvalidOrder, // invalid order trigger price
+                    '21730': InvalidOrder, // order status is not pending
+                    '21731': InvalidOrder, // order can not be triggered
+                    '21732': InvalidOrder, // reduce only increases position
+                    '21733': InvalidOrder, // order price flagged as an accidental price
+                    '21734': InvalidOrder, // limit order price is too far from the mark price
+                    '21735': InvalidOrder, // SL/TP order price is too far from the trigger price
+                    '21736': InvalidOrder, // invalid order trigger status
+                    '21737': InvalidOrder, // invalid order status
+                    '21738': InvalidOrder, // invalid reduce only direction
+                    '21739': InvalidOrder, // not enough margin to create the order
+                    '21740': InvalidOrder, // invalid reduce only mode
+                    '21901': InvalidOrder, // deleverage against itself
+                    '21902': InvalidOrder, // deleverage does not match liquidation status
+                    '21903': InvalidOrder, // deleverage with open orders
+                    '21904': InvalidOrder, // invalid deleverage size
+                    '21905': InvalidOrder, // invalid deleverage price
+                    '21906': InvalidOrder, // invalid deleverage side
+                    '23000': RateLimitExceeded, // Too Many Requests!
+                    '23001': RateLimitExceeded, // Too Many Subscriptions!
+                    '23002': RateLimitExceeded, // Too Many Different Accounts!
+                    '23003': RateLimitExceeded, // Too Many Connections!
                 },
                 'broad': {
                 },
@@ -344,107 +419,79 @@ export default class lighter extends Exchange {
         let nonce = undefined;
         let apiKeyIndex = undefined;
         let accountIndex = undefined;
+        let orderExpiry = undefined;
         [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce');
         [ apiKeyIndex, params ] = this.handleOptionAndParams (params, 'createOrder', 'apiKeyIndex', 255);
         [ accountIndex, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountIndex', 0);
+        [ orderExpiry, params ] = this.handleOptionAndParams (params, 'createOrder', 'orderExpiry', 0);
         request['nonce'] = nonce;
         request['api_key_index'] = apiKeyIndex;
         request['account_index'] = accountIndex;
-        if (orderType === 'MARKET') {
-            request['order_type'] = 1;
-            request['order_expiry'] = 0; // IOC_EXPIRY
-            request['time_in_force'] = 0; // ORDER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
+        const isMarketOrder = (orderType === 'MARKET');
+        const timeInForce = this.safeStringLower (params, 'timeInForce', 'gtt');
+        const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+        let orderTypeNum = undefined;
+        let timeInForceNum = undefined;
+        if (isMarketOrder) {
+            orderTypeNum = 1;
+            timeInForceNum = 0;
+        } else {
+            orderTypeNum = 0;
         }
         if (orderSide === 'BUY') {
             request['is_ask'] = 0;
         } else {
             request['is_ask'] = 1;
         }
+        if (postOnly) {
+            timeInForceNum = 2;
+        } else {
+            if (!isMarketOrder) {
+                if (timeInForce === 'ioc') {
+                    timeInForceNum = 0;
+                    orderExpiry = 0;
+                } else if (timeInForce === 'gtt') {
+                    timeInForceNum = 1;
+                    orderExpiry = -1;
+                }
+            }
+        }
         const marketInfo = this.safeDict (market, 'info');
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
+        let triggerPriceStr = '0'; // default is 0
+        if (isConditional) {
+            if (stopLossPrice !== undefined) {
+                if (isMarketOrder) {
+                    orderTypeNum = 2;
+                } else {
+                    orderTypeNum = 3;
+                }
+                triggerPriceStr = this.priceToPrecision (symbol, stopLossPrice);
+            } else if (takeProfitPrice !== undefined) {
+                if (isMarketOrder) {
+                    orderTypeNum = 4;
+                } else {
+                    orderTypeNum = 5;
+                }
+                triggerPriceStr = this.priceToPrecision (symbol, takeProfitPrice);
+            }
+        }
+        request['order_expiry'] = orderExpiry;
+        request['order_type'] = orderTypeNum;
+        request['time_in_force'] = timeInForceNum;
         request['reduce_only'] = (reduceOnly) ? 1 : 0;
         request['client_order_index'] = 0;
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
-        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        // const stopLoss = this.safeValue (params, 'stopLoss');
-        // const takeProfit = this.safeValue (params, 'takeProfit');
-        // const hasStopLoss = (stopLoss !== undefined);
-        // const hasTakeProfit = (takeProfit !== undefined);
-        // const algoType = this.safeString (params, 'algoType');
-        // const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (params, 'childOrders') !== undefined);
-        // const isMarket = orderType === 'MARKET';
-        // const timeInForce = this.safeStringLower (params, 'timeInForce');
-        // const postOnly = this.isPostOnly (isMarket, undefined, params);
-        // const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
-        // const priceKey = isConditional ? 'price' : 'order_price';
-        // const typeKey = isConditional ? 'type' : 'order_type';
-        // request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        // if (!isConditional) {
-        //     if (postOnly) {
-        //         request['order_type'] = 'POST_ONLY';
-        //     } else if (timeInForce === 'fok') {
-        //         request['order_type'] = 'FOK';
-        //     } else if (timeInForce === 'ioc') {
-        //         request['order_type'] = 'IOC';
-        //     }
-        // }
-        // if (reduceOnly) {
-        //     request['reduce_only'] = reduceOnly;
-        // }
-        // if (price !== undefined) {
-        //     request[priceKey] = this.priceToPrecision (symbol, price);
-        // }
-        // if (isMarket && !isConditional) {
-        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
-        // } else if (algoType !== 'POSITIONAL_TP_SL') {
-        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
-        // }
-        // const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        // if (clientOrderId !== undefined) {
-        //     request['client_order_id'] = clientOrderId;
-        // }
-        // if (triggerPrice !== undefined) {
-        //     request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
-        //     request['algo_type'] = 'STOP';
-        // } else if (hasStopLoss || hasTakeProfit) {
-        //     request['algo_type'] = 'TP_SL';
-        //     const outterOrder: Dict = {
-        //         'symbol': market['id'],
-        //         'reduce_only': false,
-        //         'algo_type': 'POSITIONAL_TP_SL',
-        //         'child_orders': [],
-        //     };
-        //     const childOrders = outterOrder['child_orders'];
-        //     const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
-        //     if (hasStopLoss) {
-        //         const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
-        //         const stopLossOrder: Dict = {
-        //             'side': closeSide,
-        //             'algo_type': 'TP_SL',
-        //             'trigger_price': this.priceToPrecision (symbol, stopLossPrice),
-        //             'type': 'LIMIT',
-        //             'reduce_only': true,
-        //         };
-        //         childOrders.push (stopLossOrder);
-        //     }
-        //     if (hasTakeProfit) {
-        //         const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
-        //         const takeProfitOrder: Dict = {
-        //             'side': closeSide,
-        //             'algo_type': 'TP_SL',
-        //             'trigger_price': this.priceToPrecision (symbol, takeProfitPrice),
-        //             'type': 'LIMIT',
-        //             'reduce_only': true,
-        //         };
-        //         outterOrder.push (takeProfitOrder);
-        //     }
-        //     request['child_orders'] = [ outterOrder ];
-        // }
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex' ]);
+        request['trigger_price'] = this.parseToInt (Precise.stringMul (triggerPriceStr, priceScale));
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
         return this.extend (request, params);
     }
 
