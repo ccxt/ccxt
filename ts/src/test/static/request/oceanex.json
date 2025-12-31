@@ -72,6 +72,19 @@
                   "BTC/USDT"
                 ]
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch Tickers with symbols specified",
+                "method": "fetchTickers",
+                "url": "https://api.oceanex.pro/v1/tickers_multi?markets[]=btcusdt&markets[]=ethusdt&",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            }
         ]
     }
 }
