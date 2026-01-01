@@ -6,7 +6,7 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -78,6 +78,8 @@ export default class grvt extends grvtRest {
             'v1.mini.s': this.handleTicker,
             'v1.trade': this.handleTrades,
             'v1.candle': this.handleOHLCV,
+            'v1.book.s': this.handleOrderBook,
+            'v1.book.d': this.handleOrderBook,
         };
         const methodName = this.safeString (message, 'method');
         if (methodName === 'subscribe') {
@@ -476,6 +478,120 @@ export default class grvt extends grvtRest {
     parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         // same as REST api
         return this.parseOHLCV (ohlcv, market);
+    }
+
+    /**
+     * @method
+     * @name grvt#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.grvt.io/market_data_streams/#orderbook-snap
+     * @see https://api-docs.grvt.io/market_data_streams/#orderbook-delta
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name grvt#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.grvt.io/market_data_streams/#orderbook-snap
+     * @see https://api-docs.grvt.io/market_data_streams/#orderbook-delta
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        if (limit === undefined) {
+            [ limit, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'limit', 100);
+        }
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
+        symbols = this.marketSymbols (symbols);
+        const rawHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            const selector = marketId + '@' + interval + '-' + limit; // 5, 10, 20, 50, 100 @ 100, 200, 500, 1000
+            rawHashes.push (selector);
+            const messageHash = 'orderbook::' + market['symbol'];
+            messageHashes.push (messageHash);
+        }
+        const request = {
+            'stream': 'v1.book.s',
+            'selectors': rawHashes,
+        };
+        const orderbook = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //    {
+        //        "stream": "v1.book.s",
+        //        "selector": "BTC_USDT_Perp@500-100",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767292408400000000",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "bids": [
+        //                {
+        //                    "price": "88107.3",
+        //                    "size": "5.322",
+        //                    "num_orders": 11
+        //                },
+        //            ],
+        //            "asks": [
+        //                {
+        //                    "price": "88107.4",
+        //                    "size": "5.273",
+        //                    "num_orders": 37
+        //                },
+        //            ]
+        //        },
+        //        "prev_sequence_number": "0"
+        //    }
+        //
+        const data = this.safeDict (message, 'feed', {});
+        const selector = this.safeString (message, 'selector');
+        const parts = selector.split ('@');
+        const marketId = this.safeString (parts, 0);
+        const market = this.safeMarket (marketId, undefined);
+        const symbol = market['symbol'];
+        const timestamp = this.safeIntegerProduct (data, 'event_time', 0.000001);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        const stream = this.safeString (message, 'stream');
+        const isSnapshot = stream === 'v1.book.s';
+        if (isSnapshot) {
+            const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
+            orderbook.reset (snapshot);
+        } else {
+            const asks = this.safeList (data, 'a', []);
+            const bids = this.safeList (data, 'b', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+        }
+        orderbook['nonce'] = this.safeInteger (message, 'sequence_number');
+        const messageHash = 'orderbook::' + symbol;
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 
     handleErrorMessage (client: Client, response): Bool {
