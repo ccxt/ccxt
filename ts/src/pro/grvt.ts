@@ -25,9 +25,13 @@ export default class grvt extends grvtRest {
                 },
             },
             'options': {
-                'watchOrderBook': {
+                'watchOrderBookForSymbols': {
                     'depth': 100, // 5, 10, 20, 50, 100
                     'interval': 500, // 100, 200, 500, 1000
+                    'channel': 'v1.book.s', // v1.book.s | v1.book.d
+                },
+                'watchTickers': {
+                    'channel': 'v1.ticker.s', // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
                 },
             },
             'streaming': {
@@ -132,18 +136,10 @@ export default class grvt extends grvtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        const channel = this.safeString (params, 'channel', 'v1.ticker.s'); // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        const interval = this.safeInteger (params, 'interval', 500);
-        const selector = marketId + '@' + interval; // raw, 50, 100, 200, 500, 1000, 5000
-        const request = {
-            'stream': channel,
-            'selectors': [ selector ],
-        };
-        const messageHash = 'ticker::' + market['symbol'];
-        return await this.subscribe (messageHash, this.extend (params, request));
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
+        return tickers[symbol];
     }
 
     /**
@@ -156,7 +152,8 @@ export default class grvt extends grvtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        const channel = this.safeString (params, 'channel', 'v1.ticker.s'); // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const rawHashes = [];
@@ -294,9 +291,9 @@ export default class grvt extends grvtRest {
 
     /**
      * @method
-     * @name ascendex#watchTradesForSymbols
+     * @name grvt#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+     * @see https://api-docs.grvt.io/market_data_streams/#trade_1
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -389,6 +386,8 @@ export default class grvt extends grvtRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -492,6 +491,8 @@ export default class grvt extends grvtRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
@@ -508,6 +509,9 @@ export default class grvt extends grvtRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'v1.book.d');
+        const isSnapshot = channel === 'v1.book.s';
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
@@ -518,19 +522,20 @@ export default class grvt extends grvtRest {
         let interval = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
         symbols = this.marketSymbols (symbols);
+        const extraPart = isSnapshot ? (interval + '-' + limit) : interval;
         const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            const selector = marketId + '@' + interval + '-' + limit; // 5, 10, 20, 50, 100 @ 100, 200, 500, 1000
+            const selector = marketId + '@' + extraPart;
             rawHashes.push (selector);
             const messageHash = 'orderbook::' + market['symbol'];
             messageHashes.push (messageHash);
         }
         const request = {
-            'stream': 'v1.book.s',
+            'stream': channel,
             'selectors': rawHashes,
         };
         const orderbook = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes);
@@ -575,20 +580,22 @@ export default class grvt extends grvtRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
+        const sequenceNumber = this.safeInteger (message, 'sequence_number');
         const stream = this.safeString (message, 'stream');
-        const isSnapshot = stream === 'v1.book.s';
-        if (isSnapshot) {
+        const isSnapshotChannel = stream === 'v1.book.s';
+        const isSnapshotMessage = sequenceNumber <= 0;
+        if (isSnapshotChannel || isSnapshotMessage) {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeList (data, 'a', []);
-            const bids = this.safeList (data, 'b', []);
-            this.handleDeltas (orderbook['asks'], asks);
-            this.handleDeltas (orderbook['bids'], bids);
+            const asks = this.safeList (data, 'asks', []);
+            const bids = this.safeList (data, 'bids', []);
+            this.handleDeltasWithKeys (orderbook['asks'], asks, 'price', 'size');
+            this.handleDeltasWithKeys (orderbook['bids'], bids, 'price', 'size');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        orderbook['nonce'] = this.safeInteger (message, 'sequence_number');
+        orderbook['nonce'] = sequenceNumber;
         const messageHash = 'orderbook::' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
