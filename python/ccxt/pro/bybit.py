@@ -2354,7 +2354,7 @@ class bybit(ccxt.async_support.bybit):
         #       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         #   }
         #
-        client.lastPong = self.safe_integer(message, 'pong')
+        client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
     def handle_authenticate(self, client: Client, message):
