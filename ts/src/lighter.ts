@@ -121,7 +121,7 @@ export default class lighter extends Exchange {
                 'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': false,
@@ -500,7 +500,7 @@ export default class lighter extends Exchange {
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
         request['trigger_price'] = this.parseToInt (Precise.stringMul (triggerPriceStr, priceScale));
-        let orders = [];
+        const orders = [];
         orders.push (this.extend (request, params));
         if (hasStopLoss || hasTakeProfit) {
             // group order
@@ -2316,16 +2316,6 @@ export default class lighter extends Exchange {
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
-        let accountIndex = undefined;
-        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'accountIndex', 'account_index');
-        if (accountIndex === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires an accountIndex parameter');
-        }
-        let apiKeyIndex = undefined;
-        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'apiKeyIndex', 'api_key_index');
-        if (apiKeyIndex === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires an apiKeyIndex parameter');
-        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2333,6 +2323,47 @@ export default class lighter extends Exchange {
         [ marginMode, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode');
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires an marginMode parameter');
+        }
+        return await this.setLeverageAndMarginMode (leverage, marginMode, symbol, params);
+    }
+
+    /**
+     * @method
+     * @name lighter#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @param {int} [params.leverage] required leverage
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires an marginMode parameter');
+        }
+        let leverage = undefined;
+        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 'leverage');
+        if (leverage === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires an leverage parameter');
+        }
+        return await this.setLeverageAndMarginMode (leverage, marginMode, symbol, params);
+    }
+
+    async setLeverageAndMarginMode (leverage: int, marginMode: string, symbol: Str = undefined, params = {}) {
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new BadRequest (this.id + ' setLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated');
+        }
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverageAndMarginMode() requires an accountIndex parameter');
+        }
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverageAndMarginMode() requires an apiKeyIndex parameter');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

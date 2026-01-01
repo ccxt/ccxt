@@ -1900,6 +1900,11 @@ export default class Exchange {
     }
 
     // eslint-disable-next-line no-unused-vars
+    lighterSignCreateGroupedOrders (signer, grouping_type, orders, nonce, api_key_index, account_index) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder (signer, request) {
         return [ undefined, undefined ];
     }
