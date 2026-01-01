@@ -77,6 +77,7 @@ export default class grvt extends grvtRest {
             'v1.mini.d': this.handleTicker,
             'v1.mini.s': this.handleTicker,
             'v1.trade': this.handleTrades,
+            'v1.candle': this.handleOHLCV,
         };
         const methodName = this.safeString (message, 'method');
         if (methodName === 'subscribe') {
@@ -90,14 +91,14 @@ export default class grvt extends grvtRest {
         }
     }
 
-    async subscribeMultiple (messageHashes: string[], request: Dict): Promise<any> {
+    async subscribeMultiple (messageHashes: string[], request: Dict, rawHashes: string[]): Promise<any> {
         const payload: Dict = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': request,
             'id': this.requestId (),
         };
-        return await this.watchMultiple (this.urls['api']['ws']['public'], messageHashes, payload, messageHashes);
+        return await this.watchMultiple (this.urls['api']['ws']['public'], messageHashes, payload, rawHashes);
     }
 
     async subscribe (messageHash: string, request: Dict): Promise<any> {
@@ -156,7 +157,7 @@ export default class grvt extends grvtRest {
         const channel = this.safeString (params, 'channel', 'v1.ticker.s'); // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const selectors = [];
+        const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -164,15 +165,15 @@ export default class grvt extends grvtRest {
             const marketId = market['id'];
             const interval = this.safeInteger (params, 'interval', 500);
             const selector = marketId + '@' + interval; // raw, 50, 100, 200, 500, 1000, 5000
-            selectors.push (selector);
+            rawHashes.push (selector);
             const messageHash = 'ticker::' + market['symbol'];
             messageHashes.push (messageHash);
         }
         const request = {
             'stream': channel,
-            'selectors': selectors,
+            'selectors': rawHashes,
         };
-        const ticker = await this.subscribeMultiple (messageHashes, this.extend (params, request));
+        const ticker = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
@@ -304,7 +305,7 @@ export default class grvt extends grvtRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const selectors = [];
+        const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -312,15 +313,15 @@ export default class grvt extends grvtRest {
             const marketId = market['id'];
             const limitRaw = this.safeInteger (params, 'limit', 50);
             const selector = marketId + '@' + limitRaw; // 50, 200, 500, 1000
-            selectors.push (selector);
+            rawHashes.push (selector);
             const messageHash = 'trade::' + market['symbol'];
             messageHashes.push (messageHash);
         }
         const request = {
             'stream': 'v1.trade',
-            'selectors': selectors,
+            'selectors': rawHashes,
         };
-        const trades = await this.subscribeMultiple (messageHashes, this.extend (params, request));
+        const trades = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -371,6 +372,110 @@ export default class grvt extends grvtRest {
     parseWsTrade (trade, market = undefined) {
         // same as REST api
         return this.parseTrade (trade, market);
+    }
+
+    /**
+     * @method
+     * @name grvt#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.grvt.io/market_data_streams/#candlestick_1
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        params['callerMethodName'] = 'watchOHLCV';
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        return result[symbol][timeframe];
+    }
+
+    /**
+     * @method
+     * @name grvt#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.grvt.io/market_data_streams/#candlestick_1
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const rawHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            const symbolString = this.safeString (data, 0);
+            const market = this.market (symbolString);
+            const marketId = market['id'];
+            const unfiedTimeframe = this.safeString (data, 1, '1');
+            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            const selector = marketId + '@' + timeframeId + '-TRADE';
+            rawHashes.push (selector);
+            messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
+        }
+        const request = {
+            'stream': 'v1.candle',
+            'selectors': rawHashes,
+        };
+        const [ symbol, timeframe, stored ] = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
+        if (this.newUpdates) {
+            limit = stored.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //    {
+        //        "stream": "v1.candle",
+        //        "selector": "BTC_USDT_Perp@CI_1_M-TRADE",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "open_time": "1767263280000000000",
+        //            "close_time": "1767263340000000000",
+        //            "open": "87799.1",
+        //            "close": "87799.1",
+        //            "high": "87799.1",
+        //            "low": "87799.1",
+        //            "volume_b": "0.0",
+        //            "volume_q": "0.0",
+        //            "trades": 0,
+        //            "instrument": "BTC_USDT_Perp"
+        //        },
+        //        "prev_sequence_number": "0"
+        //    }
+        //
+        const data = this.safeDict (message, 'feed', {});
+        const selector = this.safeString (message, 'selector');
+        const parts = selector.split ('@');
+        const marketId = this.safeString (parts, 0);
+        const market = this.safeMarket (marketId, undefined);
+        const symbol = market['symbol'];
+        const secondPart = this.safeString (parts, 1);
+        const timeframeId = secondPart.replace ('-TRADE', '');
+        const timeframe = this.findTimeframe (timeframeId);
+        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        if (!(timeframe in this.ohlcvs[symbol])) {
+            const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        const parsed = this.parseWsOHLCV (data, market);
+        stored.append (parsed);
+        const resolveData = [ symbol, timeframe, stored ];
+        client.resolve (resolveData, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+        // same as REST api
+        return this.parseOHLCV (ohlcv, market);
     }
 
     handleErrorMessage (client: Client, response): Bool {

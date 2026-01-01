@@ -846,12 +846,12 @@ export default class grvt extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
-            this.safeIntegerProduct (ohlcv, 'time', 0.001),
+            this.safeIntegerProduct (ohlcv, 'open_time', 0.001),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'volume_b'),
         ];
     }
 
