@@ -35,7 +35,7 @@ export default class lighter extends Exchange {
                 'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelOrdersForSymbols': false,
                 'closeAllPositions': false,
@@ -43,7 +43,7 @@ export default class lighter extends Exchange {
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrders': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
@@ -368,7 +368,7 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const signer = this.loadAccount (304, privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.getChainId (), privateKey, apiKeyIndex, accountIndex);
         const rs = {
             'deadline': this.seconds () + 60,
             'api_key_index': apiKeyIndex,
@@ -393,6 +393,14 @@ export default class lighter extends Exchange {
             r = Precise.stringMul (r, n);
         }
         return r;
+    }
+
+    getChainId () {
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        if (isSandboxMode) {
+            return 300;
+        }
+        return 304;
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -572,7 +580,7 @@ export default class lighter extends Exchange {
                 order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
             }
         }
-        const signer = this.loadAccount (304, this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
         let txType = undefined;
         let txInfo = undefined;
         if (orderRequests.length < 2) {
@@ -1888,7 +1896,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (304, this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
         const [ txType, txInfo ] = this.lighterSignTransfer (signer, signRaw);
         const request: Dict = {
             'tx_type': txType,
@@ -2356,12 +2364,12 @@ export default class lighter extends Exchange {
             throw new BadRequest (this.id + ' setLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated');
         }
         let accountIndex = undefined;
-        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverageAndMarginMode', 'accountIndex', 'account_index');
         if (accountIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverageAndMarginMode() requires an accountIndex parameter');
         }
         let apiKeyIndex = undefined;
-        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'apiKeyIndex', 'api_key_index');
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverageAndMarginMode', 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverageAndMarginMode() requires an apiKeyIndex parameter');
         }
@@ -2376,13 +2384,55 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (304, this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
         const [ txType, txInfo ] = this.lighterSignUpdateLeverage (signer, signRaw);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
         };
         return await this.publicPostSendTx (request);
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an accountIndex parameter');
+        }
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an apiKeyIndex parameter');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const signRaw: Dict = {
+            'market_index': this.parseToInt (market['id']),
+            'order_index': this.parseToInt (id),
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, signRaw);
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
