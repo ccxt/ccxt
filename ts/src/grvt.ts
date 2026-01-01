@@ -813,46 +813,38 @@ export default class grvt extends Exchange {
             request['start_time'] = since * 1000000;
         }
         const priceTypeMap = {
-            'last': 1,
-            'mark': 2,
-            'index': 3,
+            'last': 'TRADE',
+            'mark': 'MARK',
+            'index': 'INDEX',
+            // 'median': 'MEDIAN',
         };
         const selectedPriceType = this.safeString (params, 'priceType', 'last');
-        request['type'] = this.safeInteger (priceTypeMap, selectedPriceType, 1);
-        const response = await this.privateMarketPostFullV1TradeHistory (this.extend (request, params));
+        request['type'] = this.safeString (priceTypeMap, selectedPriceType);
+        const response = await this.privateMarketPostFullV1Kline (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            "symbol": "BTC_USDT_PERP",
-        //            "time": "1753464720000000",
-        //            "duration": "60000000",
-        //            "open": "116051.35",
-        //            "high": "116060.27",
-        //            "low": "116051.35",
-        //            "close": "116060.27",
-        //            "volume": "0.0257",
-        //            "quoteVolume": "2982.6724054"
-        //        },
-        //        ...
-        //    ]
+        //    {
+        //        "result": [
+        //            {
+        //                "open_time": "1767288240000000000",
+        //                "close_time": "1767288300000000000",
+        //                "open": "88178.8",
+        //                "close": "88176.7",
+        //                "high": "88192.7",
+        //                "low": "88176.6",
+        //                "volume_b": "15.32",
+        //                "volume_q": "1350962.4782",
+        //                "trades": 38,
+        //                "instrument": "BTC_USDT_Perp"
+        //            },
+        //        ],
+        //        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
+        //    }
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const candles = this.safeList (response, 'result', []);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        //
-        //        {
-        //            "symbol": "BTC_USDT_PERP",
-        //            "time": "1753464720000000",
-        //            "duration": "60000000",
-        //            "open": "116051.35",
-        //            "high": "116060.27",
-        //            "low": "116051.35",
-        //            "close": "116060.27",
-        //            "volume": "0.0257",
-        //            "quoteVolume": "2982.6724054"
-        //        }
-        //
         return [
             this.safeIntegerProduct (ohlcv, 'time', 0.001),
             this.safeNumber (ohlcv, 'open'),
