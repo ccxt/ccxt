@@ -430,10 +430,15 @@ export default class lighter extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
+        const isConditional = (stopLossPrice || takeProfitPrice);
         const isMarketOrder = (orderType === 'MARKET');
         const timeInForce = this.safeStringLower (params, 'timeInForce', 'gtt');
         const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'timeInForce' ]);
         let orderTypeNum = undefined;
         let timeInForceNum = undefined;
         if (isMarketOrder) {
@@ -466,6 +471,7 @@ export default class lighter extends Exchange {
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
         let triggerPriceStr = '0'; // default is 0
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isConditional) {
             if (stopLossPrice !== undefined) {
                 if (isMarketOrder) {
@@ -491,8 +497,38 @@ export default class lighter extends Exchange {
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
         request['trigger_price'] = this.parseToInt (Precise.stringMul (triggerPriceStr, priceScale));
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
-        return this.extend (request, params);
+        let orders = [];
+        orders.push (this.extend (request, params));
+        if (hasStopLoss || hasTakeProfit) {
+            // group order
+            let triggerOrderSide = '';
+            if (side === 'BUY') {
+                triggerOrderSide = 'sell';
+            } else {
+                triggerOrderSide = 'buy';
+            }
+            const stopLossOrderTriggerPrice = this.safeNumberN (stopLoss, [ 'triggerPrice', 'stopPrice' ]);
+            const stopLossOrderType = this.safeString (stopLoss, 'type', 'limit');
+            const stopLossOrderLimitPrice = this.safeNumberN (stopLoss, [ 'price', 'stopLossPrice' ], stopLossOrderTriggerPrice);
+            const takeProfitOrderTriggerPrice = this.safeNumberN (takeProfit, [ 'triggerPrice', 'stopPrice' ]);
+            const takeProfitOrderType = this.safeString (takeProfit, 'type', 'limit');
+            const takeProfitOrderLimitPrice = this.safeNumberN (takeProfit, [ 'price', 'takeProfitPrice' ], takeProfitOrderTriggerPrice);
+            if (stopLoss !== undefined) {
+                const orderObj = this.createOrderRequest (symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend (params, {
+                    'stopLossPrice': stopLossOrderTriggerPrice,
+                    'reduceOnly': true,
+                }));
+                orders.push (orderObj[0]);
+            }
+            if (takeProfit !== undefined) {
+                const orderObj = this.createOrderRequest (symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend (params, {
+                    'takeProfitPrice': takeProfitOrderTriggerPrice,
+                    'reduceOnly': true,
+                }));
+                orders.push (orderObj[0]);
+            }
+        }
+        return orders;
     }
 
     async fetchNonce (accountIndex, apiKeyIndex) {
@@ -518,12 +554,22 @@ export default class lighter extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        if (orderRequest['nonce'] === undefined) {
-            orderRequest['nonce'] = await this.fetchNonce (orderRequest['account_index'], orderRequest['api_key_index']);
+        let groupingMode = undefined;
+        [ groupingMode, params ] = this.handleOptionAndParams (params, 'createOrder', 'groupingMode', 1); // default GROUPING_TYPE_ONE_TRIGGERS_THE_OTHER
+        const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let accountIndex = undefined;
+        let apiKeyIndex = undefined;
+        let order = undefined;
+        if (orderRequests.length == 1) {
+            order = orderRequests[0];
+            accountIndex = order['account_index'];
+            apiKeyIndex = order['api_key_index'];
+            if (order['nonce'] === undefined) {
+                order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
+            }
         }
-        const signer = this.loadAccount (304, this.privateKey, orderRequest['api_key_index'], orderRequest['account_index']);
-        const [ txType, txInfo ] = this.lighterSignCreateOrder (signer, orderRequest);
+        const signer = this.loadAccount (304, this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.lighterSignCreateOrder (signer, order);
         const request = {
             'tx_type': txType,
             'tx_info': txInfo,
