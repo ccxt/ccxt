@@ -76,6 +76,7 @@ export default class grvt extends grvtRest {
             'v1.ticker.d': this.handleTicker,
             'v1.mini.d': this.handleTicker,
             'v1.mini.s': this.handleTicker,
+            'v1.trade': this.handleTrades,
         };
         const methodName = this.safeString (message, 'method');
         if (methodName === 'subscribe') {
@@ -271,6 +272,105 @@ export default class grvt extends grvtRest {
     parseWsTicker (message, market = undefined) {
         // same dict as REST api
         return this.parseTicker (message, market);
+    }
+
+    /**
+     * @method
+     * @name grvt#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://api-docs.grvt.io/market_data_streams/#trade_1
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name ascendex#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const selectors = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            const limitRaw = this.safeInteger (params, 'limit', 50);
+            const selector = marketId + '@' + limitRaw; // 50, 200, 500, 1000
+            selectors.push (selector);
+            const messageHash = 'trade::' + market['symbol'];
+            messageHashes.push (messageHash);
+        }
+        const request = {
+            'stream': 'v1.trade',
+            'selectors': selectors,
+        };
+        const trades = await this.subscribeMultiple (messageHashes, this.extend (params, request));
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //    {
+        //        "stream": "v1.trade",
+        //        "selector": "BTC_USDT_Perp@50",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767257046164798775",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "is_taker_buyer": true,
+        //            "size": "0.001",
+        //            "price": "87700.1",
+        //            "mark_price": "87700.817100682",
+        //            "index_price": "87708.566729268",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "trade_id": "73808524-19",
+        //            "venue": "ORDERBOOK",
+        //            "is_rpi": false
+        //        },
+        //        "prev_sequence_number": "0"
+        //    }
+        //
+        const data = this.safeDict (message, 'feed', {});
+        const selector = this.safeString (message, 'selector');
+        const parts = selector.split ('@');
+        const marketId = this.safeString (parts, 0);
+        const market = this.safeMarket (marketId, undefined);
+        const symbol = market['symbol'];
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache (limit);
+        }
+        const parsed = this.parseWsTrade (data);
+        const stored = this.trades[symbol];
+        stored.append (parsed);
+        client.resolve (stored, 'trade::' + symbol);
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        // same as REST api
+        return this.parseTrade (trade, market);
     }
 
     handleErrorMessage (client: Client, response): Bool {
