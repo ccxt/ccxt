@@ -466,13 +466,14 @@ export default class lighter extends Exchange {
             }
         }
         const marketInfo = this.safeDict (market, 'info');
-        const amountStr = this.amountToPrecision (symbol, amount);
+        let amountStr = undefined;
         const priceStr = this.priceToPrecision (symbol, price);
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
         let triggerPriceStr = '0'; // default is 0
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isConditional) {
+            amountStr = this.numberToString (amount);
             if (stopLossPrice !== undefined) {
                 if (isMarketOrder) {
                     orderTypeNum = 2;
@@ -488,6 +489,8 @@ export default class lighter extends Exchange {
                 }
                 triggerPriceStr = this.priceToPrecision (symbol, takeProfitPrice);
             }
+        } else {
+            amountStr = this.amountToPrecision (symbol, amount);
         }
         request['order_expiry'] = orderExpiry;
         request['order_type'] = orderTypeNum;
@@ -513,15 +516,16 @@ export default class lighter extends Exchange {
             const takeProfitOrderTriggerPrice = this.safeNumberN (takeProfit, [ 'triggerPrice', 'stopPrice' ]);
             const takeProfitOrderType = this.safeString (takeProfit, 'type', 'limit');
             const takeProfitOrderLimitPrice = this.safeNumberN (takeProfit, [ 'price', 'takeProfitPrice' ], takeProfitOrderTriggerPrice);
+            // amount should be 0 for child orders
             if (stopLoss !== undefined) {
-                const orderObj = this.createOrderRequest (symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend (params, {
+                const orderObj = this.createOrderRequest (symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend (params, {
                     'stopLossPrice': stopLossOrderTriggerPrice,
                     'reduceOnly': true,
                 }));
                 orders.push (orderObj[0]);
             }
             if (takeProfit !== undefined) {
-                const orderObj = this.createOrderRequest (symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend (params, {
+                const orderObj = this.createOrderRequest (symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend (params, {
                     'takeProfitPrice': takeProfitOrderTriggerPrice,
                     'reduceOnly': true,
                 }));
@@ -554,13 +558,13 @@ export default class lighter extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let groupingMode = undefined;
-        [ groupingMode, params ] = this.handleOptionAndParams (params, 'createOrder', 'groupingMode', 1); // default GROUPING_TYPE_ONE_TRIGGERS_THE_OTHER
+        let groupingType = undefined;
+        [ groupingType, params ] = this.handleOptionAndParams (params, 'createOrder', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
         let accountIndex = undefined;
         let apiKeyIndex = undefined;
         let order = undefined;
-        if (orderRequests.length == 1) {
+        if (orderRequests.length > 0) {
             order = orderRequests[0];
             accountIndex = order['account_index'];
             apiKeyIndex = order['api_key_index'];
@@ -569,7 +573,13 @@ export default class lighter extends Exchange {
             }
         }
         const signer = this.loadAccount (304, this.privateKey, apiKeyIndex, accountIndex);
-        const [ txType, txInfo ] = this.lighterSignCreateOrder (signer, order);
+        let txType = undefined;
+        let txInfo = undefined;
+        if (orderRequests.length < 2) {
+            [ txType, txInfo ] = this.lighterSignCreateOrder (signer, order);
+        } else {
+            [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, groupingType, orderRequests, order['nonce'], apiKeyIndex, accountIndex);
+        }
         const request = {
             'tx_type': txType,
             'tx_info': txInfo,

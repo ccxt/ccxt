@@ -101,7 +101,7 @@ except ImportError:
 
 # lighter
 import os
-from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth
+from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth, CreateOrderTxReq
 
 # -----------------------------------------------------------------------------
 
@@ -2182,6 +2182,29 @@ class Exchange(object):
         )
         return lighterSigner
 
+    def lighter_sign_create_grouped_orders(self, signer, grouping_type, orders, nonce, api_key_index, account_index):
+        arr_type = CreateOrderTxReq * len(orders)
+        orders_arr = []
+        for order in orders:
+            orders_arr.append(CreateOrderTxReq(
+                MarketIndex=int(order['market_index']),
+                ClientOrderIndex=order['client_order_index'],
+                BaseAmount=order['base_amount'],
+                Price=order['avg_execution_price'],
+                IsAsk=order['is_ask'],
+                Type=order['order_type'],
+                TimeInForce=order['time_in_force'],
+                ReduceOnly=order['reduce_only'],
+                TriggerPrice=order['trigger_price'],
+                OrderExpiry=order['order_expiry'],
+            ))
+        orders_carr = arr_type(*orders_arr)
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateGroupedOrders(
+            grouping_type, orders_carr, len(orders), nonce, api_key_index, account_index
+        ))
+        print(tx_type, tx_info, tx_hash, error)
+        return [tx_type, tx_info]
+
     def lighter_sign_create_order(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateOrder(
             int(request['market_index']),
@@ -2192,7 +2215,7 @@ class Exchange(object):
             request['order_type'],
             request['time_in_force'],
             request['reduce_only'],
-            0,  # trigger price
+            request['trigger_price'],
             request['order_expiry'],
             request['nonce'],
             request['api_key_index'],
