@@ -1297,7 +1297,7 @@ func  (this *ApexCore) HandlePong(client interface{}, message interface{}) inter
     //
     //   { pong: 1653296711335 }
     //
-    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong"))
+    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
     return message
 }
 func  (this *ApexCore) HandlePing(client interface{}, message interface{})  {
