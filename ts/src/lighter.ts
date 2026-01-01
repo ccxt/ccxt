@@ -1897,7 +1897,7 @@ export default class lighter extends Exchange {
             'account_index': accountIndex,
         };
         const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
-        const [ txType, txInfo ] = this.lighterSignTransfer (signer, signRaw);
+        const [ txType, txInfo ] = this.lighterSignTransfer (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -2385,7 +2385,7 @@ export default class lighter extends Exchange {
             'account_index': accountIndex,
         };
         const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
-        const [ txType, txInfo ] = this.lighterSignUpdateLeverage (signer, signRaw);
+        const [ txType, txInfo ] = this.lighterSignUpdateLeverage (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -2426,13 +2426,52 @@ export default class lighter extends Exchange {
             'account_index': accountIndex,
         };
         const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
-        const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, signRaw);
+        const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
         };
         const response = await this.publicPostSendTx (request);
         return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelAllOrders
+     * @description cancel all open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an accountIndex parameter');
+        }
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an apiKeyIndex parameter');
+        }
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const signRaw: Dict = {
+            'time_in_force': 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time': 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        return this.parseOrders (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
