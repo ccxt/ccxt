@@ -387,6 +387,7 @@ export default class Exchange {
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
+    exceptionMessage(exc: any, includeStack?: boolean): string;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array;

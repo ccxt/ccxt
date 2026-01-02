@@ -1275,6 +1275,11 @@ export default class Exchange {
     setProperty(obj, property, defaultValue = undefined) {
         obj[property] = defaultValue;
     }
+    exceptionMessage(exc, includeStack = true) {
+        const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
+        const length = Math.min(100000, message.length);
+        return message.slice(0, length);
+    }
     axolotl(payload, hexKey, ed25519) {
         return axolotl(payload, hexKey, ed25519);
     }

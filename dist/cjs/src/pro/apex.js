@@ -985,7 +985,7 @@ class apex extends apex$1["default"] {
             await client.send({ 'args': [timeStamp.toString()], 'op': 'pong' });
         }
         catch (e) {
-            const error = new errors.NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
+            const error = new errors.NetworkError(this.id + ' handlePing failed with error ' + this.exceptionMessage(e));
             client.reset(error);
         }
     }
