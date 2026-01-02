@@ -1401,7 +1401,7 @@ func  (this *ToobitCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                                         }
                                         ret_ = func(this *ToobitCore) interface{} {
                                             // catch block:
-                                                            err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(e)))
+                                                            err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.ExceptionMessage(e)))
                                     client.(ccxt.ClientInterface).Reject(err, messageHash)
                                     if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
                                         ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
