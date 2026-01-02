@@ -4721,6 +4721,24 @@ class gate(Exchange, ImplicitAPI):
         #
         #  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         #
+        # cancel trigger order returns timestamps in ms
+        #   id: '2007047737421336576',
+        #   id_string: '2007047737421336576',
+        #   trigger_time: '0',
+        #   trade_id: '0',
+        #   trade_id_string: '',
+        #   status: 'finished',
+        #   finish_as: 'cancelled',
+        #   reason: '',
+        #   create_time: '1767352444402496'
+        #   finish_time: '1767352509535790',
+        #   is_stop_order: False,
+        #   stop_trigger: {rule: '0', trigger_price: '', order_price: ''},
+        #   me_order_id: '0',
+        #   me_order_id_string: '',
+        #   order_type: '',
+        #   in_dual_mode: False,
+        #   parent_id: '0',
         succeeded = self.safe_bool(order, 'succeeded', True)
         if not succeeded:
             # cancelOrders response
@@ -4759,12 +4777,26 @@ class gate(Exchange, ImplicitAPI):
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
         rawStatus = self.safe_string_n(order, ['finish_as', 'status', 'open'])
-        timestamp = self.safe_integer(order, 'create_time_ms')
-        if timestamp is None:
-            timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
-        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
-        if lastTradeTimestamp is None:
-            lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
+        timestampStr = self.safe_string(order, 'create_time_ms')
+        if timestampStr is None:
+            timestampStr = self.safe_string_2(order, 'create_time', 'ctime')
+            if timestampStr is not None:
+                if len(timestampStr) == 10 or timestampStr.find('.') >= 0:
+                    # ts in seconds, multiply to ms
+                    timestampStr = Precise.string_mul(timestampStr, '1000')
+                elif len(timestampStr) == 16:
+                    # ts in microseconds, divide to ms
+                    timestampStr = Precise.string_div(timestampStr, '1000')
+        lastTradeTimestampStr = self.safe_string(order, 'update_time_ms')
+        if lastTradeTimestampStr is None:
+            lastTradeTimestampStr = self.safe_string_2(order, 'update_time', 'finish_time')
+            if lastTradeTimestampStr is not None:
+                if len(lastTradeTimestampStr) == 10 or lastTradeTimestampStr.find('.') >= 0:
+                    # ts in seconds, multiply to ms
+                    lastTradeTimestampStr = Precise.string_mul(lastTradeTimestampStr, '1000')
+                elif len(lastTradeTimestampStr) == 16:
+                    # ts in microseconds, divide to ms
+                    lastTradeTimestampStr = Precise.string_div(lastTradeTimestampStr, '1000')
         marketType = 'contract'
         if ('currency_pair' in order) or ('market' in order):
             marketType = 'spot'
@@ -4804,6 +4836,12 @@ class gate(Exchange, ImplicitAPI):
                 price = None  # arrives
                 cost = amount
                 amount = Precise.string_div(amount, averageString)
+        timestamp = None
+        lastTradeTimestamp = None
+        if timestampStr is not None:
+            timestamp = self.parse_to_int(timestampStr)
+        if lastTradeTimestampStr is not None:
+            lastTradeTimestamp = self.parse_to_int(lastTradeTimestampStr)
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'text'),
