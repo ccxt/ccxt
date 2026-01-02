@@ -47,6 +47,7 @@ async function baseTestsInit () {
     testParsePrecision ();
     testArraysConcat ();
     await testSleep ();
+    return true;
 }
 
 export default baseTestsInit;
