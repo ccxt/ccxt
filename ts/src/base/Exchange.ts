@@ -3580,6 +3580,7 @@ export default class Exchange {
             'spot': undefined,
             'margin': undefined,
             'swap': undefined,
+            'perpetual': undefined,
             'future': undefined,
             'option': undefined,
             'index': undefined,
@@ -3637,6 +3638,9 @@ export default class Exchange {
                 if (result['swap'] === undefined) {
                     result['swap'] = false;
                 }
+                if (result['perpetual'] === undefined) {
+                    result['perpetual'] = false;
+                }
                 if (result['future'] === undefined) {
                     result['future'] = false;
                 }
@@ -3646,6 +3650,12 @@ export default class Exchange {
                 if (result['index'] === undefined) {
                     result['index'] = false;
                 }
+            }
+            if (result['swap'] && result['perpetual'] === undefined) {
+                result['perpetual'] = true;
+            }
+            if (result['perpetual'] && result['swap'] === undefined) {
+                result['swap'] = true;
             }
             return result;
         }

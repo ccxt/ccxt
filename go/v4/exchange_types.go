@@ -84,6 +84,7 @@ type MarketInterface struct {
 	Spot           *bool
 	Margin         *bool
 	Swap           *bool
+	Perpetual      *bool
 	Future         *bool
 	Option         *bool
 	Contract       *bool
@@ -132,6 +133,7 @@ func NewMarketInterface(data interface{}) MarketInterface {
 		Spot:           SafeBoolTyped(m, "spot"),
 		Margin:         SafeBoolTyped(m, "margin"),
 		Swap:           SafeBoolTyped(m, "swap"),
+		Perpetual:      SafeBoolTyped(m, "perpetual"),
 		Future:         SafeBoolTyped(m, "future"),
 		Option:         SafeBoolTyped(m, "option"),
 		Contract:       SafeBoolTyped(m, "contract"),

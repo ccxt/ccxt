@@ -8,7 +8,7 @@ export type Bool = boolean | undefined;
 export type IndexType = number | string;
 export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
-export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
+export type MarketType = 'spot' | 'margin' | 'swap' | 'perpetual' | 'future' | 'option' | 'delivery' | 'index';
 export type SubType = 'linear' | 'inverse' | undefined;
 
 export interface Dictionary<T> {
@@ -67,6 +67,7 @@ export interface MarketInterface {
     spot: boolean;
     margin: boolean;
     swap: boolean;
+    perpetual: boolean;
     future: boolean;
     option: boolean;
     contract: boolean;
