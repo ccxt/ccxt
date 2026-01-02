@@ -87,6 +87,7 @@ export default class grvt extends grvtRest {
             'v1.book.s': this.handleOrderBook,
             'v1.book.d': this.handleOrderBook,
             'v1.fill': this.handleMyTrade,
+            'v1.position': this.handlePosition,
         };
         const methodName = this.safeString (message, 'method');
         if (methodName === 'subscribe') {
@@ -145,6 +146,9 @@ export default class grvt extends grvtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
+        }
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
         await this.loadMarkets ();
@@ -155,11 +159,9 @@ export default class grvt extends grvtRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            const interval = this.safeInteger (params, 'interval', 500);
-            const selector = marketId + '@' + interval; // raw, 50, 100, 200, 500, 1000, 5000
-            rawHashes.push (selector);
-            const messageHash = 'ticker::' + market['symbol'];
-            messageHashes.push (messageHash);
+            const interval = this.safeInteger (params, 'interval', 500); // raw, 50, 100, 200, 500, 1000, 5000
+            rawHashes.push (marketId + '@' + interval);
+            messageHashes.push ('ticker::' + market['symbol']);
         }
         const request = {
             'stream': channel,
@@ -303,11 +305,9 @@ export default class grvt extends grvtRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            const limitRaw = this.safeInteger (params, 'limit', 50);
-            const selector = marketId + '@' + limitRaw; // 50, 200, 500, 1000
-            rawHashes.push (selector);
-            const messageHash = 'trade::' + market['symbol'];
-            messageHashes.push (messageHash);
+            const limitRaw = this.safeInteger (params, 'limit', 50); // 50, 200, 500, 1000
+            rawHashes.push (marketId + '@' + limitRaw);
+            messageHashes.push ('trade::' + market['symbol']);
         }
         const request = {
             'stream': 'v1.trade',
@@ -408,8 +408,7 @@ export default class grvt extends grvtRest {
             const marketId = market['id'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            const selector = marketId + '@' + timeframeId + '-TRADE';
-            rawHashes.push (selector);
+            rawHashes.push (marketId + '@' + timeframeId + '-TRADE');
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
         const request = {
@@ -522,10 +521,8 @@ export default class grvt extends grvtRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            const selector = marketId + '@' + extraPart;
-            rawHashes.push (selector);
-            const messageHash = 'orderbook::' + market['symbol'];
-            messageHashes.push (messageHash);
+            rawHashes.push (marketId + '@' + extraPart);
+            messageHashes.push ('orderbook::' + market['symbol']);
         }
         const request = {
             'stream': channel,
@@ -633,16 +630,15 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        await this.authenticate ();
-        const subAccountId = this.getSubAccountId (params);
-        const messageHashes = [];
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
+        const subAccountId = this.getSubAccountId (params);
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const messageHashes = [];
         const market = this.market (symbol);
-        const messageHash = 'myTrades::' + market['symbol'];
-        messageHashes.push (messageHash);
+        messageHashes.push ('myTrades::' + market['symbol']);
         const request = {
             'stream': 'v1.fill',
             'selectors': [ subAccountId + '-' + market['id'] ],
@@ -703,6 +699,91 @@ export default class grvt extends grvtRest {
 
     parseWsMyTrade (trade, market = undefined) {
         return this.parseTrade (trade, market);
+    }
+
+    /**
+     * @method
+     * @name grvt#watchPositions
+     * @see https://api-docs.grvt.io/trading_streams/#positions
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchPositions requires a symbols argument');
+        }
+        const subAccountId = this.getSubAccountId (params);
+        await this.authenticate ();
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const rawHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            rawHashes.push (subAccountId + '-' + market['id']);
+            messageHashes.push ('position::' + market['symbol']);
+        }
+        const request = {
+            'stream': 'v1.position',
+            'selectors': rawHashes,
+        };
+        const newPositions = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes, false);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePosition (client, message) {
+        //
+        //    {
+        //        "stream": "v1.position",
+        //        "selector": "2147050003876484-BTC_USDT_Perp",
+        //        "sequence_number": "0",
+        //        "feed": {
+        //            "event_time": "1767356959482262748",
+        //            "sub_account_id": "2147050003876484",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "size": "0.001",
+        //            "notional": "89.430118",
+        //            "entry_price": "89426.4",
+        //            "exit_price": "0.0",
+        //            "mark_price": "89430.118505969",
+        //            "unrealized_pnl": "0.003718",
+        //            "realized_pnl": "0.0",
+        //            "total_pnl": "0.003718",
+        //            "roi": "0.0041",
+        //            "quote_index_price": "0.999101105",
+        //            "est_liquidation_price": "74347.153505969",
+        //            "leverage": "20.0",
+        //            "cumulative_fee": "0.040241",
+        //            "cumulative_realized_funding_payment": "0.0",
+        //            "margin_type": "CROSS"
+        //        },
+        //        "prev_sequence_number": "0"
+        //    }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const data = this.safeDict (message, 'feed');
+        const position = this.parseWsPosition (data);
+        const symbol = this.safeString (position, 'symbol');
+        this.positions.append (position);
+        const newPositions = [];
+        newPositions.push (position);
+        client.resolve (newPositions, 'positions');
+        client.resolve (newPositions, 'position::' + symbol);
+    }
+
+    parseWsPosition (position, market = undefined) {
+        // same as REST api
+        return this.parsePosition (position, market);
     }
 
     handleErrorMessage (client: Client, response): Bool {
