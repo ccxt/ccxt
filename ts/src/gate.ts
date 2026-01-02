@@ -5022,7 +5022,7 @@ export default class gate extends Exchange {
         if (timestampStr === undefined) {
             timestampStr = this.safeString2 (order, 'create_time', 'ctime');
             if (timestampStr !== undefined) {
-                if (timestampStr.length === 10) {
+                if (timestampStr.length === 10 || timestampStr.indexOf ('.') >= 0) {
                     // ts in seconds, multiply to ms
                     timestampStr = Precise.stringMul (timestampStr, '1000');
                 } else if (timestampStr.length === 16) {
@@ -5035,7 +5035,7 @@ export default class gate extends Exchange {
         if (lastTradeTimestampStr === undefined) {
             lastTradeTimestampStr = this.safeString2 (order, 'update_time', 'finish_time');
             if (lastTradeTimestampStr !== undefined) {
-                if (lastTradeTimestampStr.length === 10) {
+                if (lastTradeTimestampStr.length === 10 || lastTradeTimestampStr.indexOf ('.') >= 0) {
                     // ts in seconds, multiply to ms
                     lastTradeTimestampStr = Precise.stringMul (lastTradeTimestampStr, '1000');
                 } else if (lastTradeTimestampStr.length === 16) {

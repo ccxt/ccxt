@@ -72,9 +72,9 @@
                 "parsedResponse": {
                     "id": "2007048638370418688",
                     "clientOrderId": null,
-                    "timestamp": 1767352659205927000,
-                    "datetime": null,
-                    "lastTradeTimestamp": 1767352695612680000,
+                    "timestamp": 1767352659205,
+                    "datetime": "2026-01-02T11:17:39.205Z",
+                    "lastTradeTimestamp": 1767352695612,
                     "status": "canceled",
                     "symbol": "LTC/USDT:USDT",
                     "type": "limit",
