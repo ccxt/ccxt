@@ -481,9 +481,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "novadax":
 		itf := NewNovadax(options)
 		return itf
-	case "oceanex":
-		itf := NewOceanex(options)
-		return itf
 	case "okx":
 		itf := NewOkx(options)
 		return itf

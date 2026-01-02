@@ -357,10 +357,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		novadaxItf := NewNovadaxCore()
 		novadaxItf.Init(exchangeArgs)
 		return novadaxItf, true
-	case "oceanex":
-		oceanexItf := NewOceanexCore()
-		oceanexItf.Init(exchangeArgs)
-		return oceanexItf, true
 	case "okx":
 		okxItf := NewOkxCore()
 		okxItf.Init(exchangeArgs)
