@@ -1060,7 +1060,7 @@ class apex extends \ccxt\async\apex {
         //
         //   array( pong => 1653296711335 )
         //
-        $client->lastPong = $this->safe_integer($message, 'pong');
+        $client->lastPong = $this->safe_integer($message, 'pong', $this->milliseconds());
         return $message;
     }
 

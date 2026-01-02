@@ -2586,7 +2586,7 @@ class bybit extends \ccxt\async\bybit {
         //       "conn_id" => "d266o6hqo29sqmnq4vk0-1yus1"
         //   }
         //
-        $client->lastPong = $this->safe_integer($message, 'pong');
+        $client->lastPong = $this->safe_integer($message, 'pong', $this->milliseconds());
         return $message;
     }
 

@@ -830,10 +830,13 @@ public partial class toobit : ccxt.toobit
         object type = ((bool) isTrue((isEqual(marketType, "spot")))) ? "spot" : "contract";
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve();
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":fetchBalanceSnapshot")});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")}); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve();
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":fetchBalanceSnapshot")});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")}); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        }
     }
 
     /**
@@ -1131,9 +1134,12 @@ public partial class toobit : ccxt.toobit
             callDynamically(cache, "append", new object[] {position});
         }
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve(cache);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {cache, add(type, ":positions")});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, add(type, ":positions")});
+        }
     }
 
     public virtual void handlePositions(WebSocketClient client, object message)

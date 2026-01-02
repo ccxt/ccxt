@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.29';
+const version = '4.5.30';
 
 (Exchange as any).ccxtVersion = version
 
@@ -82,6 +82,7 @@ import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
 import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
+import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
 import coinbaseadvanced from  './src/coinbaseadvanced.js'
@@ -184,6 +185,7 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import blofinPro from  './src/pro/blofin.js'
 import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
+import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseadvancedPro from  './src/pro/coinbaseadvanced.js'
@@ -273,6 +275,7 @@ const exchanges = {
     'btcturk':                btcturk,
     'bullish':                bullish,
     'bybit':                  bybit,
+    'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
     'coinbaseadvanced':       coinbaseadvanced,
@@ -375,6 +378,7 @@ const pro = {
     'blofin':                 blofinPro,
     'bullish':                bullishPro,
     'bybit':                  bybitPro,
+    'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
     'coinbaseadvanced':       coinbaseadvancedPro,
@@ -606,6 +610,7 @@ export {
     btcturk,
     bullish,
     bybit,
+    bydfi,
     cex,
     coinbase,
     coinbaseadvanced,

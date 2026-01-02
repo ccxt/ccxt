@@ -1000,7 +1000,7 @@ class apex extends apex$1["default"] {
         //
         //   { pong: 1653296711335 }
         //
-        client.lastPong = this.safeInteger(message, 'pong');
+        client.lastPong = this.safeInteger(message, 'pong', this.milliseconds());
         return message;
     }
     handlePing(client, message) {

@@ -947,7 +947,7 @@ class apex(ccxt.async_support.apex):
         #
         #   {pong: 1653296711335}
         #
-        client.lastPong = self.safe_integer(message, 'pong')
+        client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
     def handle_ping(self, client: Client, message):
