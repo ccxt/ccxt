@@ -3124,9 +3124,9 @@ export default class ascendex extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3146,7 +3146,18 @@ export default class ascendex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
+        const response = await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "leverage": 10,
+        //             "symbol"  : "BTC-PERP"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**
@@ -3157,9 +3168,9 @@ export default class ascendex extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -3183,7 +3194,9 @@ export default class ascendex extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
-        return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
+        const response = await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
+        // {"code":0}
+        return this.parseMarginMode (response, market);
     }
 
     /**

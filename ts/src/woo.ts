@@ -3686,9 +3686,9 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const request: Dict = {
             'leverage': leverage,
@@ -3697,17 +3697,19 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        let response = undefined;
         if ((symbol === undefined) || market['spot']) {
-            return await this.v3PrivatePostSpotMarginLeverage (this.extend (request, params));
+            response = await this.v3PrivatePostSpotMarginLeverage (this.extend (request, params));
         } else if (market['swap']) {
             request['symbol'] = market['id'];
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params, 'cross');
             request['marginMode'] = this.encodeMarginMode (marginMode);
-            return await this.v3PrivatePutFuturesLeverage (this.extend (request, params));
+            response = await this.v3PrivatePutFuturesLeverage (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
         }
+        return this.parseLeverage (response, market);
     }
 
     /**

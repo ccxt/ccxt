@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Exchang
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, MarginMode } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2304,10 +2304,17 @@ export default class bitmex extends Exchange {
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
+        let marginMode = this.safeStringLower (leverage, 'marginMode');
+        if (marginMode === undefined) {
+            const isCrossMargin = this.safeBool (leverage, 'crossMargin');
+            if (isCrossMargin !== undefined) {
+                marginMode = isCrossMargin ? 'cross' : 'isolated';
+            }
+        }
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),
-            'marginMode': this.safeStringLower (leverage, 'marginMode'),
+            'marginMode': marginMode,
             'longLeverage': this.safeInteger (leverage, 'leverage'),
             'shortLeverage': this.safeInteger (leverage, 'leverage'),
         } as Leverage;
@@ -2774,9 +2781,9 @@ export default class bitmex extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2792,7 +2799,64 @@ export default class bitmex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePostPositionLeverage (this.extend (request, params));
+        const response = await this.privatePostPositionLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "account": 395724,
+        //         "avgCostPrice": 58707.0,
+        //         "avgEntryPrice": 58707.0,
+        //         "bankruptPrice": 0.0,
+        //         "breakEvenPrice": 35964.1,
+        //         "commission": 5.0E-4,
+        //         "crossMargin": true,
+        //         "currency": "USDt",
+        //         "currentComm": 0,
+        //         "currentCost": 58707000,
+        //         "currentQty": 1000,
+        //         "deleveragePercentile": 1.0,
+        //         "foreignNotional": -118.65189,
+        //         "grossOpenPremium": 0,
+        //         "homeNotional": 0.001,
+        //         "initMargin": 440200,
+        //         "initMarginReq": 0.01,
+        //         "isOpen": true,
+        //         "leverage": 100.0,
+        //         "liquidationPrice": 0.0,
+        //         "maintMargin": 299406,
+        //         "maintMarginReq": 0.005,
+        //         "markPrice": 118651.89,
+        //         "markValue": 118651890,
+        //         "openOrderBuyCost": 40000000,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderBuyQty": 1000,
+        //         "openOrderRealisedPnl": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "posComm": 0,
+        //         "posCost": 58707000,
+        //         "posCross": 0,
+        //         "posInit": 0,
+        //         "posLoss": 0,
+        //         "posMaint": 299406,
+        //         "posMargin": 299406,
+        //         "prevRealisedPnl": -10698134,
+        //         "quoteCurrency": "USDT",
+        //         "realisedCost": 0,
+        //         "realisedPnl": 0,
+        //         "rebalancedPnl": 22742986,
+        //         "riskLimit": 1000000000000,
+        //         "riskValue": 158651890,
+        //         "symbol": "XBTUSDT",
+        //         "timestamp": "2025-07-31T07:57:03.653Z",
+        //         "underlying": "XBT",
+        //         "unrealisedCost": 58707000,
+        //         "unrealisedPnl": 59944890,
+        //         "unrealisedPnlPcnt": 1.0211,
+        //         "unrealisedRoePcnt": 102.1086
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     /**
@@ -2803,9 +2867,9 @@ export default class bitmex extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -2823,7 +2887,75 @@ export default class bitmex extends Exchange {
             'symbol': market['id'],
             'enabled': enabled,
         };
-        return await this.privatePostPositionIsolate (this.extend (request, params));
+        const response = await this.privatePostPositionIsolate (this.extend (request, params));
+        //
+        //     {
+        //         "account": 395724,
+        //         "avgCostPrice": 58707.0,
+        //         "avgEntryPrice": 58707.0,
+        //         "bankruptPrice": 0.0,
+        //         "breakEvenPrice": 35964.1,
+        //         "commission": 5.0E-4,
+        //         "crossMargin": true,
+        //         "currency": "USDt",
+        //         "currentComm": 0,
+        //         "currentCost": 58707000,
+        //         "currentQty": 1000,
+        //         "deleveragePercentile": 1.0,
+        //         "foreignNotional": -118.65189,
+        //         "grossOpenPremium": 0,
+        //         "homeNotional": 0.001,
+        //         "initMargin": 440200,
+        //         "initMarginReq": 0.01,
+        //         "isOpen": true,
+        //         "leverage": 100.0,
+        //         "liquidationPrice": 0.0,
+        //         "maintMargin": 299406,
+        //         "maintMarginReq": 0.005,
+        //         "markPrice": 118651.89,
+        //         "markValue": 118651890,
+        //         "openOrderBuyCost": 40000000,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderBuyQty": 1000,
+        //         "openOrderRealisedPnl": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "posComm": 0,
+        //         "posCost": 58707000,
+        //         "posCross": 0,
+        //         "posInit": 0,
+        //         "posLoss": 0,
+        //         "posMaint": 299406,
+        //         "posMargin": 299406,
+        //         "prevRealisedPnl": -10698134,
+        //         "quoteCurrency": "USDT",
+        //         "realisedCost": 0,
+        //         "realisedPnl": 0,
+        //         "rebalancedPnl": 22742986,
+        //         "riskLimit": 1000000000000,
+        //         "riskValue": 158651890,
+        //         "symbol": "XBTUSDT",
+        //         "timestamp": "2025-07-31T07:57:03.653Z",
+        //         "underlying": "XBT",
+        //         "unrealisedCost": 58707000,
+        //         "unrealisedPnl": 59944890,
+        //         "unrealisedPnlPcnt": 1.0211,
+        //         "unrealisedRoePcnt": 102.1086
+        //     }
+        //
+        return this.parseMarginMode (response, market);
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'symbol');
+        const crossMargin = this.safeBool (marginMode, 'crossMargin', false);
+        const margin = (crossMargin) ? 'cross' : 'isolated';
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': margin,
+        } as MarginMode;
     }
 
     /**

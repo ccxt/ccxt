@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Leverage } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3110,9 +3110,9 @@ export default class bitrue extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3134,7 +3134,17 @@ export default class bitrue extends Exchange {
         } else if (market['inverse']) {
             response = await this.dapiV2PrivatePostLevelEdit (this.extend (request, params));
         }
-        return response;
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (undefined, market),
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined,
+        } as Leverage;
     }
 
     parseMarginModification (data, market = undefined): MarginModification {
@@ -3158,7 +3168,7 @@ export default class bitrue extends Exchange {
             'status': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        } as MarginModification;
     }
 
     /**
@@ -3170,7 +3180,7 @@ export default class bitrue extends Exchange {
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+     * @returns {object} a [margin modification structure]{@link https://docs.ccxt.com/#/?id=margin-modification-structure}
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();

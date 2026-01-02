@@ -1258,17 +1258,16 @@
                     }
                 },
                 "parsedResponse": {
-                    "code": "00000",
-                    "msg": "success",
-                    "requestTime": "1726958903442",
-                    "data": {
+                    "info": {
                         "symbol": "ETHUSDT_UMCBL",
                         "marginCoin": "USDT",
                         "longLeverage": "5",
                         "shortLeverage": "5",
                         "crossMarginLeverage": null,
                         "marginMode": "crossed"
-                    }
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "cross"
                 }
             }
         ],

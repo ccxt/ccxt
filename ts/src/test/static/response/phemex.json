@@ -9730,6 +9730,62 @@
                     "tag": null
                 }
             }
+        ],
+        "setMarginMode":[
+            {
+                "description": "set the margin mode",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USD:BTC",
+                    {
+                        "leverage": 20
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "",
+                        "data": "OK"
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "marginMode": null
+                }
+            }
+        ],
+        "setLeverage":[
+            {
+                "description": "set the hedged leverage",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "hedged": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "",
+                        "data": "OK"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
         ]
     }
 }

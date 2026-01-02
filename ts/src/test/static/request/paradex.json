@@ -430,6 +430,19 @@
                 "url": "https://api.testnet.paradex.trade/v1/account/margin/SOL-USD-PERP",
                 "input": [10, "SOL/USD:USDC", {"marginMode":"cross"}],
                 "output": "{\"leverage\":10,\"margin_type\":\"CROSS\"}"
+            },
+            {
+                "description": "set the leverage for an isolated symbol",
+                "method": "setLeverage",
+                "url": "https://api.prod.paradex.trade/v1/account/margin/BTC-USD-PERP",
+                "input": [
+                    10,
+                    "BTC/USD:USDC",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"leverage\":10,\"margin_type\":\"ISOLATED\"}"
             }
         ],
         "setMarginMode": [

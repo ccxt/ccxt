@@ -451,6 +451,30 @@
                     }
                 ]
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage for a symbol",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USD:USD"
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "serverTime": "2025-08-06T10:31:05.192Z"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "result": "success",
+                        "serverTime": "2025-08-06T10:31:05.192Z"
+                    },
+                    "symbol": "BTC/USD:USD",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
         ]
     }
 }

@@ -1652,6 +1652,53 @@
                     }
                 }
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode for an isolated symbol",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "isolated"
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage for a linear swap symbol",
+                "method": "setLeverage",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "symbol": "BTC-PERP",
+                        "leverage": "20"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-PERP",
+                        "leverage": "20"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "isolated",
+                    "longLeverage": 20,
+                    "shortLeverage": 20
+                }
+            }
         ]
     }
 }
