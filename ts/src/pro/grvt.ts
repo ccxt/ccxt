@@ -88,6 +88,7 @@ export default class grvt extends grvtRest {
             'v1.book.d': this.handleOrderBook,
             'v1.fill': this.handleMyTrade,
             'v1.position': this.handlePosition,
+            'v1.order': this.handleOrder,
         };
         const methodName = this.safeString (message, 'method');
         if (methodName === 'subscribe') {
@@ -630,18 +631,22 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
-        }
         const subAccountId = this.getSubAccountId (params);
         await this.loadMarkets ();
         await this.authenticate ();
         const messageHashes = [];
-        const market = this.market (symbol);
-        messageHashes.push ('myTrades::' + market['symbol']);
+        const rawHashes = [];
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            rawHashes.push (subAccountId + '-' + market['id']);
+            messageHashes.push ('myTrades::' + market['symbol']);
+        } else {
+            messageHashes.push ('myTrades');
+            rawHashes.push (subAccountId);
+        }
         const request = {
             'stream': 'v1.fill',
-            'selectors': [ subAccountId + '-' + market['id'] ],
+            'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple (messageHashes, this.extend (request, params), messageHashes, false);
         if (this.newUpdates) {
@@ -713,20 +718,22 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchPositions requires a symbols argument');
-        }
         const subAccountId = this.getSubAccountId (params);
         await this.authenticate ();
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const rawHashes = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market (symbol);
-            rawHashes.push (subAccountId + '-' + market['id']);
-            messageHashes.push ('position::' + market['symbol']);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                rawHashes.push (subAccountId + '-' + market['id']);
+                messageHashes.push ('positions::' + market['symbol']);
+            }
+        } else {
+            messageHashes.push ('positions');
+            rawHashes.push (subAccountId);
         }
         const request = {
             'stream': 'v1.position',
@@ -777,13 +784,131 @@ export default class grvt extends grvtRest {
         this.positions.append (position);
         const newPositions = [];
         newPositions.push (position);
+        client.resolve (newPositions, 'positions::' + symbol);
         client.resolve (newPositions, 'positions');
-        client.resolve (newPositions, 'position::' + symbol);
     }
 
     parseWsPosition (position, market = undefined) {
         // same as REST api
         return this.parsePosition (position, market);
+    }
+
+    /**
+     * @method
+     * @name grvt#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api-docs.grvt.io/trading_streams/#order_1-feed-selector
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const subAccountId = this.getSubAccountId (params);
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const messageHashes = [];
+        const rawHashes = [];
+        if (symbol === undefined) {
+            messageHashes.push ('orders');
+            rawHashes.push (subAccountId);
+        } else {
+            const market = this.market (symbol);
+            messageHashes.push ('order::' + market['symbol']);
+            rawHashes.push (subAccountId + '-' + market['id']);
+        }
+        const request = {
+            'stream': 'v1.order',
+            'selectors': rawHashes,
+        };
+        const orders = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes, false);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //    {
+        //        "stream": "v1.order",
+        //        "selector": "2147050003876484",
+        //        "sequence_number": "17",
+        //        "feed": {
+        //            "order_id": "0x010101050390cd89000000007799a374",
+        //            "sub_account_id": "2147050003876484",
+        //            "is_market": false,
+        //            "time_in_force": "GOOD_TILL_TIME",
+        //            "post_only": false,
+        //            "reduce_only": false,
+        //            "legs": [
+        //                {
+        //                    "instrument": "BTC_USDT_Perp",
+        //                    "size": "0.001",
+        //                    "limit_price": "87443.0",
+        //                    "is_buying_asset": true
+        //                }
+        //            ],
+        //            "signature": {
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "r": "0x4d2b96fdf384f9d8f050e3d72327813a7308969d11dba179eaec514c3427f059",
+        //                "s": "0x42717bf56091606691a569d612f302ac27e51d41df840ae217dcd0310790cd89",
+        //                "v": 28,
+        //                "expiration": "1769951360245000000",
+        //                "nonce": 747860882,
+        //                "chain_id": "0"
+        //            },
+        //            "metadata": {
+        //                "client_order_id": "747860882",
+        //                "create_time": "1767359366686762920",
+        //                "trigger": {
+        //                    "trigger_type": "UNSPECIFIED",
+        //                    "tpsl": {
+        //                        "trigger_by": "UNSPECIFIED",
+        //                        "trigger_price": "0.0",
+        //                        "close_position": false
+        //                    }
+        //                },
+        //                "broker": "UNSPECIFIED",
+        //                "is_position_transfer": false,
+        //                "allow_crossing": false
+        //            },
+        //            "state": {
+        //                "status": "OPEN",
+        //                "reject_reason": "UNSPECIFIED",
+        //                "book_size": [
+        //                    "0.001"
+        //                ],
+        //                "traded_size": [
+        //                    "0.0"
+        //                ],
+        //                "update_time": "1767359366686762920",
+        //                "avg_fill_price": [
+        //                    "0.0"
+        //                ]
+        //            },
+        //            "builder": "0x00",
+        //            "builder_fee": "0.0"
+        //        },
+        //        "prev_sequence_number": "16"
+        //    }
+        //
+        const data = this.safeDict (message, 'feed');
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const order = this.parseWsOrder (data);
+        this.orders.append (order);
+        client.resolve (this.orders, 'orders');
+        const ordersForSymbol = this.filterBySymbolSinceLimit (this.orders, order['symbol'], undefined, undefined, true);
+        client.resolve (ordersForSymbol, 'orders::' + order['symbol']);
+    }
+
+    parseWsOrder (order, market = undefined): Order {
+        // same as REST api
+        return this.parseOrder (order, market);
     }
 
     handleErrorMessage (client: Client, response): Bool {
