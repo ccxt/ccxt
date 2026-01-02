@@ -1,5 +1,6 @@
 //  ---------------------------------------------------------------------------
 
+import { time } from 'console';
 import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -4957,6 +4958,24 @@ export default class gate extends Exchange {
         //
         //  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
+        // cancel trigger order returns timestamps in ms
+        //   id: '2007047737421336576',
+        //   id_string: '2007047737421336576',
+        //   trigger_time: '0',
+        //   trade_id: '0',
+        //   trade_id_string: '',
+        //   status: 'finished',
+        //   finish_as: 'cancelled',
+        //   reason: '',
+        //   create_time: '1767352444402496'
+        //   finish_time: '1767352509535790',
+        //   is_stop_order: false,
+        //   stop_trigger: { rule: '0', trigger_price: '', order_price: '' },
+        //   me_order_id: '0',
+        //   me_order_id_string: '',
+        //   order_type: '',
+        //   in_dual_mode: false,
+        //   parent_id: '0',
         const succeeded = this.safeBool (order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
@@ -4999,13 +5018,31 @@ export default class gate extends Exchange {
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
         }
         const rawStatus = this.safeStringN (order, [ 'finish_as', 'status', 'open' ]);
-        let timestamp = this.safeInteger (order, 'create_time_ms');
-        if (timestamp === undefined) {
-            timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
+        let timestampStr = this.safeString (order, 'create_time_ms');
+        if (timestampStr === undefined) {
+            timestampStr = this.safeString2 (order, 'create_time', 'ctime');
+            if (timestampStr !== undefined) {
+                if (timestampStr.length === 10) {
+                    // ts in seconds, multiply to ms
+                    timestampStr = Precise.stringMul (timestampStr, '1000');
+                } else if (timestampStr.length === 16) {
+                    // ts in microseconds, divide to ms
+                    timestampStr = Precise.stringDiv (timestampStr, '1000');
+                }
+            }
         }
-        let lastTradeTimestamp = this.safeInteger (order, 'update_time_ms');
-        if (lastTradeTimestamp === undefined) {
-            lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
+        let lastTradeTimestampStr = this.safeString (order, 'update_time_ms');
+        if (lastTradeTimestampStr === undefined) {
+            lastTradeTimestampStr = this.safeString2 (order, 'update_time', 'finish_time');
+            if (lastTradeTimestampStr !== undefined) {
+                if (lastTradeTimestampStr.length === 10) {
+                    // ts in seconds, multiply to ms
+                    lastTradeTimestampStr = Precise.stringMul (lastTradeTimestampStr, '1000');
+                } else if (lastTradeTimestampStr.length === 16) {
+                    // ts in microseconds, divide to ms
+                    lastTradeTimestampStr = Precise.stringDiv (lastTradeTimestampStr, '1000');
+                }
+            }
         }
         let marketType = 'contract';
         if (('currency_pair' in order) || ('market' in order)) {
@@ -5051,6 +5088,14 @@ export default class gate extends Exchange {
                 cost = amount;
                 amount = Precise.stringDiv (amount, averageString);
             }
+        }
+        let timestamp = undefined;
+        let lastTradeTimestamp = undefined;
+        if (timestampStr !== undefined) {
+            timestamp = this.parseToInt (timestampStr);
+        }
+        if (lastTradeTimestampStr !== undefined) {
+            lastTradeTimestamp = this.parseToInt (lastTradeTimestampStr);
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
