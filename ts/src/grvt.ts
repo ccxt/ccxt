@@ -2687,13 +2687,12 @@ export default class grvt extends Exchange {
                 queryString = this.urlencode (query);
                 url += '?' + queryString;
             }
+        } else if (method === 'POST') {
+            body = this.json (params);
         }
         const isPrivate = api.startsWith ('private');
         if (isPrivate) {
             this.checkRequiredCredentials ();
-            if (method === 'POST') {
-                body = this.json (params);
-            }
             if (queryString !== '') {
                 path = path + '?' + queryString;
             }

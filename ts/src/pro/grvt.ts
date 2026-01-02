@@ -6,7 +6,8 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { url } from 'inspector';
 
 //  ---------------------------------------------------------------------------
 
@@ -20,7 +21,8 @@ export default class grvt extends grvtRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://market-data.grvt.io/ws/full',
+                        'publicMarket': 'wss://market-data.grvt.io/ws/full',
+                        'privateTrading': 'wss://trades.grvt.io/ws/full',
                     },
                 },
             },
@@ -84,6 +86,7 @@ export default class grvt extends grvtRest {
             'v1.candle': this.handleOHLCV,
             'v1.book.s': this.handleOrderBook,
             'v1.book.d': this.handleOrderBook,
+            'v1.fill': this.handleMyTrade,
         };
         const methodName = this.safeString (message, 'method');
         if (methodName === 'subscribe') {
@@ -97,25 +100,15 @@ export default class grvt extends grvtRest {
         }
     }
 
-    async subscribeMultiple (messageHashes: string[], request: Dict, rawHashes: string[]): Promise<any> {
+    async subscribeMultiple (messageHashes: string[], request: Dict, rawHashes: string[], publicOrPrivate = true): Promise<any> {
         const payload: Dict = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': request,
             'id': this.requestId (),
         };
-        return await this.watchMultiple (this.urls['api']['ws']['public'], messageHashes, payload, rawHashes);
-    }
-
-    async subscribe (messageHash: string, request: Dict): Promise<any> {
-        const subscriptionHash = messageHash;
-        const payload: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': request,
-            'id': this.requestId (),
-        };
-        return await this.watch (this.urls['api']['ws']['public'], messageHash, payload, subscriptionHash);
+        const apiPart = publicOrPrivate ? 'publicMarket' : 'privateTrading';
+        return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
     }
 
     requestId () {
@@ -599,6 +592,117 @@ export default class grvt extends grvtRest {
         const messageHash = 'orderbook::' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        await this.signIn ();
+        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const authenticated = this.safeString (wsOptions, 'token');
+        if (authenticated === undefined) {
+            const accountId = this.safeString (this.options, 'AuthAccountId');
+            const cookieValue = this.safeString (this.options, 'AuthCookieValue');
+            if (cookieValue === undefined || accountId === undefined) {
+                throw new AuthenticationError (this.id + ' : at first, you need to authenticate with exchange using signIn() method.');
+            }
+            const defaultOptions: Dict = {
+                'ws': {
+                    'options': {
+                        'headers': {
+                            'Cookie': cookieValue,
+                            'X-Grvt-Account-Id': accountId,
+                        },
+                    },
+                },
+            };
+            this.extendExchangeOptions (defaultOptions);
+            this.client (this.urls['api']['ws']['privateTrading']);
+        }
+    }
+
+    /**
+     * @method
+     * @name grvt#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://api-docs.grvt.io/trading_streams/#fill
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const subAccountId = this.getSubAccountId (params);
+        const messageHashes = [];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const messageHash = 'myTrades::' + market['symbol'];
+        messageHashes.push (messageHash);
+        const request = {
+            'stream': 'v1.fill',
+            'selectors': [ subAccountId + '-' + market['id'] ],
+        };
+        const trades = await this.subscribeMultiple (messageHashes, this.extend (request, params), messageHashes, false);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleMyTrade (client: Client, message) {
+        //
+        //    {
+        //        "stream": "v1.fill",
+        //        "selector": "2147050003876484-BTC_USDT_Perp",
+        //        "sequence_number": "1",
+        //        "feed": {
+        //            "event_time": "1767354369431470728",
+        //            "sub_account_id": "2147050003876484",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "is_buyer": true,
+        //            "is_taker": true,
+        //            "size": "0.001",
+        //            "price": "89473.4",
+        //            "mark_price": "89475.966335827",
+        //            "index_price": "89515.016819765",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "realized_pnl": "0.0",
+        //            "fee": "0.040263",
+        //            "fee_rate": "0.045",
+        //            "trade_id": "74150425-1",
+        //            "order_id": "0x0101010503a12f6e000000007791f1bd",
+        //            "venue": "ORDERBOOK",
+        //            "is_liquidation": false,
+        //            "client_order_id": "99191900",
+        //            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //            "broker": "UNSPECIFIED",
+        //            "is_rpi": false,
+        //            "builder": "0x00",
+        //            "builder_fee_rate": "0.0",
+        //            "builder_fee": "0"
+        //        },
+        //        "prev_sequence_number": "0"
+        //    }
+        //
+        const data = this.safeDict (message, 'feed', {});
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trade = this.parseWsMyTrade (data);
+        this.myTrades.append (trade);
+        client.resolve (this.myTrades, 'myTrades::' + trade['symbol']);
+        client.resolve (this.myTrades, 'myTrades');
+    }
+
+    parseWsMyTrade (trade, market = undefined) {
+        return this.parseTrade (trade, market);
     }
 
     handleErrorMessage (client: Client, response): Bool {
