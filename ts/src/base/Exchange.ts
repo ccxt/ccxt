@@ -1902,6 +1902,61 @@ export default class Exchange {
         return undefined;  // c# stub
     }
 
+    // eslint-disable-next-line no-unused-vars
+    loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+        return undefined;
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateGroupedOrders (signer, grouping_type, orders, nonce, api_key_index, account_index) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateOrder (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCancelOrder (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignWithdraw (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateSubAccount (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCancelAllOrders (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignTransfer (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignUpdateLeverage (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterCreateAuthToken (signer, request) {
+        return undefined;
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignUpdateMargin (signer, request) {
+        return [ undefined, undefined ];
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 

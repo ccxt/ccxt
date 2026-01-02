@@ -37,6 +37,7 @@ use StarkNet\Crypto\Curve;
 use StarkNet\Crypto\Key;
 use StarkNet\Hash;
 use StarkNet\TypedData;
+use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
@@ -421,6 +422,7 @@ class Exchange {
         'kucoinfutures',
         'latoken',
         'lbank',
+        'lighter',
         'luno',
         'mercado',
         'mexc',
@@ -1413,6 +1415,48 @@ class Exchange {
         return $this->json($signature);
     }
 
+    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
+        $lighterSigner = Signer::getInstance($path);
+
+        $url = $this->implode_hostname($this->urls['api']['public']);
+        $lighterSigner->createClient(
+            $url,
+            $privateKey,
+            $chainId,
+            $apiKeyIndex,
+            $accountIndex
+        );
+        return $lighterSigner;
+    }
+
+    public function lighter_sign_create_order($signer, $request) {
+        $result = $signer->signCreateOrder(
+            $request['market_index'],
+            $request['client_order_index'],
+            $request['base_amount'],
+            $request['avg_execution_price'],
+            $request['is_ask'],
+            $request['order_type'],
+            $request['time_in_force'],
+            $request['reduce_only'],
+            $request['trigger_price'],
+            $request['order_expiry'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function create_lighter_auth($signer, $request) {
+        $result = $signer->createAuthToken(
+            $request['deadline'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return $result;
+    }
+
     public function packb($data) {
         return MessagePack::pack($data);
     }
@@ -1520,7 +1564,14 @@ class Exchange {
             $tmp = $headers;
             $headers = array();
             foreach ($tmp as $key => $value) {
-                $headers[] = $key . ': ' . $value;
+                // handle multipart/form-data
+                if (strtolower($key) == 'content-type') {
+                    if ($value != 'multipart/form-data') {
+                        $headers[] = $key . ': ' . $value;
+                    }
+                } else {
+                    $headers[] = $key . ': ' . $value;
+                }
             }
         }
 
