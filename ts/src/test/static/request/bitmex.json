@@ -662,6 +662,16 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchPositionAutoDeLeverageRank": [
+            {
+                "description": "linear swap fetchPositionAutoDeLeverageRank",
+                "method": "fetchPositionAutoDeLeverageRank",
+                "url": "https://testnet.bitmex.com/api/v1/position",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

@@ -964,6 +964,24 @@
                   1
                 ]
             }
+        ],
+        "fetchPositionAutoDeLeverageRank": [
+            {
+                "description": "linear swap fetchPositionAutoDeLeverageRank",
+                "method": "fetchPositionAutoDeLeverageRank",
+                "url": "https://testnet-api.phemex.com/g-accounts/accountPositions?currency=USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetchPositionAutoDeLeverageRank",
+                "method": "fetchPositionAutoDeLeverageRank",
+                "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }

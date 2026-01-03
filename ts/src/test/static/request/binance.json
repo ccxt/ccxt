@@ -4007,6 +4007,26 @@
                     ]
                 ]
             }
+        ],
+        "fetchAutoDeLeverageRank": [
+            {
+                "description": "linear swap fetchAutoDeLeverageRank",
+                "method": "fetchAutoDeLeverageRank",
+                "url": "https://fapi.binance.com/fapi/v1/symbolAdlRisk?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchPositionAutoDeLeverageRank": [
+            {
+                "description": "linear swap fetch position auto de leverage rank",
+                "method": "fetchPositionAutoDeLeverageRank",
+                "url": "https://demo-fapi.binance.com/fapi/v1/adlQuantile?timestamp=1766829520899&recvWindow=10000&signature=76a1e4da69c84a85add9bbf6dae25445f0f8ba5150ffa4c4186135b317d1352d",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
