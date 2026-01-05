@@ -6577,7 +6577,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' fetchCanceledOrders() is not supported yet');
     }
 
