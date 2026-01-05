@@ -7722,6 +7722,9 @@ export default class Exchange {
             throw new NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
         }
     }
+    async loadMarketsAndSignIn() {
+        await Promise.all([this.loadMarkets(), this.signIn()]);
+    }
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method

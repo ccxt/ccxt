@@ -95,7 +95,6 @@ var modetrade = require('./src/modetrade.js');
 var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
-var oceanex = require('./src/oceanex.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
@@ -289,7 +288,6 @@ const exchanges = {
     'myokx': myokx["default"],
     'ndax': ndax["default"],
     'novadax': novadax["default"],
-    'oceanex': oceanex["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
@@ -531,7 +529,6 @@ exports.modetrade = modetrade["default"];
 exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
 exports.novadax = novadax["default"];
-exports.oceanex = oceanex["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];
