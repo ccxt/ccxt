@@ -1437,29 +1437,6 @@ class Exchange(object):
         return address_hex
 
     @staticmethod
-    def eth_get_public_key_from_private_key(private_key):
-        """
-        Derives the public key from a private key.
-        
-        Args:
-            private_key: A "0x"-prefixed hexstring private key
-            
-        Returns:
-            The corresponding public key as a "0x"-prefixed hex string (compressed)
-        """
-        # Remove "0x" prefix if present
-        clean_private_key = Exchange.remove_0x_prefix(private_key)
-        
-        # Use coincurve to get the public key
-        private_key_obj = coincurve.PrivateKey(bytes.fromhex(clean_private_key))
-        # Get compressed public key
-        public_key_bytes = private_key_obj.public_key.format(compressed=True)
-        
-        # Convert to hex and add 0x prefix
-        public_key_hex = '0x' + public_key_bytes.hex()
-        return public_key_hex
-
-    @staticmethod
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
         privateKey = get_private_key_from_eth_signature(signature)
         publicKey = private_to_stark_key(privateKey)

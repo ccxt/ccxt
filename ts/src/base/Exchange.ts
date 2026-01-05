@@ -1624,17 +1624,6 @@ export default class Exchange {
         return addressHex;
     }
 
-    ethGetPublicKeyFromPrivateKey (privateKey: string): string {
-        // Accepts a "0x"-prefixed hexstring private key and returns the corresponding public key
-        // Removes the "0x" prefix if present
-        const cleanPrivateKey = this.remove0xPrefix (privateKey);
-        // Get the public key from the private key using secp256k1 curve
-        const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
-        // Convert to "0x"-prefixed hex string
-        const publicKeyHex = '0x' + this.binaryToBase16 (publicKeyBytes);
-        return publicKeyHex;
-    }
-
     retrieveStarkAccount (signature, accountClassHash, accountProxyClassHash) {
         const privateKey = ethSigToPrivate (signature);
         const publicKey = getStarkKey (privateKey);

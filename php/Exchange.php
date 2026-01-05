@@ -1396,27 +1396,6 @@ class Exchange {
         return $address_hex;
     }
 
-    public function eth_get_public_key_from_private_key($private_key) {
-        /**
-         * Derives the public key from a private key.
-         *
-         * @param string $private_key A "0x"-prefixed hexstring private key
-         * @return string The corresponding public key as a "0x"-prefixed hex string (compressed)
-         */
-        // Remove "0x" prefix if present
-        $clean_private_key = self::remove0x_prefix($private_key);
-        
-        // Use Elliptic\EC to get the public key (secp256k1 curve)
-        $ec = new EC('secp256k1');
-        $key = $ec->keyFromPrivate($clean_private_key, 'hex');
-        
-        // Get compressed public key
-        $public_key_hex = $key->getPublic(true, 'hex');
-        
-        // Add 0x prefix
-        return '0x' . $public_key_hex;
-    }
-
     public function retrieve_stark_account($signature, $accountClassHash, $accountProxyClassHash) {
         $privateKey = Key::ethSigToPrivate($signature);
         $publicKey = Key::getStarkKey($privateKey);
