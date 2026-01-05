@@ -2227,7 +2227,7 @@ class Exchange(object):
     def lighter_sign_cancel_order(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelOrder(
             request['market_index'],
-            request['order index'],
+            request['order_index'],
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
