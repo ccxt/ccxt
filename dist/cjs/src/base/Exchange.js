@@ -5988,6 +5988,9 @@ class Exchange {
         }
         throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
     }
+    async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchCanceledOrders() is not supported yet');
+    }
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
     }
