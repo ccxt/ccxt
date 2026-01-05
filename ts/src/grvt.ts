@@ -2,14 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/grvt.js';
-import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported, OperationFailed, OperationRejected } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -19,8 +18,8 @@ import { ecdsa } from './base/functions/crypto.js';
  */
 export default class grvt extends Exchange {
     describe (): any {
-        const readTradeOthers = 40;
-        const readTradeOrders = 20;
+        const rlReadTradeOthers = 40;
+        const rlReadTradeOrders = 20;
         return this.deepExtend (super.describe (), {
             'id': 'grvt',
             'name': 'GRVT',
@@ -102,37 +101,37 @@ export default class grvt extends Exchange {
                         'full/v1/cancel_order': 5,
                         'full/v1/cancel_on_disconnect': 100,
                         'full/v1/cancel_all_orders': 50,
-                        'full/v1/order': readTradeOrders,
-                        'full/v1/order_history': readTradeOrders,
-                        'full/v1/open_orders': readTradeOrders,
-                        'full/v1/fill_history': readTradeOrders,
-                        'full/v1/positions': readTradeOrders,
-                        'full/v1/funding_payment_history': readTradeOthers,
-                        'full/v1/account_summary': readTradeOthers,
-                        'full/v1/account_history': readTradeOthers,
-                        'full/v1/aggregated_account_summary': readTradeOthers,
-                        'full/v1/funding_account_summary': readTradeOthers,
+                        'full/v1/order': rlReadTradeOrders,
+                        'full/v1/order_history': rlReadTradeOrders,
+                        'full/v1/open_orders': rlReadTradeOrders,
+                        'full/v1/fill_history': rlReadTradeOrders,
+                        'full/v1/positions': rlReadTradeOrders,
+                        'full/v1/funding_payment_history': rlReadTradeOthers,
+                        'full/v1/account_summary': rlReadTradeOthers,
+                        'full/v1/account_history': rlReadTradeOthers,
+                        'full/v1/aggregated_account_summary': rlReadTradeOthers,
+                        'full/v1/funding_account_summary': rlReadTradeOthers,
                         'full/v1/transfer': 100,
                         'full/v1/deposit_history': 100,
                         'full/v1/transfer_history': 100,
                         'full/v1/withdrawal': 100,
                         'full/v1/withdrawal_history': 100,
-                        'full/v1/add_position_margin': readTradeOthers, // addMargin
-                        'full/v1/get_position_margin_limits': readTradeOthers,
-                        'full/v1/set_position_config': readTradeOthers,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage': readTradeOthers,
-                        'full/v1/get_all_initial_leverage': readTradeOthers,
-                        'full/v1/set_derisk_mm_ratio': readTradeOthers,
-                        'full/v1/vault_burn_tokens': readTradeOthers,
-                        'full/v1/vault_invest': readTradeOthers,
-                        'full/v1/vault_investor_summary': readTradeOthers,
-                        'full/v1/vault_redeem': readTradeOthers,
-                        'full/v1/vault_redeem_cancel': readTradeOthers,
-                        'full/v1/vault_view_redemption_queue': readTradeOthers,
-                        'full/v1/vault_manager_investor_history': readTradeOthers,
-                        'full/v1/authorize_builder': readTradeOthers,
-                        'full/v1/get_authorized_builders': readTradeOthers,
-                        'full/v1/builder_fill_history': readTradeOthers,
+                        'full/v1/add_position_margin': rlReadTradeOthers, // addMargin
+                        'full/v1/get_position_margin_limits': rlReadTradeOthers,
+                        'full/v1/set_position_config': rlReadTradeOthers,  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage': rlReadTradeOthers,
+                        'full/v1/get_all_initial_leverage': rlReadTradeOthers,
+                        'full/v1/set_derisk_mm_ratio': rlReadTradeOthers,
+                        'full/v1/vault_burn_tokens': rlReadTradeOthers,
+                        'full/v1/vault_invest': rlReadTradeOthers,
+                        'full/v1/vault_investor_summary': rlReadTradeOthers,
+                        'full/v1/vault_redeem': rlReadTradeOthers,
+                        'full/v1/vault_redeem_cancel': rlReadTradeOthers,
+                        'full/v1/vault_view_redemption_queue': rlReadTradeOthers,
+                        'full/v1/vault_manager_investor_history': rlReadTradeOthers,
+                        'full/v1/authorize_builder': rlReadTradeOthers,
+                        'full/v1/get_authorized_builders': rlReadTradeOthers,
+                        'full/v1/builder_fill_history': rlReadTradeOthers,
                     },
                 },
             },
@@ -327,6 +326,10 @@ export default class grvt extends Exchange {
         };
     }
 
+    async loadMarketsAndSignIn () {
+        await Promise.all ([ this.loadMarkets (), this.signIn () ]);
+    }
+
     /**
      * @method
      * @name grvt#signIn
@@ -336,6 +339,14 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     async signIn (params = {}): Promise<{}> {
+        // expires in 24 hours as CS suggested
+        this.checkRequiredCredentials ();
+        const now = this.milliseconds ();
+        const expires = this.safeInteger (this.options, 'signInExpiration', 0);
+        // if previous sign-in not expired (give 10 seconds margin)
+        if (expires !== undefined && expires > now + 10000) {
+            return;
+        }
         const request = {
             'api_key': this.apiKey,
         };
@@ -344,13 +355,14 @@ export default class grvt extends Exchange {
         if (status !== 'success') {
             throw new AuthenticationError (this.id + ' signIn() failed: ' + this.json (response));
         }
+        this.options['signInExpiration'] = now + 86400000; // 24 hours
         return response;
     }
 
     /**
      * @method
      * @name grvt#fetchMarkets
-     * @description retrieves data on all markets for alpaca
+     * @description retrieves data on all markets
      * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
      * @param {object} [params] extra parameters specific to the exchange api endpoint
      * @returns {object[]} an array of objects representing market data
@@ -388,6 +400,29 @@ export default class grvt extends Exchange {
     }
 
     parseMarket (market): Market {
+        //
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "instrument_hash": "0x032201",
+        //                "base": "AAVE",
+        //                "quote": "USDT",
+        //                "kind": "PERPETUAL",
+        //                "venues": [
+        //                    "ORDERBOOK",
+        //                    "RFQ"
+        //                ],
+        //                "settlement_period": "PERPETUAL",
+        //                "base_decimals": "9",
+        //                "quote_decimals": "6",
+        //                "tick_size": "0.01",
+        //                "min_size": "0.1",
+        //                "create_time": "1764303867576216941",
+        //                "max_position_size": "3000.0",
+        //                "funding_interval_hours": "8",
+        //                "adjusted_funding_rate_cap": "0.75",
+        //                "adjusted_funding_rate_floor": "-0.75"
+        //            },
+        //
         const marketId = this.safeString (market, 'instrument');
         const baseId = this.safeString (market, 'base');
         const quoteId = this.safeString (market, 'quote');
@@ -484,6 +519,14 @@ export default class grvt extends Exchange {
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
+        //
+        //            {
+        //                "id": "4",
+        //                "symbol": "ETH",
+        //                "balance_decimals": "9",
+        //                "quantity_multiplier": "1000000000"
+        //            },
+        //
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         return this.safeCurrencyStructure ({
@@ -567,6 +610,36 @@ export default class grvt extends Exchange {
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //  {
+        //            "event_time": "1764774730025055205",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "92697.300078773",
+        //            "index_price": "92727.818122278",
+        //            "last_price": "92683.0",
+        //            "last_size": "0.001",
+        //            "mid_price": "92682.95",
+        //            "best_bid_price": "92682.9",
+        //            "best_bid_size": "5.332",
+        //            "best_ask_price": "92683.0",
+        //            "best_ask_size": "0.009",
+        //            "funding_rate_8h_curr": "0.0037",
+        //            "funding_rate_8h_avg": "0.0037",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "buy_volume_24h_b": "2893.898",
+        //            "sell_volume_24h_b": "2907.847",
+        //            "buy_volume_24h_q": "266955739.1606",
+        //            "sell_volume_24h_q": "268170211.7109",
+        //            "high_price": "93908.3",
+        //            "low_price": "89900.1",
+        //            "open_price": "90129.2",
+        //            "open_interest": "1523.218935908",
+        //            "long_short_ratio": "1.472543",
+        //            "funding_rate": "0.0037",
+        //            "next_funding_time": "1764777600000000000"
+        //        }
+        //
         const marketId = this.safeString (ticker, 'instrument');
         return this.safeTicker ({
             'info': ticker,
@@ -619,19 +692,11 @@ export default class grvt extends Exchange {
         //            "event_time": "1764777396650000000",
         //            "instrument": "BTC_USDT_Perp",
         //            "bids": [
-        //                {
-        //                    "price": "92336.0",
-        //                    "size": "0.005",
-        //                    "num_orders": "1"
-        //                },
+        //                { "price": "92336.0", "size": "0.005", "num_orders": "1" },
         //                ...
         //            ],
         //            "asks": [
-        //                {
-        //                    "price": "92336.1",
-        //                    "size": "5.711",
-        //                    "num_orders": "37"
-        //                },
+        //                { "price": "92336.1", "size": "5.711", "num_orders": "37" },
         //                ...
         //            ]
         //        }
@@ -844,6 +909,20 @@ export default class grvt extends Exchange {
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //            {
+        //                "open_time": "1767288240000000000",
+        //                "close_time": "1767288300000000000",
+        //                "open": "88178.8",
+        //                "close": "88176.7",
+        //                "high": "88192.7",
+        //                "low": "88176.6",
+        //                "volume_b": "15.32",
+        //                "volume_q": "1350962.4782",
+        //                "trades": 38,
+        //                "instrument": "BTC_USDT_Perp"
+        //            }
+        //
         return [
             this.safeIntegerProduct (ohlcv, 'open_time', 0.001),
             this.safeNumber (ohlcv, 'open'),
@@ -910,6 +989,16 @@ export default class grvt extends Exchange {
     }
 
     parseFundingRateHistory (rawItem: Dict, market: Market = undefined) {
+        //
+        //            {
+        //                "instrument": "BTC_USDT_Perp",
+        //                "funding_rate": "-0.0034",
+        //                "funding_time": "1760494260000000000",
+        //                "mark_price": "112721.159060304",
+        //                "funding_rate_8_h_avg": "-0.0038",
+        //                "funding_interval_hours": "0"
+        //            },
+        //
         const marketId = this.safeString (rawItem, 'instrument');
         const ts = this.safeIntegerProduct (rawItem, 'funding_time', 0.000001);
         return {
@@ -939,7 +1028,7 @@ export default class grvt extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -977,6 +1066,32 @@ export default class grvt extends Exchange {
     }
 
     parseBalance (response): Balances {
+        //
+        //        {
+        //            "event_time": "1764863116142428457",
+        //            "sub_account_id": "2147050003876484",
+        //            "margin_type": "SIMPLE_CROSS_MARGIN",
+        //            "settle_currency": "USDT",
+        //            "unrealized_pnl": "0.0",
+        //            "total_equity": "15.0",
+        //            "initial_margin": "0.0",
+        //            "maintenance_margin": "0.0",
+        //            "available_balance": "15.0",
+        //            "spot_balances": [
+        //                {
+        //                    "currency": "USDT",
+        //                    "balance": "15.0",
+        //                    "index_price": "1.000289735"
+        //                }
+        //            ],
+        //            "positions": [],
+        //            "settle_index_price": "1.000289735",
+        //            "derisk_margin": "0.0",
+        //            "derisk_to_maintenance_margin_ratio": "1.0",
+        //            "total_cross_equity": "15.0",
+        //            "cross_unrealized_pnl": "0.0"
+        //        }
+        //
         const timestamp = this.safeIntegerProduct (response, 'event_time', 0.000001);
         const result: Dict = {
             'info': response,
@@ -1009,7 +1124,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         let request: Dict = {};
         let currency = undefined;
         if (code === undefined) {
@@ -1069,7 +1184,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         let request: Dict = {};
         let currency = undefined;
         if (code === undefined) {
@@ -1222,6 +1337,14 @@ export default class grvt extends Exchange {
         //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
         //            },
         //
+        // withdraw
+        //
+        //    {
+        //        "result": {
+        //            "ack": "true"
+        //        }
+        //    }
+        //
         let direction: Str = undefined;
         let txId: Str = undefined;
         let networkCode : Str = undefined;
@@ -1284,7 +1407,7 @@ export default class grvt extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         let request: Dict = {};
         const currency = this.currency (code);
         const maxLimit = 1000;
@@ -1355,19 +1478,6 @@ export default class grvt extends Exchange {
         return [ matchedResults, nonMatchedResults ];
     }
 
-    defaultSignature () {
-        const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
-        return {
-            'signer': '',
-            'r': '',
-            's': '',
-            'v': 0,
-            'expiration': expiration.toString (),
-            'nonce': this.nonce (),
-            // 'chain_id': '325',
-        };
-    }
-
     /**
      * @method
      * @name grvt#transfer
@@ -1381,7 +1491,7 @@ export default class grvt extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         await this.loadAggregatedAccountSummary ();
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
@@ -1417,30 +1527,6 @@ export default class grvt extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         return this.parseTransfer (result, currency);
-    }
-
-    createSignedRequest (request: any, inputMessageData: any, structureType: string): Dict {
-        let messageData = undefined;
-        if (structureType === 'EIP712_TRANSFER_MESSAGE_TYPE') {
-            messageData = this.eipMessageForTransfer (request, inputMessageData);
-        } else if (structureType === 'EIP712_WITHDRAWAL_MESSAGE_TYPE') {
-            messageData = this.eipMessageForWithdrawal (request, inputMessageData);
-        } else if (structureType === 'EIP712_ORDER_MESSAGE_TYPE') {
-            messageData = this.eipMessageForOrder (request, inputMessageData);
-        } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
-            messageData = this.eipMessageForBuilderApproval (request, inputMessageData);
-        }
-        const domainData = this.eipDomainData ();
-        const definitions = this.eipDefinitions ();
-        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const privateKey = this.remove0xPrefix (this.secret);
-        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
-        request['signature']['r'] = '0x' + signature['r'];
-        request['signature']['s'] = '0x' + signature['s'];
-        request['signature']['v'] = this.sum (27, signature['v']);
-        request['signature']['signer'] = this.options['sub_account_address']; // todo: unify later, eg. str(account.address)
-        return request;
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -1517,12 +1603,13 @@ export default class grvt extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         await this.loadAggregatedAccountSummary ();
+        const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         const currency = this.currency (code);
         let request: Dict = {
             'to_eth_address': address,
-            'from_account_id': '0xbf465e6083a43b170791ea29393f601381c560be',
+            'from_account_id': defaultFromAccountId,
             'currency': currency['id'],
             'num_tokens': this.currencyToPrecision (code, amount),
             'signature': this.defaultSignature (),
@@ -1567,7 +1654,8 @@ export default class grvt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
+        await this.initializeClient ();
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
@@ -1758,18 +1846,6 @@ export default class grvt extends Exchange {
         };
     }
 
-    eipDomainData () {
-        //     GrvtEnv.DEV.value: 327,
-        //     GrvtEnv.STAGING.value: 327,
-        //     GrvtEnv.TESTNET.value: 326,
-        //     GrvtEnv.PROD.value: 325,
-        return {
-            'name': 'GRVT Exchange',
-            'version': '0',
-            'chainId': 325,
-        };
-    }
-
     /**
      * @method
      * @name grvt#fetchMyTrades
@@ -1784,7 +1860,7 @@ export default class grvt extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -1850,7 +1926,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -1899,6 +1975,27 @@ export default class grvt extends Exchange {
     }
 
     parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //            {
+        //                "event_time": "1765258069092857642",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "size": "0.001",
+        //                "notional": "89.8169",
+        //                "entry_price": "90000.0",
+        //                "exit_price": "0.0",
+        //                "mark_price": "89816.900008979",
+        //                "unrealized_pnl": "-0.183099",
+        //                "realized_pnl": "0.0",
+        //                "total_pnl": "-0.183099",
+        //                "roi": "-0.2034",
+        //                "quote_index_price": "1.00017885",
+        //                "est_liquidation_price": "77951.450008979",
+        //                "leverage": "28.0",
+        //                "cumulative_fee": "-0.00009",
+        //                "cumulative_realized_funding_payment": "0.033862"
+        //            }
+        //
         const marketId = this.safeString (position, 'instrument');
         const timestamp = this.safeIntegerProduct (position, 'event_time', 0.000001);
         const sizeRaw = this.safeString (position, 'size');
@@ -1945,7 +2042,7 @@ export default class grvt extends Exchange {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -1979,7 +2076,7 @@ export default class grvt extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
@@ -1999,19 +2096,19 @@ export default class grvt extends Exchange {
         //
         // setLeverage
         //
-        //    {
-        //        "success": true
-        //    }
+        //     {
+        //         "success": true
+        //     }
         //
         // fetchLeverages
         //
-        //            {
-        //                "instrument": "AAVE_USDT_Perp",
-        //                "leverage": "10.0",
-        //                "min_leverage": "1.0",
-        //                "max_leverage": "50.0",
-        //                "margin_type": "CROSS"
-        //            },
+        //     {
+        //         "instrument": "AAVE_USDT_Perp",
+        //         "leverage": "10.0",
+        //         "min_leverage": "1.0",
+        //         "max_leverage": "50.0",
+        //         "margin_type": "CROSS"
+        //     }
         //
         const marketId = this.safeString (leverage, 'instrument');
         const leverageValue = this.safeNumber (leverage, 'leverage');
@@ -2035,7 +2132,7 @@ export default class grvt extends Exchange {
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginModes (symbols: Str[] = undefined, params = {}): Promise<MarginModes> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -2056,6 +2153,17 @@ export default class grvt extends Exchange {
     }
 
     parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        //
+        // fetchMarginModes
+        //
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
+        //
         const marketId = this.safeString (marginMode, 'symbol');
         return {
             'info': marginMode,
@@ -2077,7 +2185,7 @@ export default class grvt extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -2118,6 +2226,16 @@ export default class grvt extends Exchange {
     }
 
     parseIncome (income, market: Market = undefined) {
+        //
+        //            {
+        //                "event_time": "1765267200004987902",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "currency": "USDT",
+        //                "amount": "-0.004522",
+        //                "tx_id": "66625184"
+        //            }
+        //
         const marketId = this.safeString (income, 'instrument');
         const currencyId = this.safeString (income, 'currency');
         const timestamp = this.safeIntegerProduct (income, 'event_time', 0.000001);
@@ -2144,7 +2262,7 @@ export default class grvt extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -2242,7 +2360,7 @@ export default class grvt extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -2322,7 +2440,7 @@ export default class grvt extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -2497,7 +2615,7 @@ export default class grvt extends Exchange {
             avgPrice = this.safeString (avgPrices, primaryOrderIndex);
         }
         const timestamp = this.safeIntegerProduct (metadata, 'create_time', 0.000001);
-        const triggerDetails = this.safeDict (metadata, 'trigger', {});
+        // const triggerDetails = this.safeDict (metadata, 'trigger', {});
         const legsLength = legs.length;
         return this.safeOrder ({
             'isMultiLeg': (legsLength > 1),
@@ -2557,7 +2675,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarketsWithSignin ();
+        await this.loadMarketsAndSignIn ();
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -2613,13 +2731,6 @@ export default class grvt extends Exchange {
         return this.parseOrder (result);
     }
 
-    async signInAndInit () {
-        await this.signIn ();
-        return;
-        // don't await the below, let it run loosely without delaying anything else
-        await this.initializeClient ();
-    }
-
     async initializeClient (params = {}) {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         if (!buildFee) {
@@ -2650,8 +2761,8 @@ export default class grvt extends Exchange {
             try {
                 const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
                 let request: Dict = {
-                    'main_account_id': defaultFromAccountId,
-                    'builder_account_id': this.safeString (this.options, 'builder', '0xbf465e6083a43b170791ea29393f601381c560be'),
+                    'main_account_id': '0x189c758ff708f90afc52659bb041a41aea6dd638',
+                    'builder_account_id': this.safeString (this.options, 'builder', '0x21d2a053495994b1132a38cd1171acec40c6741e'),
                     'max_futures_fee_rate': this.safeString (this.options, 'feeRate', '0.001'),
                     'max_spot_fee_rate': this.safeString (this.options, 'feeRate', '0.0001'),
                     'signature': this.defaultSignature (),
@@ -2671,6 +2782,58 @@ export default class grvt extends Exchange {
             }
             return true;
         }
+    }
+
+    eipDomainData () {
+        //     GrvtEnv.DEV.value: 327,
+        //     GrvtEnv.STAGING.value: 327,
+        //     GrvtEnv.TESTNET.value: 326,
+        //     GrvtEnv.PROD.value: 325,
+        return {
+            'name': 'GRVT Exchange',
+            'version': '0',
+            'chainId': 325,
+        };
+    }
+
+    createSignedRequest (request: any, inputMessageData: any, structureType: string, signerAddress = ''): Dict {
+        let messageData = undefined;
+        if (structureType === 'EIP712_TRANSFER_MESSAGE_TYPE') {
+            messageData = this.eipMessageForTransfer (request, inputMessageData);
+        } else if (structureType === 'EIP712_WITHDRAWAL_MESSAGE_TYPE') {
+            messageData = this.eipMessageForWithdrawal (request, inputMessageData);
+        } else if (structureType === 'EIP712_ORDER_MESSAGE_TYPE') {
+            messageData = this.eipMessageForOrder (request, inputMessageData);
+        } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
+            messageData = this.eipMessageForBuilderApproval (request, inputMessageData);
+        }
+        const domainData = this.eipDomainData ();
+        const definitions = this.eipDefinitions ();
+        const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
+        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
+        const privateKey = this.remove0xPrefix (this.secret);
+        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
+        request['signature']['r'] = '0x' + signature['r'];
+        request['signature']['s'] = '0x' + signature['s'];
+        request['signature']['v'] = this.sum (27, signature['v']);
+        if (signerAddress === '') {
+            signerAddress = this.options['sub_account_address']; // default to trading sub-account address. // todo: unify later, from privateKey
+        }
+        request['signature']['signer'] = signerAddress;
+        return request;
+    }
+
+    defaultSignature () {
+        const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
+        return {
+            'signer': '',
+            'r': '',
+            's': '',
+            'v': 0,
+            'expiration': expiration.toString (),
+            'nonce': this.nonce (),
+            // 'chain_id': '325',
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
