@@ -171,7 +171,6 @@ from ccxt.modetrade import modetrade                                  # noqa: F4
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
-from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
@@ -284,7 +283,6 @@ exchanges = [
     'myokx',
     'ndax',
     'novadax',
-    'oceanex',
     'okx',
     'okxus',
     'onetrading',
