@@ -12,7 +12,6 @@
  * Version is auto-detected from the XML namespace in the schema.
  */
 
-import { readFileSync } from 'fs';
 import { XMLParser } from './xml.js';
 
 interface SbeSchema {
@@ -69,11 +68,11 @@ interface SbeComposite {
 }
 
 /**
- * Parse an SBE XML schema file
+ * Parse an SBE XML schema from XML content
  * This is a minimal parser that extracts the essential information for decoding
+ * @param xml - The XML schema content as a string
  */
-export function parseSbeSchema (schemaPath: string): SbeSchema {
-    const xml = readFileSync(schemaPath, 'utf-8');
+export function parseSbeSchema (xml: string): SbeSchema {
 
     // Detect SBE version from XML namespace
     const namespaceMatch = xml.match(/xmlns:sbe="http:\/\/fixprotocol\.io\/(\d+)\/sbe"/);

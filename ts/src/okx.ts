@@ -5,7 +5,10 @@ import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { decodeSbeOrderbook, createSbeDecoder } from './base/functions/sbe.js';
+// @ts-ignore
+// import { decodeSbeOrderbook, createSbeDecoder } from './base/functions/sbe.js';
+// @ts-ignore
+// import { okxSbe10Schema } from './base/sbe-schemas/okx-sbe-1-0.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
 
@@ -2112,9 +2115,9 @@ export default class okx extends Exchange {
         } else {
             arrayBuffer = buffer;
         }
-        // Lazy load the SBE schema
+        // Use the pre-generated SBE schema
         if (!this.sbeSchema) {
-            this.loadSbeSchema ('okx_sbe_1_0.xml');
+            this.sbeSchema = okxSbe10Schema;
         }
         // Use the generic SBE decoder
         const decoded = decodeSbeOrderbook (arrayBuffer, this.sbeSchema);
@@ -6623,16 +6626,15 @@ export default class okx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    getSbeDecoder (schemaName = 'okx_sbe_1_0.xml') {
+    getSbeDecoder () {
         if (this['sbeDecoder'] === undefined) {
             try {
-                // Use loadSbeSchema from base Exchange class
-                const schema = this.loadSbeSchema (schemaName);
-                this['sbeDecoder'] = createSbeDecoder (schema);
+                // Use the pre-generated SBE schema directly
+                this['sbeDecoder'] = createSbeDecoder (okxSbe10Schema);
             } catch (e) {
-                // If schema file not found, disable SBE
+                // If schema creation fails, disable SBE
                 this.options['useSbe'] = false;
-                throw new ExchangeError (this.id + ' getSbeDecoder() failed to load SBE schema: ' + e);
+                throw new ExchangeError (this.id + ' getSbeDecoder() failed to create SBE decoder: ' + e);
             }
         }
         return this['sbeDecoder'];

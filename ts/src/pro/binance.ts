@@ -11,6 +11,12 @@ import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 import { applyExponent, mantissa128ToNumber } from '../base/functions/sbe.js';
+import { WebSocketResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/WebSocketResponse.js';
+import { DepthResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/DepthResponse.js';
+import { TradesResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/TradesResponse.js';
+import { AccountResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/AccountResponse.js';
+import { OrderResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/OrderResponse.js';
+import { OrdersResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/OrdersResponse.js';
 import Client from '../base/ws/Client.js';
 import WsClient from '../base/ws/WsClient.js';
 
@@ -225,49 +231,88 @@ export default class binance extends binanceRest {
     }
 
     /**
+     * Decodes a nested SBE message based on its template ID (Binance-specific)
+     * @param {Uint8Array} buffer - The binary SBE message
+     * @returns {object} Decoded message
+     */
+    decodeSbeNestedMessage (buffer: Uint8Array): any {
+        const templateId = this.readSbeTemplateId (buffer);
+
+        if (this.verbose) {
+            this.log ('decodeSbeNestedMessage: templateId:', templateId, 'buffer length:', buffer.byteLength);
+        }
+
+        // Create an ArrayBuffer from the Uint8Array for the decoder
+        const arrayBuffer = buffer.buffer.slice (buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+
+        // Decode based on template ID
+        // Skip the 8-byte message header when decoding the message body
+        const messageOffset = 8;
+
+        try {
+            switch (templateId) {
+                case 200: // DepthResponse
+                    return new DepthResponseDecoder ().decode (arrayBuffer, messageOffset);
+                case 201: // TradesResponse
+                    return new TradesResponseDecoder ().decode (arrayBuffer, messageOffset);
+                case 400: // AccountResponse
+                    return new AccountResponseDecoder ().decode (arrayBuffer, messageOffset);
+                case 403: // OrderResponse
+                    return new OrderResponseDecoder ().decode (arrayBuffer, messageOffset);
+                case 404: // OrdersResponse
+                    return new OrdersResponseDecoder ().decode (arrayBuffer, messageOffset);
+                default:
+                    if (this.verbose) {
+                        this.log ('decodeSbeNestedMessage: unknown template ID:', templateId);
+                    }
+                    return buffer; // Return raw buffer for unknown messages
+            }
+        } catch (e) {
+            if (this.verbose) {
+                this.log ('decodeSbeNestedMessage: error decoding templateId', templateId, ':', e);
+            }
+            return buffer; // Return raw buffer on error
+        }
+    }
+
+    /**
      * Decodes SBE-encoded WebSocket messages
      * @param {ArrayBuffer} buffer - The binary SBE message
      * @returns {object} Decoded message as JSON-compatible object
      */
     decodeSbeWebSocketMessage (buffer: ArrayBuffer): any {
         try {
-            const decoder = (this as any).getSbeDecoder ();
-            const decoded = decoder.decode (buffer);
+            // Use new generated WebSocketResponseDecoder
+            const decoder = new WebSocketResponseDecoder ();
+            const decoded = decoder.decode (buffer, 0);
+
             if (this.verbose) {
-                this.log ('decodeSbeWebSocketMessage: decoded WebSocketResponse', Object.keys (decoded));
+                this.log ('decodeSbeWebSocketMessage: decoded WebSocketResponse, status:', decoded.status);
             }
+
             // The WebSocketResponse envelope contains: id, status, rateLimits, result
-            // The result field is of type messageData and contains another nested SBE message
-            // We need to decode it separately
-            const result = this.safeValue (decoded, 'result');
-            if (result !== undefined && (result instanceof ArrayBuffer || ArrayBuffer.isView (result) || (result && (result as any).byteLength !== undefined))) {
-                // Result is binary data that needs to be decoded
-                const resultBuffer = result instanceof ArrayBuffer ? result : (result as any).buffer;
-                try {
-                    const decodedResult = decoder.decode (resultBuffer);
-                    decoded['result'] = decodedResult;
-                    if (this.verbose) {
-                        this.log ('decodeSbeWebSocketMessage: decoded nested result', Object.keys (decodedResult));
-                    }
-                } catch (e) {
-                    if (this.verbose) {
-                        this.log ('decodeSbeWebSocketMessage: failed to decode nested result', e);
-                    }
-                    // Keep the original result if decoding fails
+            // The result field is of type messageData (Uint8Array) and contains another nested SBE message
+            // Decode nested result based on message template ID from the nested message header
+            let decodedResult: any = decoded.result;
+
+            if (decoded.result && decoded.result.byteLength > 0) {
+                // Result is binary data that needs to be decoded based on template ID
+                decodedResult = this.decodeSbeNestedMessage (decoded.result);
+
+                if (this.verbose) {
+                    this.log ('decodeSbeWebSocketMessage: decoded nested result type:', decodedResult.constructor?.name);
                 }
             }
+
+            // Convert Uint8Array ID to string
+            const idString = new TextDecoder ().decode (decoded.id);
+
             // Clean up the decoded structure to match expected JSON format
-            // Remove SBE metadata fields and keep only the API-relevant fields
-            const rawStatus = this.safeInteger (decoded, 'status');
-            // Fix endianness issue: status is stored as big-endian but read as little-endian
-            // 51200 (0xC800) should be 200 (0x00C8)
-            // eslint-disable-next-line no-bitwise
-            const status = rawStatus > 1000 ? ((rawStatus >> 8) | ((rawStatus & 0xFF) << 8)) : rawStatus;
             const cleanMessage: any = {
-                'id': this.safeString (decoded, 'id'),
-                'status': status,
-                'result': this.safeValue (decoded, 'result'),
-                'rateLimits': this.safeList (decoded, 'rateLimits', []),
+                'id': idString,
+                'status': decoded.status,
+                'result': decodedResult,
+                'rateLimits': decoded.rateLimits,
             };
             return cleanMessage;
         } catch (e) {

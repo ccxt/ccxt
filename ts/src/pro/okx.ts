@@ -6,6 +6,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, Authentica
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { createSbeDecoder } from '../base/functions/sbe.js';
+import { okxSbe10Schema } from '../base/sbe-schemas/okx-sbe-1-0.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -2537,14 +2538,14 @@ export default class okx extends okxRest {
         }
     }
 
-    getSbeWsDecoder (schemaName = 'okx_sbe_1_0.xml') {
+    getSbeWsDecoder () {
         if (this['sbeWsDecoder'] === undefined) {
             try {
-                const schema = this.loadSbeSchema (schemaName);
-                this['sbeWsDecoder'] = createSbeDecoder (schema);
+                // Use the pre-generated SBE schema directly
+                this['sbeWsDecoder'] = createSbeDecoder (okxSbe10Schema);
             } catch (e) {
                 this.options['useSbe'] = false;
-                throw new ExchangeError (this.id + ' getSbeWsDecoder() failed to load SBE schema: ' + e);
+                throw new ExchangeError (this.id + ' getSbeWsDecoder() failed to create SBE decoder: ' + e);
             }
         }
         return this['sbeWsDecoder'];
