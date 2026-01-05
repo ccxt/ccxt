@@ -9970,6 +9970,18 @@ func (this *Exchange) FetchPositionHistory(symbol interface{}, optionalArgs ...i
 	}()
 	return ch
 }
+func (this *Exchange) LoadMarketsAndSignIn() <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+
+		retRes84268 := (<-promiseAll([]interface{}{this.LoadMarkets(), this.SignIn()}))
+		PanicOnError(retRes84268)
+		return nil
+	}()
+	return ch
+}
 func (this *Exchange) FetchPositionsHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 	go func() interface{} {
