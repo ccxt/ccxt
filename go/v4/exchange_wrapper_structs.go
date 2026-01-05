@@ -2988,6 +2988,39 @@ func WithFetchClosedOrdersParams(params map[string]interface{}) FetchClosedOrder
 	}
 }
 
+type FetchCanceledOrdersOptionsStruct struct {
+	Symbol *string
+	Since  *int64
+	Limit  *int64
+	Params *map[string]interface{}
+}
+
+type FetchCanceledOrdersOptions func(opts *FetchCanceledOrdersOptionsStruct)
+
+func WithFetchCanceledOrdersSymbol(symbol string) FetchCanceledOrdersOptions {
+	return func(opts *FetchCanceledOrdersOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithFetchCanceledOrdersSince(since int64) FetchCanceledOrdersOptions {
+	return func(opts *FetchCanceledOrdersOptionsStruct) {
+		opts.Since = &since
+	}
+}
+
+func WithFetchCanceledOrdersLimit(limit int64) FetchCanceledOrdersOptions {
+	return func(opts *FetchCanceledOrdersOptionsStruct) {
+		opts.Limit = &limit
+	}
+}
+
+func WithFetchCanceledOrdersParams(params map[string]interface{}) FetchCanceledOrdersOptions {
+	return func(opts *FetchCanceledOrdersOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchCanceledAndClosedOrdersOptionsStruct struct {
 	Symbol *string
 	Since  *int64
@@ -4611,39 +4644,6 @@ func WithEditContractOrderPrice(price float64) EditContractOrderOptions {
 
 func WithEditContractOrderParams(params map[string]interface{}) EditContractOrderOptions {
 	return func(opts *EditContractOrderOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchCanceledOrdersOptionsStruct struct {
-	Symbol *string
-	Since  *int64
-	Limit  *int64
-	Params *map[string]interface{}
-}
-
-type FetchCanceledOrdersOptions func(opts *FetchCanceledOrdersOptionsStruct)
-
-func WithFetchCanceledOrdersSymbol(symbol string) FetchCanceledOrdersOptions {
-	return func(opts *FetchCanceledOrdersOptionsStruct) {
-		opts.Symbol = &symbol
-	}
-}
-
-func WithFetchCanceledOrdersSince(since int64) FetchCanceledOrdersOptions {
-	return func(opts *FetchCanceledOrdersOptionsStruct) {
-		opts.Since = &since
-	}
-}
-
-func WithFetchCanceledOrdersLimit(limit int64) FetchCanceledOrdersOptions {
-	return func(opts *FetchCanceledOrdersOptionsStruct) {
-		opts.Limit = &limit
-	}
-}
-
-func WithFetchCanceledOrdersParams(params map[string]interface{}) FetchCanceledOrdersOptions {
-	return func(opts *FetchCanceledOrdersOptionsStruct) {
 		opts.Params = &params
 	}
 }
