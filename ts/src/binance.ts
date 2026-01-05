@@ -10,7 +10,6 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { applyExponent } from './base/functions/sbe.js';
 import { TradesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TradesResponse.js';
 import { BookTickerResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/BookTickerResponse.js';
 import { BookTickerSymbolResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/BookTickerSymbolResponse.js';
@@ -1325,7 +1324,7 @@ export default class binance extends Exchange {
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'useSbe': true, // use SBE (Simple Binary Encoding) for spot API when available
                 'sbeSchemaId': 3, // Binance SBE schema ID
-                'sbeSchemaVersion': 2, // Binance SBE schema version (updated to match spot_3_2.xml)
+                'sbeSchemaVersion': 1, // Binance SBE schema version (spot_3_1 for prod, spot_3_2 for testnet)
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
@@ -4072,10 +4071,10 @@ export default class binance extends Exchange {
             const bids = this.safeList (response, 'bids', response);
             const asks = this.safeList (response, 'asks', response);
             for (let i = 0; i < bids.length; i++) {
-                bids[i] = [ applyExponent (bids[i]['price'], priceExponent), applyExponent (bids[i]['qty'], qtyExponent) ];
+                bids[i] = [ this.applyExponent (bids[i]['price'], priceExponent), this.applyExponent (bids[i]['qty'], qtyExponent) ];
             }
             for (let i = 0; i < asks.length; i++) {
-                asks[i] = [ applyExponent (asks[i]['price'], priceExponent), applyExponent (asks[i]['qty'], qtyExponent) ];
+                asks[i] = [ this.applyExponent (asks[i]['price'], priceExponent), this.applyExponent (asks[i]['qty'], qtyExponent) ];
             }
             response['bids'] = bids;
             response['asks'] = asks;
@@ -5092,9 +5091,9 @@ export default class binance extends Exchange {
         for (let i = 0; i < decoded.trades.length; i++) {
             const trade = decoded.trades[i];
             // Convert mantissa to decimal using exponents
-            const price = applyExponent (Number (trade.price), priceExponent);
-            const qty = applyExponent (Number (trade.qty), qtyExponent);
-            const quoteQty = applyExponent (Number (trade.quoteQty), priceExponent);
+            const price = this.applyExponent (Number (trade.price), priceExponent);
+            const qty = this.applyExponent (Number (trade.qty), qtyExponent);
+            const quoteQty = this.applyExponent (Number (trade.quoteQty), priceExponent);
             const timestamp = Math.floor (Number (trade.time) / 1000); // microseconds to milliseconds
             normalizedTrades.push ({
                 'id': String (trade.id),
@@ -5172,10 +5171,10 @@ export default class binance extends Exchange {
             const ticker = tickers[i];
             const tickerPriceExp = ticker.priceExponent !== undefined ? ticker.priceExponent : priceExponent;
             const tickerQtyExp = ticker.qtyExponent !== undefined ? ticker.qtyExponent : qtyExponent;
-            const bidPrice = applyExponent (Number (ticker.bidPrice), tickerPriceExp);
-            const bidQty = applyExponent (Number (ticker.bidQty), tickerQtyExp);
-            const askPrice = applyExponent (Number (ticker.askPrice), tickerPriceExp);
-            const askQty = applyExponent (Number (ticker.askQty), tickerQtyExp);
+            const bidPrice = this.applyExponent (Number (ticker.bidPrice), tickerPriceExp);
+            const bidQty = this.applyExponent (Number (ticker.bidQty), tickerQtyExp);
+            const askPrice = this.applyExponent (Number (ticker.askPrice), tickerPriceExp);
+            const askQty = this.applyExponent (Number (ticker.askQty), tickerQtyExp);
             normalizedTickers.push ({
                 'symbol': this.safeString (ticker, 'symbol'),
                 'bidPrice': String (bidPrice),
@@ -5291,10 +5290,10 @@ export default class binance extends Exchange {
                 const normalizedTrades = [];
                 for (let i = 0; i < sbeTradesArray.length; i++) {
                     const trade = sbeTradesArray[i];
-                    const price = applyExponent (trade.price, priceExponent);
-                    const qty = applyExponent (trade.qty, qtyExponent);
-                    const quoteQty = applyExponent (trade.quoteQty, priceExponent);
-                    const timestamp = Math.floor (Number(trade.time) / 1000); // microseconds to milliseconds
+                    const price = this.applyExponent (trade.price, priceExponent);
+                    const qty = this.applyExponent (trade.qty, qtyExponent);
+                    const quoteQty = this.applyExponent (trade.quoteQty, priceExponent);
+                    const timestamp = Math.floor (Number (trade.time) / 1000); // microseconds to milliseconds
                     normalizedTrades.push ({
                         'id': String (trade.id),
                         'price': String (price),
@@ -12196,12 +12195,12 @@ export default class binance extends Exchange {
         // This method returns a mock decoder object to indicate SBE is supported
         if (this['sbeDecoder'] === undefined) {
             this['sbeDecoder'] = {
-                supported: true,
-                decoders: {
-                    trades: TradesResponseDecoder,
-                    bookTicker: BookTickerResponseDecoder,
-                    bookTickerSymbol: BookTickerSymbolResponseDecoder,
-                    depth: DepthResponseDecoder,
+                'supported': true,
+                'decoders': {
+                    'trades': TradesResponseDecoder,
+                    'bookTicker': BookTickerResponseDecoder,
+                    'bookTickerSymbol': BookTickerSymbolResponseDecoder,
+                    'depth': DepthResponseDecoder,
                 },
             };
         }
@@ -12228,39 +12227,34 @@ export default class binance extends Exchange {
             // Route to appropriate decoder based on template ID
             // SBE messages have an 8-byte header, message body starts at offset 8
             const messageBodyOffset = 8;
-            switch (templateId) {
-            case 100: // ErrorResponse
+            if (templateId === 100) { // ErrorResponse
                 decoded = new ErrorResponseDecoder ().decode (buffer, messageBodyOffset);
                 // Convert error response to an exception
                 const errorMsg = new TextDecoder ().decode (decoded.msg);
                 throw new ExchangeError (this.id + ' SBE error response: code=' + decoded.code + ', msg=' + errorMsg);
-            case 103: // ExchangeInfoResponse
+            } else if (templateId === 103) { // ExchangeInfoResponse
                 decoded = new ExchangeInfoResponseDecoder ().decode (buffer, messageBodyOffset);
-                break;
-            case 200: // DepthResponse
+            } else if (templateId === 200) { // DepthResponse
                 decoded = new DepthResponseDecoder ().decode (buffer, messageBodyOffset);
-                break;
-            case 201: // TradesResponse
+            } else if (templateId === 201) { // TradesResponse
                 decoded = new TradesResponseDecoder ().decode (buffer, messageBodyOffset);
-                break;
-            case 211: // BookTickerSymbolResponse
+            } else if (templateId === 211) { // BookTickerSymbolResponse
                 decoded = new BookTickerSymbolResponseDecoder ().decode (buffer, messageBodyOffset);
-                break;
-            case 212: // BookTickerResponse
+            } else if (templateId === 212) { // BookTickerResponse
                 decoded = new BookTickerResponseDecoder ().decode (buffer, messageBodyOffset);
-                break;
-            default:
+            } else {
                 throw new NotSupported (this.id + ' decodeSbeResponse() unknown template ID: ' + templateId + ' for endpoint: ' + endpoint);
             }
             if (this.verbose) {
                 this.log ('decodeSbeResponse: Successfully decoded SBE message');
-                this.log ('decodeSbeResponse: Message type:', decoded.constructor?.name || typeof decoded);
+                const decodedType = (decoded && decoded.constructor) ? decoded.constructor.name : typeof decoded;
+                this.log ('decodeSbeResponse: Message type:', decodedType);
                 if (decoded && typeof decoded === 'object') {
                     const allKeys = Object.keys (decoded);
                     this.log ('decodeSbeResponse: Message keys (total ' + allKeys.length + '):', allKeys);
                     // Show decoded object structure for debugging
                     if (allKeys.length <= 20) {
-                        this.log ('decodeSbeResponse: Full decoded object:', JSON.stringify (decoded, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2).substring (0, 1000));
+                        this.log ('decodeSbeResponse: Full decoded object:', JSON.stringify (decoded, null, 2).substring (0, 1000));
                     }
                 }
             }
@@ -12289,19 +12283,18 @@ export default class binance extends Exchange {
                 if (this.verbose) {
                     this.log ('handleRestResponse: Detected SBE response, calling arrayBuffer()');
                 }
-                return response.arrayBuffer ().then ((responseBuffer) => {
-                    if (this.enableLastResponseHeaders) {
-                        this.last_response_headers = responseHeaders;
-                    }
-                    if (this.enableLastHttpResponse) {
-                        this.last_http_response = responseBuffer;
-                    }
-                    if (this.verbose) {
-                        this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', responseBuffer.byteLength, '\n');
-                    }
-                    // Automatically decode SBE response based on endpoint
-                    return this.decodeSbeResponse (responseBuffer, url);
-                });
+                const responseBuffer = response.arrayBuffer ();
+                if (this.enableLastResponseHeaders) {
+                    this.last_response_headers = responseHeaders;
+                }
+                if (this.enableLastHttpResponse) {
+                    this.last_http_response = responseBuffer;
+                }
+                if (this.verbose) {
+                    this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', responseBuffer.byteLength, '\n');
+                }
+                // Automatically decode SBE response based on endpoint
+                return this.decodeSbeResponse (responseBuffer, url);
             }
         }
         // Fallback to parent implementation
@@ -12311,18 +12304,26 @@ export default class binance extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // Check for SBE (Simple Binary Encoding) parameters in params or exchange options
         // Params take precedence over exchange options
-        let useSbe;
-        let sbeSchemaId;
-        let sbeSchemaVersion;
-        [ useSbe, params ] = this.handleOptionAndParams (params, 'sign', 'useSbe', false);
-        [ sbeSchemaId, params ] = this.handleOptionAndParams (params, 'sign', 'sbeSchemaId', 3);
-        [ sbeSchemaVersion, params ] = this.handleOptionAndParams (params, 'sign', 'sbeSchemaVersion', 1);
+        let result = this.handleOptionAndParams (params, 'sign', 'useSbe', false);
+        const useSbe = result[0];
+        params = result[1];
+        result = this.handleOptionAndParams (params, 'sign', 'sbeSchemaId', 3);
+        const sbeSchemaId = result[0];
+        params = result[1];
+        result = this.handleOptionAndParams (params, 'sign', 'sbeSchemaVersion', 1);
+        let sbeSchemaVersion = result[0];
+        params = result[1];
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
         let url = this.urls['api'][api];
         url += '/' + path;
+        // Adjust SBE schema version based on environment (prod vs testnet)
+        // Production uses spot_3_1 (version 1), Testnet uses spot_3_2 (version 2)
+        if (url.indexOf ('testnet.binance.vision') > -1) {
+            sbeSchemaVersion = 2; // Use spot_3_2 for testnet
+        }
         if (path === 'historicalTrades') {
             if (this.apiKey) {
                 headers = {

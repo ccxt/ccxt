@@ -10,13 +10,12 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
-import { applyExponent, mantissa128ToNumber } from '../base/functions/sbe.js';
-import { WebSocketResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/WebSocketResponse.js';
-import { DepthResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/DepthResponse.js';
-import { TradesResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/TradesResponse.js';
-import { AccountResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/AccountResponse.js';
-import { OrderResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/OrderResponse.js';
-import { OrdersResponseDecoder } from '../../../sbe/binance/generated/spot_sbe/OrdersResponse.js';
+import { WebSocketResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketResponse.js';
+import { DepthResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/DepthResponse.js';
+import { TradesResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TradesResponse.js';
+import { AccountResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountResponse.js';
+import { OrderResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderResponse.js';
+import { OrdersResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrdersResponse.js';
 import Client from '../base/ws/Client.js';
 import WsClient from '../base/ws/WsClient.js';
 
@@ -237,35 +236,30 @@ export default class binance extends binanceRest {
      */
     decodeSbeNestedMessage (buffer: Uint8Array): any {
         const templateId = this.readSbeTemplateId (buffer);
-
         if (this.verbose) {
             this.log ('decodeSbeNestedMessage: templateId:', templateId, 'buffer length:', buffer.byteLength);
         }
-
         // Create an ArrayBuffer from the Uint8Array for the decoder
         const arrayBuffer = buffer.buffer.slice (buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-
         // Decode based on template ID
         // Skip the 8-byte message header when decoding the message body
         const messageOffset = 8;
-
         try {
-            switch (templateId) {
-                case 200: // DepthResponse
-                    return new DepthResponseDecoder ().decode (arrayBuffer, messageOffset);
-                case 201: // TradesResponse
-                    return new TradesResponseDecoder ().decode (arrayBuffer, messageOffset);
-                case 400: // AccountResponse
-                    return new AccountResponseDecoder ().decode (arrayBuffer, messageOffset);
-                case 403: // OrderResponse
-                    return new OrderResponseDecoder ().decode (arrayBuffer, messageOffset);
-                case 404: // OrdersResponse
-                    return new OrdersResponseDecoder ().decode (arrayBuffer, messageOffset);
-                default:
-                    if (this.verbose) {
-                        this.log ('decodeSbeNestedMessage: unknown template ID:', templateId);
-                    }
-                    return buffer; // Return raw buffer for unknown messages
+            if (templateId === 200) { // DepthResponse
+                return new DepthResponseDecoder ().decode (arrayBuffer, messageOffset);
+            } else if (templateId === 201) { // TradesResponse
+                return new TradesResponseDecoder ().decode (arrayBuffer, messageOffset);
+            } else if (templateId === 400) { // AccountResponse
+                return new AccountResponseDecoder ().decode (arrayBuffer, messageOffset);
+            } else if (templateId === 403) { // OrderResponse
+                return new OrderResponseDecoder ().decode (arrayBuffer, messageOffset);
+            } else if (templateId === 404) { // OrdersResponse
+                return new OrdersResponseDecoder ().decode (arrayBuffer, messageOffset);
+            } else {
+                if (this.verbose) {
+                    this.log ('decodeSbeNestedMessage: unknown template ID:', templateId);
+                }
+                return buffer; // Return raw buffer for unknown messages
             }
         } catch (e) {
             if (this.verbose) {
@@ -285,28 +279,23 @@ export default class binance extends binanceRest {
             // Use new generated WebSocketResponseDecoder
             const decoder = new WebSocketResponseDecoder ();
             const decoded = decoder.decode (buffer, 0);
-
             if (this.verbose) {
                 this.log ('decodeSbeWebSocketMessage: decoded WebSocketResponse, status:', decoded.status);
             }
-
             // The WebSocketResponse envelope contains: id, status, rateLimits, result
             // The result field is of type messageData (Uint8Array) and contains another nested SBE message
             // Decode nested result based on message template ID from the nested message header
             let decodedResult: any = decoded.result;
-
             if (decoded.result && decoded.result.byteLength > 0) {
                 // Result is binary data that needs to be decoded based on template ID
                 decodedResult = this.decodeSbeNestedMessage (decoded.result);
-
                 if (this.verbose) {
-                    this.log ('decodeSbeWebSocketMessage: decoded nested result type:', decodedResult.constructor?.name);
+                    const resultType = (decodedResult && decodedResult.constructor) ? decodedResult.constructor.name : 'unknown';
+                    this.log ('decodeSbeWebSocketMessage: decoded nested result type:', resultType);
                 }
             }
-
             // Convert Uint8Array ID to string
             const idString = new TextDecoder ().decode (decoded.id);
-
             // Clean up the decoded structure to match expected JSON format
             const cleanMessage: any = {
                 'id': idString,
@@ -1035,16 +1024,16 @@ export default class binance extends binanceRest {
             const bidsArray = this.safeList (result, 'bids', []);
             for (let i = 0; i < bidsArray.length; i++) {
                 const bid = bidsArray[i];
-                const price = applyExponent (this.safeInteger (bid, 'price', 0), priceExponent);
-                const qty = applyExponent (this.safeInteger (bid, 'qty', 0), qtyExponent);
+                const price = this.applyExponent (this.safeInteger (bid, 'price', 0), priceExponent);
+                const qty = this.applyExponent (this.safeInteger (bid, 'qty', 0), qtyExponent);
                 normalized['bids'].push ([ String (price), String (qty) ]);
             }
             // Convert asks
             const asksArray = this.safeList (result, 'asks', []);
             for (let i = 0; i < asksArray.length; i++) {
                 const ask = asksArray[i];
-                const price = applyExponent (this.safeInteger (ask, 'price', 0), priceExponent);
-                const qty = applyExponent (this.safeInteger (ask, 'qty', 0), qtyExponent);
+                const price = this.applyExponent (this.safeInteger (ask, 'price', 0), priceExponent);
+                const qty = this.applyExponent (this.safeInteger (ask, 'qty', 0), qtyExponent);
                 normalized['asks'].push ([ String (price), String (qty) ]);
             }
             result = normalized;
@@ -2046,21 +2035,21 @@ export default class binance extends binanceRest {
                     for (let i = 0; i < klinesArray.length; i++) {
                         const kline = klinesArray[i];
                         // Convert mantissa128 byte arrays to numbers
-                        const volume = mantissa128ToNumber (kline.volume);
+                        const volume = this.mantissa128ToNumber (kline.volume);
                         const openTime = Math.floor (kline.openTime / 1000); // microseconds to milliseconds
-                        const openPrice = applyExponent (kline.openPrice, priceExponent);
-                        const highPrice = applyExponent (kline.highPrice, priceExponent);
-                        const lowPrice = applyExponent (kline.lowPrice, priceExponent);
-                        const closePrice = applyExponent (kline.closePrice, priceExponent);
-                        const vol = applyExponent (volume, qtyExponent);
+                        const openPrice = this.applyExponent (kline.openPrice, priceExponent);
+                        const highPrice = this.applyExponent (kline.highPrice, priceExponent);
+                        const lowPrice = this.applyExponent (kline.lowPrice, priceExponent);
+                        const closePrice = this.applyExponent (kline.closePrice, priceExponent);
+                        const vol = this.applyExponent (volume, qtyExponent);
                         const closeTime = Math.floor (kline.closeTime / 1000);
-                        const quoteVolume = mantissa128ToNumber (kline.quoteVolume);
-                        const quoteVol = applyExponent (quoteVolume, priceExponent);
+                        const quoteVolume = this.mantissa128ToNumber (kline.quoteVolume);
+                        const quoteVol = this.applyExponent (quoteVolume, priceExponent);
                         const numTrades = kline.numTrades;
-                        const takerBuyBaseVolume = mantissa128ToNumber (kline.takerBuyBaseVolume);
-                        const takerBuyBase = applyExponent (takerBuyBaseVolume, qtyExponent);
-                        const takerBuyQuoteVolume = mantissa128ToNumber (kline.takerBuyQuoteVolume);
-                        const takerBuyQuote = applyExponent (takerBuyQuoteVolume, priceExponent);
+                        const takerBuyBaseVolume = this.mantissa128ToNumber (kline.takerBuyBaseVolume);
+                        const takerBuyBase = this.applyExponent (takerBuyBaseVolume, qtyExponent);
+                        const takerBuyQuoteVolume = this.mantissa128ToNumber (kline.takerBuyQuoteVolume);
+                        const takerBuyQuote = this.applyExponent (takerBuyQuoteVolume, priceExponent);
                         normalizedKlines.push ([
                             openTime,
                             String (openPrice),
@@ -2557,24 +2546,24 @@ export default class binance extends binanceRest {
             // Handle price field (for ticker.price)
             const priceMantissa = this.safeInteger (result, 'price');
             if (priceMantissa !== undefined) {
-                normalized['price'] = String (applyExponent (priceMantissa, priceExponent));
+                normalized['price'] = String (this.applyExponent (priceMantissa, priceExponent));
             }
             // Handle bid/ask fields (for ticker.book)
             const bidPriceMantissa = this.safeInteger (result, 'bidPrice');
             if (bidPriceMantissa !== undefined) {
-                normalized['bidPrice'] = String (applyExponent (bidPriceMantissa, priceExponent));
+                normalized['bidPrice'] = String (this.applyExponent (bidPriceMantissa, priceExponent));
             }
             const bidQtyMantissa = this.safeInteger (result, 'bidQty');
             if (bidQtyMantissa !== undefined) {
-                normalized['bidQty'] = String (applyExponent (bidQtyMantissa, qtyExponent));
+                normalized['bidQty'] = String (this.applyExponent (bidQtyMantissa, qtyExponent));
             }
             const askPriceMantissa = this.safeInteger (result, 'askPrice');
             if (askPriceMantissa !== undefined) {
-                normalized['askPrice'] = String (applyExponent (askPriceMantissa, priceExponent));
+                normalized['askPrice'] = String (this.applyExponent (askPriceMantissa, priceExponent));
             }
             const askQtyMantissa = this.safeInteger (result, 'askQty');
             if (askQtyMantissa !== undefined) {
-                normalized['askQty'] = String (applyExponent (askQtyMantissa, qtyExponent));
+                normalized['askQty'] = String (this.applyExponent (askQtyMantissa, qtyExponent));
             }
             // Copy other fields
             const lastUpdateId = this.safeInteger (result, 'lastUpdateId');
@@ -3093,10 +3082,10 @@ export default class binance extends binanceRest {
             const buyerMantissa = this.safeInteger (result, 'commissionRateBuyer');
             const sellerMantissa = this.safeInteger (result, 'commissionRateSeller');
             normalized['commissionRates'] = {
-                'maker': String (applyExponent (makerMantissa, commissionExponent)),
-                'taker': String (applyExponent (takerMantissa, commissionExponent)),
-                'buyer': String (applyExponent (buyerMantissa, commissionExponent)),
-                'seller': String (applyExponent (sellerMantissa, commissionExponent)),
+                'maker': String (this.applyExponent (makerMantissa, commissionExponent)),
+                'taker': String (this.applyExponent (takerMantissa, commissionExponent)),
+                'buyer': String (this.applyExponent (buyerMantissa, commissionExponent)),
+                'seller': String (this.applyExponent (sellerMantissa, commissionExponent)),
             };
             // Note: makerCommission, takerCommission, buyerCommission, sellerCommission
             // are NOT present in SBE format (as documented in the schema)
@@ -3126,8 +3115,8 @@ export default class binance extends binanceRest {
                 const lockedMantissa = this.safeInteger (balance, 'locked', 0);
                 normalized['balances'].push ({
                     'asset': this.safeString (balance, 'asset'),
-                    'free': String (applyExponent (freeMantissa, exponent)),
-                    'locked': String (applyExponent (lockedMantissa, exponent)),
+                    'free': String (this.applyExponent (freeMantissa, exponent)),
+                    'locked': String (this.applyExponent (lockedMantissa, exponent)),
                 });
             }
             // Copy permissions and reduceOnlyAssets arrays as-is
@@ -3542,39 +3531,39 @@ export default class binance extends binanceRest {
         // Convert mantissa values to decimal strings
         const priceMantissa = this.safeInteger (order, 'price');
         if (priceMantissa !== undefined) {
-            normalized['price'] = String (applyExponent (priceMantissa, priceExponent));
+            normalized['price'] = String (this.applyExponent (priceMantissa, priceExponent));
         }
         const origQtyMantissa = this.safeInteger (order, 'origQty');
         if (origQtyMantissa !== undefined) {
-            normalized['origQty'] = String (applyExponent (origQtyMantissa, qtyExponent));
+            normalized['origQty'] = String (this.applyExponent (origQtyMantissa, qtyExponent));
         }
         const executedQtyMantissa = this.safeInteger (order, 'executedQty');
         if (executedQtyMantissa !== undefined) {
-            normalized['executedQty'] = String (applyExponent (executedQtyMantissa, qtyExponent));
+            normalized['executedQty'] = String (this.applyExponent (executedQtyMantissa, qtyExponent));
         }
         const cummulativeQuoteQtyMantissa = this.safeInteger (order, 'cummulativeQuoteQty');
         if (cummulativeQuoteQtyMantissa !== undefined) {
-            normalized['cummulativeQuoteQty'] = String (applyExponent (cummulativeQuoteQtyMantissa, priceExponent));
+            normalized['cummulativeQuoteQty'] = String (this.applyExponent (cummulativeQuoteQtyMantissa, priceExponent));
         }
         const stopPriceMantissa = this.safeInteger (order, 'stopPrice');
         if (stopPriceMantissa !== undefined) {
-            normalized['stopPrice'] = String (applyExponent (stopPriceMantissa, priceExponent));
+            normalized['stopPrice'] = String (this.applyExponent (stopPriceMantissa, priceExponent));
         }
         const icebergQtyMantissa = this.safeInteger (order, 'icebergQty');
         if (icebergQtyMantissa !== undefined) {
-            normalized['icebergQty'] = String (applyExponent (icebergQtyMantissa, qtyExponent));
+            normalized['icebergQty'] = String (this.applyExponent (icebergQtyMantissa, qtyExponent));
         }
         const preventedQuantityMantissa = this.safeInteger (order, 'preventedQuantity');
         if (preventedQuantityMantissa !== undefined) {
-            normalized['preventedQuantity'] = String (applyExponent (preventedQuantityMantissa, qtyExponent));
+            normalized['preventedQuantity'] = String (this.applyExponent (preventedQuantityMantissa, qtyExponent));
         }
         const origQuoteOrderQtyMantissa = this.safeInteger (order, 'origQuoteOrderQty');
         if (origQuoteOrderQtyMantissa !== undefined) {
-            normalized['origQuoteOrderQty'] = String (applyExponent (origQuoteOrderQtyMantissa, priceExponent));
+            normalized['origQuoteOrderQty'] = String (this.applyExponent (origQuoteOrderQtyMantissa, priceExponent));
         }
         const peggedPriceMantissa = this.safeInteger (order, 'peggedPrice');
         if (peggedPriceMantissa !== undefined) {
-            normalized['peggedPrice'] = String (applyExponent (peggedPriceMantissa, priceExponent));
+            normalized['peggedPrice'] = String (this.applyExponent (peggedPriceMantissa, priceExponent));
         }
         // Copy enum fields - they need to be mapped to their string equivalents
         // The parseOrder method handles this mapping
@@ -3606,9 +3595,9 @@ export default class binance extends binanceRest {
                 const qtyMantissa = this.safeInteger (fill, 'qty');
                 const commissionMantissa = this.safeInteger (fill, 'commission');
                 normalized['fills'].push ({
-                    'price': fillPriceMantissa !== undefined ? String (applyExponent (fillPriceMantissa, priceExponent)) : undefined,
-                    'qty': qtyMantissa !== undefined ? String (applyExponent (qtyMantissa, qtyExponent)) : undefined,
-                    'commission': commissionMantissa !== undefined ? String (applyExponent (commissionMantissa, commissionExponent)) : undefined,
+                    'price': fillPriceMantissa !== undefined ? String (this.applyExponent (fillPriceMantissa, priceExponent)) : undefined,
+                    'qty': qtyMantissa !== undefined ? String (this.applyExponent (qtyMantissa, qtyExponent)) : undefined,
+                    'commission': commissionMantissa !== undefined ? String (this.applyExponent (commissionMantissa, commissionExponent)) : undefined,
                     'commissionAsset': this.safeString (fill, 'commissionAsset'),
                     'tradeId': this.safeInteger (fill, 'tradeId'),
                     'allocId': this.safeInteger (fill, 'allocId'),
@@ -3630,9 +3619,9 @@ export default class binance extends binanceRest {
                 normalized['preventedMatches'].push ({
                     'preventedMatchId': this.safeInteger (match, 'preventedMatchId'),
                     'makerOrderId': this.safeInteger (match, 'makerOrderId'),
-                    'price': matchPriceMantissa !== undefined ? String (applyExponent (matchPriceMantissa, priceExponent)) : undefined,
-                    'takerPreventedQuantity': takerPreventedQtyMantissa !== undefined ? String (applyExponent (takerPreventedQtyMantissa, qtyExponent)) : undefined,
-                    'makerPreventedQuantity': makerPreventedQtyMantissa !== undefined ? String (applyExponent (makerPreventedQtyMantissa, qtyExponent)) : undefined,
+                    'price': matchPriceMantissa !== undefined ? String (this.applyExponent (matchPriceMantissa, priceExponent)) : undefined,
+                    'takerPreventedQuantity': takerPreventedQtyMantissa !== undefined ? String (this.applyExponent (takerPreventedQtyMantissa, qtyExponent)) : undefined,
+                    'makerPreventedQuantity': makerPreventedQtyMantissa !== undefined ? String (this.applyExponent (makerPreventedQtyMantissa, qtyExponent)) : undefined,
                     'makerSymbol': this.safeString (match, 'makerSymbol'),
                 });
             }
@@ -4954,9 +4943,9 @@ export default class binance extends binanceRest {
                         const priceExponent = this.safeInteger (trade, 'priceExponent', parentPriceExponent);
                         const qtyExponent = this.safeInteger (trade, 'qtyExponent', parentQtyExponent);
                         const commissionExponent = this.safeInteger (trade, 'commissionExponent', parentCommissionExponent);
-                        const price = applyExponent (trade.price, priceExponent);
-                        const qty = applyExponent (trade.qty, qtyExponent);
-                        const quoteQty = applyExponent (trade.quoteQty, priceExponent);
+                        const price = this.applyExponent (trade.price, priceExponent);
+                        const qty = this.applyExponent (trade.qty, qtyExponent);
+                        const quoteQty = this.applyExponent (trade.quoteQty, priceExponent);
                         const timestamp = Math.floor (trade.time / 1000); // microseconds to milliseconds
                         const normalized: any = {
                             'id': String (trade.id),
@@ -4976,7 +4965,7 @@ export default class binance extends binanceRest {
                             // Convert commission from mantissa
                             const commissionMantissa = this.safeInteger (trade, 'commission');
                             if (commissionMantissa !== undefined) {
-                                normalized['commission'] = String (applyExponent (commissionMantissa, commissionExponent));
+                                normalized['commission'] = String (this.applyExponent (commissionMantissa, commissionExponent));
                             }
                             normalized['commissionAsset'] = this.safeString (trade, 'commissionAsset');
                             normalized['isBuyer'] = trade.isBuyer === 1;

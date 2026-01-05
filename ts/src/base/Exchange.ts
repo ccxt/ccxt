@@ -1,7 +1,5 @@
 // ----------------------------------------------------------------------------
 
-import * as pathImport from 'path';
-import { fileURLToPath } from 'url';
 import * as functions from './functions.js';
 import {
     keys as keysFunc,
@@ -9,7 +7,6 @@ import {
     // inArray as inArrayFunc,
     vwap as vwapFunc,
 } from './functions.js';
-import { parseSbeSchema } from './functions/sbe.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
     ExchangeError,
@@ -187,8 +184,6 @@ let SignMode = undefined;
         // TODO: handle error
     }
 }) ();
-// eslint-disable-next-line no-shadow
-const __dirname = pathImport.dirname (fileURLToPath (import.meta.url));
 
 // -----------------------------------------------------------------------------
 /**
@@ -1138,37 +1133,61 @@ export default class Exchange {
     }
 
     /**
-     * @method
-     * @name Exchange#loadSbeSchema
-     * @description Loads the SBE (Simple Binary Encoding) schema for the exchange.
-     * @param {string} schemaName - The name of the schema to load (e.g., 'okx_sbe_1_0.xml').
-     * @returns The parsed SBE schema object.
-     * @throws {ExchangeError} If the schema file cannot be found or parsed.
+     * Reads the template ID from an SBE message header
+     * @param {Uint8Array} buffer - The binary SBE message
+     * @returns {number} Template ID
      */
-    loadSbeSchema (schemaName: string): any {
-        if (!this.sbeSchema) {
-            const exchangeId = this.id;
-            let schemaPath = '';
-            let lastError = undefined;
-            // Try to load from process.cwd() first
-            try {
-                schemaPath = pathImport.join (process.cwd (), 'sbe', exchangeId, schemaName);
-                this.sbeSchema = parseSbeSchema (schemaPath);
-                return this.sbeSchema;
-            } catch (error) {
-                lastError = error;
-            }
-            // Fallback: try relative to module location
-            try {
-                schemaPath = pathImport.join (__dirname, '..', '..', '..', 'sbe', exchangeId, schemaName);
-                this.sbeSchema = parseSbeSchema (schemaPath);
-                return this.sbeSchema;
-            } catch (error) {
-                // Throw error if schema not found in both locations
-                throw new ExchangeError (this.id + ' loadSbeSchema() could not load schema: ' + schemaName + ' - ' + String (lastError));
-            }
+    readSbeTemplateId (buffer: Uint8Array): number {
+        // SBE message header format (8 bytes):
+        // - blockLength (2 bytes, uint16, offset 0)
+        // - templateId (2 bytes, uint16, offset 2)
+        // - schemaId (2 bytes, uint16, offset 4)
+        // - version (2 bytes, uint16, offset 6)
+        if (buffer.byteLength < 8) {
+            return -1;
         }
-        return this.sbeSchema;
+        const view = new DataView (buffer.buffer, buffer.byteOffset, buffer.byteLength);
+        const templateId = view.getUint16 (2, true); // offset 2, little-endian
+        return templateId;
+    }
+
+    /**
+     * Convert mantissa and exponent to decimal number
+     * Used by exchanges that encode prices/amounts as mantissa * 10^exponent
+     * @param {number|bigint} mantissa - The mantissa value
+     * @param {number} exponent - The power of 10 exponent
+     * @returns {number} The decimal number
+     */
+    applyExponent (mantissa, exponent: number): number {
+        const mantissaNum = typeof mantissa === 'bigint' ? Number (mantissa) : mantissa;
+        return mantissaNum * Math.pow (10, exponent);
+    }
+
+    /**
+     * Convert mantissa128 byte array to number
+     * mantissa128 is a signed 128-bit integer encoded as a little-endian byte array
+     * Used by Binance SBE for large volume values
+     * @param {Uint8Array|number[]} bytes - The byte array
+     * @returns {number} The numeric value
+     */
+    mantissa128ToNumber (bytes): number {
+        if (!bytes || bytes.length === 0) {
+            return 0;
+        }
+        // Convert to Uint8Array if it's a regular array
+        const byteArray = bytes instanceof Uint8Array ? bytes : new Uint8Array (bytes);
+        // For mantissa128, we need to handle signed 128-bit integers
+        // The value −2^127 is nullValue by default
+        // For practical purposes, we'll read up to 8 bytes (64-bit) as most values fit
+        let result = 0;
+        let multiplier = 1;
+        // Read up to 8 bytes (64-bit safe range for JavaScript numbers)
+        const limit = Math.min (byteArray.length, 8);
+        for (let i = 0; i < limit; i++) {
+            result += byteArray[i] * multiplier;
+            multiplier *= 256;
+        }
+        return result;
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {

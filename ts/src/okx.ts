@@ -5,10 +5,6 @@ import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-// @ts-ignore
-// import { decodeSbeOrderbook, createSbeDecoder } from './base/functions/sbe.js';
-// @ts-ignore
-// import { okxSbe10Schema } from './base/sbe-schemas/okx-sbe-1-0.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
 
@@ -2090,45 +2086,16 @@ export default class okx extends Exchange {
         return this.parseOrderBook (first, symbol, timestamp);
     }
 
-    decodeSbeOrderBook (buffer: any): Dict {
+    decodeSbeOrderBook (response: any): Dict {
         /**
          * @ignore
          * @method
          * Decodes an OKX SBE (Simple Binary Encoding) orderbook snapshot
-         * @param {ArrayBuffer} buffer the binary data received from OKX
+         * @param {ArrayBuffer} response the binary data received from OKX
          * @returns {object} decoded orderbook data with bids, asks, and metadata
          */
-        // Convert to ArrayBuffer if needed (Node.js environment)
-        let arrayBuffer: ArrayBuffer;
-        if (typeof buffer === 'string') {
-            // If it's a string, convert it to binary (likely binary data encoded as latin1/binary string)
-            const uint8Array = new Uint8Array (buffer.length);
-            for (let i = 0; i < buffer.length; i++) {
-                uint8Array[i] = buffer.charCodeAt (i);
-            }
-            arrayBuffer = uint8Array.buffer;
-        } else if (Buffer.isBuffer (buffer)) {
-            // Create a proper ArrayBuffer copy from the Buffer
-            const uint8Array = new Uint8Array (buffer.length);
-            uint8Array.set (new Uint8Array (buffer));
-            arrayBuffer = uint8Array.buffer;
-        } else {
-            arrayBuffer = buffer;
-        }
-        // Use the pre-generated SBE schema
-        if (!this.sbeSchema) {
-            this.sbeSchema = okxSbe10Schema;
-        }
-        // Use the generic SBE decoder
-        const decoded = decodeSbeOrderbook (arrayBuffer, this.sbeSchema);
-        // Return in expected format
-        return {
-            'instIdCode': decoded.instIdCode,
-            'timestamp': decoded.timestamp,
-            'seqId': decoded.seqId,
-            'bids': decoded.bids,
-            'asks': decoded.asks,
-        };
+        // Runtime SBE decoder has been removed - use generated decoders instead
+        throw new NotSupported (this.id + ' parseSbeOrderBook() runtime SBE decoder has been removed, use generated decoders instead');
     }
 
     async fetchOrderBookSbe (symbol: string, params = {}): Promise<OrderBook> {
@@ -6627,17 +6594,9 @@ export default class okx extends Exchange {
     }
 
     getSbeDecoder () {
-        if (this['sbeDecoder'] === undefined) {
-            try {
-                // Use the pre-generated SBE schema directly
-                this['sbeDecoder'] = createSbeDecoder (okxSbe10Schema);
-            } catch (e) {
-                // If schema creation fails, disable SBE
-                this.options['useSbe'] = false;
-                throw new ExchangeError (this.id + ' getSbeDecoder() failed to create SBE decoder: ' + e);
-            }
-        }
-        return this['sbeDecoder'];
+        // TODO: Migrate to code-generated SBE decoders
+        // Runtime SBE decoder has been removed - use generated decoders instead
+        throw new NotSupported (this.id + ' getSbeDecoder() runtime SBE decoder has been removed, use generated decoders instead');
     }
 
     decodeSbeResponse (buffer: ArrayBuffer, url: string) {
