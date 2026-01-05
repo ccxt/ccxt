@@ -428,7 +428,6 @@ class Exchange {
         'myokx',
         'ndax',
         'novadax',
-        'oceanex',
         'okx',
         'okxus',
         'onetrading',
@@ -7026,6 +7025,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchClosedOrders() is not supported yet');
     }
 
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchCanceledOrders() is not supported yet');
+    }
+
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
     }
@@ -8843,6 +8846,10 @@ class Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
         }
+    }
+
+    public function load_markets_and_sign_in() {
+        array( $this->load_markets(), $this->sign_in() );
     }
 
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
