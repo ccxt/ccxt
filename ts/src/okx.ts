@@ -6,6 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { SnapshotDepthResponseEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/SnapshotDepthResponseEvent.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -2094,8 +2095,35 @@ export default class okx extends Exchange {
          * @param {ArrayBuffer} response the binary data received from OKX
          * @returns {object} decoded orderbook data with bids, asks, and metadata
          */
-        // Runtime SBE decoder has been removed - use generated decoders instead
-        throw new NotSupported (this.id + ' parseSbeOrderBook() runtime SBE decoder has been removed, use generated decoders instead');
+        // Convert buffer to ArrayBuffer if needed
+        let arrayBuffer: ArrayBuffer;
+        if (response instanceof Uint8Array) {
+            arrayBuffer = response.buffer.slice (response.byteOffset, response.byteOffset + response.byteLength);
+        } else if (Buffer.isBuffer (response)) {
+            const uint8Array = new Uint8Array (response.length);
+            uint8Array.set (new Uint8Array (response));
+            arrayBuffer = uint8Array.buffer;
+        } else {
+            arrayBuffer = response;
+        }
+        // Use generated SBE decoder
+        const decoderRegistry = {
+            1006: SnapshotDepthResponseEventDecoder, // SnapshotDepthResponseEvent
+        };
+        const result = this.decodeSbeMessage (arrayBuffer, decoderRegistry);
+        const decoded = result['data'];
+        // Auto-apply exponents to mantissas
+        const processedData = this.applySbeExponents (decoded);
+        // Convert bids/asks to standard format
+        const bids = processedData.bids ? processedData.bids.map (bid => [ bid.px, bid.sz ]) : [];
+        const asks = processedData.asks ? processedData.asks.map (ask => [ ask.px, ask.sz ]) : [];
+        return {
+            'instIdCode': Number (decoded.instIdCode),
+            'timestamp': Number (decoded.tsUs) / 1000, // convert microseconds to milliseconds
+            'seqId': Number (decoded.seqId),
+            'bids': bids,
+            'asks': asks,
+        };
     }
 
     async fetchOrderBookSbe (symbol: string, params = {}): Promise<OrderBook> {
@@ -6593,11 +6621,6 @@ export default class okx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    getSbeDecoder () {
-        // TODO: Migrate to code-generated SBE decoders
-        // Runtime SBE decoder has been removed - use generated decoders instead
-        throw new NotSupported (this.id + ' getSbeDecoder() runtime SBE decoder has been removed, use generated decoders instead');
-    }
 
     decodeSbeResponse (buffer: ArrayBuffer, url: string) {
         // Use generic SBE decoder that follows the spec

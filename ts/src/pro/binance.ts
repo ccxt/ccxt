@@ -240,7 +240,7 @@ export default class binance extends binanceRest {
             this.log ('decodeSbeNestedMessage: templateId:', templateId, 'buffer length:', buffer.byteLength);
         }
         // Create an ArrayBuffer from the Uint8Array for the decoder
-        const arrayBuffer = buffer.buffer.slice (buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+        const arrayBuffer = new Uint8Array (buffer).buffer;
         // Decode based on template ID
         // Skip the 8-byte message header when decoding the message body
         const messageOffset = 8;

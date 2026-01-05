@@ -1190,6 +1190,87 @@ export default class Exchange {
         return result;
     }
 
+    /**
+     * Decode SBE message using registered decoder based on template ID
+     * @param {ArrayBuffer|Uint8Array|Buffer} buffer - The binary SBE message
+     * @param {object} decoderRegistry - Map of template ID to decoder class
+     * @returns {object} Decoded message with templateId and data
+     */
+    decodeSbeMessage (buffer, decoderRegistry): any {
+        // Convert to ArrayBuffer if needed
+        let arrayBuffer: ArrayBuffer;
+        if (buffer instanceof Uint8Array) {
+            arrayBuffer = buffer.buffer.slice (buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+        } else if (typeof Buffer !== 'undefined' && Buffer.isBuffer (buffer)) {
+            const uint8Array = new Uint8Array (buffer.length);
+            uint8Array.set (new Uint8Array (buffer));
+            arrayBuffer = uint8Array.buffer;
+        } else if (buffer instanceof ArrayBuffer) {
+            arrayBuffer = buffer;
+        } else {
+            arrayBuffer = buffer;
+        }
+        // Read template ID from header
+        const templateId = this.readSbeTemplateId (new Uint8Array (arrayBuffer));
+        // Look up decoder class in registry
+        const DecoderClass = decoderRegistry[templateId];
+        if (!DecoderClass) {
+            throw new ExchangeError (this.id + ' decodeSbeMessage() unknown template ID: ' + templateId);
+        }
+        // Instantiate and decode
+        const decoder = new DecoderClass ();
+        const decoded = decoder.decode (arrayBuffer, 0);
+        return {
+            'templateId': templateId,
+            'data': decoded,
+        };
+    }
+
+    /**
+     * Automatically apply exponents to mantissa fields in decoded SBE data
+     * Finds fields ending in 'Mantissa' and applies corresponding 'Exponent' field
+     * @param {object} data - Decoded SBE message data
+     * @param {object} [exponentMap] - Optional map of mantissa field names to exponent field names
+     * @returns {object} Data with mantissas converted to decimal numbers
+     */
+    applySbeExponents (data, exponentMap = undefined): any {
+        if (!data || typeof data !== 'object') {
+            return data;
+        }
+        const result = {};
+        // Get all exponent fields first
+        const exponents = {};
+        for (const key in data) {
+            if (key.endsWith ('Exponent')) {
+                exponents[key] = data[key];
+            }
+        }
+        // Process all fields
+        for (const key in data) {
+            const value = data[key];
+            // Handle arrays recursively
+            if (Array.isArray (value)) {
+                result[key] = value.map (item => this.applySbeExponents (item, exponentMap));
+            } else if (key.endsWith ('Mantissa')) {
+                // Find corresponding exponent
+                const baseFieldName = key.replace ('Mantissa', '');
+                let exponentKey = baseFieldName + 'Exponent';
+                // Check if custom exponent mapping provided
+                if (exponentMap && exponentMap[key]) {
+                    exponentKey = exponentMap[key];
+                }
+                const exponent = exponents[exponentKey] !== undefined ? exponents[exponentKey] : 0;
+                // Convert mantissa to decimal number
+                const mantissaNum = typeof value === 'bigint' ? Number (value) : value;
+                result[baseFieldName] = this.applyExponent (mantissaNum, exponent);
+            } else if (!key.endsWith ('Exponent')) {
+                // Copy non-exponent fields
+                result[key] = value;
+            }
+        }
+        return result;
+    }
+
     async fetchCurrencies (params = {}): Promise<Currencies> {
         // markets are returned as a list
         // currencies are returned as a dict

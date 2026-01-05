@@ -5,6 +5,10 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { BboTbtChannelEventDecoder } from '../../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BboTbtChannelEvent.js';
+import { BooksL2TbtChannelEventDecoder } from '../../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtChannelEvent.js';
+import { BooksL2TbtExponentUpdateEventDecoder } from '../../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtExponentUpdateEvent.js';
+import { TradesChannelEventDecoder } from '../../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/TradesChannelEvent.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -2536,38 +2540,26 @@ export default class okx extends okxRest {
         }
     }
 
-    getSbeWsDecoder () {
-        // TODO: Migrate to code-generated SBE decoders
-        // Runtime SBE decoder has been removed - use generated decoders instead
-        throw new ExchangeError (this.id + ' getSbeWsDecoder() runtime SBE decoder has been removed, use generated decoders instead');
-    }
-
     handleSbeMessage (client: Client, message) {
-        // Convert to Buffer if ArrayBuffer or TypedArray
-        let buffer;
-        if (message instanceof ArrayBuffer) {
-            buffer = Buffer.from (message);
-        } else if (ArrayBuffer.isView (message)) {
-            buffer = Buffer.from (message.buffer, message.byteOffset, message.byteLength);
-        } else {
-            buffer = message;
-        }
         if (this.verbose) {
-            this.log ('handleSbeMessage: Received binary message, size:', buffer.length);
+            this.log ('handleSbeMessage: Received binary message');
         }
         try {
-            const decoder = this.getSbeWsDecoder ();
-            const decoded = decoder.decode (buffer);
-            const templateId = this.safeInteger (decoded, 'messageId');
-            const messageName = this.safeString (decoded, 'messageName');
+            // Define decoder registry for OKX WebSocket messages
+            const decoderRegistry = {
+                1000: BboTbtChannelEventDecoder, // BboTbtChannelEvent
+                1001: BooksL2TbtChannelEventDecoder, // BooksL2TbtChannelEvent
+                1002: BooksL2TbtExponentUpdateEventDecoder, // BooksL2TbtExponentUpdateEvent
+                1005: TradesChannelEventDecoder, // TradesChannelEvent
+            };
+            // Decode message using registry
+            const result = this.decodeSbeMessage (message, decoderRegistry);
+            const templateId = result['templateId'];
+            const decoded = result['data'];
             if (this.verbose) {
-                this.log ('handleSbeMessage: Decoded SBE message, ID:', templateId, 'Name:', messageName);
+                this.log ('handleSbeMessage: Decoded template ID:', templateId);
             }
-            // Route based on template ID
-            // 1000: BboTbtChannelEvent
-            // 1001: BooksL2TbtChannelEvent
-            // 1002: BooksL2TbtExponentUpdateEvent
-            // 1005: TradesChannelEvent
+            // Route to appropriate handler
             if (templateId === 1000) {
                 this.handleSbeBboTbt (client, decoded);
             } else if (templateId === 1001) {
@@ -2576,10 +2568,6 @@ export default class okx extends okxRest {
                 this.handleSbeBooksL2TbtExponentUpdate (client, decoded);
             } else if (templateId === 1005) {
                 this.handleSbeTrades (client, decoded);
-            } else {
-                if (this.verbose) {
-                    this.log ('handleSbeMessage: Unknown template ID:', templateId);
-                }
             }
         } catch (e) {
             if (this.verbose) {
@@ -2598,24 +2586,16 @@ export default class okx extends okxRest {
         }
         const channel = 'bbo-tbt';
         const messageHash = channel + ':' + symbol;
-        const pxExponent = this.safeInteger (message, 'pxExponent', 0);
-        const szExponent = this.safeInteger (message, 'szExponent', 0);
-        const bidPxMantissa = this.safeInteger (message, 'bidPxMantissa');
-        const bidSzMantissa = this.safeInteger (message, 'bidSzMantissa');
-        const askPxMantissa = this.safeInteger (message, 'askPxMantissa');
-        const askSzMantissa = this.safeInteger (message, 'askSzMantissa');
-        const timestamp = this.safeInteger (message, 'ts');
+        // Auto-apply exponents to mantissas
+        const processed = this.applySbeExponents (message);
+        const timestamp = this.safeInteger (processed, 'ts');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({});
         }
         const orderbook = this.orderbooks[symbol];
-        const bidPrice = bidPxMantissa * Math.pow (10, pxExponent);
-        const bidSize = bidSzMantissa * Math.pow (10, szExponent);
-        const askPrice = askPxMantissa * Math.pow (10, pxExponent);
-        const askSize = askSzMantissa * Math.pow (10, szExponent);
         const snapshot = {
-            'bids': [ [ bidPrice, bidSize ] ],
-            'asks': [ [ askPrice, askSize ] ],
+            'bids': [ [ processed.bidPx, processed.bidSz ] ],
+            'asks': [ [ processed.askPx, processed.askSz ] ],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
@@ -2634,37 +2614,20 @@ export default class okx extends okxRest {
         }
         const channel = 'books-l2-tbt';
         const messageHash = channel + ':' + symbol;
-        const pxExponent = this.safeInteger (message, 'pxExponent', 0);
-        const szExponent = this.safeInteger (message, 'szExponent', 0);
-        const bids = this.safeValue (message, 'bids', []);
-        const asks = this.safeValue (message, 'asks', []);
-        const timestamp = this.safeInteger (message, 'ts');
-        const seqId = this.safeInteger (message, 'seqId');
+        // Auto-apply exponents to mantissas
+        const processed = this.applySbeExponents (message);
+        const timestamp = this.safeInteger (processed, 'ts');
+        const seqId = this.safeInteger (processed, 'seqId');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({});
         }
         const orderbook = this.orderbooks[symbol];
-        const parsedBids = [];
-        for (let i = 0; i < bids.length; i++) {
-            const bid = bids[i];
-            const pxMantissa = this.safeInteger (bid, 'pxMantissa');
-            const szMantissa = this.safeInteger (bid, 'szMantissa');
-            const price = pxMantissa * Math.pow (10, pxExponent);
-            const size = szMantissa * Math.pow (10, szExponent);
-            parsedBids.push ([ price, size ]);
-        }
-        const parsedAsks = [];
-        for (let i = 0; i < asks.length; i++) {
-            const ask = asks[i];
-            const pxMantissa = this.safeInteger (ask, 'pxMantissa');
-            const szMantissa = this.safeInteger (ask, 'szMantissa');
-            const price = pxMantissa * Math.pow (10, pxExponent);
-            const size = szMantissa * Math.pow (10, szExponent);
-            parsedAsks.push ([ price, size ]);
-        }
+        // Convert to standard format [price, size]
+        const bids = processed.bids ? processed.bids.map (bid => [ bid.px, bid.sz ]) : [];
+        const asks = processed.asks ? processed.asks.map (ask => [ ask.px, ask.sz ]) : [];
         const snapshot = {
-            'bids': parsedBids,
-            'asks': parsedAsks,
+            'bids': bids,
+            'asks': asks,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': seqId,
