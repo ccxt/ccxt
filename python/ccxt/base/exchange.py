@@ -1415,15 +1415,7 @@ class Exchange(object):
 
     @staticmethod
     def eth_get_address_from_private_key(private_key):
-        """
-        Derives the Ethereum address from a private key.
-        
-        Args:
-            private_key: A "0x"-prefixed hexstring private key
-            
-        Returns:
-            The corresponding Ethereum address as a "0x"-prefixed hex string
-        """
+        # method returns the Ethereum address from a "0x"-prefixed private key
         # Remove "0x" prefix if present
         clean_private_key = Exchange.remove0x_prefix(private_key)
         # Use coincurve to get the public key
