@@ -347,10 +347,6 @@ export default class grvt extends Exchange {
         return response;
     }
 
-    async loadMarketsWithSignin () {
-        await Promise.all ([ this.signIn (), this.loadMarkets () ]);
-    }
-
     /**
      * @method
      * @name grvt#fetchMarkets
@@ -669,7 +665,7 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = since * 1000000;
         }
@@ -811,7 +807,7 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = since * 1000000;
         }
@@ -886,9 +882,9 @@ export default class grvt extends Exchange {
             'instrument': market['id'],
         };
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['start_time'] = since * 1000000;
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
@@ -1803,7 +1799,7 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = since * 1000000;
         }
@@ -2096,7 +2092,7 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = since * 1000000;
         }
@@ -2163,7 +2159,7 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 0.000001);
+        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = since * 1000000;
         }
@@ -2330,9 +2326,9 @@ export default class grvt extends Exchange {
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
+            params = this.omit (params, 'clientOrderId', 'client_order_id');
             request['client_order_id'] = clientOrderId;
         } else {
             request['order_id'] = id;
@@ -2598,9 +2594,9 @@ export default class grvt extends Exchange {
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
+            params = this.omit (params, 'clientOrderId', 'client_order_id');
             request['client_order_id'] = clientOrderId;
         } else {
             request['order_id'] = id;
