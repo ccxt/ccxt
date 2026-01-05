@@ -3,7 +3,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ export default class lighter extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
@@ -116,11 +116,12 @@ export default class lighter extends Exchange {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
@@ -1881,8 +1882,8 @@ export default class lighter extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' transfer() only supports USDC and ETH transfers');
         }
-        const fromRouteType = (fromAccount === 'perp') ? 0 : 1; // i guess 0 is perp, 1 is spot, need test
-        const toRouteType = (toAccount === 'perp') ? 0 : 1; // i guess 0 is perp, 1 is spot, need test
+        const fromRouteType = (fromAccount === 'perp') ? 0 : 1; // 0: perp, 1: spot
+        const toRouteType = (toAccount === 'perp') ? 0 : 1; // 0: perp, 1: spot
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
         const signRaw: Dict = {
             'to_account_index': toAccountIndex,
@@ -2379,7 +2380,7 @@ export default class lighter extends Exchange {
         const signRaw: Dict = {
             'market_index': this.parseToInt (market['id']),
             'initial_margin_fraction': this.parseToInt (1 / leverage * 10000),
-            'margin_mode': (marginMode === 'cross') ? 0 : 1, // i guess 0 is cross, 1 is isolated, need test
+            'margin_mode': (marginMode === 'cross') ? 0 : 1, // 0: CROSS, 1: ISOLATED
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -2471,7 +2472,87 @@ export default class lighter extends Exchange {
             'tx_info': txInfo,
         };
         const response = await this.publicPostSendTx (request);
-        return this.parseOrders (response);
+        return this.parseOrders ([ response ]);
+    }
+
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        const request: Dict = {
+            'direction': 1,
+        };
+        return await this.setMargin (symbol, amount, this.extend (request, params));
+    }
+
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        const request: Dict = {
+            'direction': 0,
+        };
+        return await this.setMargin (symbol, amount, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name lighter#setMargin
+     * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'setMargin', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMargin() requires an accountIndex parameter');
+        }
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'setMargin', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMargin() requires an apiKeyIndex parameter');
+        }
+        const direction = this.safeInteger (params, 'direction'); // 1 increase margin 0 decrease margin
+        if (direction === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)');
+        }
+        if (!this.inArray (direction, [ 0, 1 ])) {
+            throw new ArgumentsRequired (this.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const signRaw: Dict = {
+            'market_index': this.parseToInt (market['id']),
+            'usdc_amount': this.parseToInt (Precise.stringMul (this.pow ('10', '6'), this.currencyToPrecision ('USDC', amount))),
+            'direction': direction,
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.lighterSignUpdateMargin (signer, this.extend (signRaw, params));
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        return this.parseMarginModification (response, market);
+    }
+
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+        const timestamp = this.safeInteger (data, 'predicted_execution_time_ms');
+        return {
+            'info': data,
+            'symbol': this.safeString (market, 'symbol'),
+            'type': undefined,
+            'marginMode': undefined,
+            'amount': undefined,
+            'total': undefined,
+            'code': 'USDC',
+            'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
