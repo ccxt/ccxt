@@ -30,6 +30,7 @@ public partial class BaseTest
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
             testArraysConcat();
+            testEthMethods();
             await testSleep();
         }
 }
