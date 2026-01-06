@@ -392,6 +392,7 @@ export default class Exchange {
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array;
     ethEncodeStructuredData(domain: any, messageTypes: any, messageData: any): Uint8Array;
+    ethGetAddressFromPrivateKey(privateKey: string): string;
     retrieveStarkAccount(signature: any, accountClassHash: any, accountProxyClassHash: any): {
         privateKey: string;
         publicKey: string;
