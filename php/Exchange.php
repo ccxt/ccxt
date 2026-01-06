@@ -1425,6 +1425,33 @@ class Exchange {
         return $lighterSigner;
     }
 
+    public function lighter_sign_create_grouped_orders($signer, $grouping_type, $orders, $nonce, $api_key_index, $account_index) {
+        $orders_arr = array();
+        foreach ($orders as $order) {
+            $orders_arr[] = array(
+                'MarketIndex' => $order['market_index'],
+                'ClientOrderIndex' => $order['client_order_index'],
+                'BaseAmount' => $order['base_amount'],
+                'Price' => $order['avg_execution_price'],
+                'IsAsk' => $order['is_ask'],
+                'Type' => $order['order_type'],
+                'TimeInForce' => $order['time_in_force'],
+                'ReduceOnly' => $order['reduce_only'],
+                'TriggerPrice' => $order['trigger_price'],
+                'OrderExpiry' => $order['order_expiry'],
+            );
+        }
+        $result = $signer->signCreateGroupedOrders(
+            $grouping_type,
+            $orders_arr,
+            count($orders_arr),
+            $nonce,
+            $api_key_index,
+            $account_index
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
     public function lighter_sign_create_order($signer, $request) {
         $result = $signer->signCreateOrder(
             $request['market_index'],
@@ -1444,13 +1471,96 @@ class Exchange {
         return [ $result['txType'], $result['txInfo'] ];
     }
 
-    public function create_lighter_auth($signer, $request) {
+    public function lighter_sign_cancel_order($signer, $request) {
+        $result = $signer->signCancelOrder(
+            $request['market_index'],
+            $request['order_index'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_withdraw($signer, $request) {
+        $result = $signer->signWithdraw(
+            $request['asset_index'],
+            $request['route_type'],
+            $request['amount'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_create_sub_account($signer, $request) {
+        $result = $signer->signCreateSubAccount(
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_cancel_all_orders($signer, $request) {
+        $result = $signer->signCancelAllOrders(
+            $request['time_in_force'],
+            $request['time'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_transfer($signer, $request) {
+        $result = $signer->signTransfer(
+            $request['to_account_index'],
+            $request['asset_index'],
+            $request['from_route_type'],
+            $request['to_route_type'],
+            $request['amount'],
+            $request['usdc_fee'],
+            $request['memo'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_update_leverage($signer, $request) {
+        $result = $signer->signUpdateLeverage(
+            $request['market_index'],
+            $request['initial_margin_fraction'],
+            $request['margin_mode'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_create_auth_token($signer, $request) {
         $result = $signer->createAuthToken(
             $request['deadline'],
             $request['api_key_index'],
             $request['account_index']
         );
         return $result;
+    }
+
+    public function lighter_sign_update_margin($signer, $request) {
+        $result = $signer->signUpdateMargin(
+            $request['market_index'],
+            $request['usdc_amount'],
+            $request['direction'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
     }
 
     public function packb($data) {
