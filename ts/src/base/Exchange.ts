@@ -1614,13 +1614,13 @@ export default class Exchange {
         const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
         // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
         // secp256k1.getPublicKey returns compressed key, we need uncompressed
-        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex(publicKeyBytes).toRawBytes(false).slice(1); // Remove 0x04 prefix
+        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex (publicKeyBytes).toRawBytes (false).slice (1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
-        const publicKeyHash = keccak_256(publicKeyUncompressed);
+        const publicKeyHash = keccak_256 (publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
-        const addressBytes = publicKeyHash.slice(-20);
+        const addressBytes = publicKeyHash.slice (-20);
         // Convert to hex and add 0x prefix
-        const addressHex = '0x' + this.binaryToBase16(addressBytes);
+        const addressHex = '0x' + this.binaryToBase16 (addressBytes);
         return addressHex;
     }
 
