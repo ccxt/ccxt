@@ -1414,6 +1414,21 @@ class Exchange(object):
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
+    def eth_get_address_from_private_key(private_key):
+        # method returns the Ethereum address from a "0x"-prefixed private key
+        # Remove "0x" prefix if present
+        clean_private_key = Exchange.remove0x_prefix(private_key)
+        # Use coincurve to get the public key
+        private_key_obj = coincurve.PrivateKey(bytes.fromhex(clean_private_key))
+        # Get uncompressed public key (remove the 0x04 prefix)
+        public_key_bytes = private_key_obj.public_key.format(compressed=False)[1:]
+        # Hash the public key with Keccak256
+        address_bytes = keccak.SHA3(public_key_bytes)[-20:]
+        # Convert to hex and add 0x prefix
+        address_hex = '0x' + address_bytes.hex()
+        return address_hex
+
+    @staticmethod
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
         privateKey = get_private_key_from_eth_signature(signature)
         publicKey = private_to_stark_key(privateKey)
