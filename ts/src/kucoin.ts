@@ -257,6 +257,8 @@ export default class kucoin extends Exchange {
                         'migrate/user/account/status': 3,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
+                        // earn
+                        'earn/redeem-preview': 5, // 5EW
                     },
                     'post': {
                         // account
