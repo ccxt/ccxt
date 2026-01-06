@@ -19,7 +19,6 @@ import type {
     Position,
     Currencies,
     Currency,
-    TradingFees,
     Transaction,
     LedgerEntry,
     FundingHistory,
@@ -52,6 +51,7 @@ export default class drift extends Exchange {
                 'privateKey': true,
             },
             'has': {
+                'CORS': undefined,
                 'spot': false,
                 'margin': false,
                 'swap': true,
@@ -60,22 +60,24 @@ export default class drift extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'deposit': true,
                 'editOrder': false,
-                'fetchBalance': true,
                 'fetchAccounts': false,
-                'fetchDeposits': false,
-                'fetchDepositAddress': false,
-                'fetchFundingLimits': false,
-                'fetchFundingHistory': true,
-                'fetchMarkets': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': false,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchFundingHistory': true,
+                'fetchFundingLimits': false,
+                'fetchLedger': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOrderBook': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -86,9 +88,7 @@ export default class drift extends Exchange {
                 'fetchTradingLimits': false,
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
-                'fetchLedger': true,
                 'transfer': false,
-                'deposit': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -165,8 +165,8 @@ export default class drift extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-    // Mocked single market (SOL/USDC perpetual) for local testing without hitting Drift API
-    // Replace with: const response = await this.publicGetStatsMarkets(params); return this.parseMarkets(response.markets);
+        // Mocked single market (SOL/USDC perpetual) for local testing without hitting Drift API
+        // Replace with: const response = await this.publicGetStatsMarkets(params); return this.parseMarkets(response.markets);
         return [
             {
                 'id': 'SOL-PERP',
@@ -191,34 +191,11 @@ export default class drift extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber ('0.001'),
-                    'price': this.parseNumber ('0.0001'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber ('10'),
-                    },
-                    'amount': {
-                        'min': this.parseNumber ('0.1'),
-                        'max': this.parseNumber ('100000'),
-                    },
-                    'price': {
-                        'min': this.parseNumber ('0.01'),
-                        'max': this.parseNumber ('100000'),
-                    },
-                    'cost': {
-                        'min': this.parseNumber ('10'),
-                        'max': undefined,
-                    },
-                },
+                'precision': undefined,
+                'limits': undefined,
                 'active': true,
                 'created': undefined,
-                'info': {
-                    'mock': true,
-                    'marketIndex': 0,
-                },
+                'info': undefined,
             },
             {
                 'id': 'BTC-PERP',
@@ -302,10 +279,7 @@ export default class drift extends Exchange {
             'contract': type === 'perp',
             'linear': type === 'perp' ? true : undefined,
             'inverse': false,
-            'contractSize':
-        type === 'perp'
-            ? this.safeNumber (market, 'contractSize', 1)
-            : undefined,
+            'contractSize': type === 'perp' ? this.safeNumber (market, 'contractSize', 1) : undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -380,50 +354,6 @@ export default class drift extends Exchange {
         return result;
     }
 
-    async fetchTradingLimits (
-        symbols: Strings = undefined,
-        params = {}
-    ): Promise<Dict> {
-    /**
-     * @method
-     * @name drift#fetchTradingLimits
-     * @description fetches trading limits for multiple markets
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch trading limits for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of trading limits for each market
-     */
-        throw new NotSupported (
-            this.id + ' fetchTradingLimits() is not implemented yet'
-        );
-    }
-
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-    /**
-     * @method
-     * @name drift#fetchTradingFees
-     * @description fetch trading fees for multiple markets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {TradingFees} a dictionary of trading fees structures by symbol
-     */
-        throw new NotSupported (
-            this.id + ' fetchTradingFees() is not implemented yet'
-        );
-    }
-
-    async fetchFundingLimits (params = {}): Promise<Dict> {
-    /**
-     * @method
-     * @name drift#fetchFundingLimits
-     * @description fetch deposit and withdrawal limits
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of funding limits structures
-     */
-        throw new NotSupported (
-            this.id + ' fetchFundingLimits() is not implemented yet'
-        );
-    }
-
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
     /**
      * @method
      * @name drift#fetchTicker
@@ -432,6 +362,7 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -496,6 +427,14 @@ export default class drift extends Exchange {
         return {};
     }
 
+    /**
+     * @method
+     * @name drift#fetchTickers
+     * @description fetches a price ticker for a specific symbol
+     * @param {string} [symbols] unified market symbol of the market the orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers (
         symbols: Strings = undefined,
         params = {}
@@ -761,8 +700,7 @@ export default class drift extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'ts');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const accountId = this.safeString2 (this.options, 'accountId', 'account_id')
-      ?? this.safeString (this, 'accountId');
+        const accountId = this.safeString2 (this.options, 'accountId', 'account_id') ?? this.safeString (this, 'accountId');
         const takerAccount = this.safeString (trade, 'taker');
         const makerAccount = this.safeString (trade, 'maker');
         let takerOrMaker = undefined;
@@ -774,8 +712,7 @@ export default class drift extends Exchange {
             }
         }
         const directionKey = takerOrMaker === 'maker' ? 'makerOrderDirection' : 'takerOrderDirection';
-        const direction = this.safeStringLower (trade, directionKey)
-      ?? this.safeStringLower (trade, 'takerOrderDirection');
+        const direction = this.safeStringLower (trade, directionKey) ?? this.safeStringLower (trade, 'takerOrderDirection');
         const side = direction === 'long' ? 'buy' : 'sell';
         const amountString = this.safeString (trade, 'baseAssetAmountFilled');
         const costString = this.safeString (trade, 'quoteAssetAmountFilled');
@@ -964,8 +901,8 @@ export default class drift extends Exchange {
         const timestamp = this.safeTimestamp (order, 'ts');
         const direction = this.safeStringLower (order, 'direction');
         const side = direction === 'long' ? 'buy' : 'sell';
-        const amount = this.safeString (order, 'baseAssetAmount');
-        const filled = this.safeString (order, 'baseAssetAmountFilled');
+        const amount = Precise.stringAbs (this.safeString (order, 'baseAssetAmount'));
+        const filled = Precise.stringAbs (this.safeString (order, 'baseAssetAmountFilled'));
         const remaining = Precise.stringSub (amount, filled);
         const status = this.parseOrderStatus (this.safeString2 (order, 'lastActionStatus', 'status'));
         const cost = this.safeString2 (order, 'cost', 'quoteAssetAmountFilled');
@@ -999,7 +936,7 @@ export default class drift extends Exchange {
                 'amount': amount,
                 'cost': cost,
                 'average': average,
-                'filled': filled, // todo update with
+                'filled': filled,
                 'remaining': remaining,
                 'status': status,
                 'fee': fee,
@@ -1119,11 +1056,10 @@ export default class drift extends Exchange {
             ? Precise.stringDiv (quoteEntryAmountAbs, baseAssetAmountAbs)
             : undefined;
         const entryPrice = entryPriceString === undefined ? undefined : this.parseNumber (entryPriceString);
-        const realizedPnl = this.safeNumber (position, 'settledPnl');
         const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
         return this.safePosition ({ // todo add margin modes, leverage, collateral etc
             'info': position,
-            'symbol': this.safeSymbol(marketId),
+            'symbol': this.safeSymbol (marketId),
             'contracts': contracts,
             'side': side,
             'notional': quoteEntryAmountAbs === undefined ? undefined : this.parseNumber (quoteEntryAmountAbs),
@@ -1392,6 +1328,7 @@ export default class drift extends Exchange {
         price: Num = undefined,
         params = {}
     ): Promise<Order> {
+		await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'accountId': this.accountId,
@@ -1408,10 +1345,15 @@ export default class drift extends Exchange {
             }
             request['price'] = price;
         }
+		console.time("publicPostTxOrderPlace")
         const response = await this.publicPostTxOrderPlace (
             this.extend (request, params)
         );
+		console.timeEnd("publicPostTxOrderPlace")
+		console.time("executeTx1")
         await this.executeTx (response.tx);
+		console.timeEnd("executeTx1")
+        // todo add order to response
         return this.parseOrder (response, market);
     }
 
@@ -1426,27 +1368,23 @@ export default class drift extends Exchange {
      */
     async cancelOrder (
         id: string,
-        symbol: Str = undefined,
         params = {}
     ): Promise<Order> {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const request: Dict = {
             'accountId': this.accountId,
             'orderId': id,
         };
-        if (market !== undefined) {
-            request['symbol'] = market['id'];
-        }
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
         const txSig = await this.executeTx (response.tx);
+        // todo add order to response
         return this.safeOrder (
             {
                 'id': id,
                 'clientOrderId': undefined,
                 'info': this.extend (response, { 'txSig': txSig }),
-                'symbol': market ? market['symbol'] : undefined,
+                'symbol': undefined,
                 'timestamp': undefined,
                 'datetime': undefined,
                 'status': 'canceled',
@@ -1457,7 +1395,6 @@ export default class drift extends Exchange {
                 'remaining': undefined,
                 'type': undefined,
             },
-            market
         );
     }
 
@@ -1482,8 +1419,13 @@ export default class drift extends Exchange {
         if (market !== undefined) {
             request['symbol'] = market['id'];
         }
+		console.time("cancelAllOrdersTxSig")
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
+		console.timeEnd("cancelAllOrdersTxSig")
+		console.time("executeTx")
         await this.executeTx (response.tx);
+		console.timeEnd("executeTx")
+        // todo add order to response
         return [];
     }
 
@@ -1510,7 +1452,7 @@ export default class drift extends Exchange {
         };
         const response = await this.publicPostTxDeposit (this.extend (request));
         const txSig = await this.executeTx (response.tx);
-        // TODO update this with the data of the transaction
+        // todo add deposit to response
         return {
             'info': this.extend (response, { 'txSig': txSig }),
             'id': this.safeString (response, 'depositRecordId'),
@@ -1549,8 +1491,6 @@ export default class drift extends Exchange {
     async withdraw (
         code: string,
         amount: number,
-        address: string,
-        tag: Str = undefined,
         params = {}
     ): Promise<Transaction> {
         await this.loadMarkets ();
@@ -1562,19 +1502,19 @@ export default class drift extends Exchange {
         };
         const response = await this.publicPostTxWithdraw (this.extend (request));
         const txSig = await this.executeTx (response.tx);
-        // TODO update this with the data of the transaction
+        // todo add deposit to response
         return {
             'info': this.extend (response, { 'txSig': txSig }),
             'id': this.safeString (response, 'withdrawRecordId'),
             'txid': txSig,
             'timestamp': undefined,
             'datetime': undefined,
-            'address': address,
+            'address': this.accountId,
             'addressFrom': undefined,
-            'addressTo': address,
-            'tag': tag,
+            'addressTo': this.accountId,
+            'tag': undefined,
             'tagFrom': undefined,
-            'tagTo': tag,
+            'tagTo': undefined,
             'type': 'withdrawal',
             'amount': amount,
             'currency': code,
