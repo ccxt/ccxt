@@ -161,6 +161,7 @@ public partial class kucoin : Exchange
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "user-info", 30 },
+                        { "user/api-key", 30 },
                         { "accounts", 7.5 },
                         { "accounts/{accountId}", 7.5 },
                         { "accounts/ledgers", 3 },
@@ -239,6 +240,7 @@ public partial class kucoin : Exchange
                         { "convert/limit/order/detail", 5 },
                         { "convert/limit/orders", 5 },
                         { "affiliate/inviter/statistics", 30 },
+                        { "earn/redeem-preview", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "sub/user/created", 22.5 },
