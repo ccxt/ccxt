@@ -535,37 +535,43 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 	}
 	return nil
 }
-func (this *Exchange) EthGetAddressFromPrivateKey(privateKey string) (string, error) {
+func (this *Exchange) EthGetAddressFromPrivateKey(privateKey interface{}) string {
+	// Convert interface{} to string
+	privateKeyStr, ok := privateKey.(string)
+	if !ok {
+		panic("privateKey must be a string")
+	}
+
 	// Remove "0x" prefix if present
-	cleanPrivateKey := strings.TrimPrefix(privateKey, "0x")
-	
+	cleanPrivateKey := strings.TrimPrefix(privateKeyStr, "0x")
+
 	// Parse the hex string to bytes
 	privateKeyBytes, err := hexutil.Decode("0x" + cleanPrivateKey)
 	if err != nil {
-		return "", err
+		panic(fmt.Sprintf("failed to decode private key: %v", err))
 	}
-	
+
 	// Convert bytes to ECDSA private key
 	privKey, err := crypto.ToECDSA(privateKeyBytes)
 	if err != nil {
-		return "", err
+		panic(fmt.Sprintf("failed to parse private key: %v", err))
 	}
-	
+
 	// Get the uncompressed public key (remove the 0x04 prefix to get just the coordinates)
 	publicKeyBytes := crypto.FromECDSAPub(&privKey.PublicKey)
 	if publicKeyBytes == nil {
-		return "", fmt.Errorf("failed to get public key bytes")
+		panic("failed to get public key bytes")
 	}
-	
+
 	// Remove the first byte (0x04 prefix) - we only want the 64 bytes (X + Y coordinates)
 	publicKeyWithoutPrefix := publicKeyBytes[1:]
-	
+
 	// Hash the public key with Keccak256
 	addressHash := crypto.Keccak256(publicKeyWithoutPrefix)
-	
+
 	// Take the last 20 bytes (40 hex chars) as the address
 	addressBytes := addressHash[len(addressHash)-20:]
-	
+
 	// Convert to hex and add 0x prefix
-	return "0x" + hexutil.Encode(addressBytes)[2:], nil
+	return "0x" + hexutil.Encode(addressBytes)[2:]
 }
