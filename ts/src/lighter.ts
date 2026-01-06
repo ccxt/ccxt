@@ -125,7 +125,7 @@ export default class lighter extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -2172,6 +2172,61 @@ export default class lighter extends Exchange {
             'claimable': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name lighter#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'withdraw', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires an accountIndex parameter');
+        }
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'withdraw', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires an apiKeyIndex parameter');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (currency['code'] === 'USDC') {
+            amount = this.parseToInt (Precise.stringMul (this.pow ('10', '6'), this.currencyToPrecision (code, amount)));
+        } else if (currency['code'] === 'ETH') {
+            amount = this.parseToInt (Precise.stringMul (this.pow ('10', '8'), this.currencyToPrecision (code, amount)));
+        } else {
+            throw new ExchangeError (this.id + ' withdraw() only supports USDC and ETH transfers');
+        }
+        const routeType = this.safeInteger (params, 'routeType', 0); // 0: perp, 1: spot
+        params = this.omit (params, 'routeType');
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const signRaw: Dict = {
+            'asset_index': this.parseToInt (currency['id']),
+            'route_type': routeType,
+            'amount': amount,
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = this.loadAccount (this.getChainId (), this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.lighterSignWithdraw (signer, this.extend (signRaw, params));
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        return this.parseTransaction (response);
     }
 
     /**
