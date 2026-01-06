@@ -64,7 +64,7 @@ public partial class cryptocom : ccxt.cryptocom
             });
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " pong failed with error "), this.json(e)));
+            var error = new NetworkError(add(add(this.id, " pong failed with error "), this.exceptionMessage(e)));
             ((WebSocketClient)client).reset(error);
         }
     }

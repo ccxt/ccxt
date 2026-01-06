@@ -2742,7 +2742,7 @@ public partial class bybit : ccxt.bybit
         //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //   }
         //
-        client.lastPong = this.safeInteger(message, "pong");
+        client.lastPong = this.safeInteger(message, "pong", this.milliseconds());
         return message;
     }
 

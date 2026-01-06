@@ -2227,7 +2227,7 @@ public partial class htx : ccxt.htx
             }
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " pong failed "), this.json(e)));
+            var error = new NetworkError(add(add(this.id, " pong failed "), this.exceptionMessage(e)));
             ((WebSocketClient)client).reset(error);
         }
     }

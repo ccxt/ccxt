@@ -1263,7 +1263,7 @@ public partial class toobit : ccxt.toobit
                     this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
                 } catch(Exception e)
                 {
-                    var err = new AuthenticationError(add(add(this.id, " "), this.json(e)));
+                    var err = new AuthenticationError(add(add(this.id, " "), this.exceptionMessage(e)));
                     ((WebSocketClient)client).reject(err, messageHash);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                     {

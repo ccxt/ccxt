@@ -1109,7 +1109,7 @@ public partial class apex : ccxt.apex
             });
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " handlePing failed with error "), this.json(e)));
+            var error = new NetworkError(add(add(this.id, " handlePing failed with error "), this.exceptionMessage(e)));
             ((WebSocketClient)client).reset(error);
         }
     }
@@ -1126,7 +1126,7 @@ public partial class apex : ccxt.apex
         //
         //   { pong: 1653296711335 }
         //
-        client.lastPong = this.safeInteger(message, "pong");
+        client.lastPong = this.safeInteger(message, "pong", this.milliseconds());
         return message;
     }
 
