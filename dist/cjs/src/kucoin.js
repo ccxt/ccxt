@@ -182,6 +182,7 @@ class kucoin extends kucoin$1["default"] {
                     'get': {
                         // account
                         'user-info': 30,
+                        'user/api-key': 30,
                         'accounts': 7.5,
                         'accounts/{accountId}': 7.5,
                         'accounts/ledgers': 3,
@@ -266,6 +267,8 @@ class kucoin extends kucoin$1["default"] {
                         'convert/limit/orders': 5,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
+                        // earn
+                        'earn/redeem-preview': 5, // 5EW
                     },
                     'post': {
                         // account

@@ -183,6 +183,7 @@ export default class kucoin extends Exchange {
                     'get': {
                         // account
                         'user-info': 30,
+                        'user/api-key': 30,
                         'accounts': 7.5,
                         'accounts/{accountId}': 7.5,
                         'accounts/ledgers': 3,
@@ -267,6 +268,8 @@ export default class kucoin extends Exchange {
                         'convert/limit/orders': 5,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
+                        // earn
+                        'earn/redeem-preview': 5, // 5EW
                     },
                     'post': {
                         // account
