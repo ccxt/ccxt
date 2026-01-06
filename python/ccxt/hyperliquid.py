@@ -1034,6 +1034,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': market,
         })
 
+    def update_spot_currency_code(self, code: str) -> str:
+        if code is None:
+            return code
+        spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
+        return self.safe_string(spotCurrencyMapping, code, code)
+
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1101,7 +1107,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             spotBalances: dict = {'info': response}
             for i in range(0, len(balances)):
                 balance = balances[i]
-                code = self.safe_currency_code(self.safe_string(balance, 'coin'))
+                unifiedCode = self.safe_currency_code(self.safe_string(balance, 'coin'))
+                code = self.update_spot_currency_code(unifiedCode) if isSpot else unifiedCode
                 account = self.account()
                 total = self.safe_string(balance, 'total')
                 used = self.safe_string(balance, 'hold')
