@@ -1,3 +1,27 @@
+<a id="v4.5.31"></a>
+# [v4.5.31](https://github.com/ccxt/ccxt/releases/tag/v4.5.31) - 2026-01-06
+
+## What's Changed
+* fix(dydx): correct import by [@sc0Vu](https://github.com/sc0Vu) in [#27602](https://github.com/ccxt/ccxt/pull/27602)
+* fix(bybit, apex, hyperliquid, p2b): handlePong set timestamp fix [#27450](https://github.com/ccxt/ccxt/issues/27450) by [@pcriadoperez](https://github.com/pcriadoperez) in [#27604](https://github.com/ccxt/ccxt/pull/27604)
+* feat(exceptionMessage): py,php,js,cs,go by [@ttodua](https://github.com/ttodua) in [#27584](https://github.com/ccxt/ccxt/pull/27584)
+* fix(gate): handle microsecond ts in order by [@carlosmiei](https://github.com/carlosmiei) in [#27613](https://github.com/ccxt/ccxt/pull/27613)
+* chore: remove oceanex exchange by [@carlosmiei](https://github.com/carlosmiei) in [#27614](https://github.com/ccxt/ccxt/pull/27614)
+* feat(base): loadMarketsAndSignIn by [@ttodua](https://github.com/ttodua) in [#27622](https://github.com/ccxt/ccxt/pull/27622)
+* fix(Exchange): add base fetchCanceledOrders by [@carlosmiei](https://github.com/carlosmiei) in [#27623](https://github.com/ccxt/ccxt/pull/27623)
+* fix(hyperliquid): spot currency mapping by [@mingjie-li](https://github.com/mingjie-li) in [#27628](https://github.com/ccxt/ccxt/pull/27628)
+* Kucoin add route by [@Nirator78](https://github.com/Nirator78) in [#27626](https://github.com/ccxt/ccxt/pull/27626)
+* fix(Exchange): handle binary msgs in browser and load protobufjs by [@carlosmiei](https://github.com/carlosmiei) in [#27629](https://github.com/ccxt/ccxt/pull/27629)
+* feat(kucoin): transfer() updated for new universal endpoint by [@yzh-pelle](https://github.com/yzh-pelle) in [#27591](https://github.com/ccxt/ccxt/pull/27591)
+
+## New Contributors
+* [@mingjie-li](https://github.com/mingjie-li) made their first contribution in [#27628](https://github.com/ccxt/ccxt/pull/27628)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.30...v4.5.31
+
+[Changes][v4.5.31]
+
+
 <a id="v4.5.30"></a>
 # [v4.5.30](https://github.com/ccxt/ccxt/releases/tag/v4.5.30) - 2025-12-29
 
@@ -12135,6 +12159,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.31]: https://github.com/ccxt/ccxt/compare/v4.5.30...v4.5.31
 [v4.5.30]: https://github.com/ccxt/ccxt/compare/v4.5.29...v4.5.30
 [v4.5.29]: https://github.com/ccxt/ccxt/compare/v4.5.28...v4.5.29
 [v4.5.28]: https://github.com/ccxt/ccxt/compare/v4.5.27...v4.5.28
