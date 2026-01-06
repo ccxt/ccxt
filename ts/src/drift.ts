@@ -1345,14 +1345,10 @@ export default class drift extends Exchange {
             }
             request['price'] = price;
         }
-		console.time("publicPostTxOrderPlace")
         const response = await this.publicPostTxOrderPlace (
             this.extend (request, params)
         );
-		console.timeEnd("publicPostTxOrderPlace")
-		console.time("executeTx1")
         await this.executeTx (response.tx);
-		console.timeEnd("executeTx1")
         // todo add order to response
         return this.parseOrder (response, market);
     }
@@ -1419,12 +1415,8 @@ export default class drift extends Exchange {
         if (market !== undefined) {
             request['symbol'] = market['id'];
         }
-		console.time("cancelAllOrdersTxSig")
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
-		console.timeEnd("cancelAllOrdersTxSig")
-		console.time("executeTx")
         await this.executeTx (response.tx);
-		console.timeEnd("executeTx")
         // todo add order to response
         return [];
     }
