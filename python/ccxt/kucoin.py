@@ -199,6 +199,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'get': {
                         # account
                         'user-info': 30,  # 20MW
+                        'user/api-key': 30,  # 20MW
                         'accounts': 7.5,  # 5MW
                         'accounts/{accountId}': 7.5,  # 5MW
                         'accounts/ledgers': 3,  # 2MW
@@ -283,6 +284,8 @@ class kucoin(Exchange, ImplicitAPI):
                         'convert/limit/orders': 5,
                         # affiliate
                         'affiliate/inviter/statistics': 30,
+                        # earn
+                        'earn/redeem-preview': 5,  # 5EW
                     },
                     'post': {
                         # account
