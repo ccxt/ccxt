@@ -263,10 +263,10 @@ public partial class Exchange
         return encodedFromRaw;
     }
 
-    public string ethGetAddressFromPrivateKey(string privateKey)
+    public string ethGetAddressFromPrivateKey(object privateKey)
     {
         // Remove "0x" prefix if present
-        var cleanPrivateKey = (string)this.remove0xPrefix(privateKey);
+        var cleanPrivateKey = (string)this.remove0xPrefix(privateKey.ToString());
         
         // Convert hex string to byte array
         var privateKeyBytes = cleanPrivateKey.HexToByteArray();
