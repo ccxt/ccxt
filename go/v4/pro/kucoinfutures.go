@@ -170,8 +170,10 @@ func  (this *KucoinfuturesCore) NegotiateHelper(privateChannel interface{}, opti
             return ch
         }
 func  (this *KucoinfuturesCore) RequestId() interface{}  {
+    this.LockId()
     var requestId interface{} = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
     ccxt.AddElementToObject(this.Options, "requestId", requestId)
+    this.UnlockId()
     return requestId
 }
 func  (this *KucoinfuturesCore) Subscribe(url interface{}, messageHash interface{}, subscriptionHash interface{}, subscription interface{}, optionalArgs ...interface{}) <- chan interface{} {
@@ -198,9 +200,9 @@ func  (this *KucoinfuturesCore) Subscribe(url interface{}, messageHash interface
                 subscription = this.Extend(subscriptionRequest, subscription)
             }
         
-                retRes16815 :=  (<-this.Watch(url, messageHash, message, subscriptionHash, subscription))
-                ccxt.PanicOnError(retRes16815)
-                ch <- retRes16815
+                retRes17015 :=  (<-this.Watch(url, messageHash, message, subscriptionHash, subscription))
+                ccxt.PanicOnError(retRes17015)
+                ch <- retRes17015
                 return nil
         
             }()
@@ -221,9 +223,9 @@ func  (this *KucoinfuturesCore) SubscribeMultiple(url interface{}, messageHashes
                 "response": true,
             }
         
-                retRes17915 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), subscriptionHashes, subscriptionArgs))
-                ccxt.PanicOnError(retRes17915)
-                ch <- retRes17915
+                retRes18115 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), subscriptionHashes, subscriptionArgs))
+                ccxt.PanicOnError(retRes18115)
+                ch <- retRes18115
                 return nil
         
             }()
@@ -257,9 +259,9 @@ func  (this *KucoinfuturesCore) UnSubscribeMultiple(url interface{}, messageHash
                 }
             }
         
-                retRes20115 :=  (<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription))
-                ccxt.PanicOnError(retRes20115)
-                ch <- retRes20115
+                retRes20315 :=  (<-this.WatchMultiple(url, messageHashes, message, subscriptionHashes, subscription))
+                ccxt.PanicOnError(retRes20315)
+                ch <- retRes20315
                 return nil
         
             }()
@@ -272,7 +274,7 @@ func  (this *KucoinfuturesCore) UnSubscribeMultiple(url interface{}, messageHash
  * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *KucoinfuturesCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -282,8 +284,8 @@ func  (this *KucoinfuturesCore) WatchTicker(symbol interface{}, optionalArgs ...
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2148 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2148)
+            retRes2168 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2168)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             ccxt.AddElementToObject(params, "callerMethodName", "watchTicker")
@@ -303,7 +305,7 @@ func  (this *KucoinfuturesCore) WatchTicker(symbol interface{}, optionalArgs ...
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *KucoinfuturesCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -315,8 +317,8 @@ func  (this *KucoinfuturesCore) WatchTickers(optionalArgs ...interface{}) <- cha
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2318 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2318)
+            retRes2338 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2338)
         
             ticker:= (<-this.WatchMultiRequest("watchTickers", "/contractMarket/ticker:", symbols, params))
             ccxt.PanicOnError(ticker)
@@ -370,7 +372,7 @@ func  (this *KucoinfuturesCore) HandleTicker(client interface{}, message interfa
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *KucoinfuturesCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -408,8 +410,8 @@ func  (this *KucoinfuturesCore) WatchMultiRequest(methodName interface{}, channe
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2918)
+            retRes2938 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2938)
             methodNameparamsVariable := this.HandleParamString(params, "callerMethodName", methodName)
             methodName = ccxt.GetValue(methodNameparamsVariable,0)
             params = ccxt.GetValue(methodNameparamsVariable,1)
@@ -442,9 +444,9 @@ func  (this *KucoinfuturesCore) WatchMultiRequest(methodName interface{}, channe
                 "id": requestId,
             }
         
-                retRes31915 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))
-                ccxt.PanicOnError(retRes31915)
-                ch <- retRes31915
+                retRes32115 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))
+                ccxt.PanicOnError(retRes32115)
+                ch <- retRes32115
                 return nil
         
             }()
@@ -513,8 +515,8 @@ func  (this *KucoinfuturesCore) WatchPosition(optionalArgs ...interface{}) <- ch
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPosition() requires a symbol argument")))
             }
         
-            retRes3768 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3768)
+            retRes3788 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3788)
         
             url:= (<-this.Negotiate(true))
             ccxt.PanicOnError(url)
@@ -538,9 +540,9 @@ func  (this *KucoinfuturesCore) WatchPosition(optionalArgs ...interface{}) <- ch
                 return nil
             }
         
-                retRes39315 :=  (<-this.Subscribe(url, messageHash, topic, nil, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes39315)
-                ch <- retRes39315
+                retRes39515 :=  (<-this.Subscribe(url, messageHash, topic, nil, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes39515)
+                ch <- retRes39515
                 return nil
         
             }()
@@ -577,9 +579,11 @@ func  (this *KucoinfuturesCore) LoadPositionSnapshot(client interface{}, message
             var cache interface{} = this.Positions
             cache.(ccxt.Appender).Append(position)
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(position, ccxt.Add("position:", symbol))
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(position, ccxt.Add("position:", symbol))
+            }
                 return nil
             }()
             return ch
@@ -706,7 +710,7 @@ func  (this *KucoinfuturesCore) HandlePosition(client interface{}, message inter
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *KucoinfuturesCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -720,9 +724,9 @@ func  (this *KucoinfuturesCore) WatchTrades(symbol interface{}, optionalArgs ...
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-                retRes55415 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes55415)
-                ch <- retRes55415
+                retRes55815 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes55815)
+                ch <- retRes55815
                 return nil
         
             }()
@@ -736,7 +740,7 @@ func  (this *KucoinfuturesCore) WatchTrades(symbol interface{}, optionalArgs ...
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *KucoinfuturesCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -754,8 +758,8 @@ func  (this *KucoinfuturesCore) WatchTradesForSymbols(symbols interface{}, optio
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
             }
         
-            retRes5728 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5728)
+            retRes5768 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5768)
             symbols = this.MarketSymbols(symbols)
         
             url:= (<-this.Negotiate(false))
@@ -793,7 +797,7 @@ func  (this *KucoinfuturesCore) WatchTradesForSymbols(symbols interface{}, optio
  * @see https://docs.kucoin.com/futures/#execution-data
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *KucoinfuturesCore) UnWatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -803,9 +807,9 @@ func  (this *KucoinfuturesCore) UnWatchTrades(symbol interface{}, optionalArgs .
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes60515 :=  (<-this.UnWatchTradesForSymbols([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes60515)
-                ch <- retRes60515
+                retRes60915 :=  (<-this.UnWatchTradesForSymbols([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes60915)
+                ch <- retRes60915
                 return nil
         
             }()
@@ -817,7 +821,7 @@ func  (this *KucoinfuturesCore) UnWatchTrades(symbol interface{}, optionalArgs .
  * @description get the list of most recent trades for a particular symbol
  * @param {string[]} symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *KucoinfuturesCore) UnWatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -827,8 +831,8 @@ func  (this *KucoinfuturesCore) UnWatchTradesForSymbols(symbols interface{}, opt
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6178 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6178)
+            retRes6218 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6218)
             symbols = this.MarketSymbols(symbols, nil, false)
         
             url:= (<-this.Negotiate(false))
@@ -851,9 +855,9 @@ func  (this *KucoinfuturesCore) UnWatchTradesForSymbols(symbols interface{}, opt
                 "symbols": symbols,
             }
         
-                retRes63715 :=  (<-this.UnSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription))
-                ccxt.PanicOnError(retRes63715)
-                ch <- retRes63715
+                retRes64115 :=  (<-this.UnSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription))
+                ccxt.PanicOnError(retRes64115)
+                ch <- retRes64115
                 return nil
         
             }()
@@ -920,8 +924,8 @@ func  (this *KucoinfuturesCore) WatchOHLCV(symbol interface{}, optionalArgs ...i
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes6898 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6898)
+            retRes6938 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6938)
             symbol = this.Symbol(symbol)
         
             url:= (<-this.Negotiate(false))
@@ -999,7 +1003,7 @@ func  (this *KucoinfuturesCore) HandleOHLCV(client interface{}, message interfac
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *KucoinfuturesCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1011,9 +1015,9 @@ func  (this *KucoinfuturesCore) WatchOrderBook(symbol interface{}, optionalArgs 
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes77015 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
-                ccxt.PanicOnError(retRes77015)
-                ch <- retRes77015
+                retRes77415 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
+                ccxt.PanicOnError(retRes77415)
+                ch <- retRes77415
                 return nil
         
             }()
@@ -1027,7 +1031,7 @@ func  (this *KucoinfuturesCore) WatchOrderBook(symbol interface{}, optionalArgs 
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *KucoinfuturesCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1048,8 +1052,8 @@ func  (this *KucoinfuturesCore) WatchOrderBookForSymbols(symbols interface{}, op
                 }
             }
         
-            retRes7938 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7938)
+            retRes7978 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7978)
             symbols = this.MarketSymbols(symbols)
             var marketIds interface{} = this.MarketIds(symbols)
         
@@ -1084,7 +1088,7 @@ func  (this *KucoinfuturesCore) WatchOrderBookForSymbols(symbols interface{}, op
  * @see https://docs.kucoin.com/futures/#level-2-market-data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *KucoinfuturesCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1094,9 +1098,9 @@ func  (this *KucoinfuturesCore) UnWatchOrderBook(symbol interface{}, optionalArg
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes82315 :=  (<-this.UnWatchOrderBookForSymbols([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes82315)
-                ch <- retRes82315
+                retRes82715 :=  (<-this.UnWatchOrderBookForSymbols([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes82715)
+                ch <- retRes82715
                 return nil
         
             }()
@@ -1108,7 +1112,7 @@ func  (this *KucoinfuturesCore) UnWatchOrderBook(symbol interface{}, optionalArg
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *KucoinfuturesCore) UnWatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1118,8 +1122,8 @@ func  (this *KucoinfuturesCore) UnWatchOrderBookForSymbols(symbols interface{}, 
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes8358 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8358)
+            retRes8398 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8398)
             symbols = this.MarketSymbols(symbols)
             var marketIds interface{} = this.MarketIds(symbols)
         
@@ -1141,9 +1145,9 @@ func  (this *KucoinfuturesCore) UnWatchOrderBookForSymbols(symbols interface{}, 
                 "subMessageHashes": subscriptionHashes,
             }
         
-                retRes85415 :=  (<-this.UnSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription))
-                ccxt.PanicOnError(retRes85415)
-                ch <- retRes85415
+                retRes85815 :=  (<-this.UnSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription))
+                ccxt.PanicOnError(retRes85815)
+                ch <- retRes85815
                 return nil
         
             }()
@@ -1269,7 +1273,7 @@ func  (this *KucoinfuturesCore) HandleSystemStatus(client interface{}, message i
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *KucoinfuturesCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1285,8 +1289,8 @@ func  (this *KucoinfuturesCore) WatchOrders(optionalArgs ...interface{}) <- chan
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9858 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9858)
+            retRes9898 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9898)
         
             url:= (<-this.Negotiate(true))
             ccxt.PanicOnError(url)
@@ -1416,7 +1420,7 @@ func  (this *KucoinfuturesCore) HandleOrder(client interface{}, message interfac
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.kucoin.com/futures/#account-balance-events
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *KucoinfuturesCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1426,8 +1430,8 @@ func  (this *KucoinfuturesCore) WatchBalance(optionalArgs ...interface{}) <- cha
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes11118 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11118)
+            retRes11158 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11158)
         
             url:= (<-this.Negotiate(true))
             ccxt.PanicOnError(url)
@@ -1440,9 +1444,9 @@ func  (this *KucoinfuturesCore) WatchBalance(optionalArgs ...interface{}) <- cha
             }
             var messageHash interface{} = "balance"
         
-                retRes112115 :=  (<-this.Subscribe(url, messageHash, topic, subscription, this.Extend(request, params)))
-                ccxt.PanicOnError(retRes112115)
-                ch <- retRes112115
+                retRes112515 :=  (<-this.Subscribe(url, messageHash, topic, subscription, this.Extend(request, params)))
+                ccxt.PanicOnError(retRes112515)
+                ch <- retRes112515
                 return nil
         
             }()
@@ -1485,8 +1489,8 @@ func  (this *KucoinfuturesCore) FetchBalanceSnapshot(client interface{}, message
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                 
-            retRes11588 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11588)
+            retRes11628 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11628)
             this.CheckRequiredCredentials()
             var messageHash interface{} = "balance"
             var selectedType interface{} = this.SafeString2(this.Options, "watchBalance", "defaultType", "swap") // spot, margin, main, funding, future, mining, trade, contract, pool

@@ -10,7 +10,7 @@ public partial class paradex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#sub-trades-market_symbol-operation"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/ws/web-socket-channels/trades/trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -32,7 +32,7 @@ public partial class paradex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -44,7 +44,7 @@ public partial class paradex
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#sub-order_book-market_symbol-snapshot-15-refresh_rate-operation"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -60,7 +60,7 @@ public partial class paradex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -71,7 +71,7 @@ public partial class paradex
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -81,7 +81,7 @@ public partial class paradex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTicker(symbol, parameters);
@@ -91,7 +91,7 @@ public partial class paradex
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -101,7 +101,7 @@ public partial class paradex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);

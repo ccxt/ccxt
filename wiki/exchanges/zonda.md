@@ -47,7 +47,7 @@ zonda.fetchMarkets ([params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/active-orders  
 
@@ -70,7 +70,7 @@ zonda.fetchOpenOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/transactions-history  
 
@@ -93,7 +93,7 @@ zonda.fetchMyTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/list-of-wallets  
 
@@ -113,7 +113,7 @@ zonda.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.zondacrypto.exchange/reference/orderbook-2  
 
@@ -135,7 +135,7 @@ zonda.fetchOrderBook (symbol[, limit, params])
 v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/market-statistics  
 
@@ -157,7 +157,7 @@ zonda.fetchTicker (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 **See**: https://docs.zondacrypto.exchange/reference/operations-history  
 
@@ -204,7 +204,7 @@ zonda.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.zondacrypto.exchange/reference/last-transactions  
 
@@ -227,7 +227,7 @@ zonda.fetchTrades (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/new-order  
 
@@ -252,7 +252,7 @@ zonda.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/cancel-order  
 
@@ -274,7 +274,7 @@ zonda.cancelOrder (id, symbol[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto  
 
@@ -296,7 +296,7 @@ zonda.fetchDepositAddress (code[, params])
 fetch deposit addresses for multiple currencies and chain types
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto  
 
@@ -317,7 +317,7 @@ zonda.fetchDepositAddresses (codes[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/internal-transfer  
 
@@ -341,7 +341,7 @@ zonda.transfer (code, amount, fromAccount, toAccount[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1  
 

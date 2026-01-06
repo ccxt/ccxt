@@ -110,7 +110,7 @@ coincatch.fetchCurrencies ([params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#get-coin-list  
 
@@ -155,7 +155,7 @@ coincatch.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -180,7 +180,7 @@ coincatch.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -207,7 +207,7 @@ coincatch.fetchTickers ([symbols, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -264,7 +264,7 @@ coincatch.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -292,7 +292,7 @@ coincatch.fetchTrades (symbol[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate  
 
@@ -313,7 +313,7 @@ coincatch.fetchFundingRate (symbol[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#get-history-funding-rate  
 
@@ -338,7 +338,7 @@ coincatch.fetchFundingRateHistory (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#get-account-assets  
 
@@ -360,7 +360,7 @@ coincatch.fetchBalance ([params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#transfer  
 
@@ -385,7 +385,7 @@ coincatch.transfer (code, amount, fromAccount, toAccount[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#get-coin-address  
 
@@ -407,7 +407,7 @@ coincatch.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#get-deposit-list  
 
@@ -433,7 +433,7 @@ coincatch.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#get-withdraw-list-v2  
 
@@ -460,7 +460,7 @@ coincatch.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#withdraw  
 
@@ -487,7 +487,7 @@ coincatch.withdraw (code, amount, address[, tag, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#place-order  
 
@@ -509,7 +509,7 @@ coincatch.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -546,7 +546,7 @@ coincatch.createOrder (symbol, type, side, amount[, price, params])
 create a trade order on spot market
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -580,7 +580,7 @@ coincatch.createSpotOrder (symbol, type, side, amount[, price, params])
 create a trade order on swap market
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -622,7 +622,7 @@ coincatch.createSwapOrder (symbol, type, side, amount[, price, params])
 *swap markets only* create an order with a stop loss or take profit attached (type 3)
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -648,7 +648,7 @@ coincatch.createOrderWithTakeProfitAndStopLoss (symbol, type, side, amount[, pri
 create a list of trade orders (all orders should be of the same symbol)
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#batch-order  
 
@@ -669,7 +669,7 @@ coincatch.createOrders (orders[, params])
 edit a trade trigger, stop-looss or take-profit order
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#modify-plan-order  
 
@@ -695,7 +695,7 @@ coincatch.editOrder (id, symbol, type, side, amount[, price, params])
 fetches information on an order made by the user (non-trigger orders only)
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -723,7 +723,7 @@ coincatch.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -758,7 +758,7 @@ coincatch.fetchOpenOrders ([symbol, since, limit, params])
 fetches information on multiple canceled and closed orders made by the user
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -793,7 +793,7 @@ coincatch.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -859,7 +859,7 @@ coincatch.cancelAllOrders ([symbol, params])
 cancel multiple non-trigger orders
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#cancel-order-in-batch-v2-single-instruments  
 
@@ -912,7 +912,7 @@ coincatch.fetchMyTrades (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#get-transaction-details  
 
@@ -936,7 +936,7 @@ coincatch.fetchOrderTrades (id, symbol[, since, limit, params])
 fetches the margin mode of the trading pair
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#get-single-account  
 
@@ -1023,7 +1023,7 @@ coincatch.setPositionMode (hedged, symbol[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#get-single-account  
 
@@ -1067,7 +1067,7 @@ coincatch.setLeverage (leverage, symbol[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#change-margin  
 
@@ -1090,7 +1090,7 @@ coincatch.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#change-margin  
 
@@ -1113,7 +1113,7 @@ coincatch.addMargin (symbol, amount[, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#get-symbol-position  
 
@@ -1135,7 +1135,7 @@ coincatch.fetchPosition (symbol[, params])
 fetch all open positions for specific symbol
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#get-symbol-position  
 
@@ -1156,7 +1156,7 @@ coincatch.fetchPositionsForSymbol (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#get-all-position  
 
@@ -1179,7 +1179,7 @@ coincatch.fetchPositions ([symbols, params])
 fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 **See**
 
@@ -1216,7 +1216,7 @@ coincatch.fetchLedger ([code, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#tickers-channel  
 
@@ -1259,7 +1259,7 @@ coincatch.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#tickers-channel  
 
@@ -1305,7 +1305,7 @@ coincatch.watchOHLCV (symbol, timeframe[, since, limit, params])
 unsubscribe from the ohlcv channel
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel  
 
@@ -1327,7 +1327,7 @@ coincatch.unWatchOHLCV (symbol, timeframe[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://coincatch.github.io/github.io/en/spot/#depth-channel  
 
@@ -1349,7 +1349,7 @@ coincatch.watchOrderBook (symbol[, limit, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://coincatch.github.io/github.io/en/spot/#depth-channel  
 
@@ -1371,7 +1371,7 @@ coincatch.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://coincatch.github.io/github.io/en/spot/#depth-channel  
 
@@ -1393,7 +1393,7 @@ coincatch.watchOrderBookForSymbols (symbols[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#trades-channel  
 
@@ -1416,7 +1416,7 @@ coincatch.watchTrades (symbol[, since, limit, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://coincatch.github.io/github.io/en/spot/#trades-channel  
 
@@ -1460,7 +1460,7 @@ coincatch.unWatchTrades (symbol[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -1486,7 +1486,7 @@ coincatch.watchBalance ([params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 

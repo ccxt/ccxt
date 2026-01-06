@@ -25,7 +25,7 @@
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#order-transactions-pagination  
 
@@ -45,7 +45,7 @@ coincheck.fetchBalance ([params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#order-opens  
 
@@ -68,7 +68,7 @@ coincheck.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://coincheck.com/documents/exchange/api#order-book  
 
@@ -90,7 +90,7 @@ coincheck.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#ticker  
 
@@ -111,7 +111,7 @@ coincheck.fetchTicker (symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#order-transactions-pagination  
 
@@ -134,7 +134,7 @@ coincheck.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://coincheck.com/documents/exchange/api#public-trades  
 
@@ -157,7 +157,7 @@ coincheck.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://coincheck.com/documents/exchange/api#account-info  
 
@@ -177,7 +177,7 @@ coincheck.fetchTradingFees ([params])
 create a trade order
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#order-new  
 
@@ -202,7 +202,7 @@ coincheck.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#order-cancel  
 
@@ -224,7 +224,7 @@ coincheck.cancelOrder (id, symbol[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#account-deposits  
 
@@ -247,7 +247,7 @@ coincheck.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#withdraws  
 
@@ -270,7 +270,7 @@ coincheck.fetchWithdrawals (code[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://coincheck.com/documents/exchange/api#websocket-order-book  
 
@@ -292,7 +292,7 @@ coincheck.watchOrderBook (symbol[, limit, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://coincheck.com/documents/exchange/api#websocket-trades  
 

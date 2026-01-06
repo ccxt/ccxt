@@ -125,208 +125,208 @@ abstract class wavesexchange extends \ccxt\Exchange {
         return $this->request('matcher/settings/rates/{assetId}', 'matcher', 'PUT', $params, null, null, array());
     }
     public function node_get_addresses($params = array()) {
-        return $this->request('addresses', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_addresses_balance_address($params = array()) {
-        return $this->request('addresses/balance/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/balance/{address}', 'node', 'GET', $params, null, null, array("cost" => 1));
     }
     public function node_get_addresses_balance_address_confirmations($params = array()) {
-        return $this->request('addresses/balance/{address}/{confirmations}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/balance/{address}/{confirmations}', 'node', 'GET', $params, null, null, array("cost" => 1));
     }
     public function node_get_addresses_balance_details_address($params = array()) {
-        return $this->request('addresses/balance/details/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/balance/details/{address}', 'node', 'GET', $params, null, null, array("cost" => 1));
     }
     public function node_get_addresses_data_address($params = array()) {
-        return $this->request('addresses/data/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/data/{address}', 'node', 'GET', $params, null, null, array("cost" => 5.882352941176471));
     }
     public function node_get_addresses_data_address_key($params = array()) {
-        return $this->request('addresses/data/{address}/{key}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/data/{address}/{key}', 'node', 'GET', $params, null, null, array("cost" => 5.882352941176471));
     }
     public function node_get_addresses_effectivebalance_address($params = array()) {
-        return $this->request('addresses/effectiveBalance/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/effectiveBalance/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_addresses_effectivebalance_address_confirmations($params = array()) {
-        return $this->request('addresses/effectiveBalance/{address}/{confirmations}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/effectiveBalance/{address}/{confirmations}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_addresses_publickey_publickey($params = array()) {
-        return $this->request('addresses/publicKey/{publicKey}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/publicKey/{publicKey}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_addresses_scriptinfo_address($params = array()) {
-        return $this->request('addresses/scriptInfo/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/scriptInfo/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_addresses_scriptinfo_address_meta($params = array()) {
-        return $this->request('addresses/scriptInfo/{address}/meta', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/scriptInfo/{address}/meta', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_addresses_seed_address($params = array()) {
-        return $this->request('addresses/seed/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/seed/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_addresses_seq_from_to($params = array()) {
-        return $this->request('addresses/seq/{from}/{to}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/seq/{from}/{to}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_addresses_validate_address($params = array()) {
-        return $this->request('addresses/validate/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/validate/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_alias_by_address_address($params = array()) {
-        return $this->request('alias/by-address/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('alias/by-address/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_alias_by_alias_alias($params = array()) {
-        return $this->request('alias/by-alias/{alias}', 'node', 'GET', $params, null, null, array());
+        return $this->request('alias/by-alias/{alias}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_assets_assetid_distribution_height_limit($params = array()) {
-        return $this->request('assets/{assetId}/distribution/{height}/{limit}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/{assetId}/distribution/{height}/{limit}', 'node', 'GET', $params, null, null, array("cost" => 5.882352941176471));
     }
     public function node_get_assets_balance_address($params = array()) {
-        return $this->request('assets/balance/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/balance/{address}', 'node', 'GET', $params, null, null, array("cost" => 5.882352941176471));
     }
     public function node_get_assets_balance_address_assetid($params = array()) {
-        return $this->request('assets/balance/{address}/{assetId}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/balance/{address}/{assetId}', 'node', 'GET', $params, null, null, array("cost" => 1));
     }
     public function node_get_assets_details_assetid($params = array()) {
-        return $this->request('assets/details/{assetId}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/details/{assetId}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_assets_nft_address_limit_limit($params = array()) {
-        return $this->request('assets/nft/{address}/limit/{limit}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/nft/{address}/limit/{limit}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blockchain_rewards($params = array()) {
-        return $this->request('blockchain/rewards', 'node', 'GET', $params, null, null, array());
+        return $this->request('blockchain/rewards', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blockchain_rewards_height($params = array()) {
-        return $this->request('blockchain/rewards/height', 'node', 'GET', $params, null, null, array());
+        return $this->request('blockchain/rewards/height', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_address_address_from_to($params = array()) {
-        return $this->request('blocks/address/{address}/{from}/{to}/', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/address/{address}/{from}/{to}/', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_at_height($params = array()) {
-        return $this->request('blocks/at/{height}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/at/{height}', 'node', 'GET', $params, null, null, array("cost" => 100));
     }
     public function node_get_blocks_delay_signature_blocknum($params = array()) {
-        return $this->request('blocks/delay/{signature}/{blockNum}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/delay/{signature}/{blockNum}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_first($params = array()) {
-        return $this->request('blocks/first', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/first', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_headers_last($params = array()) {
-        return $this->request('blocks/headers/last', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/headers/last', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_headers_seq_from_to($params = array()) {
-        return $this->request('blocks/headers/seq/{from}/{to}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/headers/seq/{from}/{to}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_height($params = array()) {
-        return $this->request('blocks/height', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/height', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_height_signature($params = array()) {
-        return $this->request('blocks/height/{signature}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/height/{signature}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_last($params = array()) {
-        return $this->request('blocks/last', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/last', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_blocks_seq_from_to($params = array()) {
-        return $this->request('blocks/seq/{from}/{to}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/seq/{from}/{to}', 'node', 'GET', $params, null, null, array("cost" => 100));
     }
     public function node_get_blocks_signature_signature($params = array()) {
-        return $this->request('blocks/signature/{signature}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/signature/{signature}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_consensus_algo($params = array()) {
-        return $this->request('consensus/algo', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/algo', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_consensus_basetarget($params = array()) {
-        return $this->request('consensus/basetarget', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/basetarget', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_consensus_basetarget_blockid($params = array()) {
-        return $this->request('consensus/basetarget/{blockId}', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/basetarget/{blockId}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_consensus_generatingbalance_address($params = array()) {
-        return $this->request('consensus/{generatingbalance}/address', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/{generatingbalance}/address', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_consensus_generationsignature($params = array()) {
-        return $this->request('consensus/generationsignature', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/generationsignature', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_consensus_generationsignature_blockid($params = array()) {
-        return $this->request('consensus/generationsignature/{blockId}', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/generationsignature/{blockId}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_balances_history_address($params = array()) {
-        return $this->request('debug/balances/history/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/balances/history/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_blocks_howmany($params = array()) {
-        return $this->request('debug/blocks/{howMany}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/blocks/{howMany}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_configinfo($params = array()) {
-        return $this->request('debug/configInfo', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/configInfo', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_historyinfo($params = array()) {
-        return $this->request('debug/historyInfo', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/historyInfo', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_info($params = array()) {
-        return $this->request('debug/info', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/info', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_minerinfo($params = array()) {
-        return $this->request('debug/minerInfo', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/minerInfo', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_portfolios_address($params = array()) {
-        return $this->request('debug/portfolios/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/portfolios/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_state($params = array()) {
-        return $this->request('debug/state', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/state', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_statechanges_address_address($params = array()) {
-        return $this->request('debug/stateChanges/address/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/stateChanges/address/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_statechanges_info_id($params = array()) {
-        return $this->request('debug/stateChanges/info/{id}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/stateChanges/info/{id}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_debug_statewaves_height($params = array()) {
-        return $this->request('debug/stateWaves/{height}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/stateWaves/{height}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_leasing_active_address($params = array()) {
-        return $this->request('leasing/active/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('leasing/active/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_node_state($params = array()) {
-        return $this->request('node/state', 'node', 'GET', $params, null, null, array());
+        return $this->request('node/state', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_node_version($params = array()) {
-        return $this->request('node/version', 'node', 'GET', $params, null, null, array());
+        return $this->request('node/version', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_peers_all($params = array()) {
-        return $this->request('peers/all', 'node', 'GET', $params, null, null, array());
+        return $this->request('peers/all', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_peers_blacklisted($params = array()) {
-        return $this->request('peers/blacklisted', 'node', 'GET', $params, null, null, array());
+        return $this->request('peers/blacklisted', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_peers_connected($params = array()) {
-        return $this->request('peers/connected', 'node', 'GET', $params, null, null, array());
+        return $this->request('peers/connected', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_peers_suspended($params = array()) {
-        return $this->request('peers/suspended', 'node', 'GET', $params, null, null, array());
+        return $this->request('peers/suspended', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_transactions_address_address_limit_limit($params = array()) {
-        return $this->request('transactions/address/{address}/limit/{limit}', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/address/{address}/limit/{limit}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_transactions_info_id($params = array()) {
-        return $this->request('transactions/info/{id}', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/info/{id}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_transactions_status($params = array()) {
-        return $this->request('transactions/status', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/status', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_transactions_unconfirmed($params = array()) {
-        return $this->request('transactions/unconfirmed', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/unconfirmed', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_transactions_unconfirmed_info_id($params = array()) {
-        return $this->request('transactions/unconfirmed/info/{id}', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/unconfirmed/info/{id}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_transactions_unconfirmed_size($params = array()) {
-        return $this->request('transactions/unconfirmed/size', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/unconfirmed/size', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_utils_seed($params = array()) {
-        return $this->request('utils/seed', 'node', 'GET', $params, null, null, array());
+        return $this->request('utils/seed', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_utils_seed_length($params = array()) {
-        return $this->request('utils/seed/{length}', 'node', 'GET', $params, null, null, array());
+        return $this->request('utils/seed/{length}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_utils_time($params = array()) {
-        return $this->request('utils/time', 'node', 'GET', $params, null, null, array());
+        return $this->request('utils/time', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_get_wallet_seed($params = array()) {
-        return $this->request('wallet/seed', 'node', 'GET', $params, null, null, array());
+        return $this->request('wallet/seed', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function node_post_addresses($params = array()) {
         return $this->request('addresses', 'node', 'POST', $params, null, null, array());
@@ -575,208 +575,208 @@ abstract class wavesexchange extends \ccxt\Exchange {
         return $this->request('matcher/settings/rates/{assetId}', 'matcher', 'PUT', $params, null, null, array());
     }
     public function nodeGetAddresses($params = array()) {
-        return $this->request('addresses', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAddressesBalanceAddress($params = array()) {
-        return $this->request('addresses/balance/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/balance/{address}', 'node', 'GET', $params, null, null, array("cost" => 1));
     }
     public function nodeGetAddressesBalanceAddressConfirmations($params = array()) {
-        return $this->request('addresses/balance/{address}/{confirmations}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/balance/{address}/{confirmations}', 'node', 'GET', $params, null, null, array("cost" => 1));
     }
     public function nodeGetAddressesBalanceDetailsAddress($params = array()) {
-        return $this->request('addresses/balance/details/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/balance/details/{address}', 'node', 'GET', $params, null, null, array("cost" => 1));
     }
     public function nodeGetAddressesDataAddress($params = array()) {
-        return $this->request('addresses/data/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/data/{address}', 'node', 'GET', $params, null, null, array("cost" => 5.882352941176471));
     }
     public function nodeGetAddressesDataAddressKey($params = array()) {
-        return $this->request('addresses/data/{address}/{key}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/data/{address}/{key}', 'node', 'GET', $params, null, null, array("cost" => 5.882352941176471));
     }
     public function nodeGetAddressesEffectiveBalanceAddress($params = array()) {
-        return $this->request('addresses/effectiveBalance/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/effectiveBalance/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAddressesEffectiveBalanceAddressConfirmations($params = array()) {
-        return $this->request('addresses/effectiveBalance/{address}/{confirmations}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/effectiveBalance/{address}/{confirmations}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAddressesPublicKeyPublicKey($params = array()) {
-        return $this->request('addresses/publicKey/{publicKey}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/publicKey/{publicKey}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAddressesScriptInfoAddress($params = array()) {
-        return $this->request('addresses/scriptInfo/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/scriptInfo/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAddressesScriptInfoAddressMeta($params = array()) {
-        return $this->request('addresses/scriptInfo/{address}/meta', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/scriptInfo/{address}/meta', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAddressesSeedAddress($params = array()) {
-        return $this->request('addresses/seed/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/seed/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAddressesSeqFromTo($params = array()) {
-        return $this->request('addresses/seq/{from}/{to}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/seq/{from}/{to}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAddressesValidateAddress($params = array()) {
-        return $this->request('addresses/validate/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('addresses/validate/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAliasByAddressAddress($params = array()) {
-        return $this->request('alias/by-address/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('alias/by-address/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAliasByAliasAlias($params = array()) {
-        return $this->request('alias/by-alias/{alias}', 'node', 'GET', $params, null, null, array());
+        return $this->request('alias/by-alias/{alias}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAssetsAssetIdDistributionHeightLimit($params = array()) {
-        return $this->request('assets/{assetId}/distribution/{height}/{limit}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/{assetId}/distribution/{height}/{limit}', 'node', 'GET', $params, null, null, array("cost" => 5.882352941176471));
     }
     public function nodeGetAssetsBalanceAddress($params = array()) {
-        return $this->request('assets/balance/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/balance/{address}', 'node', 'GET', $params, null, null, array("cost" => 5.882352941176471));
     }
     public function nodeGetAssetsBalanceAddressAssetId($params = array()) {
-        return $this->request('assets/balance/{address}/{assetId}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/balance/{address}/{assetId}', 'node', 'GET', $params, null, null, array("cost" => 1));
     }
     public function nodeGetAssetsDetailsAssetId($params = array()) {
-        return $this->request('assets/details/{assetId}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/details/{assetId}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetAssetsNftAddressLimitLimit($params = array()) {
-        return $this->request('assets/nft/{address}/limit/{limit}', 'node', 'GET', $params, null, null, array());
+        return $this->request('assets/nft/{address}/limit/{limit}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlockchainRewards($params = array()) {
-        return $this->request('blockchain/rewards', 'node', 'GET', $params, null, null, array());
+        return $this->request('blockchain/rewards', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlockchainRewardsHeight($params = array()) {
-        return $this->request('blockchain/rewards/height', 'node', 'GET', $params, null, null, array());
+        return $this->request('blockchain/rewards/height', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksAddressAddressFromTo($params = array()) {
-        return $this->request('blocks/address/{address}/{from}/{to}/', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/address/{address}/{from}/{to}/', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksAtHeight($params = array()) {
-        return $this->request('blocks/at/{height}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/at/{height}', 'node', 'GET', $params, null, null, array("cost" => 100));
     }
     public function nodeGetBlocksDelaySignatureBlockNum($params = array()) {
-        return $this->request('blocks/delay/{signature}/{blockNum}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/delay/{signature}/{blockNum}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksFirst($params = array()) {
-        return $this->request('blocks/first', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/first', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksHeadersLast($params = array()) {
-        return $this->request('blocks/headers/last', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/headers/last', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksHeadersSeqFromTo($params = array()) {
-        return $this->request('blocks/headers/seq/{from}/{to}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/headers/seq/{from}/{to}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksHeight($params = array()) {
-        return $this->request('blocks/height', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/height', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksHeightSignature($params = array()) {
-        return $this->request('blocks/height/{signature}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/height/{signature}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksLast($params = array()) {
-        return $this->request('blocks/last', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/last', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetBlocksSeqFromTo($params = array()) {
-        return $this->request('blocks/seq/{from}/{to}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/seq/{from}/{to}', 'node', 'GET', $params, null, null, array("cost" => 100));
     }
     public function nodeGetBlocksSignatureSignature($params = array()) {
-        return $this->request('blocks/signature/{signature}', 'node', 'GET', $params, null, null, array());
+        return $this->request('blocks/signature/{signature}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetConsensusAlgo($params = array()) {
-        return $this->request('consensus/algo', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/algo', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetConsensusBasetarget($params = array()) {
-        return $this->request('consensus/basetarget', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/basetarget', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetConsensusBasetargetBlockId($params = array()) {
-        return $this->request('consensus/basetarget/{blockId}', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/basetarget/{blockId}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetConsensusGeneratingbalanceAddress($params = array()) {
-        return $this->request('consensus/{generatingbalance}/address', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/{generatingbalance}/address', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetConsensusGenerationsignature($params = array()) {
-        return $this->request('consensus/generationsignature', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/generationsignature', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetConsensusGenerationsignatureBlockId($params = array()) {
-        return $this->request('consensus/generationsignature/{blockId}', 'node', 'GET', $params, null, null, array());
+        return $this->request('consensus/generationsignature/{blockId}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugBalancesHistoryAddress($params = array()) {
-        return $this->request('debug/balances/history/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/balances/history/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugBlocksHowMany($params = array()) {
-        return $this->request('debug/blocks/{howMany}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/blocks/{howMany}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugConfigInfo($params = array()) {
-        return $this->request('debug/configInfo', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/configInfo', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugHistoryInfo($params = array()) {
-        return $this->request('debug/historyInfo', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/historyInfo', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugInfo($params = array()) {
-        return $this->request('debug/info', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/info', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugMinerInfo($params = array()) {
-        return $this->request('debug/minerInfo', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/minerInfo', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugPortfoliosAddress($params = array()) {
-        return $this->request('debug/portfolios/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/portfolios/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugState($params = array()) {
-        return $this->request('debug/state', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/state', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugStateChangesAddressAddress($params = array()) {
-        return $this->request('debug/stateChanges/address/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/stateChanges/address/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugStateChangesInfoId($params = array()) {
-        return $this->request('debug/stateChanges/info/{id}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/stateChanges/info/{id}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetDebugStateWavesHeight($params = array()) {
-        return $this->request('debug/stateWaves/{height}', 'node', 'GET', $params, null, null, array());
+        return $this->request('debug/stateWaves/{height}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetLeasingActiveAddress($params = array()) {
-        return $this->request('leasing/active/{address}', 'node', 'GET', $params, null, null, array());
+        return $this->request('leasing/active/{address}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetNodeState($params = array()) {
-        return $this->request('node/state', 'node', 'GET', $params, null, null, array());
+        return $this->request('node/state', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetNodeVersion($params = array()) {
-        return $this->request('node/version', 'node', 'GET', $params, null, null, array());
+        return $this->request('node/version', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetPeersAll($params = array()) {
-        return $this->request('peers/all', 'node', 'GET', $params, null, null, array());
+        return $this->request('peers/all', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetPeersBlacklisted($params = array()) {
-        return $this->request('peers/blacklisted', 'node', 'GET', $params, null, null, array());
+        return $this->request('peers/blacklisted', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetPeersConnected($params = array()) {
-        return $this->request('peers/connected', 'node', 'GET', $params, null, null, array());
+        return $this->request('peers/connected', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetPeersSuspended($params = array()) {
-        return $this->request('peers/suspended', 'node', 'GET', $params, null, null, array());
+        return $this->request('peers/suspended', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetTransactionsAddressAddressLimitLimit($params = array()) {
-        return $this->request('transactions/address/{address}/limit/{limit}', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/address/{address}/limit/{limit}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetTransactionsInfoId($params = array()) {
-        return $this->request('transactions/info/{id}', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/info/{id}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetTransactionsStatus($params = array()) {
-        return $this->request('transactions/status', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/status', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetTransactionsUnconfirmed($params = array()) {
-        return $this->request('transactions/unconfirmed', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/unconfirmed', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetTransactionsUnconfirmedInfoId($params = array()) {
-        return $this->request('transactions/unconfirmed/info/{id}', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/unconfirmed/info/{id}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetTransactionsUnconfirmedSize($params = array()) {
-        return $this->request('transactions/unconfirmed/size', 'node', 'GET', $params, null, null, array());
+        return $this->request('transactions/unconfirmed/size', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetUtilsSeed($params = array()) {
-        return $this->request('utils/seed', 'node', 'GET', $params, null, null, array());
+        return $this->request('utils/seed', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetUtilsSeedLength($params = array()) {
-        return $this->request('utils/seed/{length}', 'node', 'GET', $params, null, null, array());
+        return $this->request('utils/seed/{length}', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetUtilsTime($params = array()) {
-        return $this->request('utils/time', 'node', 'GET', $params, null, null, array());
+        return $this->request('utils/time', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodeGetWalletSeed($params = array()) {
-        return $this->request('wallet/seed', 'node', 'GET', $params, null, null, array());
+        return $this->request('wallet/seed', 'node', 'GET', $params, null, null, array("cost" => 5));
     }
     public function nodePostAddresses($params = array()) {
         return $this->request('addresses', 'node', 'POST', $params, null, null, array());

@@ -9,7 +9,6 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 include_once PATH_TO_CCXT . '/test/exchange/base/test_trade.php';
 
 function test_fetch_trades($exchange, $skipped_properties, $symbol) {

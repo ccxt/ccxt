@@ -82,7 +82,7 @@ func (this *Arkham) FetchTime(params ...interface{}) (int64, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the number of order book entries to return, max 50
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Arkham) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -185,7 +185,7 @@ func (this *Arkham) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Arkham) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -217,7 +217,7 @@ func (this *Arkham) FetchTicker(symbol string, options ...FetchTickerOptions) (T
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Arkham) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -281,7 +281,7 @@ func (this *Arkham) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Arkham) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -327,7 +327,7 @@ func (this *Arkham) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Arkham) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -371,7 +371,7 @@ func (this *Arkham) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Arkham) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -404,7 +404,7 @@ func (this *Arkham) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @see https://arkm.com/docs#post/orders/cancel/all
  * @param {string} symbol cancel alls open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Arkham) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -449,7 +449,7 @@ func (this *Arkham) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
  * @param {string} [params.triggerPriceType] mark, index or last
  * @param {bool} [params.postOnly] true or false whether the order is post-only
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
- * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Arkham) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -486,7 +486,7 @@ func (this *Arkham) CreateOrder(symbol string, typeVar string, side string, amou
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {string} [params.page_token] page_token - used for paging
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Arkham) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -528,7 +528,7 @@ func (this *Arkham) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @description fetch all the accounts associated with a profile
  * @see https://arkm.com/docs#get/user
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Arkham) FetchAccounts(params ...interface{}) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
@@ -544,7 +544,7 @@ func (this *Arkham) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @description query for account info
  * @see https://arkm.com/docs#get/account/balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Arkham) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -561,7 +561,7 @@ func (this *Arkham) FetchBalance(params ...interface{}) (Balances, error) {
  * @see https://arkm.com/docs#post/account/deposit/addresses/new
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Arkham) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
@@ -589,7 +589,7 @@ func (this *Arkham) CreateDepositAddress(code string, options ...CreateDepositAd
  * @see https://arkm.com/docs#get/account/deposit/addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+ * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
  */
 func (this *Arkham) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 
@@ -617,7 +617,7 @@ func (this *Arkham) FetchDepositAddressesByNetwork(code string, options ...Fetch
  * @see https://arkm.com/docs#get/account/deposit/addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Arkham) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -647,7 +647,7 @@ func (this *Arkham) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Arkham) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -690,7 +690,7 @@ func (this *Arkham) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
  * @see https://arkm.com/docs#get/account/fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Arkham) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -710,7 +710,7 @@ func (this *Arkham) FetchTradingFees(params ...interface{}) (TradingFees, error)
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Arkham) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -753,7 +753,7 @@ func (this *Arkham) FetchFundingHistory(options ...FetchFundingHistoryOptions) (
  * @see https://arkm.com/docs#get/account/leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Arkham) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -861,7 +861,7 @@ func (this *Arkham) Withdraw(code string, amount float64, address string, option
  * @see https://arkm.com/docs#get/public/margin-schedules
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Arkham) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 

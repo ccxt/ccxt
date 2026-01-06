@@ -110,12 +110,12 @@ func  (this *WoofiproCore) WatchPublic(messageHash interface{}, message interfac
 /**
  * @method
  * @name woofipro#watchOrderBook
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *WoofiproCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -186,11 +186,11 @@ func  (this *WoofiproCore) HandleOrderBook(client interface{}, message interface
 /**
  * @method
  * @name woofipro#watchTicker
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *WoofiproCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -290,11 +290,11 @@ func  (this *WoofiproCore) HandleTicker(client interface{}, message interface{})
 /**
  * @method
  * @name woofipro#watchTickers
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-tickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *WoofiproCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -364,11 +364,11 @@ func  (this *WoofiproCore) HandleTickers(client interface{}, message interface{}
 /**
  * @method
  * @name woofipro#watchBidsAsks
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *WoofiproCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -451,7 +451,7 @@ func  (this *WoofiproCore) ParseWsBidAsk(ticker interface{}, optionalArgs ...int
  * @method
  * @name woofipro#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -542,12 +542,12 @@ func  (this *WoofiproCore) HandleOHLCV(client interface{}, message interface{}) 
  * @method
  * @name woofipro#watchTrades
  * @description watches information on multiple trades made in a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *WoofiproCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -812,14 +812,14 @@ func  (this *WoofiproCore) WatchPrivateMultiple(messageHashes interface{}, messa
  * @method
  * @name woofipro#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] true if trigger order
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *WoofiproCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -868,14 +868,14 @@ func  (this *WoofiproCore) WatchOrders(optionalArgs ...interface{}) <- chan inte
  * @method
  * @name woofipro#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] true if trigger order
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *WoofiproCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1171,7 +1171,7 @@ func  (this *WoofiproCore) HandleMyTrade(client interface{}, message interface{}
 /**
  * @method
  * @name woofipro#watchPositions
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param since timestamp in ms of the earliest position to fetch
@@ -1269,9 +1269,11 @@ func  (this *WoofiproCore) LoadPositionsSnapshot(client interface{}, messageHash
                 }
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(cache, "positions")
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(cache, "positions")
+            }
                 return nil
             }()
             return ch
@@ -1406,9 +1408,9 @@ func  (this *WoofiproCore) ParseWsPosition(position interface{}, optionalArgs ..
  * @method
  * @name woofipro#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+ * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *WoofiproCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1418,8 +1420,8 @@ func  (this *WoofiproCore) WatchBalance(optionalArgs ...interface{}) <- chan int
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes11918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11918)
+            retRes11938 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11938)
             var topic interface{} = "balance"
             var messageHash interface{} = topic
             var request interface{} = map[string]interface{} {
@@ -1428,9 +1430,9 @@ func  (this *WoofiproCore) WatchBalance(optionalArgs ...interface{}) <- chan int
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes119915 :=  (<-this.WatchPrivate(messageHash, message))
-                ccxt.PanicOnError(retRes119915)
-                ch <- retRes119915
+                retRes120115 :=  (<-this.WatchPrivate(messageHash, message))
+                ccxt.PanicOnError(retRes120115)
+                ch <- retRes120115
                 return nil
         
             }()

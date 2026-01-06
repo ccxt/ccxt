@@ -77,7 +77,7 @@ gemini.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.gemini.com/rest-api/#current-order-book  
 
@@ -99,7 +99,7 @@ gemini.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -125,7 +125,7 @@ gemini.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.gemini.com/rest-api/#price-feed  
 
@@ -146,7 +146,7 @@ gemini.fetchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.gemini.com/rest-api/#trade-history  
 
@@ -169,7 +169,7 @@ gemini.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://docs.gemini.com/rest-api/#get-notional-volume  
 
@@ -189,7 +189,7 @@ gemini.fetchTradingFees ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.gemini.com/rest-api/#get-available-balances  
 
@@ -209,7 +209,7 @@ gemini.fetchBalance ([params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.gemini.com/rest-api/#order-status  
 
@@ -231,7 +231,7 @@ gemini.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.gemini.com/rest-api/#get-active-orders  
 
@@ -254,7 +254,7 @@ gemini.fetchOpenOrders (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.gemini.com/rest-api/#new-order  
 
@@ -279,7 +279,7 @@ gemini.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.gemini.com/rest-api/#cancel-order  
 
@@ -301,7 +301,7 @@ gemini.cancelOrder (id, symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.gemini.com/rest-api/#get-past-trades  
 
@@ -324,7 +324,7 @@ gemini.fetchMyTrades (symbol[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.gemini.com/rest-api/#withdraw-crypto-funds  
 
@@ -348,7 +348,7 @@ gemini.withdraw (code, amount, address, tag[, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.gemini.com/rest-api/#transfers  
 
@@ -371,7 +371,7 @@ gemini.fetchDepositsWithdrawals ([code, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.gemini.com/rest-api/#get-deposit-addresses  
 
@@ -393,7 +393,7 @@ gemini.fetchDepositAddress (code[, params])
 fetch a dictionary of addresses for a currency, indexed by network
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by the network
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
 **See**: https://docs.gemini.com/rest-api/#get-deposit-addresses  
 
@@ -415,7 +415,7 @@ gemini.fetchDepositAddressesByNetwork (code[, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.gemini.com/rest-api/#new-deposit-address  
 
@@ -460,7 +460,7 @@ gemini.fetchOHLCV (symbol, timeframe[, since, limit, params])
 watch the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.gemini.com/websocket-api/#market-data-version-2  
 
@@ -483,7 +483,7 @@ gemini.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.gemini.com/websocket-api/#multi-market-data  
 
@@ -530,7 +530,7 @@ gemini.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.gemini.com/websocket-api/#market-data-version-2  
 
@@ -552,7 +552,7 @@ gemini.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.gemini.com/websocket-api/#multi-market-data  
 
@@ -574,7 +574,7 @@ gemini.watchOrderBookForSymbols (symbols[, limit, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.gemini.com/websocket-api/#multi-market-data  
 
@@ -595,7 +595,7 @@ gemini.watchBidsAsks (symbols[, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.gemini.com/websocket-api/#order-events  
 

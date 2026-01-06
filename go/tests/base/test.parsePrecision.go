@@ -11,8 +11,8 @@ func TestParsePrecision() {
 	exchange.InitParent(map[string]interface{}{
 		"id": "sampleexchange",
 	}, map[string]interface{}{}, exchange)
-	Assert(IsEqual(exchange.ParsePrecision("15"), "0.000000000000001"))
-	Assert(IsEqual(exchange.ParsePrecision("1"), "0.1"))
-	Assert(IsEqual(exchange.ParsePrecision("0"), "1"))
-	Assert(IsEqual(exchange.ParsePrecision("-5"), "100000"))
+	Assert(ccxt.IsEqual(exchange.ParsePrecision("15"), "0.000000000000001"))
+	Assert(ccxt.IsEqual(exchange.ParsePrecision("1"), "0.1"))
+	Assert(ccxt.IsEqual(exchange.ParsePrecision("0"), "1"))
+	Assert(ccxt.IsEqual(exchange.ParsePrecision("-5"), "100000"))
 }

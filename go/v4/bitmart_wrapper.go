@@ -48,7 +48,7 @@ func (this *Bitmart) FetchTime(params ...interface{}) (int64, error) {
  * @description the latest known information on the availability of the exchange API
  * @see https://developer-pro.bitmart.com/en/spot/#get-system-service-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Bitmart) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
 	res := <-this.Core.FetchStatus(params...)
@@ -113,7 +113,7 @@ func (this *Bitmart) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the network code of the currency
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
 
@@ -142,7 +142,7 @@ func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactio
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the network code of the currency
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
 
@@ -171,7 +171,7 @@ func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDeposi
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -200,7 +200,7 @@ func (this *Bitmart) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -235,7 +235,7 @@ func (this *Bitmart) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bitmart) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -270,7 +270,7 @@ func (this *Bitmart) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Bitmart) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -363,7 +363,7 @@ func (this *Bitmart) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
  * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Bitmart) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -410,7 +410,7 @@ func (this *Bitmart) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Bitmart) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -455,7 +455,7 @@ func (this *Bitmart) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance-keyed
  * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated-keyed
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bitmart) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -472,7 +472,7 @@ func (this *Bitmart) FetchBalance(params ...interface{}) (Balances, error) {
  * @see https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bitmart) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -501,7 +501,7 @@ func (this *Bitmart) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -553,7 +553,7 @@ func (this *Bitmart) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
  * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
  * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
  * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -587,7 +587,7 @@ func (this *Bitmart) CreateOrder(symbol string, typeVar string, side string, amo
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
  * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -623,7 +623,7 @@ func (this *Bitmart) CreateOrders(orders []OrderRequest, options ...CreateOrders
  * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
  * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
  * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -658,7 +658,7 @@ func (this *Bitmart) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -693,7 +693,7 @@ func (this *Bitmart) CancelOrders(ids []string, options ...CancelOrdersOptions) 
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] *spot only* 'buy' or 'sell'
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -771,7 +771,7 @@ func (this *Bitmart) FetchOrdersByStatus(status interface{}, options ...FetchOrd
  * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
  * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
  * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -820,7 +820,7 @@ func (this *Bitmart) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {int} [params.until] timestamp in ms of the latest entry
  * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
  * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -864,7 +864,7 @@ func (this *Bitmart) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -914,7 +914,7 @@ func (this *Bitmart) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
  * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
  * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
  * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -947,7 +947,7 @@ func (this *Bitmart) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Bitmart) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -979,7 +979,7 @@ func (this *Bitmart) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the network name for this withdrawal
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1046,7 +1046,7 @@ func (this *Bitmart) FetchTransactionsByType(typeVar interface{}, options ...Fet
  * @param {string} id deposit id
  * @param {string} code not used by bitmart fetchDeposit ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) FetchDeposit(id string, options ...FetchDepositOptions) (Transaction, error) {
 
@@ -1081,7 +1081,7 @@ func (this *Bitmart) FetchDeposit(id string, options ...FetchDepositOptions) (Tr
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -1125,7 +1125,7 @@ func (this *Bitmart) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {string} id withdrawal id
  * @param {string} code not used by bitmart.fetchWithdrawal
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) FetchWithdrawal(id string, options ...FetchWithdrawalOptions) (Transaction, error) {
 
@@ -1160,7 +1160,7 @@ func (this *Bitmart) FetchWithdrawal(id string, options ...FetchWithdrawalOption
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1230,7 +1230,7 @@ func (this *Bitmart) FetchIsolatedBorrowRate(symbol string, options ...FetchIsol
  * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
  * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+ * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
 func (this *Bitmart) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
 	res := <-this.Core.FetchIsolatedBorrowRates(params...)
@@ -1251,7 +1251,7 @@ func (this *Bitmart) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBo
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitmart) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1283,7 +1283,7 @@ func (this *Bitmart) Transfer(code string, amount float64, fromAccount string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.page] the required number of pages, default is 1, max is 1000
  * @param {int} [params.until] the latest time in ms to fetch transfers for
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitmart) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -1329,7 +1329,7 @@ func (this *Bitmart) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
  * @param {int} [since] the earliest time in ms to fetch borrrow interest for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *Bitmart) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 
@@ -1377,7 +1377,7 @@ func (this *Bitmart) FetchBorrowInterest(options ...FetchBorrowInterestOptions) 
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
  * @param {string} symbol Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Bitmart) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 
@@ -1440,7 +1440,7 @@ func (this *Bitmart) SetLeverage(leverage int64, options ...SetLeverageOptions) 
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Bitmart) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1470,7 +1470,7 @@ func (this *Bitmart) FetchFundingRate(symbol string, options ...FetchFundingRate
  * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
  * @param {int} [limit] the maximum amount of funding rate structures to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Bitmart) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1513,7 +1513,7 @@ func (this *Bitmart) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bitmart) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1542,7 +1542,7 @@ func (this *Bitmart) FetchPosition(symbol string, options ...FetchPositionOption
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bitmart) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1578,7 +1578,7 @@ func (this *Bitmart) FetchPositions(options ...FetchPositionsOptions) ([]Positio
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the bitmart api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Bitmart) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1637,7 +1637,7 @@ func (this *Bitmart) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
  * @param {string} [params.clientOrderId] client order id of the order
  * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
  * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -1678,7 +1678,7 @@ func (this *Bitmart) EditOrder(id string, symbol string, typeVar string, side st
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
- * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
  */
 func (this *Bitmart) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1724,7 +1724,7 @@ func (this *Bitmart) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
  * @param {int} [limit] the number of entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch funding history for
- * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Bitmart) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 

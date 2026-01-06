@@ -15,7 +15,40 @@ const rotr = (word, shift) => (word << (32 - shift)) | (word >>> shift);
 const isLE = new Uint8Array(new Uint32Array([0x11223344]).buffer)[0] === 0x44;
 if (!isLE)
     throw new Error('Non little-endian hardware is not supported');
-Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
+const hexes = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
+/**
+ * @example bytesToHex(Uint8Array.from([0xde, 0xad, 0xbe, 0xef])) // 'deadbeef'
+ */
+function bytesToHex(uint8a) {
+    // pre-caching improves the speed 6x
+    if (!(uint8a instanceof Uint8Array))
+        throw new Error('Uint8Array expected');
+    let hex = '';
+    for (let i = 0; i < uint8a.length; i++) {
+        hex += hexes[uint8a[i]];
+    }
+    return hex;
+}
+/**
+ * @example hexToBytes('deadbeef') // Uint8Array.from([0xde, 0xad, 0xbe, 0xef])
+ */
+function hexToBytes(hex) {
+    if (typeof hex !== 'string') {
+        throw new TypeError('hexToBytes: expected string, got ' + typeof hex);
+    }
+    if (hex.length % 2)
+        throw new Error('hexToBytes: received invalid unpadded hex');
+    const array = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < array.length; i++) {
+        const j = i * 2;
+        const hexByte = hex.slice(j, j + 2);
+        const byte = Number.parseInt(hexByte, 16);
+        if (Number.isNaN(byte) || byte < 0)
+            throw new Error('Invalid byte sequence');
+        array[i] = byte;
+    }
+    return array;
+}
 function utf8ToBytes(str) {
     if (typeof str !== 'string') {
         throw new TypeError(`utf8ToBytes expected string, got ${typeof str}`);
@@ -54,6 +87,14 @@ class Hash {
         return this._cloneInto();
     }
 }
+// Check if object doens't have custom constructor (like Uint8Array/Array)
+const isPlainObject = (obj) => Object.prototype.toString.call(obj) === '[object Object]' && obj.constructor === Object;
+function checkOpts(defaults, opts) {
+    if (opts !== undefined && (typeof opts !== 'object' || !isPlainObject(opts)))
+        throw new TypeError('Options should be object or undefined');
+    const merged = Object.assign(defaults, opts);
+    return merged;
+}
 function wrapConstructor(hashConstructor) {
     const hashC = (message) => hashConstructor().update(toBytes(message)).digest();
     const tmp = hashConstructor();
@@ -79,10 +120,18 @@ function randomBytes(bytesLength = 32) {
     }
     throw new Error('crypto.getRandomValues must be defined');
 }
+const abytes = (b) => {
+    if (!(b instanceof Uint8Array || (ArrayBuffer.isView(b) && b.constructor.name === 'Uint8Array')))
+        throw new Error('Uint8Array expected');
+};
 
 exports.Hash = Hash;
+exports.abytes = abytes;
+exports.bytesToHex = bytesToHex;
+exports.checkOpts = checkOpts;
 exports.concatBytes = concatBytes;
 exports.createView = createView;
+exports.hexToBytes = hexToBytes;
 exports.isLE = isLE;
 exports.randomBytes = randomBytes;
 exports.rotr = rotr;

@@ -37,7 +37,7 @@
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getportfolios  
 
@@ -83,7 +83,7 @@ coinbaseinternational.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding  
 
@@ -91,7 +91,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
@@ -107,7 +107,7 @@ coinbaseinternational.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://docs.cdp.coinbase.com/intx/reference/gettransfers  
 
@@ -130,7 +130,7 @@ coinbaseinternational.fetchFundingHistory ([symbol, since, limit, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.cdp.coinbase.com/intx/reference/gettransfers  
 
@@ -153,7 +153,7 @@ coinbaseinternational.fetchTransfers (code[, since, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**
 
@@ -202,7 +202,7 @@ coinbaseinternational.setMargin (symbol, amount[, params])
 fetch data on an open position
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getportfolioposition  
 
@@ -223,7 +223,7 @@ coinbaseinternational.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions  
 
@@ -244,7 +244,7 @@ coinbaseinternational.fetchPositions ([symbols, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/gettransfers  
 
@@ -272,7 +272,7 @@ coinbaseinternational.fetchWithdrawals (code[, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -339,7 +339,7 @@ coinbaseinternational.fetchCurrencies ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getinstruments  
 
@@ -360,7 +360,7 @@ coinbaseinternational.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote  
 
@@ -381,7 +381,7 @@ coinbaseinternational.fetchTicker (symbol[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances  
 
@@ -426,7 +426,7 @@ coinbaseinternational.transfer (code, amount, fromAccount, toAccount[, params])
 create a trade order
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/createorder  
 
@@ -458,7 +458,7 @@ coinbaseinternational.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/cancelorder  
 
@@ -480,7 +480,7 @@ coinbaseinternational.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -500,7 +500,7 @@ coinbaseinternational.cancelAllOrders (symbol[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/modifyorder  
 
@@ -527,7 +527,7 @@ coinbaseinternational.editOrder (id, symbol, type, side, amount[, price, params]
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/modifyorder  
 
@@ -549,7 +549,7 @@ coinbaseinternational.fetchOrder (id, symbol[, params])
 fetches information on all currently open orders
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getorders  
 
@@ -575,7 +575,7 @@ coinbaseinternational.fetchOpenOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.cloud.coinbase.com/intx/reference/getmultiportfoliofills  
 
@@ -600,7 +600,7 @@ coinbaseinternational.fetchMyTrades (symbol[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 

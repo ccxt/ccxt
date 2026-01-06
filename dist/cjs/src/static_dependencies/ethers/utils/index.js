@@ -3,6 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 require('./base58.js');
+var data = require('./data.js');
 var errors = require('./errors.js');
 require('./events.js');
 require('./fixednumber.js');
@@ -19,9 +20,19 @@ function id(value) {
     return '0x' + crypto.hash(value, sha3.keccak_256, 'hex');
 }
 function keccak256(value) {
+    if (data.isHexString(value)) {
+        return '0x' + crypto.hash(data.getBytes(value), sha3.keccak_256, 'hex');
+    }
     return '0x' + crypto.hash(value, sha3.keccak_256, 'hex');
 }
 
+exports.concat = data.concat;
+exports.getBytes = data.getBytes;
+exports.getBytesCopy = data.getBytesCopy;
+exports.hexlify = data.hexlify;
+exports.isBytesLike = data.isBytesLike;
+exports.isHexString = data.isHexString;
+exports.zeroPadValue = data.zeroPadValue;
 exports.assert = errors.assert;
 exports.assertArgument = errors.assertArgument;
 exports.assertArgumentCount = errors.assertArgumentCount;

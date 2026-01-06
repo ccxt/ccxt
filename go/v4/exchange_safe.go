@@ -209,21 +209,108 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		}
 	}
 
-	// Handle slices
-	switch list := obj.(type) {
+	switch v := obj.(type) {
+	// handle slices
 	case []interface{}:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []string:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []int:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []int32:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []int64:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
 	case []float64:
-		return getValueFromList(list, keys, defVal)
+		return getValueFromList(v, keys, defVal)
+	// handle map[strings]
+	case map[string]map[string]interface{}:
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
+	case map[string]*ArrayCacheByTimestamp:
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
+	case map[string]*ArrayCache:
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
+	case map[string]*ArrayCacheBySymbolBySide:
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+		return defVal
+	// handle cache types
+	case *ArrayCache:
+		if len(keys) > 0 && keys[0] != nil {
+			keyStr := fmt.Sprintf("%v", keys[0])
+			switch keyStr {
+			case "Hashmap", "hashmap":
+				return v.Hashmap
+			case "Data", "data":
+				return v.Data
+			}
+		}
+	case *ArrayCacheByTimestamp:
+		if len(keys) > 0 && keys[0] != nil {
+			keyStr := fmt.Sprintf("%v", keys[0])
+			switch keyStr {
+			case "Hashmap", "hashmap":
+				return v.Hashmap
+			case "Data", "data":
+				return v.Data
+			}
+		}
+	case *ArrayCacheBySymbolById:
+		if len(keys) > 0 && keys[0] != nil {
+			keyStr := fmt.Sprintf("%v", keys[0])
+			switch keyStr {
+			case "Hashmap", "hashmap":
+				return v.Hashmap
+			case "Data", "data":
+				return v.Data
+			}
+		}
+	case *ArrayCacheBySymbolBySide:
+		if len(keys) > 0 && keys[0] != nil {
+			keyStr := fmt.Sprintf("%v", keys[0])
+			switch keyStr {
+			case "Hashmap", "hashmap":
+				return v.Hashmap
+			case "Data", "data":
+				return v.Data
+			}
+		}
 	default:
+		// Handle orderbook interfaces
 		if ob, ok := obj.(OrderBookInterface); ok { // TODO: should takes keys and not keys[0]
 			return ob.GetValue(keys[0].(string), defVal)
 		}
@@ -235,8 +322,8 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 				return obs.GetData()[keys[0].(int)]
 			}
 		}
-		return defVal
 	}
+	return defVal
 }
 
 // SafeStringN retrieves a string value from a nested structure

@@ -98,7 +98,6 @@ function injectMissingUndefined (fn, args) {
         }
         args = newArgsArray;
     }
-    console.log (args);
     return args;
 }
 

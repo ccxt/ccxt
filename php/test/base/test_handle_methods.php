@@ -10,7 +10,7 @@ namespace ccxt;
 
 
 function helper_test_handle_market_type_and_params() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
         'options' => array(
             'defaultType' => 'valueFromOptions',

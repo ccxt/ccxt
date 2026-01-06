@@ -30,6 +30,7 @@ public class BaseCache : SlimConcurrentList<object>
 public class ArrayCache : BaseCache
 {
     // Add any custom properties or methods
+    public Dictionary<string, object> hashmap = new Dictionary<string, object>();
     protected bool nestedNewUpdatesBySymbol;
     protected Dictionary<string, object> newUpdatesBySymbol = new Dictionary<string, object>();
     protected Dictionary<string, object> clearUpdatesBySymbol = new Dictionary<string, object>();

@@ -57,7 +57,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity  
 
@@ -140,7 +140,7 @@ toobit.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -166,7 +166,7 @@ toobit.fetchOrderBook (symbol[, limit, params])
 get a list of the most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -221,7 +221,7 @@ toobit.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -271,7 +271,7 @@ toobit.fetchLastPrices (symbols[, params])
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -296,7 +296,7 @@ toobit.fetchBidsAsks ([symbols, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
 
 **See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate  
 
@@ -317,7 +317,7 @@ toobit.fetchFundingRates (symbols[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history  
 
@@ -325,7 +325,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -342,7 +342,7 @@ toobit.fetchFundingRateHistory (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -366,7 +366,7 @@ toobit.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -395,7 +395,7 @@ toobit.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -421,7 +421,7 @@ toobit.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -446,7 +446,7 @@ toobit.cancelAllOrders (symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -472,7 +472,7 @@ toobit.cancelOrders (ids[, symbol, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -498,7 +498,7 @@ toobit.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -525,7 +525,7 @@ toobit.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data  
 
@@ -548,7 +548,7 @@ toobit.fetchOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data  
 
@@ -571,7 +571,7 @@ toobit.fetchClosedOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -599,7 +599,7 @@ toobit.fetchMyTrades ([symbol, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://open.big.one/docs/spot_transfer.html#transfer-of-user  
 
@@ -623,7 +623,7 @@ toobit.transfer (code, amount, fromAccount, toAccount[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 **See**
 
@@ -651,7 +651,7 @@ toobit.fetchLedger ([code, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data  
 
@@ -671,7 +671,7 @@ toobit.fetchTradingFees ([params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data  
 
@@ -694,7 +694,7 @@ toobit.fetchDeposits ([code, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data  
 
@@ -717,7 +717,7 @@ toobit.fetchWithdrawals ([code, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data  
 
@@ -738,7 +738,7 @@ toobit.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data  
 
@@ -806,7 +806,7 @@ toobit.setLeverage (leverage, symbol[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data  
 
@@ -827,7 +827,7 @@ toobit.fetchLeverage (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data  
 
@@ -848,7 +848,7 @@ toobit.fetchPositions (symbols[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams  
 
@@ -871,7 +871,7 @@ toobit.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams  
 
@@ -942,7 +942,7 @@ toobit.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams  
 
@@ -963,7 +963,7 @@ toobit.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams  
 
@@ -984,7 +984,7 @@ toobit.watchTickers (symbols[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams  
 
@@ -1006,7 +1006,7 @@ toobit.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams  
 
@@ -1028,7 +1028,7 @@ toobit.watchOrderBookForSymbols (symbols[, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update  
 
@@ -1048,7 +1048,7 @@ toobit.watchBalance ([params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update  
 
@@ -1071,7 +1071,7 @@ toobit.watchOrders (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push  
 

@@ -16,6 +16,8 @@ using dict = Dictionary<string, object>;
 public partial class Exchange
 {
 
+    protected readonly object idLock = new object();
+
     public Exchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
@@ -235,7 +237,7 @@ public partial class Exchange
             {
                 contentType = contentType == "" ? "application/json" : contentType;
 #if NET7_0_OR_GREATER
-            var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
+                var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
 #else
                 var contentTypeHeader = contentType;
 #endif
@@ -536,6 +538,11 @@ public partial class Exchange
     }
 
     public string totp(object a)
+    {
+        return "";
+    }
+
+    public string uuid5(object namesp, object name)
     {
         return "";
     }
@@ -1016,6 +1023,24 @@ public partial class Exchange
             prop.SetValue(obj, defaultValue);
         }
     }
+
+    public string exceptionMessage(object exc)
+    {
+        var e = exc as Exception;
+        if (e != null && e is System.AggregateException)
+        {
+            //     foreach (var innerExc in e.InnerExceptions) {
+            //         message += innerExc.Message + '\n';
+            var inner = e.InnerException;
+            if (inner != null)
+            {
+                e = inner;
+            }
+        }
+        var message = e != null ? e.ToString() : "Exception occurred, but no message available.";
+        return message.Substring(0, Math.Min(100000, message.Length));
+    }
+
     public object getProperty(object obj, object property, object defaultValue = null)
     {
         var type = obj.GetType();
@@ -1172,6 +1197,46 @@ public partial class Exchange
         throw new Exception("Apex currently does not support create order in C# language");
     }
 
+    public async Task<object> loadDydxProtos()
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public Int64 toDydxLong(object numStr)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object retrieveDydxCredentials(object entropy)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxForSimulation(
+        object message,
+        object memo,
+        object sequence,
+        object publicKey)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxForSigning(
+        object message,
+        object memo,
+        object chainId,
+        object account,
+        object authenticators,
+        object fee)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxRaw(object signDoc, object signature)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
     public bool isBinaryMessage(object msg)
     {
         if (msg is byte[] bytes)
@@ -1202,6 +1267,16 @@ public partial class Exchange
             }
         }
         throw new Exception("Data is not a valid byte array for protobuf decoding.");
+    }
+
+    public void lockId()
+    {
+        Monitor.Enter(this.idLock);
+    }
+
+    public void unlockId()
+    {
+        Monitor.Exit(this.idLock);
     }
 
 

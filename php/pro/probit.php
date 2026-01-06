@@ -54,7 +54,7 @@ class probit extends \ccxt\async\probit {
              * @see https://docs-en.probit.com/reference/balance-1
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->authenticate($params));
             $messageHash = 'balance';
@@ -121,7 +121,7 @@ class probit extends \ccxt\async\probit {
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->interval] Unit time to synchronize market information (ms). Available units => 100, 500
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $channel = 'ticker';
             return Async\await($this->subscribe_public('watchTicker', $symbol, 'ticker', $channel, $params));
@@ -169,7 +169,7 @@ class probit extends \ccxt\async\probit {
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->interval] Unit time to synchronize market information (ms). Available units => 100, 500
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $channel = 'recent_trades';
             $symbol = $this->safe_symbol($symbol);
@@ -236,7 +236,7 @@ class probit extends \ccxt\async\probit {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -324,7 +324,7 @@ class probit extends \ccxt\async\probit {
              * @param {int} [$limit] the maximum amount of $orders to watch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] choose what channel to use. Can open_order or order_history.
-             * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->authenticate($params));
             $messageHash = 'orders';
@@ -404,7 +404,7 @@ class probit extends \ccxt\async\probit {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'filter', 'order_books');

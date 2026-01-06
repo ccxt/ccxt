@@ -1,2 +1,2 @@
-declare function testLanguageSpecific(): void;
+declare function testLanguageSpecific(): Promise<void>;
 export default testLanguageSpecific;

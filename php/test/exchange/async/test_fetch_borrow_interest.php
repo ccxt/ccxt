@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_borrow_interest.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_fetch_borrow_interest($exchange, $skipped_properties, $code, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $code, $symbol) {

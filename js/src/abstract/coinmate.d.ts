@@ -7,6 +7,8 @@ interface Exchange {
     publicGetProducts(params?: {}): Promise<implicitReturnType>;
     publicGetTransactions(params?: {}): Promise<implicitReturnType>;
     publicGetTradingPairs(params?: {}): Promise<implicitReturnType>;
+    publicGetSystemTime(params?: {}): Promise<implicitReturnType>;
+    privatePostCurrencies(params?: {}): Promise<implicitReturnType>;
     privatePostBalances(params?: {}): Promise<implicitReturnType>;
     privatePostBitcoinCashWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostBitcoinCashDepositAddresses(params?: {}): Promise<implicitReturnType>;
@@ -59,6 +61,7 @@ interface Exchange {
     privatePostSolWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostSolDepositAddresses(params?: {}): Promise<implicitReturnType>;
     privatePostUnconfirmedSolDeposits(params?: {}): Promise<implicitReturnType>;
+    privatePostBankWireWithdrawal(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

@@ -74,4 +74,5 @@ export declare function wrapConstructorWithOpts<H extends Hash<H>, T extends Obj
  * Secure PRNG. Uses `globalThis.crypto` or node.js crypto module.
  */
 export declare function randomBytes(bytesLength?: number): Uint8Array;
+export declare const abytes: (b: unknown) => void;
 export {};

@@ -20,6 +20,8 @@
 
 - [Custom Proxy Agent For Js](./examples/ts/custom-proxy-agent-for-js.md)
 
+- [Exchange Rate Limiter Rollingwindow](./examples/ts/exchange-rate-limiter-rollingWindow.md)
+
 - [Fetch Balance All Exchanges](./examples/ts/fetch-balance-all-exchanges.md)
 
 - [Fetch First Ohlcv Timestamp](./examples/ts/fetch-first-ohlcv-timestamp.md)
@@ -35,6 +37,8 @@
 - [Hibachi Example](./examples/ts/hibachi-example.md)
 
 - [How To Import One Exchange Esm](./examples/ts/how-to-import-one-exchange-esm.md)
+
+- [Hyperliquid Load Hip3 Dexes](./examples/ts/hyperliquid-load-hip3-dexes.md)
 
 - [Kraken Create And Close Position](./examples/ts/kraken-create-and-close-position.md)
 

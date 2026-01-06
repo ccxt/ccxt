@@ -790,83 +790,6 @@
         "percentage": null,
         "baseName": "HPENGU"
     },
-    "UBTC/USDC": {
-        "id": "@142",
-        "lowercaseId": null,
-        "symbol": "UBTC/USDC",
-        "base": "UBTC",
-        "quote": "USDC",
-        "settle": null,
-        "baseId": "10142",
-        "quoteId": "USDC",
-        "settleId": null,
-        "type": "spot",
-        "spot": true,
-        "margin": null,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "index": false,
-        "active": true,
-        "contract": false,
-        "linear": null,
-        "inverse": null,
-        "subType": null,
-        "taker": 0.0007,
-        "maker": 0.0004,
-        "contractSize": null,
-        "expiry": null,
-        "expiryDatetime": null,
-        "strike": null,
-        "optionType": null,
-        "precision": {
-            "amount": 0.00001,
-            "price": 1
-        },
-        "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
-            "cost": {
-                "min": 10,
-                "max": null
-            }
-        },
-        "marginModes": {
-            "cross": null,
-            "isolated": null
-        },
-        "created": null,
-        "info": {
-            "prevDayPx": "114469.0",
-            "dayNtlVlm": "87415669.5338699967",
-            "markPx": "113088.0",
-            "midPx": "113087.5",
-            "circulatingSupply": "20999999.9986531697",
-            "coin": "@142",
-            "totalSupply": "20999999.9986531697",
-            "dayBaseVlm": "767.00167",
-            "tokens": [
-                197,
-                0
-            ],
-            "name": "@142",
-            "index": "142",
-            "isCanonical": false
-        },
-        "tierBased": null,
-        "percentage": null,
-        "baseName": "UBTC"
-    },
     "HPENGU/USDC": {
         "id": "@184",
         "lowercaseId": null,
@@ -943,5 +866,255 @@
         "tierBased": null,
         "percentage": null,
         "baseName": "HPENGU"
+    },
+    "XYZ-XYZ100/USDC:USDC": {
+        "id": "110000",
+        "lowercaseId": null,
+        "symbol": "XYZ-XYZ100/USDC:USDC",
+        "base": "XYZ:XYZ100",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "110000",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "4",
+            "name": "xyz:XYZ100",
+            "maxLeverage": "20",
+            "marginTableId": "20",
+            "onlyIsolated": true,
+            "marginMode": "strictIsolated",
+            "funding": "0.0000936626",
+            "openInterest": "2373.8762",
+            "prevDayPx": "25543.0",
+            "dayNtlVlm": "70558488.1652999818",
+            "premium": "0.0005236621",
+            "oraclePx": "25188.0",
+            "markPx": "25201.0",
+            "midPx": "25201.5",
+            "impactPxs": [
+                "25200.38",
+                "25202.0"
+            ],
+            "dayBaseVlm": "2781.0568",
+            "baseId": 110000
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "xyz:XYZ100"
+    },
+    "XYZ-MSFT/USDC:USDC": {
+        "id": "110010",
+        "lowercaseId": null,
+        "symbol": "XYZ-MSFT/USDC:USDC",
+        "base": "XYZ:MSFT",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "110010",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "3",
+            "name": "xyz:MSFT",
+            "maxLeverage": "10",
+            "marginTableId": "10",
+            "onlyIsolated": true,
+            "isDelisted": true,
+            "marginMode": "strictIsolated",
+            "funding": "0.0",
+            "openInterest": "0.0",
+            "prevDayPx": "506.0",
+            "dayNtlVlm": "0.0",
+            "premium": null,
+            "oraclePx": "506.0",
+            "markPx": "506.0",
+            "midPx": null,
+            "impactPxs": null,
+            "dayBaseVlm": "0.0",
+            "baseId": 110010
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "xyz:MSFT"
+    },
+    "FLX-CRCL/USDH:USDH": {
+        "id": "120002",
+        "lowercaseId": null,
+        "symbol": "FLX-CRCL/USDH:USDH",
+        "base": "FLX-CRCL",
+        "quote": "USDH",
+        "settle": "USDH",
+        "baseId": "120002",
+        "quoteId": "USDH",
+        "settleId": "USDH",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 3
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "2",
+            "name": "flx:CRCL",
+            "maxLeverage": "3",
+            "marginTableId": "52",
+            "onlyIsolated": true,
+            "marginMode": "strictIsolated",
+            "growthMode": "enabled",
+            "lastGrowthModeChangeTime": "2025-11-24T21:19:25.980742012",
+            "funding": "0.0000085327",
+            "openInterest": "11918.2",
+            "prevDayPx": "78.082",
+            "dayNtlVlm": "3924686.5640999996",
+            "premium": "-0.0001406919",
+            "oraclePx": "78.185",
+            "markPx": "78.146",
+            "midPx": "78.174",
+            "impactPxs": [
+                "78.138",
+                "78.21"
+            ],
+            "dayBaseVlm": "50982.49",
+            "baseId": 120002,
+            "collateralToken": "360",
+            "hip3": true,
+            "dex": "flx",
+            "collateralTokenName": "USDH"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "flx:CRCL"
     }
 }

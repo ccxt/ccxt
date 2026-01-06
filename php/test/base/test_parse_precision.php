@@ -10,7 +10,7 @@ namespace ccxt;
 
 
 function test_parse_precision() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
     assert($exchange->parse_precision('15') === '0.000000000000001');

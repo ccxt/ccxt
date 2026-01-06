@@ -102,7 +102,15 @@ class NewTranspiler {
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
             [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
             //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
-            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            // Match ArrayCache variables and cast to appropriate type based on variable name
+            // Order matters: check most specific types first
+            [/((?:this\.)?\w*ArrayCacheBySymbolBySide\w*)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolBySide)$2'],
+            [/((?:this\.)?\w*ArrayCacheByTimestamp\w*)(\.hashmap)/gm, '($1 as ArrayCacheByTimestamp)$2'],
+            [/((?:this\.)?\w*ArrayCacheBySymbolById\w*)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            // General ArrayCache pattern (must not match the specific types above)
+            [/((?:this\.)?\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)(\.hashmap)/gm, '($1 as ArrayCache)$2'],
+            // Fallback for other variables (keep original behavior for backwards compatibility)
+            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCache)$2'],
             [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
             [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
             [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
@@ -534,6 +542,10 @@ class NewTranspiler {
         // custom handling for now
         if (methodName === 'fetchTime'){
             return `return (Int64)res;`;
+        }
+
+        if (unwrappedType === 'double') {
+            return `return (double)res;`;
         }
 
         // handle the typescript type Dict
@@ -1223,6 +1235,16 @@ class NewTranspiler {
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
+                // Match ArrayCache variables and cast to appropriate type based on variable name
+                // Order matters: check most specific types first
+                [/(\w*ArrayCacheBySymbolBySide\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolBySide).hashmap)'],
+                [/(\w*ArrayCacheByTimestamp\w*)\.hashmap/g, '(($1 as ArrayCacheByTimestamp).hashmap)'],
+                [/(\w*ArrayCacheBySymbolById\w*)\.hashmap/g, '(($1 as ArrayCacheBySymbolById).hashmap)'],
+                // General ArrayCache pattern (must not match the specific types above)
+                [/(\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)\.hashmap/g, '(($1 as ArrayCache).hashmap)'],
+                // Match stored/cached variables
+                [/\bstored\.hashmap/g, '((stored as ArrayCache).hashmap)'],
+                [/\bcached\.hashmap/g, '((cached as ArrayCache).hashmap)'],
             ]).trim ()
 
             const contentLines = content.split ('\n');
@@ -1230,6 +1252,7 @@ class NewTranspiler {
 
             const file = [
                 'using ccxt;',
+                'using ccxt.pro;',
                 'namespace Tests;',
                 '',
                 this.createGeneratedHeader().join('\n'),

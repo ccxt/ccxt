@@ -12,17 +12,21 @@ const isBaseTests = getCliArgValue ('--baseTests');
 const runAll = getCliArgValue ('--all');
 
 // ####### base tests #######
-if (isBaseTests) {
-    if (isWs) {
-        baseTestsInitWs ();
-        console.log ('base WS tests passed!');
-    } else {
-        baseTestsInitRest ();
-        console.log ('base REST tests passed!');
+async function main () {
+    if (isBaseTests) {
+        if (isWs) {
+            await baseTestsInitWs ();
+            console.log ('base WS tests passed!');
+        } else {
+            await baseTestsInitRest ();
+            console.log ('base REST tests passed!');
+        }
+        if (!runAll) {
+            process.exit (0);
+        }
     }
-    if (!runAll) {
-        process.exit (0);
-    }
+    (new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
 }
 
-(new testMainClass ()).init (argvExchange, argvSymbol, argvMethod);
+main ();
+

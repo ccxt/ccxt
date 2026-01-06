@@ -21,56 +21,56 @@ func HelperTestHandleMarketTypeAndParams() {
 		"defaultType": "valueFromParam",
 	}
 	var market interface{} = exchange.SafeMarket("TEST1/TEST2")
-	AddElementToObject(market, "type", "spot")
+	ccxt.AddElementToObject(market, "type", "spot")
 	//
 	// ########### test different variations ###########
 	//
 	// case #1, should prevail: param
 	//
 	marketType1params1Variable := exchange.HandleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault")
-	marketType1 := GetValue(marketType1params1Variable, 0)
-	params1 := GetValue(marketType1params1Variable, 1)
-	Assert(InOp(initialParams, "defaultType"))
-	Assert(!IsTrue((InOp(params1, "defaultType"))))
-	Assert(IsEqual(marketType1, "valueFromParam"))
+	marketType1 := ccxt.GetValue(marketType1params1Variable, 0)
+	params1 := ccxt.GetValue(marketType1params1Variable, 1)
+	Assert(ccxt.InOp(initialParams, "defaultType"))
+	Assert(!ccxt.IsTrue((ccxt.InOp(params1, "defaultType"))))
+	Assert(ccxt.IsEqual(marketType1, "valueFromParam"))
 	//
 	// case #2, should prevail: market.type
 	//
 	marketType2params2Variable := exchange.HandleMarketTypeAndParams("fetchX", market, map[string]interface{}{}, "valueDefault")
-	marketType2 := GetValue(marketType2params2Variable, 0)
-	params2 := GetValue(marketType2params2Variable, 1)
-	Assert(IsEqual(marketType2, "spot"))
+	marketType2 := ccxt.GetValue(marketType2params2Variable, 0)
+	params2 := ccxt.GetValue(marketType2params2Variable, 1)
+	Assert(ccxt.IsEqual(marketType2, "spot"))
 	//
 	// case #3, should prevail: valueDefault
 	//
 	marketType3params3Variable := exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]interface{}{}, "valueDefault")
-	marketType3 := GetValue(marketType3params3Variable, 0)
-	params3 := GetValue(marketType3params3Variable, 1)
-	Assert(IsEqual(marketType3, "valueDefault"))
+	marketType3 := ccxt.GetValue(marketType3params3Variable, 0)
+	params3 := ccxt.GetValue(marketType3params3Variable, 1)
+	Assert(ccxt.IsEqual(marketType3, "valueDefault"))
 	//
 	// case #4, should prevail: method options
 	//
 	marketType4params4Variable := exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]interface{}{})
-	marketType4 := GetValue(marketType4params4Variable, 0)
-	params4 := GetValue(marketType4params4Variable, 1)
-	Assert(IsEqual(marketType4, "valueFromMethodOptions"))
+	marketType4 := ccxt.GetValue(marketType4params4Variable, 0)
+	params4 := ccxt.GetValue(marketType4params4Variable, 1)
+	Assert(ccxt.IsEqual(marketType4, "valueFromMethodOptions"))
 	//
 	// case #5, should prevail: options
 	//
 	marketType5params5Variable := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]interface{}{}, nil)
-	marketType5 := GetValue(marketType5params5Variable, 0)
-	params5 := GetValue(marketType5params5Variable, 1)
-	Assert(IsEqual(marketType5, "valueFromOptions"))
+	marketType5 := ccxt.GetValue(marketType5params5Variable, 0)
+	params5 := ccxt.GetValue(marketType5params5Variable, 1)
+	Assert(ccxt.IsEqual(marketType5, "valueFromOptions"))
 	//
 	// case #6, should prevail: spot (because hardcoded in base)
 	//
-	AddElementToObject(exchange.Options, "defaultType", nil)
+	ccxt.AddElementToObject(exchange.Options, "defaultType", nil)
 	marketType6params6Variable := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]interface{}{}, nil)
-	marketType6 := GetValue(marketType6params6Variable, 0)
-	params6 := GetValue(marketType6params6Variable, 1)
-	Assert(IsEqual(marketType6, "spot"))
+	marketType6 := ccxt.GetValue(marketType6params6Variable, 0)
+	params6 := ccxt.GetValue(marketType6params6Variable, 1)
+	Assert(ccxt.IsEqual(marketType6, "spot"))
 	// fake assertion to avoid unused vars
-	Assert(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(!IsEqual(params1, nil)) || IsTrue(!IsEqual(params2, nil))) || IsTrue(!IsEqual(params3, nil))) || IsTrue(!IsEqual(params4, nil))) || IsTrue(!IsEqual(params5, nil))) || IsTrue(!IsEqual(params6, nil)))
+	Assert(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(params1, nil)) || ccxt.IsTrue(!ccxt.IsEqual(params2, nil))) || ccxt.IsTrue(!ccxt.IsEqual(params3, nil))) || ccxt.IsTrue(!ccxt.IsEqual(params4, nil))) || ccxt.IsTrue(!ccxt.IsEqual(params5, nil))) || ccxt.IsTrue(!ccxt.IsEqual(params6, nil)))
 }
 func HelperTestHandleNetworkRequest() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -89,11 +89,11 @@ func HelperTestHandleNetworkRequest() {
 	request1params1Variable := exchange.HandleRequestNetwork(map[string]interface{}{
 		"network": "XYZ",
 	}, map[string]interface{}{}, "chain_id", currencyCode, false)
-	request1 := GetValue(request1params1Variable, 0)
-	params1 := GetValue(request1params1Variable, 1)
-	Assert(!IsTrue((InOp(params1, "network"))))
-	Assert(InOp(request1, "chain_id"))
-	Assert(IsEqual(GetValue(request1, "chain_id"), "Xyz"))
+	request1 := ccxt.GetValue(request1params1Variable, 0)
+	params1 := ccxt.GetValue(request1params1Variable, 1)
+	Assert(!ccxt.IsTrue((ccxt.InOp(params1, "network"))))
+	Assert(ccxt.InOp(request1, "chain_id"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(request1, "chain_id"), "Xyz"))
 }
 func TestHandleMethods() {
 	HelperTestHandleMarketTypeAndParams()

@@ -15,6 +15,10 @@ const filesToDelete =[
     './go/tests/base/test.types.pro.go'
 ]
 
+const whiteListFolders = [
+    'go/v4/protoc'
+]
+
 
 function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -38,6 +42,10 @@ function deleteFilesRecursively(directory: string, exchangesToKeep: string[]): v
 
         if (file.startsWith('exchange')) {
             return; // Always keep exchange.go and exchange_X.go files
+        }
+
+        if (whiteListFolders.some(folder => fullPath.startsWith(folder))) {
+            return; // Always keep files in whitelisted folders
         }
 
         if (fs.statSync(fullPath).isDirectory()) {

@@ -13,7 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 from ccxt.base.decimal_to_precision import number_to_string  # noqa E402
-import ccxt  # noqa: F402
+import ccxt.async_support as ccxt  # noqa: F402
 
 def test_number_to_string():
     exchange = ccxt.Exchange({

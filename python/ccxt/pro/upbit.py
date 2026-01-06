@@ -37,32 +37,6 @@ class upbit(ccxt.async_support.upbit):
             },
         })
 
-    async def watch_public(self, symbol: str, channel, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        marketId = market['id']
-        url = self.implode_params(self.urls['api']['ws'], {
-            'hostname': self.hostname,
-        })
-        self.options[channel] = self.safe_value(self.options, channel, {})
-        self.options[channel][symbol] = True
-        symbols = list(self.options[channel].keys())
-        marketIds = self.market_ids(symbols)
-        request = [
-            {
-                'ticket': self.uuid(),
-            },
-            {
-                'type': channel,
-                'codes': marketIds,
-                # 'isOnlySnapshot': False,
-                # 'isOnlyRealtime': False,
-            },
-        ]
-        messageHash = channel + ':' + marketId
-        return await self.watch(url, messageHash, request, messageHash)
-
     async def watch_public_multiple(self, symbols: Strings, channel, params={}):
         await self.load_markets()
         if symbols is None:
@@ -72,21 +46,32 @@ class upbit(ccxt.async_support.upbit):
         url = self.implode_params(self.urls['api']['ws'], {
             'hostname': self.hostname,
         })
+        client = self.client(url)
+        subscriptionsKey = 'upbitPublicSubscriptions'
+        if not (subscriptionsKey in client.subscriptions):
+            client.subscriptions[subscriptionsKey] = {}
+        subscriptions = client.subscriptions[subscriptionsKey]
         messageHashes = []
-        for i in range(0, len(marketIds)):
-            messageHashes.append(channel + ':' + marketIds[i])
-        request = [
+        for i in range(0, len(symbols)):
+            marketId = marketIds[i]
+            symbol = symbols[i]
+            messageHash = channel + ':' + symbol
+            messageHashes.append(messageHash)
+            if not (messageHash in subscriptions):
+                subscriptions[messageHash] = {
+                    'type': channel,
+                    'codes': [marketId],
+                }
+        finalMessage = [
             {
                 'ticket': self.uuid(),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                # 'isOnlySnapshot': False,
-                # 'isOnlyRealtime': False,
-            },
         ]
-        return await self.watch_multiple(url, messageHashes, request, messageHashes)
+        channelKeys = list(subscriptions.keys())
+        for i in range(0, len(channelKeys)):
+            key = channelKeys[i]
+            finalMessage.append(subscriptions[key])
+        return await self.watch_multiple(url, messageHashes, finalMessage, messageHashes)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -96,9 +81,9 @@ class upbit(ccxt.async_support.upbit):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_public(symbol, 'ticker')
+        return await self.watch_public_multiple([symbol], 'ticker')
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -108,7 +93,7 @@ class upbit(ccxt.async_support.upbit):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         newTickers = await self.watch_public_multiple(symbols, 'ticker')
         if self.newUpdates:
@@ -127,7 +112,7 @@ class upbit(ccxt.async_support.upbit):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -141,37 +126,9 @@ class upbit(ccxt.async_support.upbit):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False, True, True)
-        channel = 'trade'
-        messageHashes = []
-        url = self.implode_params(self.urls['api']['ws'], {
-            'hostname': self.hostname,
-        })
-        if symbols is not None:
-            for i in range(0, len(symbols)):
-                market = self.market(symbols[i])
-                marketId = market['id']
-                symbol = market['symbol']
-                self.options[channel] = self.safe_value(self.options, channel, {})
-                self.options[channel][symbol] = True
-                messageHashes.append(channel + ':' + marketId)
-        optionSymbols = list(self.options[channel].keys())
-        marketIds = self.market_ids(optionSymbols)
-        request = [
-            {
-                'ticket': self.uuid(),
-            },
-            {
-                'type': channel,
-                'codes': marketIds,
-                # 'isOnlySnapshot': False,
-                # 'isOnlyRealtime': False,
-            },
-        ]
-        trades = await self.watch_multiple(url, messageHashes, request, messageHashes)
+        trades = await self.watch_public_multiple(symbols, 'trade')
         if self.newUpdates:
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
@@ -187,9 +144,9 @@ class upbit(ccxt.async_support.upbit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
-        orderbook = await self.watch_public(symbol, 'orderbook')
+        orderbook = await self.watch_public_multiple([symbol], 'orderbook')
         return orderbook.limit()
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1s', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -204,12 +161,12 @@ class upbit(ccxt.async_support.upbit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns OHLCV[]: a list of `OHLCV structures <https://docs.ccxt.com/#/?id=ohlcv-structure>`
+        :returns OHLCV[]: a list of `OHLCV structures <https://docs.ccxt.com/?id=ohlcv-structure>`
         """
         if timeframe != '1s':
             raise NotSupported(self.id + ' watchOHLCV does not support' + timeframe + ' candle.')
         timeFrameOHLCV = 'candle.' + timeframe
-        return await self.watch_public(symbol, timeFrameOHLCV)
+        return await self.watch_public_multiple([symbol], timeFrameOHLCV)
 
     def handle_ticker(self, client: Client, message):
         # 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
@@ -248,11 +205,10 @@ class upbit(ccxt.async_support.upbit):
         #   "acc_trade_price_24h": 2.5955306323568927,
         #   "acc_trade_volume_24h": 118.38798416,
         #   "stream_type": "SNAPSHOT"}
-        marketId = self.safe_string(message, 'code')
-        messageHash = 'ticker:' + marketId
         ticker = self.parse_ticker(message)
         symbol = ticker['symbol']
         self.tickers[symbol] = ticker
+        messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
 
     def handle_order_book(self, client: Client, message):
@@ -304,7 +260,7 @@ class upbit(ccxt.async_support.upbit):
         datetime = self.iso8601(timestamp)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = datetime
-        messageHash = 'orderbook:' + marketId
+        messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
     def handle_trades(self, client: Client, message):
@@ -330,8 +286,7 @@ class upbit(ccxt.async_support.upbit):
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
         stored.append(trade)
-        marketId = self.safe_string(message, 'code')
-        messageHash = 'trade:' + marketId
+        messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
     def handle_ohlcv(self, client: Client, message):
@@ -350,7 +305,8 @@ class upbit(ccxt.async_support.upbit):
         #     stream_type: 'REALTIME'
         #   }
         marketId = self.safe_string(message, 'code')
-        messageHash = 'candle.1s:' + marketId
+        symbol = self.safe_symbol(marketId, None)
+        messageHash = 'candle.1s:' + symbol
         ohlcv = self.parse_ohlcv(message)
         client.resolve(ohlcv, messageHash)
 
@@ -429,7 +385,7 @@ class upbit(ccxt.async_support.upbit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         channel = 'myOrder'
@@ -449,7 +405,7 @@ class upbit(ccxt.async_support.upbit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         channel = 'myOrder'
@@ -622,7 +578,7 @@ class upbit(ccxt.async_support.upbit):
 
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         channel = 'myAsset'

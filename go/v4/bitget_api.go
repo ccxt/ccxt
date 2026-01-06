@@ -207,6 +207,18 @@ func (this *BitgetCore) PublicMixGetV2MixMarketVipFeeRate(args ...interface{}) <
 	return this.callEndpointAsync("publicMixGetV2MixMarketVipFeeRate", args...)
 }
 
+func (this *BitgetCore) PublicMixGetV2MixMarketUnionInterestRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicMixGetV2MixMarketUnionInterestRateHistory", args...)
+}
+
+func (this *BitgetCore) PublicMixGetV2MixMarketExchangeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicMixGetV2MixMarketExchangeRate", args...)
+}
+
+func (this *BitgetCore) PublicMixGetV2MixMarketDiscountRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicMixGetV2MixMarketDiscountRate", args...)
+}
+
 func (this *BitgetCore) PublicMixGetV2MixMarketMergeDepth(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicMixGetV2MixMarketMergeDepth", args...)
 }
@@ -261,6 +273,10 @@ func (this *BitgetCore) PublicMixGetV2MixMarketHistoryFundRate(args ...interface
 
 func (this *BitgetCore) PublicMixGetV2MixMarketCurrentFundRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicMixGetV2MixMarketCurrentFundRate", args...)
+}
+
+func (this *BitgetCore) PublicMixGetV2MixMarketOiLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicMixGetV2MixMarketOiLimit", args...)
 }
 
 func (this *BitgetCore) PublicMixGetV2MixMarketContracts(args ...interface{}) <-chan interface{} {
@@ -731,6 +747,10 @@ func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelPlanOrder(args ...interf
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelPlanOrder", args...)
 }
 
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelReplaceOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelReplaceOrder", args...)
+}
+
 func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelPlanOrder", args...)
 }
@@ -891,12 +911,40 @@ func (this *BitgetCore) PrivateMixGetV2MixAccountSubAccountAssets(args ...interf
 	return this.callEndpointAsync("privateMixGetV2MixAccountSubAccountAssets", args...)
 }
 
+func (this *BitgetCore) PrivateMixGetV2MixAccountInterestHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixAccountInterestHistory", args...)
+}
+
+func (this *BitgetCore) PrivateMixGetV2MixAccountMaxOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixAccountMaxOpen", args...)
+}
+
+func (this *BitgetCore) PrivateMixGetV2MixAccountLiqPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixAccountLiqPrice", args...)
+}
+
 func (this *BitgetCore) PrivateMixGetV2MixAccountOpenCount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMixGetV2MixAccountOpenCount", args...)
 }
 
 func (this *BitgetCore) PrivateMixGetV2MixAccountBill(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMixGetV2MixAccountBill", args...)
+}
+
+func (this *BitgetCore) PrivateMixGetV2MixAccountTransferLimits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixAccountTransferLimits", args...)
+}
+
+func (this *BitgetCore) PrivateMixGetV2MixAccountUnionConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixAccountUnionConfig", args...)
+}
+
+func (this *BitgetCore) PrivateMixGetV2MixAccountSwitchUnionUsdt(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixAccountSwitchUnionUsdt", args...)
+}
+
+func (this *BitgetCore) PrivateMixGetV2MixAccountIsolatedSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixAccountIsolatedSymbols", args...)
 }
 
 func (this *BitgetCore) PrivateMixGetV2MixMarketQueryPositionLever(args ...interface{}) <-chan interface{} {
@@ -909,6 +957,10 @@ func (this *BitgetCore) PrivateMixGetV2MixPositionSinglePosition(args ...interfa
 
 func (this *BitgetCore) PrivateMixGetV2MixPositionAllPosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMixGetV2MixPositionAllPosition", args...)
+}
+
+func (this *BitgetCore) PrivateMixGetV2MixPositionAdlRank(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixPositionAdlRank", args...)
 }
 
 func (this *BitgetCore) PrivateMixGetV2MixPositionHistoryPosition(args ...interface{}) <-chan interface{} {
@@ -933,6 +985,10 @@ func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPending(args ...interface{}
 
 func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersHistory", args...)
+}
+
+func (this *BitgetCore) PrivateMixGetV2MixOrderPlanSubOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixGetV2MixOrderPlanSubOrder", args...)
 }
 
 func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanPending(args ...interface{}) <-chan interface{} {
@@ -1115,16 +1171,32 @@ func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateTpslRatioConfig(args
 	return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateTpslRatioConfig", args...)
 }
 
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAutoMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetAutoMargin", args...)
+}
+
 func (this *BitgetCore) PrivateMixPostV2MixAccountSetLeverage(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetLeverage", args...)
+}
+
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAllLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetAllLeverage", args...)
 }
 
 func (this *BitgetCore) PrivateMixPostV2MixAccountSetMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetMargin", args...)
 }
 
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAssetMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetAssetMode", args...)
+}
+
 func (this *BitgetCore) PrivateMixPostV2MixAccountSetMarginMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetMarginMode", args...)
+}
+
+func (this *BitgetCore) PrivateMixPostV2MixAccountUnionConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixPostV2MixAccountUnionConvert", args...)
 }
 
 func (this *BitgetCore) PrivateMixPostV2MixAccountSetPositionMode(args ...interface{}) <-chan interface{} {
@@ -1159,8 +1231,16 @@ func (this *BitgetCore) PrivateMixPostV2MixOrderClosePositions(args ...interface
 	return this.callEndpointAsync("privateMixPostV2MixOrderClosePositions", args...)
 }
 
+func (this *BitgetCore) PrivateMixPostV2MixOrderCancelAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixPostV2MixOrderCancelAllOrders", args...)
+}
+
 func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceTpslOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMixPostV2MixOrderPlaceTpslOrder", args...)
+}
+
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePosTpsl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMixPostV2MixOrderPlacePosTpsl", args...)
 }
 
 func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePlanOrder(args ...interface{}) <-chan interface{} {

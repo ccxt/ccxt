@@ -105,6 +105,10 @@ type MarketInterface struct {
 
 // CreateMarketInterface initializes the MarketInterface struct
 func NewMarketInterface(data interface{}) MarketInterface {
+	if data == nil {
+		return MarketInterface{}
+	}
+
 	m := data.(map[string]interface{})
 
 	// Handle limits if present
@@ -1678,6 +1682,7 @@ func NewLedgerEntry(data interface{}) LedgerEntry {
 
 type Greeks struct {
 	Info                  map[string]interface{}
+	Symbol                *string
 	Timestamp             *int64
 	Datetime              *string
 	Delta                 *float64
@@ -1704,12 +1709,16 @@ func NewGreeks(data interface{}) Greeks {
 	return Greeks{
 		Info:                  GetInfo(data),
 		Timestamp:             SafeInt64Typed(data, "timestamp"),
+		Symbol:                SafeStringTyped(data, "symbol"),
 		Datetime:              SafeStringTyped(data, "datetime"),
 		Delta:                 SafeFloatTyped(data, "delta"),
 		Gamma:                 SafeFloatTyped(data, "gamma"),
 		Theta:                 SafeFloatTyped(data, "theta"),
 		Vega:                  SafeFloatTyped(data, "vega"),
 		Rho:                   SafeFloatTyped(data, "rho"),
+		Vanna:                 SafeFloatTyped(data, "vanna"),
+		Volga:                 SafeFloatTyped(data, "volga"),
+		Charm:                 SafeFloatTyped(data, "charm"),
 		BidSize:               SafeFloatTyped(data, "bidSize"),
 		AskSize:               SafeFloatTyped(data, "askSize"),
 		BidImpliedVolatility:  SafeFloatTyped(data, "bidImpliedVolatility"),

@@ -11,6 +11,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     spotPublicGetPing (params?: {}): Promise<implicitReturnType>;
     spotPublicGetTime (params?: {}): Promise<implicitReturnType>;
+    spotPublicGetDefaultSymbols (params?: {}): Promise<implicitReturnType>;
     spotPublicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
     spotPublicGetDepth (params?: {}): Promise<implicitReturnType>;
     spotPublicGetTrades (params?: {}): Promise<implicitReturnType>;
@@ -22,14 +23,19 @@ interface Exchange {
     spotPublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
     spotPublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
     spotPublicGetEtfInfo (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetKycStatus (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetUid (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetOrder (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetAccount (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMyTrades (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetStrategyGroup (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetStrategyGroupUid (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetTradeFee (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetSubAccountList (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetSubAccountApiKey (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetSubAccountAsset (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
@@ -73,6 +79,7 @@ interface Exchange {
     spotPrivatePostSubAccountFutures (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostSubAccountMargin (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostStrategyGroup (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalWithdraw (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalTransfer (params?: {}): Promise<implicitReturnType>;

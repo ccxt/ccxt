@@ -35,232 +35,317 @@ func TestSafeMethods() {
 	var compareList interface{} = []interface{}{1, 2, 3}
 	var factor interface{} = 10
 	// safeValue
-	Assert(IsEqual(exchange.SafeValue(inputDict, "i"), 1))
-	Assert(IsEqual(exchange.SafeValue(inputDict, "f"), 0.123))
-	Assert(IsEqual(exchange.SafeValue(inputDict, "bool"), true))
+	Assert(ccxt.IsEqual(exchange.SafeValue(inputDict, "i"), 1))
+	Assert(ccxt.IsEqual(exchange.SafeValue(inputDict, "f"), 0.123))
+	Assert(ccxt.IsEqual(exchange.SafeValue(inputDict, "bool"), true))
 	Assert(Equals(exchange.SafeValue(inputDict, "list"), compareList))
 	var dictObject interface{} = exchange.SafeValue(inputDict, "dict")
 	Assert(Equals(dictObject, compareDict))
-	Assert(IsEqual(exchange.SafeValue(inputDict, "str"), "heLlo"))
-	Assert(IsEqual(exchange.SafeValue(inputDict, "strNumber"), "3"))
-	Assert(IsEqual(exchange.SafeValue(inputList, 0), "Hi"))
+	Assert(ccxt.IsEqual(exchange.SafeValue(inputDict, "str"), "heLlo"))
+	Assert(ccxt.IsEqual(exchange.SafeValue(inputDict, "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeValue(inputList, 0), "Hi"))
 	// safeValue2
-	Assert(IsEqual(exchange.SafeValue2(inputDict, "a", "i"), 1))
-	Assert(IsEqual(exchange.SafeValue2(inputDict, "a", "f"), 0.123))
-	Assert(IsEqual(exchange.SafeValue2(inputDict, "a", "bool"), true))
+	Assert(ccxt.IsEqual(exchange.SafeValue2(inputDict, "a", "i"), 1))
+	Assert(ccxt.IsEqual(exchange.SafeValue2(inputDict, "a", "f"), 0.123))
+	Assert(ccxt.IsEqual(exchange.SafeValue2(inputDict, "a", "bool"), true))
 	Assert(Equals(exchange.SafeValue2(inputDict, "a", "list"), compareList))
 	dictObject = exchange.SafeValue2(inputDict, "a", "dict")
 	Assert(Equals(dictObject, compareDict))
-	Assert(IsEqual(exchange.SafeValue2(inputDict, "a", "str"), "heLlo"))
-	Assert(IsEqual(exchange.SafeValue2(inputDict, "a", "strNumber"), "3"))
-	Assert(IsEqual(exchange.SafeValue2(inputList, 2, 0), "Hi"))
+	Assert(ccxt.IsEqual(exchange.SafeValue2(inputDict, "a", "str"), "heLlo"))
+	Assert(ccxt.IsEqual(exchange.SafeValue2(inputDict, "a", "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeValue2(inputList, 2, 0), "Hi"))
 	// safeValueN
-	Assert(IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "i"}), 1))
-	Assert(IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "f"}), 0.123))
-	Assert(IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "bool"}), true))
+	Assert(ccxt.IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "i"}), 1))
+	Assert(ccxt.IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "f"}), 0.123))
+	Assert(ccxt.IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "bool"}), true))
 	Assert(Equals(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "list"}), compareList))
 	dictObject = exchange.SafeValueN(inputDict, []interface{}{"a", "b", "dict"})
 	Assert(Equals(dictObject, compareDict))
-	Assert(IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "str"}), "heLlo"))
-	Assert(IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "strNumber"}), "3"))
-	Assert(IsEqual(exchange.SafeValueN(inputList, []interface{}{3, 2, 0}), "Hi"))
+	Assert(ccxt.IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "str"}), "heLlo"))
+	Assert(ccxt.IsEqual(exchange.SafeValueN(inputDict, []interface{}{"a", "b", "strNumber"}), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeValueN(inputList, []interface{}{3, 2, 0}), "Hi"))
 	// safeDict
 	dictObject = exchange.SafeDict(inputDict, "dict")
 	Assert(Equals(dictObject, compareDict))
 	var listObject interface{} = exchange.SafeDict(inputDict, "list")
-	Assert(IsEqual(listObject, nil))
-	Assert(IsEqual(exchange.SafeDict(inputList, 1), nil))
+	Assert(ccxt.IsEqual(listObject, nil))
+	Assert(ccxt.IsEqual(exchange.SafeDict(inputList, 1), nil))
 	// safeDict2
 	dictObject = exchange.SafeDict2(inputDict, "a", "dict")
 	Assert(Equals(dictObject, compareDict))
 	listObject = exchange.SafeDict2(inputDict, "a", "list")
-	Assert(IsEqual(listObject, nil))
+	Assert(ccxt.IsEqual(listObject, nil))
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeDict2(inputList, 2, 1), nil))
+	Assert(ccxt.IsEqual(exchange.SafeDict2(inputList, 2, 1), nil))
 	// safeDictN
 	dictObject = exchange.SafeDictN(inputDict, []interface{}{"a", "b", "dict"})
 	Assert(Equals(dictObject, compareDict))
 	listObject = exchange.SafeDictN(inputDict, []interface{}{"a", "b", "list"})
-	Assert(IsEqual(listObject, nil))
-	Assert(IsEqual(exchange.SafeDictN(inputList, []interface{}{3, 2, 1}), nil))
+	Assert(ccxt.IsEqual(listObject, nil))
+	Assert(ccxt.IsEqual(exchange.SafeDictN(inputList, []interface{}{3, 2, 1}), nil))
 	// safeList
 	listObject = exchange.SafeList(inputDict, "list")
 	Assert(Equals(dictObject, compareDict))
-	Assert(IsEqual(exchange.SafeList(inputDict, "dict"), nil))
-	Assert(IsEqual(exchange.SafeList(inputList, 1), nil))
+	Assert(ccxt.IsEqual(exchange.SafeList(inputDict, "dict"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeList(inputList, 1), nil))
 	// safeList2
 	listObject = exchange.SafeList2(inputDict, "a", "list")
 	Assert(Equals(dictObject, compareDict))
-	Assert(IsEqual(exchange.SafeList2(inputDict, "a", "dict"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeList2(inputDict, "a", "dict"), nil))
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeList2(inputList, 2, 1), nil))
+	Assert(ccxt.IsEqual(exchange.SafeList2(inputList, 2, 1), nil))
 	// safeListN
 	listObject = exchange.SafeListN(inputDict, []interface{}{"a", "b", "list"})
 	Assert(Equals(dictObject, compareDict))
-	Assert(IsEqual(exchange.SafeListN(inputDict, []interface{}{"a", "b", "dict"}), nil))
-	Assert(IsEqual(exchange.SafeListN(inputList, []interface{}{3, 2, 1}), nil))
+	Assert(ccxt.IsEqual(exchange.SafeListN(inputDict, []interface{}{"a", "b", "dict"}), nil))
+	Assert(ccxt.IsEqual(exchange.SafeListN(inputList, []interface{}{3, 2, 1}), nil))
 	// safeString
-	Assert(IsEqual(exchange.SafeString(inputDict, "i"), "1"))
-	Assert(IsEqual(exchange.SafeString(inputDict, "f"), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeString(inputDict, "i"), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeString(inputDict, "f"), "0.123"))
 	// assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
-	Assert(IsEqual(exchange.SafeString(inputDict, "str"), "heLlo"))
-	Assert(IsEqual(exchange.SafeString(inputDict, "strNumber"), "3"))
-	Assert(IsEqual(exchange.SafeString(inputList, 0), "Hi"))
+	Assert(ccxt.IsEqual(exchange.SafeString(inputDict, "str"), "heLlo"))
+	Assert(ccxt.IsEqual(exchange.SafeString(inputDict, "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeString(inputList, 0), "Hi"))
 	// safeString2
-	Assert(IsEqual(exchange.SafeString2(inputDict, "a", "i"), "1"))
-	Assert(IsEqual(exchange.SafeString2(inputDict, "a", "f"), "0.123"))
-	Assert(IsEqual(exchange.SafeString2(inputDict, "a", "str"), "heLlo"))
-	Assert(IsEqual(exchange.SafeString2(inputDict, "a", "strNumber"), "3"))
-	Assert(IsEqual(exchange.SafeString2(inputList, 2, 0), "Hi"))
+	Assert(ccxt.IsEqual(exchange.SafeString2(inputDict, "a", "i"), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeString2(inputDict, "a", "f"), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeString2(inputDict, "a", "str"), "heLlo"))
+	Assert(ccxt.IsEqual(exchange.SafeString2(inputDict, "a", "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeString2(inputList, 2, 0), "Hi"))
 	// safeStringN
-	Assert(IsEqual(exchange.SafeStringN(inputDict, []interface{}{"a", "b", "i"}), "1"))
-	Assert(IsEqual(exchange.SafeStringN(inputDict, []interface{}{"a", "b", "f"}), "0.123"))
-	Assert(IsEqual(exchange.SafeStringN(inputDict, []interface{}{"a", "b", "str"}), "heLlo"))
-	Assert(IsEqual(exchange.SafeStringN(inputDict, []interface{}{"a", "b", "strNumber"}), "3"))
-	Assert(IsEqual(exchange.SafeStringN(inputList, []interface{}{3, 2, 0}), "Hi"))
+	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []interface{}{"a", "b", "i"}), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []interface{}{"a", "b", "f"}), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []interface{}{"a", "b", "str"}), "heLlo"))
+	Assert(ccxt.IsEqual(exchange.SafeStringN(inputDict, []interface{}{"a", "b", "strNumber"}), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringN(inputList, []interface{}{3, 2, 0}), "Hi"))
 	// safeStringLower
-	Assert(IsEqual(exchange.SafeStringLower(inputDict, "i"), "1"))
-	Assert(IsEqual(exchange.SafeStringLower(inputDict, "f"), "0.123"))
-	Assert(IsEqual(exchange.SafeStringLower(inputDict, "str"), "hello"))
-	Assert(IsEqual(exchange.SafeStringLower(inputDict, "strNumber"), "3"))
-	Assert(IsEqual(exchange.SafeStringLower(inputList, 0), "hi"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "i"), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "f"), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "str"), "hello"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputList, 0), "hi"))
 	// safeStringLower2
-	Assert(IsEqual(exchange.SafeStringLower2(inputDict, "a", "i"), "1"))
-	Assert(IsEqual(exchange.SafeStringLower2(inputDict, "a", "f"), "0.123"))
-	Assert(IsEqual(exchange.SafeStringLower2(inputDict, "a", "str"), "hello"))
-	Assert(IsEqual(exchange.SafeStringLower2(inputDict, "a", "strNumber"), "3"))
-	Assert(IsEqual(exchange.SafeStringLower2(inputList, 2, 0), "hi"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "i"), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "f"), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "str"), "hello"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputList, 2, 0), "hi"))
 	// safeStringLowerN
-	Assert(IsEqual(exchange.SafeStringLowerN(inputDict, []interface{}{"a", "b", "i"}), "1"))
-	Assert(IsEqual(exchange.SafeStringLowerN(inputDict, []interface{}{"a", "b", "f"}), "0.123"))
-	Assert(IsEqual(exchange.SafeStringLowerN(inputDict, []interface{}{"a", "b", "str"}), "hello"))
-	Assert(IsEqual(exchange.SafeStringLowerN(inputDict, []interface{}{"a", "b", "strNumber"}), "3"))
-	Assert(IsEqual(exchange.SafeStringLowerN(inputList, []interface{}{3, 2, 0}), "hi"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []interface{}{"a", "b", "i"}), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []interface{}{"a", "b", "f"}), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []interface{}{"a", "b", "str"}), "hello"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputDict, []interface{}{"a", "b", "strNumber"}), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringLowerN(inputList, []interface{}{3, 2, 0}), "hi"))
 	// safeStringUpper
-	Assert(IsEqual(exchange.SafeStringUpper(inputDict, "i"), "1"))
-	Assert(IsEqual(exchange.SafeStringUpper(inputDict, "f"), "0.123"))
-	Assert(IsEqual(exchange.SafeStringUpper(inputDict, "str"), "HELLO"))
-	Assert(IsEqual(exchange.SafeStringUpper(inputDict, "strNumber"), "3"))
-	Assert(IsEqual(exchange.SafeStringUpper(inputList, 0), "HI"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "i"), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "f"), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "str"), "HELLO"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputList, 0), "HI"))
 	// safeStringUpper2
-	Assert(IsEqual(exchange.SafeStringUpper2(inputDict, "a", "i"), "1"))
-	Assert(IsEqual(exchange.SafeStringUpper2(inputDict, "a", "f"), "0.123"))
-	Assert(IsEqual(exchange.SafeStringUpper2(inputDict, "a", "str"), "HELLO"))
-	Assert(IsEqual(exchange.SafeStringUpper2(inputDict, "a", "strNumber"), "3"))
-	Assert(IsEqual(exchange.SafeStringUpper2(inputList, 2, 0), "HI"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "i"), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "f"), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "str"), "HELLO"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "strNumber"), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputList, 2, 0), "HI"))
 	// safeStringUpperN
-	Assert(IsEqual(exchange.SafeStringUpperN(inputDict, []interface{}{"a", "b", "i"}), "1"))
-	Assert(IsEqual(exchange.SafeStringUpperN(inputDict, []interface{}{"a", "b", "f"}), "0.123"))
-	Assert(IsEqual(exchange.SafeStringUpperN(inputDict, []interface{}{"a", "b", "str"}), "HELLO"))
-	Assert(IsEqual(exchange.SafeStringUpperN(inputDict, []interface{}{"a", "b", "strNumber"}), "3"))
-	Assert(IsEqual(exchange.SafeStringUpperN(inputList, []interface{}{3, 2, 0}), "HI"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []interface{}{"a", "b", "i"}), "1"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []interface{}{"a", "b", "f"}), "0.123"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []interface{}{"a", "b", "str"}), "HELLO"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputDict, []interface{}{"a", "b", "strNumber"}), "3"))
+	Assert(ccxt.IsEqual(exchange.SafeStringUpperN(inputList, []interface{}{3, 2, 0}), "HI"))
 	// safeInteger
-	Assert(IsEqual(exchange.SafeInteger(inputDict, "i"), 1))
-	Assert(IsEqual(exchange.SafeInteger(inputDict, "f"), 0))
-	Assert(IsEqual(exchange.SafeInteger(inputDict, "strNumber"), 3))
-	Assert(IsEqual(exchange.SafeInteger(inputList, 1), 2))
+	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "i"), 1))
+	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "f"), 0))
+	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "strNumber"), 3))
+	Assert(ccxt.IsEqual(exchange.SafeInteger(inputList, 1), 2))
 	// safeInteger2
-	Assert(IsEqual(exchange.SafeInteger2(inputDict, "a", "i"), 1))
-	Assert(IsEqual(exchange.SafeInteger2(inputDict, "a", "f"), 0))
-	Assert(IsEqual(exchange.SafeInteger2(inputDict, "a", "strNumber"), 3))
-	Assert(IsEqual(exchange.SafeInteger2(inputList, 2, 1), 2))
+	Assert(ccxt.IsEqual(exchange.SafeInteger2(inputDict, "a", "i"), 1))
+	Assert(ccxt.IsEqual(exchange.SafeInteger2(inputDict, "a", "f"), 0))
+	Assert(ccxt.IsEqual(exchange.SafeInteger2(inputDict, "a", "strNumber"), 3))
+	Assert(ccxt.IsEqual(exchange.SafeInteger2(inputList, 2, 1), 2))
 	// safeIntegerN
-	Assert(IsEqual(exchange.SafeIntegerN(inputDict, []interface{}{"a", "b", "i"}), 1))
-	Assert(IsEqual(exchange.SafeIntegerN(inputDict, []interface{}{"a", "b", "f"}), 0))
-	Assert(IsEqual(exchange.SafeIntegerN(inputDict, []interface{}{"a", "b", "strNumber"}), 3))
-	Assert(IsEqual(exchange.SafeIntegerN(inputList, []interface{}{3, 2, 1}), 2))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerN(inputDict, []interface{}{"a", "b", "i"}), 1))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerN(inputDict, []interface{}{"a", "b", "f"}), 0))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerN(inputDict, []interface{}{"a", "b", "strNumber"}), 3))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerN(inputList, []interface{}{3, 2, 1}), 2))
 	// safeIntegerOmitZero
-	Assert(IsEqual(exchange.SafeIntegerOmitZero(inputDict, "i"), 1))
-	Assert(IsEqual(exchange.SafeIntegerOmitZero(inputDict, "f"), nil))
-	Assert(IsEqual(exchange.SafeIntegerOmitZero(inputDict, "strNumber"), 3))
-	Assert(IsEqual(exchange.SafeIntegerOmitZero(inputList, 1), 2))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "i"), 1))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "f"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "strNumber"), 3))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputList, 1), 2))
 	// safeIntegerProduct
-	Assert(IsEqual(exchange.SafeIntegerProduct(inputDict, "i", factor), 10))
-	Assert(IsEqual(exchange.SafeIntegerProduct(inputDict, "f", factor), 1)) // NB the result is 1
-	Assert(IsEqual(exchange.SafeIntegerProduct(inputDict, "strNumber", factor), 30))
-	Assert(IsEqual(exchange.SafeIntegerProduct(inputList, 1, factor), 20))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "i", factor), 10))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "f", factor), 1)) // NB the result is 1
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "strNumber", factor), 30))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputList, 1, factor), 20))
 	// safeIntegerProduct2
-	Assert(IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "i", factor), 10))
-	Assert(IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "f", factor), 1)) // NB the result is 1
-	Assert(IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "strNumber", factor), 30))
-	Assert(IsEqual(exchange.SafeIntegerProduct2(inputList, 2, 1, factor), 20))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "i", factor), 10))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "f", factor), 1)) // NB the result is 1
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "strNumber", factor), 30))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputList, 2, 1, factor), 20))
 	// safeIntegerProductN
-	Assert(IsEqual(exchange.SafeIntegerProductN(inputDict, []interface{}{"a", "b", "i"}, factor), 10))
-	Assert(IsEqual(exchange.SafeIntegerProductN(inputDict, []interface{}{"a", "b", "f"}, factor), 1)) // NB the result is 1
-	Assert(IsEqual(exchange.SafeIntegerProductN(inputDict, []interface{}{"a", "b", "strNumber"}, factor), 30))
-	Assert(IsEqual(exchange.SafeIntegerProductN(inputList, []interface{}{3, 2, 1}, factor), 20))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputDict, []interface{}{"a", "b", "i"}, factor), 10))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputDict, []interface{}{"a", "b", "f"}, factor), 1)) // NB the result is 1
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputDict, []interface{}{"a", "b", "strNumber"}, factor), 30))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProductN(inputList, []interface{}{3, 2, 1}, factor), 20))
 	// safeTimestamp
-	Assert(IsEqual(exchange.SafeTimestamp(inputDict, "i"), 1000))
-	Assert(IsEqual(exchange.SafeTimestamp(inputDict, "f"), 123))
-	Assert(IsEqual(exchange.SafeTimestamp(inputDict, "strNumber"), 3000))
-	Assert(IsEqual(exchange.SafeTimestamp(inputList, 1), 2000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputDict, "i"), 1000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputDict, "f"), 123))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputDict, "strNumber"), 3000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputList, 1), 2000))
 	// safeTimestamp2
-	Assert(IsEqual(exchange.SafeTimestamp2(inputDict, "a", "i"), 1000))
-	Assert(IsEqual(exchange.SafeTimestamp2(inputDict, "a", "f"), 123))
-	Assert(IsEqual(exchange.SafeTimestamp2(inputDict, "a", "strNumber"), 3000))
-	Assert(IsEqual(exchange.SafeTimestamp2(inputList, 2, 1), 2000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputDict, "a", "i"), 1000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputDict, "a", "f"), 123))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputDict, "a", "strNumber"), 3000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestamp2(inputList, 2, 1), 2000))
 	// safeTimestampN
-	Assert(IsEqual(exchange.SafeTimestampN(inputDict, []interface{}{"a", "b", "i"}), 1000))
-	Assert(IsEqual(exchange.SafeTimestampN(inputDict, []interface{}{"a", "b", "f"}), 123))
-	Assert(IsEqual(exchange.SafeTimestampN(inputDict, []interface{}{"a", "b", "strNumber"}), 3000))
-	Assert(IsEqual(exchange.SafeTimestampN(inputList, []interface{}{3, 2, 1}), 2000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputDict, []interface{}{"a", "b", "i"}), 1000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputDict, []interface{}{"a", "b", "f"}), 123))
+	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputDict, []interface{}{"a", "b", "strNumber"}), 3000))
+	Assert(ccxt.IsEqual(exchange.SafeTimestampN(inputList, []interface{}{3, 2, 1}), 2000))
 	// safeFloat
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloat(inputDict, "i"), ParseFloat(1)))
-	Assert(IsEqual(exchange.SafeFloat(inputDict, "f"), 0.123))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "i"), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "f"), 0.123))
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloat(inputDict, "strNumber"), ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "strNumber"), ccxt.ParseFloat(3)))
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloat(inputList, 1), ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputList, 1), ccxt.ParseFloat(2)))
 	// safeFloat2
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloat2(inputDict, "a", "i"), ParseFloat(1)))
-	Assert(IsEqual(exchange.SafeFloat2(inputDict, "a", "f"), 0.123))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "i"), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "f"), 0.123))
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloat2(inputDict, "a", "strNumber"), ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "strNumber"), ccxt.ParseFloat(3)))
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloat2(inputList, 2, 1), ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputList, 2, 1), ccxt.ParseFloat(2)))
 	// safeFloatN
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloatN(inputDict, []interface{}{"a", "b", "i"}), ParseFloat(1)))
-	Assert(IsEqual(exchange.SafeFloatN(inputDict, []interface{}{"a", "b", "f"}), 0.123))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []interface{}{"a", "b", "i"}), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []interface{}{"a", "b", "f"}), 0.123))
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloatN(inputDict, []interface{}{"a", "b", "strNumber"}), ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []interface{}{"a", "b", "strNumber"}), ccxt.ParseFloat(3)))
 	// @ts-expect-error
-	Assert(IsEqual(exchange.SafeFloatN(inputList, []interface{}{3, 2, 1}), ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []interface{}{3, 2, 1}), ccxt.ParseFloat(2)))
 	// safeNumber
-	Assert(IsEqual(exchange.SafeNumber(inputDict, "i"), exchange.ParseNumber(1)))
-	Assert(IsEqual(exchange.SafeNumber(inputDict, "f"), exchange.ParseNumber(0.123)))
-	Assert(IsEqual(exchange.SafeNumber(inputDict, "strNumber"), exchange.ParseNumber(3)))
-	Assert(IsEqual(exchange.SafeNumber(inputList, 1), exchange.ParseNumber(2)))
-	Assert(IsEqual(exchange.SafeNumber(inputList, "bool"), nil))
-	Assert(IsEqual(exchange.SafeNumber(inputList, "list"), nil))
-	Assert(IsEqual(exchange.SafeNumber(inputList, "dict"), nil))
-	Assert(IsEqual(exchange.SafeNumber(inputList, "str"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeNumber(inputDict, "i"), exchange.ParseNumber(1)))
+	Assert(ccxt.IsEqual(exchange.SafeNumber(inputDict, "f"), exchange.ParseNumber(0.123)))
+	Assert(ccxt.IsEqual(exchange.SafeNumber(inputDict, "strNumber"), exchange.ParseNumber(3)))
+	Assert(ccxt.IsEqual(exchange.SafeNumber(inputList, 1), exchange.ParseNumber(2)))
+	Assert(ccxt.IsEqual(exchange.SafeNumber(inputList, "bool"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeNumber(inputList, "list"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeNumber(inputList, "dict"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeNumber(inputList, "str"), nil))
 	// safeNumber2
-	Assert(IsEqual(exchange.SafeNumber2(inputDict, "a", "i"), exchange.ParseNumber(1)))
-	Assert(IsEqual(exchange.SafeNumber2(inputDict, "a", "f"), exchange.ParseNumber(0.123)))
-	Assert(IsEqual(exchange.SafeNumber2(inputDict, "a", "strNumber"), exchange.ParseNumber(3)))
-	Assert(IsEqual(exchange.SafeNumber2(inputList, 2, 1), exchange.ParseNumber(2)))
+	Assert(ccxt.IsEqual(exchange.SafeNumber2(inputDict, "a", "i"), exchange.ParseNumber(1)))
+	Assert(ccxt.IsEqual(exchange.SafeNumber2(inputDict, "a", "f"), exchange.ParseNumber(0.123)))
+	Assert(ccxt.IsEqual(exchange.SafeNumber2(inputDict, "a", "strNumber"), exchange.ParseNumber(3)))
+	Assert(ccxt.IsEqual(exchange.SafeNumber2(inputList, 2, 1), exchange.ParseNumber(2)))
 	// safeNumberN
-	Assert(IsEqual(exchange.SafeNumberN(inputDict, []interface{}{"a", "b", "i"}), exchange.ParseNumber(1)))
-	Assert(IsEqual(exchange.SafeNumberN(inputDict, []interface{}{"a", "b", "f"}), exchange.ParseNumber(0.123)))
-	Assert(IsEqual(exchange.SafeNumberN(inputDict, []interface{}{"a", "b", "strNumber"}), exchange.ParseNumber(3)))
-	Assert(IsEqual(exchange.SafeNumberN(inputList, []interface{}{3, 2, 1}), exchange.ParseNumber(2)))
+	Assert(ccxt.IsEqual(exchange.SafeNumberN(inputDict, []interface{}{"a", "b", "i"}), exchange.ParseNumber(1)))
+	Assert(ccxt.IsEqual(exchange.SafeNumberN(inputDict, []interface{}{"a", "b", "f"}), exchange.ParseNumber(0.123)))
+	Assert(ccxt.IsEqual(exchange.SafeNumberN(inputDict, []interface{}{"a", "b", "strNumber"}), exchange.ParseNumber(3)))
+	Assert(ccxt.IsEqual(exchange.SafeNumberN(inputList, []interface{}{3, 2, 1}), exchange.ParseNumber(2)))
 	// safeBool
-	Assert(IsEqual(exchange.SafeBool(inputDict, "bool"), true))
-	Assert(IsEqual(exchange.SafeBool(inputList, 1), nil))
+	Assert(ccxt.IsEqual(exchange.SafeBool(inputDict, "bool"), true))
+	Assert(ccxt.IsEqual(exchange.SafeBool(inputList, 1), nil))
 	// safeBool2
-	Assert(IsEqual(exchange.SafeBool2(inputDict, "a", "bool"), true))
-	Assert(IsEqual(exchange.SafeBool2(inputList, 2, 1), nil))
+	Assert(ccxt.IsEqual(exchange.SafeBool2(inputDict, "a", "bool"), true))
+	Assert(ccxt.IsEqual(exchange.SafeBool2(inputList, 2, 1), nil))
 	// safeBoolN
-	Assert(IsEqual(exchange.SafeBoolN(inputDict, []interface{}{"a", "b", "bool"}), true))
-	Assert(IsEqual(exchange.SafeBoolN(inputList, []interface{}{3, 2, 1}), nil))
+	Assert(ccxt.IsEqual(exchange.SafeBoolN(inputDict, []interface{}{"a", "b", "bool"}), true))
+	Assert(ccxt.IsEqual(exchange.SafeBoolN(inputList, []interface{}{3, 2, 1}), nil))
 	// safeNumberOmitZero
-	Assert(IsEqual(exchange.SafeNumberOmitZero(inputDict, "zeroNumeric"), nil))
-	Assert(IsEqual(exchange.SafeNumberOmitZero(inputDict, "zeroString"), nil))
-	Assert(IsEqual(exchange.SafeNumberOmitZero(inputDict, "undefined"), nil))
-	Assert(IsEqual(exchange.SafeNumberOmitZero(inputDict, "emptyString"), nil))
-	Assert(!IsEqual(exchange.SafeNumberOmitZero(inputDict, "floatNumeric"), nil))
-	Assert(!IsEqual(exchange.SafeNumberOmitZero(inputDict, "floatString"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeNumberOmitZero(inputDict, "zeroNumeric"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeNumberOmitZero(inputDict, "zeroString"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeNumberOmitZero(inputDict, "undefined"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeNumberOmitZero(inputDict, "emptyString"), nil))
+	Assert(!ccxt.IsEqual(exchange.SafeNumberOmitZero(inputDict, "floatNumeric"), nil))
+	Assert(!ccxt.IsEqual(exchange.SafeNumberOmitZero(inputDict, "floatString"), nil))
+	// tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
+	// tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+	// Test cache types - ccxt.ArrayCache
+	arrayCache := ccxt.NewArrayCache(100)
+	arrayCache.Append(map[string]interface{}{
+		"symbol": "BTC/USDT",
+		"id":     "order1",
+		"price":  50000,
+	})
+	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(arrayCache), 0))
+	// Test cache types - ccxt.ArrayCacheByTimestamp
+	arrayCacheByTimestamp := ccxt.NewArrayCacheByTimestamp(100)
+	arrayCacheByTimestamp.Append([]interface{}{1000, 50000, 1, 2, 3})
+	var arrayCacheByTimestampData interface{} = exchange.SafeValue(arrayCacheByTimestamp, "Data")
+	var cacheByTimestampData interface{} = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheByTimestampData, nil)), arrayCacheByTimestampData, arrayCacheByTimestamp)
+	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheByTimestampData), 0))
+	// Test cache types - ccxt.ArrayCacheBySymbolById
+	arrayCacheBySymbolById := ccxt.NewArrayCacheBySymbolById(100)
+	arrayCacheBySymbolById.Append(map[string]interface{}{
+		"symbol": "ETH/USDT",
+		"id":     "order2",
+		"price":  3000,
+	})
+	// Use direct property access for object attributes
+	var arrayCacheBySymbolByIdHashmap interface{} = arrayCacheBySymbolById.Hashmap
+	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), nil))
+	Assert(!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), nil))
+	var arrayCacheBySymbolByIdData interface{} = exchange.SafeValue(arrayCacheBySymbolById, "Data")
+	var cacheBySymbolByIdData interface{} = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheBySymbolByIdData, nil)), arrayCacheBySymbolByIdData, arrayCacheBySymbolById)
+	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheBySymbolByIdData), 0))
+	// Test cache types - ccxt.ArrayCacheBySymbolBySide
+	arrayCacheBySymbolBySide := ccxt.NewArrayCacheBySymbolBySide()
+	arrayCacheBySymbolBySide.Append(map[string]interface{}{
+		"symbol": "BNB/USDT",
+		"side":   "buy",
+		"price":  400,
+	})
+	// Use direct property access for object attributes
+	var arrayCacheBySymbolBySideHashmap interface{} = arrayCacheBySymbolBySide.Hashmap
+	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), nil))
+	var arrayCacheBySymbolBySideData interface{} = exchange.SafeValue(arrayCacheBySymbolBySide, "Data")
+	var cacheBySymbolBySideData interface{} = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheBySymbolBySideData, nil)), arrayCacheBySymbolBySideData, arrayCacheBySymbolBySide)
+	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheBySymbolBySideData), 0))
+	// Test map[string]map[string]interface{} (ccxt.ArrayCache.hashmap)
+	// Use direct property access for object attributes
+	var arrayCacheHashmapDirect interface{} = arrayCache.Hashmap
+	var nestedMap interface{} = arrayCacheHashmapDirect
+	Assert(ccxt.IsEqual(exchange.SafeValue(nestedMap, "NONEXISTENT"), nil))
+	// Test map[string]*ccxt.ArrayCache (Trades structure)
+	var tradesMap map[string]interface{} = map[string]interface{}{
+		"BTC/USDT": arrayCache,
+		"ETH/USDT": arrayCacheBySymbolById,
+	}
+	var stored interface{} = exchange.SafeValue(tradesMap, "BTC/USDT")
+	Assert(!ccxt.IsEqual(stored, nil))
+	// Use direct property access for hashmap (object attribute)
+	var retrievedArrayCacheHashmap interface{} = stored.(*ccxt.ArrayCache).Hashmap
+	Assert(!ccxt.IsEqual(retrievedArrayCacheHashmap, nil))
+	var retrievedArrayCacheBySymbolById interface{} = exchange.SafeValue(tradesMap, "ETH/USDT")
+	Assert(!ccxt.IsEqual(retrievedArrayCacheBySymbolById, nil))
+	// Use direct property access for hashmap (object attribute)
+	var retrievedArrayCacheBySymbolByIdHashmap interface{} = retrievedArrayCacheBySymbolById.(*ccxt.ArrayCacheBySymbolById).Hashmap
+	Assert(!ccxt.IsEqual(retrievedArrayCacheBySymbolByIdHashmap, nil))
+	Assert(ccxt.IsEqual(exchange.SafeValue(tradesMap, "NONEXISTENT"), nil))
+	// Test map[string]*ccxt.ArrayCacheByTimestamp (Ohlcvs inner structure)
+	var ohlcvInnerMap map[string]interface{} = map[string]interface{}{
+		"1m": arrayCacheByTimestamp,
+		"5m": ccxt.NewArrayCacheByTimestamp(100),
+	}
+	var retrievedArrayCacheByTimestamp interface{} = exchange.SafeValue(ohlcvInnerMap, "1m")
+	Assert(!ccxt.IsEqual(retrievedArrayCacheByTimestamp, nil))
+	// Use direct property access for object attributes
+	var retrievedArrayCacheByTimestampHashmap interface{} = retrievedArrayCacheByTimestamp.(*ccxt.ArrayCacheByTimestamp).Hashmap
+	Assert(!ccxt.IsEqual(retrievedArrayCacheByTimestampHashmap, nil))
+	Assert(!ccxt.IsEqual(exchange.SafeValue(ohlcvInnerMap, "5m"), nil))
+	Assert(ccxt.IsEqual(exchange.SafeValue(ohlcvInnerMap, "NONEXISTENT"), nil))
+	// Test map[string]*ccxt.ArrayCacheBySymbolBySide
+	var cacheBySideMap map[string]interface{} = map[string]interface{}{
+		"BTC/USDT": arrayCacheBySymbolBySide,
+	}
+	var retrievedArrayCacheBySymbolBySide interface{} = exchange.SafeValue(cacheBySideMap, "BTC/USDT")
+	Assert(!ccxt.IsEqual(retrievedArrayCacheBySymbolBySide, nil))
+	var retrievedArrayCacheBySymbolBySideHashmap interface{} = retrievedArrayCacheBySymbolBySide.(*ccxt.ArrayCacheBySymbolBySide).Hashmap
+	Assert(!ccxt.IsEqual(retrievedArrayCacheBySymbolBySideHashmap, nil))
+	Assert(ccxt.IsEqual(exchange.SafeValue(cacheBySideMap, "NONEXISTENT"), nil))
 }

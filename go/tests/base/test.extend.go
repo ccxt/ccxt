@@ -60,17 +60,17 @@ func TestExtend() {
 	TbfeCheckExtended(extended, true)
 }
 func TbfeCheckExtended(extended interface{}, hasSub interface{}) {
-	Assert(IsEqual(GetValue(extended, "a"), 2))
-	Assert(IsEqual(GetValue(GetValue(extended, "b"), 0), 3))
-	Assert(IsEqual(GetValue(GetValue(extended, "b"), 1), 4))
-	Assert(IsEqual(GetValue(GetValue(GetValue(extended, "c"), 0), "test1"), 2))
-	Assert(!IsTrue((InOp(GetValue(GetValue(extended, "c"), 0), "test2"))))
-	Assert(IsEqual(GetValue(GetValue(GetValue(extended, "c"), 0), "test3"), 3))
-	Assert(IsEqual(GetValue(extended, "d"), "not_undefined"))
-	Assert(IsEqual(GetValue(extended, "e"), nil))
-	Assert(IsEqual(GetValue(extended, "other1"), "x"))
-	Assert(IsEqual(GetValue(extended, "other2"), "y"))
-	if IsTrue(hasSub) {
-		Assert(InOp(extended, "sub"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "a"), 2))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended, "b"), 0), 3))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended, "b"), 1), 4))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(extended, "c"), 0), "test1"), 2))
+	Assert(!ccxt.IsTrue((ccxt.InOp(ccxt.GetValue(ccxt.GetValue(extended, "c"), 0), "test2"))))
+	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(extended, "c"), 0), "test3"), 3))
+	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "d"), "not_undefined"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "e"), nil))
+	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "other1"), "x"))
+	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "other2"), "y"))
+	if ccxt.IsTrue(hasSub) {
+		Assert(ccxt.InOp(extended, "sub"))
 	}
 }

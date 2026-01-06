@@ -20,7 +20,7 @@ from ccxt.base.decimal_to_precision import ROUND  # noqa E402
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS  # noqa E402
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO  # noqa E402
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa E402
-import ccxt  # noqa: F402
+import ccxt.async_support as ccxt  # noqa: F402
 
 def test_decimal_to_precision():
     exchange = ccxt.Exchange({

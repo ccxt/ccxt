@@ -85,6 +85,7 @@ interface Exchange {
     privateWalletGetSmallBalance(params?: {}): Promise<implicitReturnType>;
     privateWalletGetSmallBalanceHistory(params?: {}): Promise<implicitReturnType>;
     privateWalletGetPush(params?: {}): Promise<implicitReturnType>;
+    privateWalletGetGetLowCapExchangeList(params?: {}): Promise<implicitReturnType>;
     privateWalletPostTransfers(params?: {}): Promise<implicitReturnType>;
     privateWalletPostSubAccountTransfers(params?: {}): Promise<implicitReturnType>;
     privateWalletPostSubAccountToSubAccount(params?: {}): Promise<implicitReturnType>;
@@ -219,6 +220,7 @@ interface Exchange {
     privateFuturesPostSettleBboOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePriceOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesPutSettleOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    privateFuturesPutSettlePriceOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateFuturesDeleteSettleOrders(params?: {}): Promise<implicitReturnType>;
     privateFuturesDeleteSettleOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateFuturesDeleteSettlePriceOrders(params?: {}): Promise<implicitReturnType>;

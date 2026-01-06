@@ -44,6 +44,7 @@
 * [fetchGreeks](#fetchgreeks)
 * [fetchOption](#fetchoption)
 * [fetchOptionChain](#fetchoptionchain)
+* [fetchOpenInterest](#fetchopeninterest)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -103,7 +104,7 @@ deribit.fetchCurrencies ([params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://docs.deribit.com/#public-status  
 
@@ -123,7 +124,7 @@ deribit.fetchStatus ([params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://docs.deribit.com/#private-get_subaccounts  
 
@@ -167,7 +168,7 @@ deribit.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -192,7 +193,7 @@ deribit.fetchBalance ([params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.deribit.com/#private-create_deposit_address  
 
@@ -213,7 +214,7 @@ deribit.createDepositAddress (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.deribit.com/#private-get_current_deposit_address  
 
@@ -234,7 +235,7 @@ deribit.fetchDepositAddress (code[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.deribit.com/#public-ticker  
 
@@ -255,7 +256,7 @@ deribit.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.deribit.com/#public-get_book_summary_by_currency  
 
@@ -303,7 +304,7 @@ deribit.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol.
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -331,7 +332,7 @@ deribit.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://docs.deribit.com/#private-get_account_summary  
 
@@ -351,7 +352,7 @@ deribit.fetchTradingFees ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.deribit.com/#public-get_order_book  
 
@@ -373,7 +374,7 @@ deribit.fetchOrderBook (symbol[, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.deribit.com/#private-get_order_state  
 
@@ -395,7 +396,7 @@ deribit.fetchOrder (id, symbol[, params])
 create a trade order
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -426,7 +427,7 @@ deribit.createOrder (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.deribit.com/#private-edit  
 
@@ -453,7 +454,7 @@ deribit.editOrder (id[, symbol, type, side, amount, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.deribit.com/#private-cancel  
 
@@ -475,7 +476,7 @@ deribit.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -500,7 +501,7 @@ deribit.cancelAllOrders (symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -527,7 +528,7 @@ deribit.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -554,7 +555,7 @@ deribit.fetchClosedOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.deribit.com/#private-get_user_trades_by_order  
 
@@ -578,7 +579,7 @@ deribit.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -607,7 +608,7 @@ deribit.fetchMyTrades (symbol[, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.deribit.com/#private-get_deposits  
 
@@ -630,7 +631,7 @@ deribit.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.deribit.com/#private-get_withdrawals  
 
@@ -653,7 +654,7 @@ deribit.fetchWithdrawals (code[, since, limit, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.deribit.com/#private-get_position  
 
@@ -674,7 +675,7 @@ deribit.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.deribit.com/#private-get_positions  
 
@@ -698,7 +699,7 @@ deribit.fetchPositions (symbols[, params])
 fetch the historical volatility of an option market based on an underlying asset
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [volatility history objects](https://docs.ccxt.com/#/?id=volatility-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [volatility history objects](https://docs.ccxt.com/?id=volatility-structure)
 
 **See**: https://docs.deribit.com/#public-get_historical_volatility  
 
@@ -719,7 +720,7 @@ deribit.fetchVolatilityHistory (code[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.deribit.com/#private-get_transfers  
 
@@ -742,7 +743,7 @@ deribit.fetchTransfers (code[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
@@ -770,7 +771,7 @@ deribit.transfer (code, amount, fromAccount, toAccount[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.deribit.com/#private-withdraw  
 
@@ -794,7 +795,7 @@ deribit.withdraw (code, amount, address, tag[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs.deribit.com/#public-get_currencies  
 
@@ -815,7 +816,7 @@ deribit.fetchDepositWithdrawFees (codes[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.deribit.com/#public-get_funding_rate_value  
 
@@ -838,7 +839,7 @@ deribit.fetchFundingRate (symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.deribit.com/#public-get_funding_rate_history  
 
@@ -863,7 +864,7 @@ deribit.fetchFundingRateHistory (symbol[, since, limit, params])
 retrieves the public liquidations of a trading pair
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**: https://docs.deribit.com/#public-get_last_settlements_by_currency  
 
@@ -887,7 +888,7 @@ deribit.fetchLiquidations (symbol[, since, limit, params])
 retrieves the users liquidated positions
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**: https://docs.deribit.com/#private-get_settlement_history_by_instrument  
 
@@ -910,7 +911,7 @@ deribit.fetchMyLiquidations (symbol[, since, limit, params])
 fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 **See**: https://docs.deribit.com/#public-ticker  
 
@@ -931,7 +932,7 @@ deribit.fetchGreeks (symbol[, params])
 fetches option data that is commonly found in an option chain
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://docs.deribit.com/#public-get_book_summary_by_instrument  
 
@@ -952,7 +953,7 @@ deribit.fetchOption (symbol[, params])
 fetches data for an underlying asset that is commonly found in an option chain
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://docs.deribit.com/#public-get_book_summary_by_currency  
 
@@ -967,13 +968,34 @@ deribit.fetchOptionChain (code[, params])
 ```
 
 
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+Retrieves the open interest of a symbol
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://docs.deribit.com/?shell#public-get_book_summary_by_instrument  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+deribit.fetchOpenInterest (symbol[, params])
+```
+
+
 <a name="watchBalance" id="watchbalance"></a>
 
 ### watchBalance{docsify-ignore}
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.deribit.com/#user-portfolio-currency  
 
@@ -993,7 +1015,7 @@ deribit.watchBalance ([params])
 watches a price ticker, a statistical calculation with the information for a specific market.
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.deribit.com/#ticker-instrument_name-interval  
 
@@ -1015,7 +1037,7 @@ deribit.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.deribit.com/#ticker-instrument_name-interval  
 
@@ -1037,7 +1059,7 @@ deribit.watchTickers ([symbols, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.deribit.com/#quote-instrument_name  
 
@@ -1058,7 +1080,7 @@ deribit.watchBidsAsks ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.deribit.com/#trades-instrument_name-interval  
 
@@ -1082,7 +1104,7 @@ deribit.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.deribit.com/#trades-instrument_name-interval  
 
@@ -1105,7 +1127,7 @@ deribit.watchTradesForSymbols (symbols[, since, limit, params])
 get the list of trades associated with the user
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.deribit.com/#user-trades-instrument_name-interval  
 
@@ -1129,7 +1151,7 @@ deribit.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.deribit.com/#book-instrument_name-group-depth-interval  
 
@@ -1152,7 +1174,7 @@ deribit.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.deribit.com/#book-instrument_name-group-depth-interval  
 
@@ -1174,7 +1196,7 @@ deribit.watchOrderBookForSymbols (symbols[, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.deribit.com/#user-orders-instrument_name-raw  
 

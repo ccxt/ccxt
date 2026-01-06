@@ -8,7 +8,6 @@ namespace ccxt;
 
 // -----------------------------------------------------------------------------
 use \ccxt\Precise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_market($exchange, $skipped_properties, $method, $market) {
     $format = array(

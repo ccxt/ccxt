@@ -567,6 +567,10 @@ func (this *CoinexCore) V2PublicGetFuturesFundingRateHistory(args ...interface{}
 	return this.callEndpointAsync("v2PublicGetFuturesFundingRateHistory", args...)
 }
 
+func (this *CoinexCore) V2PublicGetFuturesPremiumIndexHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetFuturesPremiumIndexHistory", args...)
+}
+
 func (this *CoinexCore) V2PublicGetFuturesPositionLevel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PublicGetFuturesPositionLevel", args...)
 }
@@ -607,12 +611,24 @@ func (this *CoinexCore) V2PrivateGetAccountSubsTransferHistory(args ...interface
 	return this.callEndpointAsync("v2PrivateGetAccountSubsTransferHistory", args...)
 }
 
+func (this *CoinexCore) V2PrivateGetAccountSubsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountSubsBalance", args...)
+}
+
 func (this *CoinexCore) V2PrivateGetAccountSubsSpotBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivateGetAccountSubsSpotBalance", args...)
 }
 
 func (this *CoinexCore) V2PrivateGetAccountTradeFeeRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivateGetAccountTradeFeeRate", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetAccountFuturesMarketSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountFuturesMarketSettings", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountInfo", args...)
 }
 
 func (this *CoinexCore) V2PrivateGetAssetsSpotBalance(args ...interface{}) <-chan interface{} {
@@ -639,6 +655,10 @@ func (this *CoinexCore) V2PrivateGetAssetsCreditInfo(args ...interface{}) <-chan
 	return this.callEndpointAsync("v2PrivateGetAssetsCreditInfo", args...)
 }
 
+func (this *CoinexCore) V2PrivateGetAssetsSpotTranscationHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAssetsSpotTranscationHistory", args...)
+}
+
 func (this *CoinexCore) V2PrivateGetAssetsMarginBorrowHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivateGetAssetsMarginBorrowHistory", args...)
 }
@@ -661,6 +681,14 @@ func (this *CoinexCore) V2PrivateGetAssetsWithdraw(args ...interface{}) <-chan i
 
 func (this *CoinexCore) V2PrivateGetAssetsTransferHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivateGetAssetsTransferHistory", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetAssetsAmmLiquidityPool(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAssetsAmmLiquidityPool", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetAssetsAmmIncomeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAssetsAmmIncomeHistory", args...)
 }
 
 func (this *CoinexCore) V2PrivateGetSpotOrderStatus(args ...interface{}) <-chan interface{} {
@@ -751,6 +779,30 @@ func (this *CoinexCore) V2PrivateGetFuturesPositionSettleHistory(args ...interfa
 	return this.callEndpointAsync("v2PrivateGetFuturesPositionSettleHistory", args...)
 }
 
+func (this *CoinexCore) V2PrivateGetReferReferee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetReferReferee", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetReferRefereeRebateRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetReferRefereeRebateRecord", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetReferRefereeRebateDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetReferRefereeRebateDetail", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetReferAgentReferee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetReferAgentReferee", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetReferAgentRebateRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetReferAgentRebateRecord", args...)
+}
+
+func (this *CoinexCore) V2PrivateGetReferAgentRebateDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetReferAgentRebateDetail", args...)
+}
+
 func (this *CoinexCore) V2PrivatePostAccountSubs(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivatePostAccountSubs", args...)
 }
@@ -781,6 +833,10 @@ func (this *CoinexCore) V2PrivatePostAccountSubsTransfer(args ...interface{}) <-
 
 func (this *CoinexCore) V2PrivatePostAccountSettings(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivatePostAccountSettings", args...)
+}
+
+func (this *CoinexCore) V2PrivatePostAccountFuturesMarketSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountFuturesMarketSettings", args...)
 }
 
 func (this *CoinexCore) V2PrivatePostAssetsMarginBorrow(args ...interface{}) <-chan interface{} {
@@ -839,6 +895,10 @@ func (this *CoinexCore) V2PrivatePostSpotModifyStopOrder(args ...interface{}) <-
 	return this.callEndpointAsync("v2PrivatePostSpotModifyStopOrder", args...)
 }
 
+func (this *CoinexCore) V2PrivatePostSpotBatchModifyOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSpotBatchModifyOrder", args...)
+}
+
 func (this *CoinexCore) V2PrivatePostSpotCancelAllOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivatePostSpotCancelAllOrder", args...)
 }
@@ -889,6 +949,10 @@ func (this *CoinexCore) V2PrivatePostFuturesModifyOrder(args ...interface{}) <-c
 
 func (this *CoinexCore) V2PrivatePostFuturesModifyStopOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v2PrivatePostFuturesModifyStopOrder", args...)
+}
+
+func (this *CoinexCore) V2PrivatePostFuturesBatchModifyOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostFuturesBatchModifyOrder", args...)
 }
 
 func (this *CoinexCore) V2PrivatePostFuturesCancelAllOrder(args ...interface{}) <-chan interface{} {

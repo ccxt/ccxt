@@ -1,6 +1,6 @@
 module github.com/ccxt/tests/profile
 
-go 1.23.4
+go 1.24.0
 
 replace github.com/ccxt/ccxt/go/v4 => ../../ccxt
 
@@ -23,8 +23,8 @@ require (
 	github.com/supranational/blst v0.3.13 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )

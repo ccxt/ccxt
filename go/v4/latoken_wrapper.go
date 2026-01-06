@@ -79,7 +79,7 @@ func (this *Latoken) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Latoken) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -97,7 +97,7 @@ func (this *Latoken) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Latoken) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -130,7 +130,7 @@ func (this *Latoken) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @see https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Latoken) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -158,7 +158,7 @@ func (this *Latoken) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @see https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Latoken) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -193,7 +193,7 @@ func (this *Latoken) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Latoken) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -232,7 +232,7 @@ func (this *Latoken) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Latoken) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -299,7 +299,7 @@ func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPriva
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Latoken) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -346,7 +346,7 @@ func (this *Latoken) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if fetching trigger orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Latoken) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -395,7 +395,7 @@ func (this *Latoken) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if fetching trigger orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Latoken) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -441,7 +441,7 @@ func (this *Latoken) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
  * @param {string} [symbol] not used by latoken fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if fetching a trigger order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Latoken) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -484,7 +484,7 @@ func (this *Latoken) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.condition] "GTC", "IOC", or  "FOK"
  * @param {string} [params.clientOrderId] [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Latoken) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -520,7 +520,7 @@ func (this *Latoken) CreateOrder(symbol string, typeVar string, side string, amo
  * @param {string} symbol not used by latoken cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if cancelling a trigger order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Latoken) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -555,7 +555,7 @@ func (this *Latoken) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if cancelling trigger orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Latoken) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -591,7 +591,7 @@ func (this *Latoken) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
  * @param {int} [limit] max number of transactions to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Latoken) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
 
@@ -636,7 +636,7 @@ func (this *Latoken) FetchTransactions(options ...FetchTransactionsOptions) ([]T
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Latoken) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -684,7 +684,7 @@ func (this *Latoken) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Latoken) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 

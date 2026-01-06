@@ -42,7 +42,7 @@ zaif.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10  
 
@@ -62,7 +62,7 @@ zaif.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34  
 
@@ -84,7 +84,7 @@ zaif.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22  
 
@@ -105,7 +105,7 @@ zaif.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28  
 
@@ -128,7 +128,7 @@ zaif.fetchTrades (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23  
 
@@ -153,7 +153,7 @@ zaif.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37  
 
@@ -175,7 +175,7 @@ zaif.cancelOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28  
 
@@ -198,7 +198,7 @@ zaif.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24  
 
@@ -221,7 +221,7 @@ zaif.fetchClosedOrders (symbol[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>zaif</code>](#zaif)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41  
 

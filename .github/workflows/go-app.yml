@@ -79,6 +79,10 @@ jobs:
           #   echo "No websocket files to process; skipping."
           # fi
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No files to process; skipping."
+            exit 0
+          fi
           echo "Files to process: ${files[*]}"
           tsx utils/granular-go-build.ts "${files[@]}"
       # - name: Install dependencies

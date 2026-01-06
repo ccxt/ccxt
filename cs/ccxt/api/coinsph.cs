@@ -21,6 +21,11 @@ public partial class coinsph : Exchange
         return await this.callAsync ("publicGetOpenapiV1Time",parameters);
     }
 
+    public async Task<object> publicGetOpenapiV1UserIp (object parameters = null)
+    {
+        return await this.callAsync ("publicGetOpenapiV1UserIp",parameters);
+    }
+
     public async Task<object> publicGetOpenapiQuoteV1Ticker24hr (object parameters = null)
     {
         return await this.callAsync ("publicGetOpenapiQuoteV1Ticker24hr",parameters);
@@ -66,6 +71,11 @@ public partial class coinsph : Exchange
         return await this.callAsync ("publicGetOpenapiQuoteV1AvgPrice",parameters);
     }
 
+    public async Task<object> privateGetOpenapiV1CheckSysStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1CheckSysStatus",parameters);
+    }
+
     public async Task<object> privateGetOpenapiWalletV1ConfigGetall (object parameters = null)
     {
         return await this.callAsync ("privateGetOpenapiWalletV1ConfigGetall",parameters);
@@ -86,9 +96,19 @@ public partial class coinsph : Exchange
         return await this.callAsync ("privateGetOpenapiWalletV1WithdrawHistory",parameters);
     }
 
+    public async Task<object> privateGetOpenapiWalletV1WithdrawAddressWhitelist (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiWalletV1WithdrawAddressWhitelist",parameters);
+    }
+
     public async Task<object> privateGetOpenapiV1Account (object parameters = null)
     {
         return await this.callAsync ("privateGetOpenapiV1Account",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1ApiKeys (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1ApiKeys",parameters);
     }
 
     public async Task<object> privateGetOpenapiV1OpenOrders (object parameters = null)
@@ -144,6 +164,51 @@ public partial class coinsph : Exchange
     public async Task<object> privateGetOpenapiTransferV3TransfersId (object parameters = null)
     {
         return await this.callAsync ("privateGetOpenapiTransferV3TransfersId",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1SubAccountList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1SubAccountList",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1SubAccountAsset (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1SubAccountAsset",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1SubAccountTransferUniversalTransferHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1SubAccountTransferUniversalTransferHistory",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1SubAccountTransferSubHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1SubAccountTransferSubHistory",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1SubAccountApikeyIpRestriction (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1SubAccountApikeyIpRestriction",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1SubAccountWalletDepositAddress (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1SubAccountWalletDepositAddress",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1SubAccountWalletDepositHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1SubAccountWalletDepositHistory",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1FundCollectGetFundRecord (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1FundCollectGetFundRecord",parameters);
+    }
+
+    public async Task<object> privateGetOpenapiV1AssetTransactionHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenapiV1AssetTransactionHistory",parameters);
     }
 
     public async Task<object> privatePostOpenapiWalletV1WithdrawApply (object parameters = null)
@@ -216,6 +281,11 @@ public partial class coinsph : Exchange
         return await this.callAsync ("privatePostOpenapiConvertV1AccpetQuote",parameters);
     }
 
+    public async Task<object> privatePostOpenapiConvertV1QueryOrderHistory (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiConvertV1QueryOrderHistory",parameters);
+    }
+
     public async Task<object> privatePostOpenapiFiatV1SupportChannel (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenapiFiatV1SupportChannel",parameters);
@@ -244,6 +314,41 @@ public partial class coinsph : Exchange
     public async Task<object> privatePostOpenapiTransferV3Transfers (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenapiTransferV3Transfers",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiV1SubAccountCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiV1SubAccountCreate",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiV1SubAccountTransferUniversalTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiV1SubAccountTransferUniversalTransfer",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiV1SubAccountTransferSubToMaster (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiV1SubAccountTransferSubToMaster",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiV1SubAccountApikeyAddIpRestriction (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiV1SubAccountApikeyAddIpRestriction",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiV1FundCollectCollectFromSubAccount (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiV1FundCollectCollectFromSubAccount",parameters);
+    }
+
+    public async Task<object> privatePutOpenapiV1UserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("privatePutOpenapiV1UserDataStream",parameters);
     }
 
     public async Task<object> privateDeleteOpenapiV1Order (object parameters = null)

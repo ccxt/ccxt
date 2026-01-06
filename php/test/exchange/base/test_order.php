@@ -7,7 +7,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 include_once __DIR__ . '/test_trade.php';
 
 function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $now) {

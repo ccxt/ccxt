@@ -171,6 +171,34 @@ func (this *CryptocomCore) V1PrivatePostPrivateGetInstrumentFeeRate(args ...inte
 	return this.callEndpointAsync("v1PrivatePostPrivateGetInstrumentFeeRate", args...)
 }
 
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatDepositInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositInfo", args...)
+}
+
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositHistory", args...)
+}
+
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatWithdrawHistory", args...)
+}
+
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatCreateWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatCreateWithdraw", args...)
+}
+
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatTransactionQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionQuota", args...)
+}
+
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatTransactionLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionLimit", args...)
+}
+
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatGetBankAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatGetBankAccounts", args...)
+}
+
 func (this *CryptocomCore) V1PrivatePostPrivateStakingStake(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PrivatePostPrivateStakingStake", args...)
 }

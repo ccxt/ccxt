@@ -128,10 +128,10 @@ func (this *CoinmateCore) Describe() interface{} {
 		},
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
-				"get": []interface{}{"orderBook", "ticker", "tickerAll", "products", "transactions", "tradingPairs"},
+				"get": []interface{}{"orderBook", "ticker", "tickerAll", "products", "transactions", "tradingPairs", "system/time"},
 			},
 			"private": map[string]interface{}{
-				"post": []interface{}{"balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits", "cancelAllOpenOrders", "withdrawVirtualCurrency", "virtualCurrencyDepositAddresses", "unconfirmedVirtualCurrencyDeposits", "adaWithdrawal", "adaDepositAddresses", "unconfirmedAdaDeposits", "solWithdrawal", "solDepositAddresses", "unconfirmedSolDeposits"},
+				"post": []interface{}{"currencies", "balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits", "cancelAllOpenOrders", "withdrawVirtualCurrency", "virtualCurrencyDepositAddresses", "unconfirmedVirtualCurrencyDeposits", "adaWithdrawal", "adaDepositAddresses", "unconfirmedAdaDeposits", "solWithdrawal", "solDepositAddresses", "unconfirmedSolDeposits", "bankWireWithdrawal"},
 			},
 		},
 		"fees": map[string]interface{}{
@@ -244,6 +244,37 @@ func (this *CoinmateCore) Describe() interface{} {
 		},
 		"precisionMode": TICK_SIZE,
 	})
+}
+
+/**
+ * @method
+ * @name coinmate#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the bingx server
+ * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int} the current integer timestamp in milliseconds from the bingx server
+ */
+func (this *CoinmateCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		response := (<-this.PublicGetSystemTime(params))
+		PanicOnError(response)
+
+		//
+		//     {
+		//         "serverTime": 1765250628745
+		//     }
+		//
+		ch <- this.SafeInteger(response, "serverTime")
+		return nil
+
+	}()
+	return ch
 }
 
 /**
@@ -375,7 +406,7 @@ func (this *CoinmateCore) ParseBalance(response interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://coinmate.docs.apiary.io/#reference/balance/get-balances/post
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *CoinmateCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -385,8 +416,8 @@ func (this *CoinmateCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4498 := (<-this.LoadMarkets())
-		PanicOnError(retRes4498)
+		retRes4708 := (<-this.LoadMarkets())
+		PanicOnError(retRes4708)
 
 		response := (<-this.PrivatePostBalances(params))
 		PanicOnError(response)
@@ -406,7 +437,7 @@ func (this *CoinmateCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *CoinmateCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -418,8 +449,8 @@ func (this *CoinmateCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes4658 := (<-this.LoadMarkets())
-		PanicOnError(retRes4658)
+		retRes4868 := (<-this.LoadMarkets())
+		PanicOnError(retRes4868)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair":      GetValue(market, "id"),
@@ -445,7 +476,7 @@ func (this *CoinmateCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
  * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker/get
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *CoinmateCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -455,8 +486,8 @@ func (this *CoinmateCore) FetchTicker(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4878 := (<-this.LoadMarkets())
-		PanicOnError(retRes4878)
+		retRes5088 := (<-this.LoadMarkets())
+		PanicOnError(retRes5088)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair": GetValue(market, "id"),
@@ -497,7 +528,7 @@ func (this *CoinmateCore) FetchTicker(symbol interface{}, optionalArgs ...interf
  * @see https://coinmate.docs.apiary.io/#reference/ticker/get-ticker-all/get
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *CoinmateCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -509,8 +540,8 @@ func (this *CoinmateCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5248 := (<-this.LoadMarkets())
-		PanicOnError(retRes5248)
+		retRes5458 := (<-this.LoadMarkets())
+		PanicOnError(retRes5458)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetTickerAll(params))
@@ -600,7 +631,7 @@ func (this *CoinmateCore) ParseTicker(ticker interface{}, optionalArgs ...interf
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CoinmateCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -616,8 +647,8 @@ func (this *CoinmateCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes6098 := (<-this.LoadMarkets())
-		PanicOnError(retRes6098)
+		retRes6308 := (<-this.LoadMarkets())
+		PanicOnError(retRes6308)
 		var request interface{} = map[string]interface{}{
 			"limit": 1000,
 		}
@@ -743,7 +774,7 @@ func (this *CoinmateCore) ParseTransaction(transaction interface{}, optionalArgs
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CoinmateCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -759,8 +790,8 @@ func (this *CoinmateCore) Withdraw(code interface{}, amount interface{}, address
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes7338 := (<-this.LoadMarkets())
-		PanicOnError(retRes7338)
+		retRes7548 := (<-this.LoadMarkets())
+		PanicOnError(retRes7548)
 		var currency interface{} = this.Currency(code)
 		var withdrawOptions interface{} = this.SafeValue(this.Options, "withdraw", map[string]interface{}{})
 		var methods interface{} = this.SafeValue(withdrawOptions, "methods", map[string]interface{}{})
@@ -816,7 +847,7 @@ func (this *CoinmateCore) Withdraw(code interface{}, amount interface{}, address
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *CoinmateCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -832,8 +863,8 @@ func (this *CoinmateCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes7858 := (<-this.LoadMarkets())
-		PanicOnError(retRes7858)
+		retRes8068 := (<-this.LoadMarkets())
+		PanicOnError(retRes8068)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 1000
 		}
@@ -933,7 +964,7 @@ func (this *CoinmateCore) ParseTrade(trade interface{}, optionalArgs ...interfac
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *CoinmateCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -947,8 +978,8 @@ func (this *CoinmateCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes8808 := (<-this.LoadMarkets())
-		PanicOnError(retRes8808)
+		retRes9018 := (<-this.LoadMarkets())
+		PanicOnError(retRes9018)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair":       GetValue(market, "id"),
@@ -989,7 +1020,7 @@ func (this *CoinmateCore) FetchTrades(symbol interface{}, optionalArgs ...interf
  * @see https://coinmate.docs.apiary.io/#reference/trader-fees/get-trading-fees/post
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *CoinmateCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -999,8 +1030,8 @@ func (this *CoinmateCore) FetchTradingFee(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9178 := (<-this.LoadMarkets())
-		PanicOnError(retRes9178)
+		retRes9388 := (<-this.LoadMarkets())
+		PanicOnError(retRes9388)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair": GetValue(market, "id"),
@@ -1044,7 +1075,7 @@ func (this *CoinmateCore) FetchTradingFee(symbol interface{}, optionalArgs ...in
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinmateCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1082,7 +1113,7 @@ func (this *CoinmateCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinmateCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1101,8 +1132,8 @@ func (this *CoinmateCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes9778 := (<-this.LoadMarkets())
-		PanicOnError(retRes9778)
+		retRes9988 := (<-this.LoadMarkets())
+		PanicOnError(retRes9988)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currencyPair": GetValue(market, "id"),
@@ -1240,7 +1271,7 @@ func (this *CoinmateCore) ParseOrder(order interface{}, optionalArgs ...interfac
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinmateCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1252,8 +1283,8 @@ func (this *CoinmateCore) CreateOrder(symbol interface{}, typeVar interface{}, s
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11128 := (<-this.LoadMarkets())
-		PanicOnError(retRes11128)
+		retRes11338 := (<-this.LoadMarkets())
+		PanicOnError(retRes11338)
 		var method interface{} = Add("privatePost", this.Capitalize(side))
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
@@ -1295,7 +1326,7 @@ func (this *CoinmateCore) CreateOrder(symbol interface{}, typeVar interface{}, s
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinmateCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1307,8 +1338,8 @@ func (this *CoinmateCore) FetchOrder(id interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11508 := (<-this.LoadMarkets())
-		PanicOnError(retRes11508)
+		retRes11718 := (<-this.LoadMarkets())
+		PanicOnError(retRes11718)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 		}
@@ -1336,7 +1367,7 @@ func (this *CoinmateCore) FetchOrder(id interface{}, optionalArgs ...interface{}
  * @param {string} id order id
  * @param {string} symbol not used by coinmate cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinmateCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
