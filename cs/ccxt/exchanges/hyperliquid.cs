@@ -1099,6 +1099,16 @@ public partial class hyperliquid : Exchange
         });
     }
 
+    public virtual object updateSpotCurrencyCode(object code)
+    {
+        if (isTrue(isEqual(code, null)))
+        {
+            return code;
+        }
+        object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+        return this.safeString(spotCurrencyMapping, code, code);
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchBalance
@@ -1178,7 +1188,8 @@ public partial class hyperliquid : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object balance = getValue(balances, i);
-                object code = this.safeCurrencyCode(this.safeString(balance, "coin"));
+                object unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
+                object code = ((bool) isTrue(isSpot)) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                 object account = this.account();
                 object total = this.safeString(balance, "total");
                 object used = this.safeString(balance, "hold");
