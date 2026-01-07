@@ -592,16 +592,23 @@ class hyperliquid extends Exchange {
             $fetchDexesList = array();
             $options = $this->safe_dict($this->options, 'fetchMarkets', array());
             $hip3 = $this->safe_dict($options, 'hip3', array());
-            $dexesProvided = $this->safe_list($hip3, 'dexes'); // $users provide their own list of dexes to load
+            $dexesProvided = $this->safe_list($hip3, 'dexes', array()); // $users provide their own list of dexes to load
             $maxLimit = $this->safe_integer($hip3, 'limit', 10);
-            if ($dexesProvided !== null) {
-                $userProvidedDexesLength = count($dexesProvided);
+            $userProvidedDexesLength = count($dexesProvided);
+            if ($userProvidedDexesLength > 0) {
                 if ($userProvidedDexesLength > 0) {
                     $fetchDexesList = $dexesProvided;
                 }
             } else {
+                $fetchDexesLength = count($fetchDexes);
                 for ($i = 1; $i < $maxLimit; $i++) {
+                    if ($i >= $fetchDexesLength) {
+                        break;
+                    }
                     $dex = $this->safe_dict($fetchDexes, $i, array());
+                    if ($dex === null) {
+                        continue;
+                    }
                     $dexName = $this->safe_string($dex, 'name');
                     $fetchDexesList[] = $dexName;
                 }
@@ -1080,6 +1087,14 @@ class hyperliquid extends Exchange {
         ));
     }
 
+    public function update_spot_currency_code(string $code): string {
+        if ($code === null) {
+            return $code;
+        }
+        $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+        return $this->safe_string($spotCurrencyMapping, $code, $code);
+    }
+
     public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1148,7 +1163,8 @@ class hyperliquid extends Exchange {
                 $spotBalances = array( 'info' => $response );
                 for ($i = 0; $i < count($balances); $i++) {
                     $balance = $balances[$i];
-                    $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+                    $unifiedCode = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+                    $code = $isSpot ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
                     $account = $this->account();
                     $total = $this->safe_string($balance, 'total');
                     $used = $this->safe_string($balance, 'hold');

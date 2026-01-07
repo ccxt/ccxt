@@ -512,7 +512,7 @@ public partial class backpack : Exchange
         //                     "depositEnabled": true,
         //                     "displayName": "Jito",
         //                     "maximumWithdrawal": null,
-        //                     "minimumDeposit": "0.29",
+        //                     "minimumDeposit": "0.28",
         //                     "minimumWithdrawal": "0.58",
         //                     "withdrawEnabled": true,
         //                     "withdrawalFee": "0.29"

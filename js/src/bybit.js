@@ -902,6 +902,8 @@ export default class bybit extends Exchange {
                     '170229': InvalidOrder,
                     '170234': ExchangeError,
                     '170241': ManualInteractionNeeded,
+                    '170371': InvalidOrder,
+                    '170372': InvalidOrder,
                     '175000': InvalidOrder,
                     '175001': InvalidOrder,
                     '175002': InvalidOrder,

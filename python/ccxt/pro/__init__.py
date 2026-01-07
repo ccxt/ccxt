@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.29'
+__version__ = '4.5.31'
 
 # ----------------------------------------------------------------------------
 
@@ -82,6 +82,7 @@ from ccxt.pro.blockchaincom import blockchaincom                          # noqa
 from ccxt.pro.blofin import blofin                                        # noqa: F401
 from ccxt.pro.bullish import bullish                                      # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
+from ccxt.pro.bydfi import bydfi                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
 from ccxt.pro.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
@@ -160,6 +161,7 @@ exchanges = [
     'blofin',
     'bullish',
     'bybit',
+    'bydfi',
     'cex',
     'coinbase',
     'coinbaseadvanced',

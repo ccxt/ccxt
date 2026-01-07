@@ -81,7 +81,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchConvertTradeHistory': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': True,
+                'fetchCurrencies': False,  # temporarily, until they fix the endpoint
                 'fetchDepositAddress': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,

@@ -1423,7 +1423,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         //       "channel": "pong"
         //   }
         //
-        client.lastPong = this.safeInteger(message, "pong");
+        client.lastPong = this.safeInteger(message, "pong", this.milliseconds());
         return message;
     }
 

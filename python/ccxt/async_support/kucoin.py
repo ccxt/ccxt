@@ -123,7 +123,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
-                'fetchTransfers': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'repayCrossMargin': True,
                 'repayIsolatedMargin': True,
@@ -200,6 +200,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'get': {
                         # account
                         'user-info': 30,  # 20MW
+                        'user/api-key': 30,  # 20MW
                         'accounts': 7.5,  # 5MW
                         'accounts/{accountId}': 7.5,  # 5MW
                         'accounts/ledgers': 3,  # 2MW
@@ -284,6 +285,8 @@ class kucoin(Exchange, ImplicitAPI):
                         'convert/limit/orders': 5,
                         # affiliate
                         'affiliate/inviter/statistics': 30,
+                        # earn
+                        'earn/redeem-preview': 5,  # 5EW
                     },
                     'post': {
                         # account
@@ -542,6 +545,8 @@ class kucoin(Exchange, ImplicitAPI):
                     'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds,  # {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     'The amount increment is invalid.': BadRequest,
                     'The quantity is below the minimum requirement.': InvalidOrder,  # {"msg":"The quantity is below the minimum requirement.","code":"400100"}
+                    'not in the given range!': BadRequest,  # {"msg":"price not in the given range!","code":"400100"}
+                    'recAccountType not in the given range': BadRequest,  # {"msg":"recAccountType not in the given range","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -728,6 +733,9 @@ class kucoin(Exchange, ImplicitAPI):
                 },
                 'withdraw': {
                     'includeFee': False,
+                },
+                'transfer': {
+                    'fillResponseFromRequest': True,
                 },
                 # endpoint versions
                 'versions': {
@@ -4376,88 +4384,79 @@ class kucoin(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
 
-        https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
-        https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
-        https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
+        https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
 
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.transferType]: INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT(default is INTERNAL)
+        :param str [params.fromUserId]: required if transferType is SUB_TO_PARENT
+        :param str [params.toUserId]: required if transferType is PARENT_TO_SUB
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
         requestedAmount = self.currency_to_precision(code, amount)
+        request: dict = {
+            'currency': currency['id'],
+            'amount': requestedAmount,
+        }
+        transferType = 'INTERNAL'
+        transferType, params = self.handle_param_string_2(params, 'transferType', 'type', transferType)
+        if transferType == 'PARENT_TO_SUB':
+            if not ('toUserId' in params):
+                raise ExchangeError(self.id + ' transfer() requires a toUserId param for PARENT_TO_SUB transfers')
+        elif transferType == 'SUB_TO_PARENT':
+            if not ('fromUserId' in params):
+                raise ExchangeError(self.id + ' transfer() requires a fromUserId param for SUB_TO_PARENT transfers')
+        if not ('clientOid' in params):
+            request['clientOid'] = self.uuid()
         fromId = self.convert_type_to_account(fromAccount)
         toId = self.convert_type_to_account(toAccount)
         fromIsolated = self.in_array(fromId, self.ids)
         toIsolated = self.in_array(toId, self.ids)
-        if fromId == 'contract':
-            if toId != 'main':
-                raise ExchangeError(self.id + ' transfer() only supports transferring from futures account to main account')
-            request: dict = {
-                'currency': currency['id'],
-                'amount': requestedAmount,
-            }
-            if not ('bizNo' in params):
-                # it doesn't like more than 24 characters
-                request['bizNo'] = self.uuid22()
-            response = await self.futuresPrivatePostTransferOut(self.extend(request, params))
-            #
-            #     {
-            #         "code": "200000",
-            #         "data": {
-            #             "applyId": "605a87217dff1500063d485d",
-            #             "bizNo": "bcd6e5e1291f4905af84dc",
-            #             "payAccountType": "CONTRACT",
-            #             "payTag": "DEFAULT",
-            #             "remark": '',
-            #             "recAccountType": "MAIN",
-            #             "recTag": "DEFAULT",
-            #             "recRemark": '',
-            #             "recSystem": "KUCOIN",
-            #             "status": "PROCESSING",
-            #             "currency": "XBT",
-            #             "amount": "0.00001",
-            #             "fee": "0",
-            #             "sn": "573688685663948",
-            #             "reason": '',
-            #             "createdAt": 1616545569000,
-            #             "updatedAt": 1616545569000
-            #         }
-            #     }
-            #
-            data = self.safe_dict(response, 'data')
-            return self.parse_transfer(data, currency)
-        else:
-            request: dict = {
-                'currency': currency['id'],
-                'amount': requestedAmount,
-            }
-            if fromIsolated or toIsolated:
-                if self.in_array(fromId, self.ids):
-                    request['fromTag'] = fromId
-                    fromId = 'isolated'
-                if self.in_array(toId, self.ids):
-                    request['toTag'] = toId
-                    toId = 'isolated'
+        if fromIsolated:
+            request['fromAccountTag'] = fromId
+            fromId = 'isolated'
+        if toIsolated:
+            request['toAccountTag'] = toId
+            toId = 'isolated'
+        hfOrMining = self.is_hf_or_mining(fromId, toId)
+        response = None
+        if hfOrMining:
+            # new endpoint does not support hf and mining transfers
+            # use old endpoint for hf and mining transfers
             request['from'] = fromId
             request['to'] = toId
-            if not ('clientOid' in params):
-                request['clientOid'] = self.uuid()
             response = await self.privatePostAccountsInnerTransfer(self.extend(request, params))
+        else:
+            request['type'] = transferType
+            request['fromAccountType'] = fromId.upper()
+            request['toAccountType'] = toId.upper()
             #
             #     {
             #         "code": "200000",
             #         "data": {
-            #              "orderId": "605a6211e657f00006ad0ad6"
+            #             "orderId": "694fcb5b08bb1600015cda75"
             #         }
             #     }
             #
-            data = self.safe_dict(response, 'data')
-            return self.parse_transfer(data, currency)
+            response = await self.privatePostAccountsUniversalTransfer(self.extend(request, params))
+        data = self.safe_dict(response, 'data')
+        transfer = self.parse_transfer(data, currency)
+        transferOptions = self.safe_dict(self.options, 'transfer', {})
+        fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            transfer['amount'] = amount
+            transfer['fromAccount'] = fromAccount
+            transfer['toAccount'] = toAccount
+            transfer['status'] = 'ok'
+        return transfer
+
+    def is_hf_or_mining(self, fromId: Str, toId: Str) -> bool:
+        return(fromId == 'trade_hf' or toId == 'trade_hf' or fromId == 'pool' or toId == 'pool')
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
@@ -4494,16 +4493,45 @@ class kucoin(Exchange, ImplicitAPI):
         #         "updatedAt": 1616545569000
         #     }
         #
+        # ledger entry - from account ledgers API(for fetchTransfers)
+        #
+        # {
+        #     "id": "611a1e7c6a053300067a88d9",
+        #     "currency": "USDT",
+        #     "amount": "10.00059547",
+        #     "fee": "0",
+        #     "balance": "0",
+        #     "accountType": "MAIN",
+        #     "bizType": "Transfer",
+        #     "direction": "in",
+        #     "createdAt": 1629101692950,
+        #     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        # }
+        #
         timestamp = self.safe_integer(transfer, 'createdAt')
         currencyId = self.safe_string(transfer, 'currency')
         rawStatus = self.safe_string(transfer, 'status')
-        accountFromRaw = self.safe_string_lower(transfer, 'payAccountType')
-        accountToRaw = self.safe_string_lower(transfer, 'recAccountType')
+        bizType = self.safe_string(transfer, 'bizType')
+        isLedgerEntry = (bizType is not None)
+        accountFromRaw = None
+        accountToRaw = None
+        if isLedgerEntry:
+            # Ledger entry format: uses accountType + direction
+            accountType = self.safe_string_lower(transfer, 'accountType')
+            direction = self.safe_string(transfer, 'direction')
+            if direction == 'out':
+                accountFromRaw = accountType
+            elif direction == 'in':
+                accountToRaw = accountType
+        else:
+            # Transfer API format: uses payAccountType/recAccountType
+            accountFromRaw = self.safe_string_lower(transfer, 'payAccountType')
+            accountToRaw = self.safe_string_lower(transfer, 'recAccountType')
         accountsByType = self.safe_dict(self.options, 'accountsByType')
         accountFrom = self.safe_string(accountsByType, accountFromRaw, accountFromRaw)
         accountTo = self.safe_string(accountsByType, accountToRaw, accountToRaw)
         return {
-            'id': self.safe_string_2(transfer, 'applyId', 'orderId'),
+            'id': self.safe_string_n(transfer, ['id', 'applyId', 'orderId']),
             'currency': self.safe_currency_code(currencyId, currency),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -5537,3 +5565,70 @@ class kucoin(Exchange, ImplicitAPI):
         if errorCode != '200000' and errorCode != '200':
             raise ExchangeError(feedback)
         return None
+
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+        """
+        fetch a history of internal transfers made on an account
+
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+
+        :param str [code]: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of transfer structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params)
+        request: dict = {
+            'bizType': 'TRANSFER',
+        }
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['endAt'] = until
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        else:
+            request['pageSize'] = 500
+        request, params = self.handle_until_option('endAt', request, params)
+        response = await self.privateGetAccountsLedgers(self.extend(request, params))
+        #
+        # {
+        #     "code": "200000",
+        #     "data": {
+        #         "currentPage": 1,
+        #         "pageSize": 50,
+        #         "totalNum": 1,
+        #         "totalPage": 1,
+        #         "items": [
+        #             {
+        #                 "id": "611a1e7c6a053300067a88d9",
+        #                 "currency": "USDT",
+        #                 "amount": "10.00059547",
+        #                 "fee": "0",
+        #                 "balance": "0",
+        #                 "accountType": "MAIN",
+        #                 "bizType": "Transfer",
+        #                 "direction": "in",
+        #                 "createdAt": 1629101692950,
+        #                 "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        #             }
+        #         ]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        items = self.safe_list(data, 'items', [])
+        return self.parse_transfers(items, currency, since, limit)

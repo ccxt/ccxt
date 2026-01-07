@@ -7,1062 +7,1070 @@
 
 package ccxt
 
-func (this *KucoinCore) PublicGetCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCurrencies", args...)
+func (this *KucoinCore) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *KucoinCore) PublicGetCurrenciesCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCurrenciesCurrency", args...)
+func (this *KucoinCore) PublicGetCurrenciesCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrenciesCurrency", args...)
 }
 
-func (this *KucoinCore) PublicGetSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSymbols", args...)
+func (this *KucoinCore) PublicGetSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSymbols", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketOrderbookLevel1 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketOrderbookLevel1", args...)
+func (this *KucoinCore) PublicGetMarketOrderbookLevel1(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel1", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketAllTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketAllTickers", args...)
+func (this *KucoinCore) PublicGetMarketAllTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketAllTickers", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketStats (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketStats", args...)
+func (this *KucoinCore) PublicGetMarketStats(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketStats", args...)
 }
 
-func (this *KucoinCore) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *KucoinCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketOrderbookLevelLevelLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketOrderbookLevelLevelLimit", args...)
+func (this *KucoinCore) PublicGetMarketOrderbookLevelLevelLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevelLevelLimit", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketOrderbookLevel220 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketOrderbookLevel220", args...)
+func (this *KucoinCore) PublicGetMarketOrderbookLevel220(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel220", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketOrderbookLevel2100 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketOrderbookLevel2100", args...)
+func (this *KucoinCore) PublicGetMarketOrderbookLevel2100(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel2100", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketHistories (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketHistories", args...)
+func (this *KucoinCore) PublicGetMarketHistories(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketHistories", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketCandles", args...)
+func (this *KucoinCore) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *KucoinCore) PublicGetPrices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPrices", args...)
+func (this *KucoinCore) PublicGetPrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPrices", args...)
 }
 
-func (this *KucoinCore) PublicGetTimestamp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTimestamp", args...)
+func (this *KucoinCore) PublicGetTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTimestamp", args...)
 }
 
-func (this *KucoinCore) PublicGetStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetStatus", args...)
+func (this *KucoinCore) PublicGetStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStatus", args...)
 }
 
-func (this *KucoinCore) PublicGetMarkPriceSymbolCurrent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarkPriceSymbolCurrent", args...)
+func (this *KucoinCore) PublicGetMarkPriceSymbolCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkPriceSymbolCurrent", args...)
 }
 
-func (this *KucoinCore) PublicGetMarkPriceAllSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarkPriceAllSymbols", args...)
+func (this *KucoinCore) PublicGetMarkPriceAllSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkPriceAllSymbols", args...)
 }
 
-func (this *KucoinCore) PublicGetMarginConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarginConfig", args...)
+func (this *KucoinCore) PublicGetMarginConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarginConfig", args...)
 }
 
-func (this *KucoinCore) PublicGetAnnouncements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAnnouncements", args...)
+func (this *KucoinCore) PublicGetAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAnnouncements", args...)
 }
 
-func (this *KucoinCore) PublicGetMarginCollateralRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarginCollateralRatio", args...)
+func (this *KucoinCore) PublicGetMarginCollateralRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarginCollateralRatio", args...)
 }
 
-func (this *KucoinCore) PublicGetConvertSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetConvertSymbol", args...)
+func (this *KucoinCore) PublicGetConvertSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConvertSymbol", args...)
 }
 
-func (this *KucoinCore) PublicGetConvertCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetConvertCurrencies", args...)
+func (this *KucoinCore) PublicGetConvertCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConvertCurrencies", args...)
 }
 
-func (this *KucoinCore) PublicPostBulletPublic (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostBulletPublic", args...)
+func (this *KucoinCore) PublicPostBulletPublic(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostBulletPublic", args...)
 }
 
-func (this *KucoinCore) PrivateGetUserInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserInfo", args...)
+func (this *KucoinCore) PrivateGetUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserInfo", args...)
 }
 
-func (this *KucoinCore) PrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccounts", args...)
+func (this *KucoinCore) PrivateGetUserApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserApiKey", args...)
 }
 
-func (this *KucoinCore) PrivateGetAccountsAccountId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountsAccountId", args...)
+func (this *KucoinCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *KucoinCore) PrivateGetAccountsLedgers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountsLedgers", args...)
+func (this *KucoinCore) PrivateGetAccountsAccountId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsAccountId", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfAccountsLedgers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfAccountsLedgers", args...)
+func (this *KucoinCore) PrivateGetAccountsLedgers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsLedgers", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginAccountLedgers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfMarginAccountLedgers", args...)
+func (this *KucoinCore) PrivateGetHfAccountsLedgers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfAccountsLedgers", args...)
 }
 
-func (this *KucoinCore) PrivateGetTransactionHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransactionHistory", args...)
+func (this *KucoinCore) PrivateGetHfMarginAccountLedgers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginAccountLedgers", args...)
 }
 
-func (this *KucoinCore) PrivateGetSubUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubUser", args...)
+func (this *KucoinCore) PrivateGetTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransactionHistory", args...)
 }
 
-func (this *KucoinCore) PrivateGetSubAccountsSubUserId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccountsSubUserId", args...)
+func (this *KucoinCore) PrivateGetSubUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubUser", args...)
 }
 
-func (this *KucoinCore) PrivateGetSubAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccounts", args...)
+func (this *KucoinCore) PrivateGetSubAccountsSubUserId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccountsSubUserId", args...)
 }
 
-func (this *KucoinCore) PrivateGetSubApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubApiKey", args...)
+func (this *KucoinCore) PrivateGetSubAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccounts", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccount", args...)
+func (this *KucoinCore) PrivateGetSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubApiKey", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccounts", args...)
+func (this *KucoinCore) PrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccount", args...)
 }
 
-func (this *KucoinCore) PrivateGetIsolatedAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetIsolatedAccounts", args...)
+func (this *KucoinCore) PrivateGetMarginAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccounts", args...)
 }
 
-func (this *KucoinCore) PrivateGetDepositAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositAddresses", args...)
+func (this *KucoinCore) PrivateGetIsolatedAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetIsolatedAccounts", args...)
 }
 
-func (this *KucoinCore) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDeposits", args...)
+func (this *KucoinCore) PrivateGetDepositAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositAddresses", args...)
 }
 
-func (this *KucoinCore) PrivateGetHistDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHistDeposits", args...)
+func (this *KucoinCore) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *KucoinCore) PrivateGetWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawals", args...)
+func (this *KucoinCore) PrivateGetHistDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHistDeposits", args...)
 }
 
-func (this *KucoinCore) PrivateGetHistWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHistWithdrawals", args...)
+func (this *KucoinCore) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *KucoinCore) PrivateGetWithdrawalsQuotas (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawalsQuotas", args...)
+func (this *KucoinCore) PrivateGetHistWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHistWithdrawals", args...)
 }
 
-func (this *KucoinCore) PrivateGetAccountsTransferable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountsTransferable", args...)
+func (this *KucoinCore) PrivateGetWithdrawalsQuotas(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawalsQuotas", args...)
 }
 
-func (this *KucoinCore) PrivateGetTransferList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransferList", args...)
+func (this *KucoinCore) PrivateGetAccountsTransferable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsTransferable", args...)
 }
 
-func (this *KucoinCore) PrivateGetBaseFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBaseFee", args...)
+func (this *KucoinCore) PrivateGetTransferList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransferList", args...)
 }
 
-func (this *KucoinCore) PrivateGetTradeFees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeFees", args...)
+func (this *KucoinCore) PrivateGetBaseFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBaseFee", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarketOrderbookLevelLevel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarketOrderbookLevelLevel", args...)
+func (this *KucoinCore) PrivateGetTradeFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeFees", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarketOrderbookLevel2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarketOrderbookLevel2", args...)
+func (this *KucoinCore) PrivateGetMarketOrderbookLevelLevel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevelLevel", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarketOrderbookLevel3 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarketOrderbookLevel3", args...)
+func (this *KucoinCore) PrivateGetMarketOrderbookLevel2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevel2", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfAccountsOpened (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfAccountsOpened", args...)
+func (this *KucoinCore) PrivateGetMarketOrderbookLevel3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevel3", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersActive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfOrdersActive", args...)
+func (this *KucoinCore) PrivateGetHfAccountsOpened(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfAccountsOpened", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersActiveSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfOrdersActiveSymbols", args...)
+func (this *KucoinCore) PrivateGetHfOrdersActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersActive", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrderActiveSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfMarginOrderActiveSymbols", args...)
+func (this *KucoinCore) PrivateGetHfOrdersActiveSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersActiveSymbols", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersDone (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfOrdersDone", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrderActiveSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrderActiveSymbols", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfOrdersOrderId", args...)
+func (this *KucoinCore) PrivateGetHfOrdersDone(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersDone", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetHfOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersDeadCancelAllQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfOrdersDeadCancelAllQuery", args...)
+func (this *KucoinCore) PrivateGetHfOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfFills", args...)
+func (this *KucoinCore) PrivateGetHfOrdersDeadCancelAllQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersDeadCancelAllQuery", args...)
 }
 
-func (this *KucoinCore) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *KucoinCore) PrivateGetHfFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfFills", args...)
 }
 
-func (this *KucoinCore) PrivateGetLimitOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetLimitOrders", args...)
+func (this *KucoinCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersOrderId", args...)
+func (this *KucoinCore) PrivateGetLimitOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLimitOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetOrderClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFills", args...)
+func (this *KucoinCore) PrivateGetOrderClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetLimitFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetLimitFills", args...)
+func (this *KucoinCore) PrivateGetFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *KucoinCore) PrivateGetStopOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetStopOrder", args...)
+func (this *KucoinCore) PrivateGetLimitFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLimitFills", args...)
 }
 
-func (this *KucoinCore) PrivateGetStopOrderOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetStopOrderOrderId", args...)
+func (this *KucoinCore) PrivateGetStopOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStopOrder", args...)
 }
 
-func (this *KucoinCore) PrivateGetStopOrderQueryOrderByClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetStopOrderQueryOrderByClientOid", args...)
+func (this *KucoinCore) PrivateGetStopOrderOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStopOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetOcoOrderOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOcoOrderOrderId", args...)
+func (this *KucoinCore) PrivateGetStopOrderQueryOrderByClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStopOrderQueryOrderByClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetOcoOrderDetailsOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOcoOrderDetailsOrderId", args...)
+func (this *KucoinCore) PrivateGetOcoOrderOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOcoOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetOcoClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOcoClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetOcoOrderDetailsOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOcoOrderDetailsOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetOcoOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOcoOrders", args...)
+func (this *KucoinCore) PrivateGetOcoClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOcoClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrdersActive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfMarginOrdersActive", args...)
+func (this *KucoinCore) PrivateGetOcoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOcoOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrdersDone (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfMarginOrdersDone", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrdersActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrdersActive", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfMarginOrdersOrderId", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrdersDone(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrdersDone", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfMarginOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetHfMarginFills", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetEtfInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetEtfInfo", args...)
+func (this *KucoinCore) PrivateGetHfMarginFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginFills", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginCurrencies", args...)
+func (this *KucoinCore) PrivateGetEtfInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEtfInfo", args...)
 }
 
-func (this *KucoinCore) PrivateGetRiskLimitStrategy (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRiskLimitStrategy", args...)
+func (this *KucoinCore) PrivateGetMarginCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginCurrencies", args...)
 }
 
-func (this *KucoinCore) PrivateGetIsolatedSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetIsolatedSymbols", args...)
+func (this *KucoinCore) PrivateGetRiskLimitStrategy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRiskLimitStrategy", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginSymbols", args...)
+func (this *KucoinCore) PrivateGetIsolatedSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetIsolatedSymbols", args...)
 }
 
-func (this *KucoinCore) PrivateGetIsolatedAccountSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetIsolatedAccountSymbol", args...)
+func (this *KucoinCore) PrivateGetMarginSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginSymbols", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginBorrow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginBorrow", args...)
+func (this *KucoinCore) PrivateGetIsolatedAccountSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetIsolatedAccountSymbol", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginRepay", args...)
+func (this *KucoinCore) PrivateGetMarginBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginBorrow", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginInterest", args...)
+func (this *KucoinCore) PrivateGetMarginRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginRepay", args...)
 }
 
-func (this *KucoinCore) PrivateGetProjectList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetProjectList", args...)
+func (this *KucoinCore) PrivateGetMarginInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginInterest", args...)
 }
 
-func (this *KucoinCore) PrivateGetProjectMarketInterestRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetProjectMarketInterestRate", args...)
+func (this *KucoinCore) PrivateGetProjectList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetProjectList", args...)
 }
 
-func (this *KucoinCore) PrivateGetRedeemOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRedeemOrders", args...)
+func (this *KucoinCore) PrivateGetProjectMarketInterestRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetProjectMarketInterestRate", args...)
 }
 
-func (this *KucoinCore) PrivateGetPurchaseOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPurchaseOrders", args...)
+func (this *KucoinCore) PrivateGetRedeemOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRedeemOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetBrokerApiRebaseDownload (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerApiRebaseDownload", args...)
+func (this *KucoinCore) PrivateGetPurchaseOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPurchaseOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetBrokerQueryMyCommission (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerQueryMyCommission", args...)
+func (this *KucoinCore) PrivateGetBrokerApiRebaseDownload(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerApiRebaseDownload", args...)
 }
 
-func (this *KucoinCore) PrivateGetBrokerQueryUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerQueryUser", args...)
+func (this *KucoinCore) PrivateGetBrokerQueryMyCommission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerQueryMyCommission", args...)
 }
 
-func (this *KucoinCore) PrivateGetBrokerQueryDetailByUid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerQueryDetailByUid", args...)
+func (this *KucoinCore) PrivateGetBrokerQueryUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerQueryUser", args...)
 }
 
-func (this *KucoinCore) PrivateGetMigrateUserAccountStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMigrateUserAccountStatus", args...)
+func (this *KucoinCore) PrivateGetBrokerQueryDetailByUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerQueryDetailByUid", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetConvertQuote", args...)
+func (this *KucoinCore) PrivateGetMigrateUserAccountStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMigrateUserAccountStatus", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetConvertOrderDetail", args...)
+func (this *KucoinCore) PrivateGetConvertQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertQuote", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetConvertOrderHistory", args...)
+func (this *KucoinCore) PrivateGetConvertOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertOrderDetail", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertLimitQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetConvertLimitQuote", args...)
+func (this *KucoinCore) PrivateGetConvertOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertOrderHistory", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertLimitOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetConvertLimitOrderDetail", args...)
+func (this *KucoinCore) PrivateGetConvertLimitQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertLimitQuote", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertLimitOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetConvertLimitOrders", args...)
+func (this *KucoinCore) PrivateGetConvertLimitOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertLimitOrderDetail", args...)
 }
 
-func (this *KucoinCore) PrivateGetAffiliateInviterStatistics (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAffiliateInviterStatistics", args...)
+func (this *KucoinCore) PrivateGetConvertLimitOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConvertLimitOrders", args...)
 }
 
-func (this *KucoinCore) PrivatePostSubUserCreated (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubUserCreated", args...)
+func (this *KucoinCore) PrivateGetAffiliateInviterStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAffiliateInviterStatistics", args...)
 }
 
-func (this *KucoinCore) PrivatePostSubApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubApiKey", args...)
+func (this *KucoinCore) PrivateGetEarnRedeemPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEarnRedeemPreview", args...)
 }
 
-func (this *KucoinCore) PrivatePostSubApiKeyUpdate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubApiKeyUpdate", args...)
+func (this *KucoinCore) PrivatePostSubUserCreated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubUserCreated", args...)
 }
 
-func (this *KucoinCore) PrivatePostDepositAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDepositAddresses", args...)
+func (this *KucoinCore) PrivatePostSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubApiKey", args...)
 }
 
-func (this *KucoinCore) PrivatePostWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawals", args...)
+func (this *KucoinCore) PrivatePostSubApiKeyUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubApiKeyUpdate", args...)
 }
 
-func (this *KucoinCore) PrivatePostAccountsUniversalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountsUniversalTransfer", args...)
+func (this *KucoinCore) PrivatePostDepositAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDepositAddresses", args...)
 }
 
-func (this *KucoinCore) PrivatePostAccountsSubTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountsSubTransfer", args...)
+func (this *KucoinCore) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *KucoinCore) PrivatePostAccountsInnerTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountsInnerTransfer", args...)
+func (this *KucoinCore) PrivatePostAccountsUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountsUniversalTransfer", args...)
 }
 
-func (this *KucoinCore) PrivatePostTransferOut (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransferOut", args...)
+func (this *KucoinCore) PrivatePostAccountsSubTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountsSubTransfer", args...)
 }
 
-func (this *KucoinCore) PrivatePostTransferIn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransferIn", args...)
+func (this *KucoinCore) PrivatePostAccountsInnerTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountsInnerTransfer", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfOrders", args...)
+func (this *KucoinCore) PrivatePostTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferOut", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfOrdersTest", args...)
+func (this *KucoinCore) PrivatePostTransferIn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferIn", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersSync (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfOrdersSync", args...)
+func (this *KucoinCore) PrivatePostHfOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrders", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersMulti (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfOrdersMulti", args...)
+func (this *KucoinCore) PrivatePostHfOrdersTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersTest", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersMultiSync (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfOrdersMultiSync", args...)
+func (this *KucoinCore) PrivatePostHfOrdersSync(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersSync", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersAlter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfOrdersAlter", args...)
+func (this *KucoinCore) PrivatePostHfOrdersMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersMulti", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersDeadCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfOrdersDeadCancelAll", args...)
+func (this *KucoinCore) PrivatePostHfOrdersMultiSync(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersMultiSync", args...)
 }
 
-func (this *KucoinCore) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *KucoinCore) PrivatePostHfOrdersAlter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersAlter", args...)
 }
 
-func (this *KucoinCore) PrivatePostOrdersTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersTest", args...)
+func (this *KucoinCore) PrivatePostHfOrdersDeadCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersDeadCancelAll", args...)
 }
 
-func (this *KucoinCore) PrivatePostOrdersMulti (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersMulti", args...)
+func (this *KucoinCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *KucoinCore) PrivatePostStopOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostStopOrder", args...)
+func (this *KucoinCore) PrivatePostOrdersTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersTest", args...)
 }
 
-func (this *KucoinCore) PrivatePostOcoOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOcoOrder", args...)
+func (this *KucoinCore) PrivatePostOrdersMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersMulti", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfMarginOrder", args...)
+func (this *KucoinCore) PrivatePostStopOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostStopOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfMarginOrderTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostHfMarginOrderTest", args...)
+func (this *KucoinCore) PrivatePostOcoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOcoOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginOrder", args...)
+func (this *KucoinCore) PrivatePostHfMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfMarginOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostMarginOrderTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginOrderTest", args...)
+func (this *KucoinCore) PrivatePostHfMarginOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfMarginOrderTest", args...)
 }
 
-func (this *KucoinCore) PrivatePostMarginBorrow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginBorrow", args...)
+func (this *KucoinCore) PrivatePostMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostMarginRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginRepay", args...)
+func (this *KucoinCore) PrivatePostMarginOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrderTest", args...)
 }
 
-func (this *KucoinCore) PrivatePostPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPurchase", args...)
+func (this *KucoinCore) PrivatePostMarginBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginBorrow", args...)
 }
 
-func (this *KucoinCore) PrivatePostRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRedeem", args...)
+func (this *KucoinCore) PrivatePostMarginRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginRepay", args...)
 }
 
-func (this *KucoinCore) PrivatePostLendPurchaseUpdate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostLendPurchaseUpdate", args...)
+func (this *KucoinCore) PrivatePostPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPurchase", args...)
 }
 
-func (this *KucoinCore) PrivatePostConvertOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostConvertOrder", args...)
+func (this *KucoinCore) PrivatePostRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRedeem", args...)
 }
 
-func (this *KucoinCore) PrivatePostConvertLimitOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostConvertLimitOrder", args...)
+func (this *KucoinCore) PrivatePostLendPurchaseUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLendPurchaseUpdate", args...)
 }
 
-func (this *KucoinCore) PrivatePostBulletPrivate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBulletPrivate", args...)
+func (this *KucoinCore) PrivatePostConvertOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostConvertOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostPositionUpdateUserLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPositionUpdateUserLeverage", args...)
+func (this *KucoinCore) PrivatePostConvertLimitOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostConvertLimitOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostDepositAddressCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDepositAddressCreate", args...)
+func (this *KucoinCore) PrivatePostBulletPrivate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBulletPrivate", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteSubApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteSubApiKey", args...)
+func (this *KucoinCore) PrivatePostPositionUpdateUserLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPositionUpdateUserLeverage", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteWithdrawalsWithdrawalId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteWithdrawalsWithdrawalId", args...)
+func (this *KucoinCore) PrivatePostDepositAddressCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDepositAddressCreate", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfOrdersOrderId", args...)
+func (this *KucoinCore) PrivateDeleteSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteSubApiKey", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersSyncOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfOrdersSyncOrderId", args...)
+func (this *KucoinCore) PrivateDeleteWithdrawalsWithdrawalId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteWithdrawalsWithdrawalId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersSyncClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfOrdersSyncClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersSyncOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersSyncOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersCancelOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfOrdersCancelOrderId", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfOrders", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersSyncClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersSyncClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfOrdersCancelAll", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersCancelOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersCancelOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
+func (this *KucoinCore) PrivateDeleteHfOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrders", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOrderClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrderClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersCancelAll", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *KucoinCore) PrivateDeleteOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteStopOrderOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteStopOrderOrderId", args...)
+func (this *KucoinCore) PrivateDeleteOrderClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrderClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteStopOrderCancelOrderByClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteStopOrderCancelOrderByClientOid", args...)
+func (this *KucoinCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteStopOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteStopOrderCancel", args...)
+func (this *KucoinCore) PrivateDeleteStopOrderOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteStopOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOcoOrderOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOcoOrderOrderId", args...)
+func (this *KucoinCore) PrivateDeleteStopOrderCancelOrderByClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteStopOrderCancelOrderByClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOcoClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOcoClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteStopOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteStopOrderCancel", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOcoOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOcoOrders", args...)
+func (this *KucoinCore) PrivateDeleteOcoOrderOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOcoOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfMarginOrdersOrderId", args...)
+func (this *KucoinCore) PrivateDeleteOcoClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOcoClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfMarginOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteOcoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOcoOrders", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteHfMarginOrders", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfMarginOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteConvertLimitOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteConvertLimitOrderCancel", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfMarginOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetContractsActive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetContractsActive", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfMarginOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetContractsSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetContractsSymbol", args...)
+func (this *KucoinCore) PrivateDeleteConvertLimitOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteConvertLimitOrderCancel", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetTicker", args...)
+func (this *KucoinCore) FuturesPublicGetContractsActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetContractsActive", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel2Snapshot (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetLevel2Snapshot", args...)
+func (this *KucoinCore) FuturesPublicGetContractsSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetContractsSymbol", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel2Depth20 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetLevel2Depth20", args...)
+func (this *KucoinCore) FuturesPublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetTicker", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel2Depth100 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetLevel2Depth100", args...)
+func (this *KucoinCore) FuturesPublicGetLevel2Snapshot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2Snapshot", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetTradeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetTradeHistory", args...)
+func (this *KucoinCore) FuturesPublicGetLevel2Depth20(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2Depth20", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetKlineQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetKlineQuery", args...)
+func (this *KucoinCore) FuturesPublicGetLevel2Depth100(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2Depth100", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetInterestQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetInterestQuery", args...)
+func (this *KucoinCore) FuturesPublicGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetTradeHistory", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetIndexQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetIndexQuery", args...)
+func (this *KucoinCore) FuturesPublicGetKlineQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetKlineQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetMarkPriceSymbolCurrent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetMarkPriceSymbolCurrent", args...)
+func (this *KucoinCore) FuturesPublicGetInterestQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetInterestQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetPremiumQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetPremiumQuery", args...)
+func (this *KucoinCore) FuturesPublicGetIndexQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetIndexQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetTradeStatistics (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetTradeStatistics", args...)
+func (this *KucoinCore) FuturesPublicGetMarkPriceSymbolCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetMarkPriceSymbolCurrent", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetFundingRateSymbolCurrent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetFundingRateSymbolCurrent", args...)
+func (this *KucoinCore) FuturesPublicGetPremiumQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetPremiumQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetContractFundingRates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetContractFundingRates", args...)
+func (this *KucoinCore) FuturesPublicGetTradeStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetTradeStatistics", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetTimestamp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetTimestamp", args...)
+func (this *KucoinCore) FuturesPublicGetFundingRateSymbolCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetFundingRateSymbolCurrent", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetStatus", args...)
+func (this *KucoinCore) FuturesPublicGetContractFundingRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetContractFundingRates", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel2MessageQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicGetLevel2MessageQuery", args...)
+func (this *KucoinCore) FuturesPublicGetTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetTimestamp", args...)
 }
 
-func (this *KucoinCore) FuturesPublicPostBulletPublic (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPublicPostBulletPublic", args...)
+func (this *KucoinCore) FuturesPublicGetStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetStatus", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetTransactionHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetTransactionHistory", args...)
+func (this *KucoinCore) FuturesPublicGetLevel2MessageQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2MessageQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetAccountOverview (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetAccountOverview", args...)
+func (this *KucoinCore) FuturesPublicPostBulletPublic(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicPostBulletPublic", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetAccountOverviewAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetAccountOverviewAll", args...)
+func (this *KucoinCore) FuturesPrivateGetTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetTransactionHistory", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetTransferList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetTransferList", args...)
+func (this *KucoinCore) FuturesPrivateGetAccountOverview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetAccountOverview", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetOrders", args...)
+func (this *KucoinCore) FuturesPrivateGetAccountOverviewAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetAccountOverviewAll", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetStopOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetStopOrders", args...)
+func (this *KucoinCore) FuturesPrivateGetTransferList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetTransferList", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetRecentDoneOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetRecentDoneOrders", args...)
+func (this *KucoinCore) FuturesPrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetOrdersOrderId", args...)
+func (this *KucoinCore) FuturesPrivateGetStopOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetStopOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetOrdersByClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetOrdersByClientOid", args...)
+func (this *KucoinCore) FuturesPrivateGetRecentDoneOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetRecentDoneOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetFills", args...)
+func (this *KucoinCore) FuturesPrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetRecentFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetRecentFills", args...)
+func (this *KucoinCore) FuturesPrivateGetOrdersByClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetOrdersByClientOid", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetOpenOrderStatistics (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetOpenOrderStatistics", args...)
+func (this *KucoinCore) FuturesPrivateGetFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetFills", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetPosition", args...)
+func (this *KucoinCore) FuturesPrivateGetRecentFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetRecentFills", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetPositions", args...)
+func (this *KucoinCore) FuturesPrivateGetOpenOrderStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetOpenOrderStatistics", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetMarginMaxWithdrawMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetMarginMaxWithdrawMargin", args...)
+func (this *KucoinCore) FuturesPrivateGetPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetPosition", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetContractsRiskLimitSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetContractsRiskLimitSymbol", args...)
+func (this *KucoinCore) FuturesPrivateGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetPositions", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetFundingHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetFundingHistory", args...)
+func (this *KucoinCore) FuturesPrivateGetMarginMaxWithdrawMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetMarginMaxWithdrawMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetCopyTradeFuturesGetMaxOpenSize (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetCopyTradeFuturesGetMaxOpenSize", args...)
+func (this *KucoinCore) FuturesPrivateGetContractsRiskLimitSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetContractsRiskLimitSymbol", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin", args...)
+func (this *KucoinCore) FuturesPrivateGetFundingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetFundingHistory", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostTransferOut (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostTransferOut", args...)
+func (this *KucoinCore) FuturesPrivateGetCopyTradeFuturesGetMaxOpenSize(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetCopyTradeFuturesGetMaxOpenSize", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostTransferIn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostTransferIn", args...)
+func (this *KucoinCore) FuturesPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostOrders", args...)
+func (this *KucoinCore) FuturesPrivatePostTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostTransferOut", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostOrdersTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostOrdersTest", args...)
+func (this *KucoinCore) FuturesPrivatePostTransferIn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostTransferIn", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostOrdersMulti (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostOrdersMulti", args...)
+func (this *KucoinCore) FuturesPrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostPositionMarginAutoDepositStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostPositionMarginAutoDepositStatus", args...)
+func (this *KucoinCore) FuturesPrivatePostOrdersTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostOrdersTest", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostMarginWithdrawMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostMarginWithdrawMargin", args...)
+func (this *KucoinCore) FuturesPrivatePostOrdersMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostOrdersMulti", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostPositionMarginDepositMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostPositionMarginDepositMargin", args...)
+func (this *KucoinCore) FuturesPrivatePostPositionMarginAutoDepositStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostPositionMarginAutoDepositStatus", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostPositionRiskLimitLevelChange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostPositionRiskLimitLevelChange", args...)
+func (this *KucoinCore) FuturesPrivatePostMarginWithdrawMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostMarginWithdrawMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesOrders", args...)
+func (this *KucoinCore) FuturesPrivatePostPositionMarginDepositMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostPositionMarginDepositMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesOrdersTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesOrdersTest", args...)
+func (this *KucoinCore) FuturesPrivatePostPositionRiskLimitLevelChange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostPositionRiskLimitLevelChange", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesStOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesStOrders", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginDepositMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginDepositMargin", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesOrdersTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesOrdersTest", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesStOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesStOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginDepositMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginDepositMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionChangeMarginMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionChangeMarginMode", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeGetCrossModeMarginRequirement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeGetCrossModeMarginRequirement", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionChangeMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionChangeMarginMode", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradePositionSwitchPositionMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradePositionSwitchPositionMode", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostBulletPrivate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivatePostBulletPrivate", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeGetCrossModeMarginRequirement(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeGetCrossModeMarginRequirement", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateDeleteOrdersOrderId", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradePositionSwitchPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradePositionSwitchPositionMode", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateDeleteOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) FuturesPrivatePostBulletPrivate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostBulletPrivate", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateDeleteOrders", args...)
+func (this *KucoinCore) FuturesPrivateDeleteOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteStopOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateDeleteStopOrders", args...)
+func (this *KucoinCore) FuturesPrivateDeleteOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteCopyTradeFuturesOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrders", args...)
+func (this *KucoinCore) FuturesPrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder", args...)
+func (this *KucoinCore) FuturesPrivateDeleteStopOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteStopOrders", args...)
 }
 
-func (this *KucoinCore) WebExchangeGetCurrencyCurrencyChainInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("webExchangeGetCurrencyCurrencyChainInfo", args...)
+func (this *KucoinCore) FuturesPrivateDeleteCopyTradeFuturesOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrders", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerGetBrokerNdInfo", args...)
+func (this *KucoinCore) FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerGetBrokerNdAccount", args...)
+func (this *KucoinCore) WebExchangeGetCurrencyCurrencyChainInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webExchangeGetCurrencyCurrencyChainInfo", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdAccountApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerGetBrokerNdAccountApikey", args...)
+func (this *KucoinCore) BrokerGetBrokerNdInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdInfo", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdRebaseDownload (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerGetBrokerNdRebaseDownload", args...)
+func (this *KucoinCore) BrokerGetBrokerNdAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdAccount", args...)
 }
 
-func (this *KucoinCore) BrokerGetAssetNdbrokerDepositList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerGetAssetNdbrokerDepositList", args...)
+func (this *KucoinCore) BrokerGetBrokerNdAccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdAccountApikey", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdTransferDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerGetBrokerNdTransferDetail", args...)
+func (this *KucoinCore) BrokerGetBrokerNdRebaseDownload(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdRebaseDownload", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdDepositDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerGetBrokerNdDepositDetail", args...)
+func (this *KucoinCore) BrokerGetAssetNdbrokerDepositList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetAssetNdbrokerDepositList", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdWithdrawDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerGetBrokerNdWithdrawDetail", args...)
+func (this *KucoinCore) BrokerGetBrokerNdTransferDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdTransferDetail", args...)
 }
 
-func (this *KucoinCore) BrokerPostBrokerNdTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerPostBrokerNdTransfer", args...)
+func (this *KucoinCore) BrokerGetBrokerNdDepositDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdDepositDetail", args...)
 }
 
-func (this *KucoinCore) BrokerPostBrokerNdAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerPostBrokerNdAccount", args...)
+func (this *KucoinCore) BrokerGetBrokerNdWithdrawDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdWithdrawDetail", args...)
 }
 
-func (this *KucoinCore) BrokerPostBrokerNdAccountApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerPostBrokerNdAccountApikey", args...)
+func (this *KucoinCore) BrokerPostBrokerNdTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPostBrokerNdTransfer", args...)
 }
 
-func (this *KucoinCore) BrokerPostBrokerNdAccountUpdateApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerPostBrokerNdAccountUpdateApikey", args...)
+func (this *KucoinCore) BrokerPostBrokerNdAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPostBrokerNdAccount", args...)
 }
 
-func (this *KucoinCore) BrokerDeleteBrokerNdAccountApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("brokerDeleteBrokerNdAccountApikey", args...)
+func (this *KucoinCore) BrokerPostBrokerNdAccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPostBrokerNdAccountApikey", args...)
 }
 
-func (this *KucoinCore) EarnGetOtcLoanDiscountRateConfigs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetOtcLoanDiscountRateConfigs", args...)
+func (this *KucoinCore) BrokerPostBrokerNdAccountUpdateApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPostBrokerNdAccountUpdateApikey", args...)
 }
 
-func (this *KucoinCore) EarnGetOtcLoanLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetOtcLoanLoan", args...)
+func (this *KucoinCore) BrokerDeleteBrokerNdAccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerDeleteBrokerNdAccountApikey", args...)
 }
 
-func (this *KucoinCore) EarnGetOtcLoanAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetOtcLoanAccounts", args...)
+func (this *KucoinCore) EarnGetOtcLoanDiscountRateConfigs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetOtcLoanDiscountRateConfigs", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnRedeemPreview (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetEarnRedeemPreview", args...)
+func (this *KucoinCore) EarnGetOtcLoanLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetOtcLoanLoan", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnSavingProducts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetEarnSavingProducts", args...)
+func (this *KucoinCore) EarnGetOtcLoanAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetOtcLoanAccounts", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnHoldAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetEarnHoldAssets", args...)
+func (this *KucoinCore) EarnGetEarnRedeemPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnRedeemPreview", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnPromotionProducts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetEarnPromotionProducts", args...)
+func (this *KucoinCore) EarnGetEarnSavingProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnSavingProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnKcsStakingProducts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetEarnKcsStakingProducts", args...)
+func (this *KucoinCore) EarnGetEarnHoldAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnHoldAssets", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnStakingProducts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetEarnStakingProducts", args...)
+func (this *KucoinCore) EarnGetEarnPromotionProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnPromotionProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnEthStakingProducts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetEarnEthStakingProducts", args...)
+func (this *KucoinCore) EarnGetEarnKcsStakingProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnKcsStakingProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetStructEarnDualProducts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetStructEarnDualProducts", args...)
+func (this *KucoinCore) EarnGetEarnStakingProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnStakingProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetStructEarnOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnGetStructEarnOrders", args...)
+func (this *KucoinCore) EarnGetEarnEthStakingProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnEthStakingProducts", args...)
 }
 
-func (this *KucoinCore) EarnPostEarnOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnPostEarnOrders", args...)
+func (this *KucoinCore) EarnGetStructEarnDualProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetStructEarnDualProducts", args...)
 }
 
-func (this *KucoinCore) EarnPostStructEarnOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnPostStructEarnOrders", args...)
+func (this *KucoinCore) EarnGetStructEarnOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetStructEarnOrders", args...)
 }
 
-func (this *KucoinCore) EarnDeleteEarnOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("earnDeleteEarnOrders", args...)
+func (this *KucoinCore) EarnPostEarnOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnPostEarnOrders", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketAnnouncement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketAnnouncement", args...)
+func (this *KucoinCore) EarnPostStructEarnOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnPostStructEarnOrders", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketCurrency", args...)
+func (this *KucoinCore) EarnDeleteEarnOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnDeleteEarnOrders", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketInstrument", args...)
+func (this *KucoinCore) UtaGetMarketAnnouncement(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketAnnouncement", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketTicker", args...)
+func (this *KucoinCore) UtaGetMarketCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketCurrency", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketOrderbook", args...)
+func (this *KucoinCore) UtaGetMarketInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketInstrument", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketTrade", args...)
+func (this *KucoinCore) UtaGetMarketTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketTicker", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketKline", args...)
+func (this *KucoinCore) UtaGetMarketOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketOrderbook", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketFundingRate", args...)
+func (this *KucoinCore) UtaGetMarketTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketTrade", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketFundingRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketFundingRateHistory", args...)
+func (this *KucoinCore) UtaGetMarketKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketKline", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketCrossConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetMarketCrossConfig", args...)
+func (this *KucoinCore) UtaGetMarketFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketFundingRate", args...)
 }
 
-func (this *KucoinCore) UtaGetServerStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("utaGetServerStatus", args...)
+func (this *KucoinCore) UtaGetMarketFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketFundingRateHistory", args...)
+}
+
+func (this *KucoinCore) UtaGetMarketCrossConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetMarketCrossConfig", args...)
+}
+
+func (this *KucoinCore) UtaGetServerStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("utaGetServerStatus", args...)
 }

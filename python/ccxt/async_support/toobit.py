@@ -2623,7 +2623,8 @@ class toobit(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'address': address,
             'quantity': self.currency_to_precision(currency['code'], amount),
-            'network': networkCode,
+            'chainType': networkCode,
+            'clientOrderId': self.milliseconds(),
         }
         if tag is not None:
             request['addressExt'] = tag

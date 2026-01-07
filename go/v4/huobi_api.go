@@ -7,2178 +7,2178 @@
 
 package ccxt
 
-func (this *HuobiCore) V2PublicGetReferenceCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetReferenceCurrencies", args...)
+func (this *HuobiCore) V2PublicGetReferenceCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetReferenceCurrencies", args...)
 }
 
-func (this *HuobiCore) V2PublicGetMarketStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetMarketStatus", args...)
+func (this *HuobiCore) V2PublicGetMarketStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetMarketStatus", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAccountLedger (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAccountLedger", args...)
+func (this *HuobiCore) V2PrivateGetAccountLedger(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountLedger", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAccountWithdrawQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAccountWithdrawQuota", args...)
+func (this *HuobiCore) V2PrivateGetAccountWithdrawQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountWithdrawQuota", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAccountWithdrawAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAccountWithdrawAddress", args...)
+func (this *HuobiCore) V2PrivateGetAccountWithdrawAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountWithdrawAddress", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAccountDepositAddress", args...)
+func (this *HuobiCore) V2PrivateGetAccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountDepositAddress", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAccountRepayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAccountRepayment", args...)
+func (this *HuobiCore) V2PrivateGetAccountRepayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountRepayment", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetReferenceTransactFeeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetReferenceTransactFeeRate", args...)
+func (this *HuobiCore) V2PrivateGetReferenceTransactFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetReferenceTransactFeeRate", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAccountAssetValuation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAccountAssetValuation", args...)
+func (this *HuobiCore) V2PrivateGetAccountAssetValuation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAccountAssetValuation", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetPointAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetPointAccount", args...)
+func (this *HuobiCore) V2PrivateGetPointAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetPointAccount", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetSubUserUserList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetSubUserUserList", args...)
+func (this *HuobiCore) V2PrivateGetSubUserUserList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetSubUserUserList", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetSubUserUserState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetSubUserUserState", args...)
+func (this *HuobiCore) V2PrivateGetSubUserUserState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetSubUserUserState", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetSubUserAccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetSubUserAccountList", args...)
+func (this *HuobiCore) V2PrivateGetSubUserAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetSubUserAccountList", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetSubUserDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetSubUserDepositAddress", args...)
+func (this *HuobiCore) V2PrivateGetSubUserDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetSubUserDepositAddress", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetSubUserQueryDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetSubUserQueryDeposit", args...)
+func (this *HuobiCore) V2PrivateGetSubUserQueryDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetSubUserQueryDeposit", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetUserApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetUserApiKey", args...)
+func (this *HuobiCore) V2PrivateGetUserApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetUserApiKey", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetUserUid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetUserUid", args...)
+func (this *HuobiCore) V2PrivateGetUserUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetUserUid", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAlgoOrdersOpening (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAlgoOrdersOpening", args...)
+func (this *HuobiCore) V2PrivateGetAlgoOrdersOpening(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAlgoOrdersOpening", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAlgoOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAlgoOrdersHistory", args...)
+func (this *HuobiCore) V2PrivateGetAlgoOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAlgoOrdersHistory", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetAlgoOrdersSpecific (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetAlgoOrdersSpecific", args...)
+func (this *HuobiCore) V2PrivateGetAlgoOrdersSpecific(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetAlgoOrdersSpecific", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetC2cOffers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetC2cOffers", args...)
+func (this *HuobiCore) V2PrivateGetC2cOffers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetC2cOffers", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetC2cOffer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetC2cOffer", args...)
+func (this *HuobiCore) V2PrivateGetC2cOffer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetC2cOffer", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetC2cTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetC2cTransactions", args...)
+func (this *HuobiCore) V2PrivateGetC2cTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetC2cTransactions", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetC2cRepayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetC2cRepayment", args...)
+func (this *HuobiCore) V2PrivateGetC2cRepayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetC2cRepayment", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetC2cAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetC2cAccount", args...)
+func (this *HuobiCore) V2PrivateGetC2cAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetC2cAccount", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetEtpReference (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetEtpReference", args...)
+func (this *HuobiCore) V2PrivateGetEtpReference(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetEtpReference", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetEtpTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetEtpTransactions", args...)
+func (this *HuobiCore) V2PrivateGetEtpTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetEtpTransactions", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetEtpTransaction (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetEtpTransaction", args...)
+func (this *HuobiCore) V2PrivateGetEtpTransaction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetEtpTransaction", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetEtpRebalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetEtpRebalance", args...)
+func (this *HuobiCore) V2PrivateGetEtpRebalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetEtpRebalance", args...)
 }
 
-func (this *HuobiCore) V2PrivateGetEtpLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivateGetEtpLimit", args...)
+func (this *HuobiCore) V2PrivateGetEtpLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivateGetEtpLimit", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostAccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAccountTransfer", args...)
+func (this *HuobiCore) V2PrivatePostAccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountTransfer", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostAccountRepayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAccountRepayment", args...)
+func (this *HuobiCore) V2PrivatePostAccountRepayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountRepayment", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostPointTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPointTransfer", args...)
+func (this *HuobiCore) V2PrivatePostPointTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPointTransfer", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostSubUserManagement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostSubUserManagement", args...)
+func (this *HuobiCore) V2PrivatePostSubUserManagement(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSubUserManagement", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostSubUserCreation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostSubUserCreation", args...)
+func (this *HuobiCore) V2PrivatePostSubUserCreation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSubUserCreation", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostSubUserTradableMarket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostSubUserTradableMarket", args...)
+func (this *HuobiCore) V2PrivatePostSubUserTradableMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSubUserTradableMarket", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostSubUserTransferability (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostSubUserTransferability", args...)
+func (this *HuobiCore) V2PrivatePostSubUserTransferability(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSubUserTransferability", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostSubUserApiKeyGeneration (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostSubUserApiKeyGeneration", args...)
+func (this *HuobiCore) V2PrivatePostSubUserApiKeyGeneration(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyGeneration", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostSubUserApiKeyModification (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostSubUserApiKeyModification", args...)
+func (this *HuobiCore) V2PrivatePostSubUserApiKeyModification(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyModification", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostSubUserApiKeyDeletion (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostSubUserApiKeyDeletion", args...)
+func (this *HuobiCore) V2PrivatePostSubUserApiKeyDeletion(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyDeletion", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostSubUserDeductMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostSubUserDeductMode", args...)
+func (this *HuobiCore) V2PrivatePostSubUserDeductMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostSubUserDeductMode", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostAlgoOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAlgoOrders", args...)
+func (this *HuobiCore) V2PrivatePostAlgoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAlgoOrders", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostAlgoOrdersCancelAllAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAlgoOrdersCancelAllAfter", args...)
+func (this *HuobiCore) V2PrivatePostAlgoOrdersCancelAllAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAlgoOrdersCancelAllAfter", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostAlgoOrdersCancellation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAlgoOrdersCancellation", args...)
+func (this *HuobiCore) V2PrivatePostAlgoOrdersCancellation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAlgoOrdersCancellation", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostC2cOffer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostC2cOffer", args...)
+func (this *HuobiCore) V2PrivatePostC2cOffer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostC2cOffer", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostC2cCancellation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostC2cCancellation", args...)
+func (this *HuobiCore) V2PrivatePostC2cCancellation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostC2cCancellation", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostC2cCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostC2cCancelAll", args...)
+func (this *HuobiCore) V2PrivatePostC2cCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostC2cCancelAll", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostC2cRepayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostC2cRepayment", args...)
+func (this *HuobiCore) V2PrivatePostC2cRepayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostC2cRepayment", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostC2cTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostC2cTransfer", args...)
+func (this *HuobiCore) V2PrivatePostC2cTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostC2cTransfer", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostEtpCreation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostEtpCreation", args...)
+func (this *HuobiCore) V2PrivatePostEtpCreation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostEtpCreation", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostEtpRedemption (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostEtpRedemption", args...)
+func (this *HuobiCore) V2PrivatePostEtpRedemption(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostEtpRedemption", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostEtpTransactIdCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostEtpTransactIdCancel", args...)
+func (this *HuobiCore) V2PrivatePostEtpTransactIdCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostEtpTransactIdCancel", args...)
 }
 
-func (this *HuobiCore) V2PrivatePostEtpBatchCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostEtpBatchCancel", args...)
+func (this *HuobiCore) V2PrivatePostEtpBatchCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostEtpBatchCancel", args...)
 }
 
-func (this *HuobiCore) PublicGetCommonSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCommonSymbols", args...)
+func (this *HuobiCore) PublicGetCommonSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCommonSymbols", args...)
 }
 
-func (this *HuobiCore) PublicGetCommonCurrencys (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCommonCurrencys", args...)
+func (this *HuobiCore) PublicGetCommonCurrencys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCommonCurrencys", args...)
 }
 
-func (this *HuobiCore) PublicGetCommonTimestamp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCommonTimestamp", args...)
+func (this *HuobiCore) PublicGetCommonTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCommonTimestamp", args...)
 }
 
-func (this *HuobiCore) PublicGetCommonExchange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCommonExchange", args...)
+func (this *HuobiCore) PublicGetCommonExchange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCommonExchange", args...)
 }
 
-func (this *HuobiCore) PublicGetSettingsCurrencys (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSettingsCurrencys", args...)
+func (this *HuobiCore) PublicGetSettingsCurrencys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSettingsCurrencys", args...)
 }
 
-func (this *HuobiCore) PrivateGetAccountAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountAccounts", args...)
+func (this *HuobiCore) PrivateGetAccountAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountAccounts", args...)
 }
 
-func (this *HuobiCore) PrivateGetAccountAccountsIdBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountAccountsIdBalance", args...)
+func (this *HuobiCore) PrivateGetAccountAccountsIdBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountAccountsIdBalance", args...)
 }
 
-func (this *HuobiCore) PrivateGetAccountAccountsSubUid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountAccountsSubUid", args...)
+func (this *HuobiCore) PrivateGetAccountAccountsSubUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountAccountsSubUid", args...)
 }
 
-func (this *HuobiCore) PrivateGetAccountHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountHistory", args...)
+func (this *HuobiCore) PrivateGetAccountHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountHistory", args...)
 }
 
-func (this *HuobiCore) PrivateGetCrossMarginLoanInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCrossMarginLoanInfo", args...)
+func (this *HuobiCore) PrivateGetCrossMarginLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCrossMarginLoanInfo", args...)
 }
 
-func (this *HuobiCore) PrivateGetMarginLoanInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginLoanInfo", args...)
+func (this *HuobiCore) PrivateGetMarginLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginLoanInfo", args...)
 }
 
-func (this *HuobiCore) PrivateGetFeeFeeRateGet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFeeFeeRateGet", args...)
+func (this *HuobiCore) PrivateGetFeeFeeRateGet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFeeFeeRateGet", args...)
 }
 
-func (this *HuobiCore) PrivateGetOrderOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderOpenOrders", args...)
+func (this *HuobiCore) PrivateGetOrderOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderOpenOrders", args...)
 }
 
-func (this *HuobiCore) PrivateGetOrderOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderOrders", args...)
+func (this *HuobiCore) PrivateGetOrderOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderOrders", args...)
 }
 
-func (this *HuobiCore) PrivateGetOrderOrdersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderOrdersId", args...)
+func (this *HuobiCore) PrivateGetOrderOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderOrdersId", args...)
 }
 
-func (this *HuobiCore) PrivateGetOrderOrdersIdMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderOrdersIdMatchresults", args...)
+func (this *HuobiCore) PrivateGetOrderOrdersIdMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderOrdersIdMatchresults", args...)
 }
 
-func (this *HuobiCore) PrivateGetOrderOrdersGetClientOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderOrdersGetClientOrder", args...)
+func (this *HuobiCore) PrivateGetOrderOrdersGetClientOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderOrdersGetClientOrder", args...)
 }
 
-func (this *HuobiCore) PrivateGetOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderHistory", args...)
+func (this *HuobiCore) PrivateGetOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderHistory", args...)
 }
 
-func (this *HuobiCore) PrivateGetOrderMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderMatchresults", args...)
+func (this *HuobiCore) PrivateGetOrderMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderMatchresults", args...)
 }
 
-func (this *HuobiCore) PrivateGetQueryDepositWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetQueryDepositWithdraw", args...)
+func (this *HuobiCore) PrivateGetQueryDepositWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetQueryDepositWithdraw", args...)
 }
 
-func (this *HuobiCore) PrivateGetMarginLoanOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginLoanOrders", args...)
+func (this *HuobiCore) PrivateGetMarginLoanOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginLoanOrders", args...)
 }
 
-func (this *HuobiCore) PrivateGetMarginAccountsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccountsBalance", args...)
+func (this *HuobiCore) PrivateGetMarginAccountsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccountsBalance", args...)
 }
 
-func (this *HuobiCore) PrivateGetCrossMarginLoanOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCrossMarginLoanOrders", args...)
+func (this *HuobiCore) PrivateGetCrossMarginLoanOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCrossMarginLoanOrders", args...)
 }
 
-func (this *HuobiCore) PrivateGetCrossMarginAccountsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCrossMarginAccountsBalance", args...)
+func (this *HuobiCore) PrivateGetCrossMarginAccountsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCrossMarginAccountsBalance", args...)
 }
 
-func (this *HuobiCore) PrivateGetPointsActions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPointsActions", args...)
+func (this *HuobiCore) PrivateGetPointsActions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPointsActions", args...)
 }
 
-func (this *HuobiCore) PrivateGetPointsOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPointsOrders", args...)
+func (this *HuobiCore) PrivateGetPointsOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPointsOrders", args...)
 }
 
-func (this *HuobiCore) PrivateGetSubuserAggregateBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubuserAggregateBalance", args...)
+func (this *HuobiCore) PrivateGetSubuserAggregateBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubuserAggregateBalance", args...)
 }
 
-func (this *HuobiCore) PrivateGetStableCoinExchangeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetStableCoinExchangeRate", args...)
+func (this *HuobiCore) PrivateGetStableCoinExchangeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStableCoinExchangeRate", args...)
 }
 
-func (this *HuobiCore) PrivateGetStableCoinQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetStableCoinQuote", args...)
+func (this *HuobiCore) PrivateGetStableCoinQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStableCoinQuote", args...)
 }
 
-func (this *HuobiCore) PrivatePostAccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountTransfer", args...)
+func (this *HuobiCore) PrivatePostAccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountTransfer", args...)
 }
 
-func (this *HuobiCore) PrivatePostFuturesTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesTransfer", args...)
+func (this *HuobiCore) PrivatePostFuturesTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFuturesTransfer", args...)
 }
 
-func (this *HuobiCore) PrivatePostOrderBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderBatchOrders", args...)
+func (this *HuobiCore) PrivatePostOrderBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderBatchOrders", args...)
 }
 
-func (this *HuobiCore) PrivatePostOrderOrdersPlace (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderOrdersPlace", args...)
+func (this *HuobiCore) PrivatePostOrderOrdersPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderOrdersPlace", args...)
 }
 
-func (this *HuobiCore) PrivatePostOrderOrdersSubmitCancelClientOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderOrdersSubmitCancelClientOrder", args...)
+func (this *HuobiCore) PrivatePostOrderOrdersSubmitCancelClientOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderOrdersSubmitCancelClientOrder", args...)
 }
 
-func (this *HuobiCore) PrivatePostOrderOrdersBatchCancelOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderOrdersBatchCancelOpenOrders", args...)
+func (this *HuobiCore) PrivatePostOrderOrdersBatchCancelOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderOrdersBatchCancelOpenOrders", args...)
 }
 
-func (this *HuobiCore) PrivatePostOrderOrdersIdSubmitcancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderOrdersIdSubmitcancel", args...)
+func (this *HuobiCore) PrivatePostOrderOrdersIdSubmitcancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderOrdersIdSubmitcancel", args...)
 }
 
-func (this *HuobiCore) PrivatePostOrderOrdersBatchcancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderOrdersBatchcancel", args...)
+func (this *HuobiCore) PrivatePostOrderOrdersBatchcancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderOrdersBatchcancel", args...)
 }
 
-func (this *HuobiCore) PrivatePostDwWithdrawApiCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDwWithdrawApiCreate", args...)
+func (this *HuobiCore) PrivatePostDwWithdrawApiCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDwWithdrawApiCreate", args...)
 }
 
-func (this *HuobiCore) PrivatePostDwWithdrawVirtualIdCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDwWithdrawVirtualIdCancel", args...)
+func (this *HuobiCore) PrivatePostDwWithdrawVirtualIdCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDwWithdrawVirtualIdCancel", args...)
 }
 
-func (this *HuobiCore) PrivatePostDwTransferInMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDwTransferInMargin", args...)
+func (this *HuobiCore) PrivatePostDwTransferInMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDwTransferInMargin", args...)
 }
 
-func (this *HuobiCore) PrivatePostDwTransferOutMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDwTransferOutMargin", args...)
+func (this *HuobiCore) PrivatePostDwTransferOutMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDwTransferOutMargin", args...)
 }
 
-func (this *HuobiCore) PrivatePostMarginOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginOrders", args...)
+func (this *HuobiCore) PrivatePostMarginOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrders", args...)
 }
 
-func (this *HuobiCore) PrivatePostMarginOrdersIdRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginOrdersIdRepay", args...)
+func (this *HuobiCore) PrivatePostMarginOrdersIdRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrdersIdRepay", args...)
 }
 
-func (this *HuobiCore) PrivatePostCrossMarginTransferIn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCrossMarginTransferIn", args...)
+func (this *HuobiCore) PrivatePostCrossMarginTransferIn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCrossMarginTransferIn", args...)
 }
 
-func (this *HuobiCore) PrivatePostCrossMarginTransferOut (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCrossMarginTransferOut", args...)
+func (this *HuobiCore) PrivatePostCrossMarginTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCrossMarginTransferOut", args...)
 }
 
-func (this *HuobiCore) PrivatePostCrossMarginOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCrossMarginOrders", args...)
+func (this *HuobiCore) PrivatePostCrossMarginOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCrossMarginOrders", args...)
 }
 
-func (this *HuobiCore) PrivatePostCrossMarginOrdersIdRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCrossMarginOrdersIdRepay", args...)
+func (this *HuobiCore) PrivatePostCrossMarginOrdersIdRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCrossMarginOrdersIdRepay", args...)
 }
 
-func (this *HuobiCore) PrivatePostStableCoinExchange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostStableCoinExchange", args...)
+func (this *HuobiCore) PrivatePostStableCoinExchange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostStableCoinExchange", args...)
 }
 
-func (this *HuobiCore) PrivatePostSubuserTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubuserTransfer", args...)
+func (this *HuobiCore) PrivatePostSubuserTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubuserTransfer", args...)
 }
 
-func (this *HuobiCore) StatusPublicSpotGetApiV2SummaryJson (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("statusPublicSpotGetApiV2SummaryJson", args...)
+func (this *HuobiCore) StatusPublicSpotGetApiV2SummaryJson(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("statusPublicSpotGetApiV2SummaryJson", args...)
 }
 
-func (this *HuobiCore) StatusPublicFutureInverseGetApiV2SummaryJson (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("statusPublicFutureInverseGetApiV2SummaryJson", args...)
+func (this *HuobiCore) StatusPublicFutureInverseGetApiV2SummaryJson(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("statusPublicFutureInverseGetApiV2SummaryJson", args...)
 }
 
-func (this *HuobiCore) StatusPublicFutureLinearGetApiV2SummaryJson (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("statusPublicFutureLinearGetApiV2SummaryJson", args...)
+func (this *HuobiCore) StatusPublicFutureLinearGetApiV2SummaryJson(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("statusPublicFutureLinearGetApiV2SummaryJson", args...)
 }
 
-func (this *HuobiCore) StatusPublicSwapInverseGetApiV2SummaryJson (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("statusPublicSwapInverseGetApiV2SummaryJson", args...)
+func (this *HuobiCore) StatusPublicSwapInverseGetApiV2SummaryJson(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("statusPublicSwapInverseGetApiV2SummaryJson", args...)
 }
 
-func (this *HuobiCore) StatusPublicSwapLinearGetApiV2SummaryJson (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("statusPublicSwapLinearGetApiV2SummaryJson", args...)
+func (this *HuobiCore) StatusPublicSwapLinearGetApiV2SummaryJson(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("statusPublicSwapLinearGetApiV2SummaryJson", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV2MarketStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV2MarketStatus", args...)
+func (this *HuobiCore) SpotPublicGetV2MarketStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV2MarketStatus", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV1CommonSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV1CommonSymbols", args...)
+func (this *HuobiCore) SpotPublicGetV1CommonSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV1CommonSymbols", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV1CommonCurrencys (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV1CommonCurrencys", args...)
+func (this *HuobiCore) SpotPublicGetV1CommonCurrencys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV1CommonCurrencys", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV2SettingsCommonCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV2SettingsCommonCurrencies", args...)
+func (this *HuobiCore) SpotPublicGetV2SettingsCommonCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV2SettingsCommonCurrencies", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV2ReferenceCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV2ReferenceCurrencies", args...)
+func (this *HuobiCore) SpotPublicGetV2ReferenceCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV2ReferenceCurrencies", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV1CommonTimestamp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV1CommonTimestamp", args...)
+func (this *HuobiCore) SpotPublicGetV1CommonTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV1CommonTimestamp", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV1CommonExchange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV1CommonExchange", args...)
+func (this *HuobiCore) SpotPublicGetV1CommonExchange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV1CommonExchange", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV1SettingsCommonChains (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV1SettingsCommonChains", args...)
+func (this *HuobiCore) SpotPublicGetV1SettingsCommonChains(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV1SettingsCommonChains", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV1SettingsCommonCurrencys (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV1SettingsCommonCurrencys", args...)
+func (this *HuobiCore) SpotPublicGetV1SettingsCommonCurrencys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV1SettingsCommonCurrencys", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV1SettingsCommonSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV1SettingsCommonSymbols", args...)
+func (this *HuobiCore) SpotPublicGetV1SettingsCommonSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV1SettingsCommonSymbols", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV2SettingsCommonSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV2SettingsCommonSymbols", args...)
+func (this *HuobiCore) SpotPublicGetV2SettingsCommonSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV2SettingsCommonSymbols", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV1SettingsCommonMarketSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV1SettingsCommonMarketSymbols", args...)
+func (this *HuobiCore) SpotPublicGetV1SettingsCommonMarketSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV1SettingsCommonMarketSymbols", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketHistoryCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketHistoryCandles", args...)
+func (this *HuobiCore) SpotPublicGetMarketHistoryCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketHistoryCandles", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketHistoryKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketHistoryKline", args...)
+func (this *HuobiCore) SpotPublicGetMarketHistoryKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketHistoryKline", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketDetailMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketDetailMerged", args...)
+func (this *HuobiCore) SpotPublicGetMarketDetailMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketDetailMerged", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketTickers", args...)
+func (this *HuobiCore) SpotPublicGetMarketTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketTickers", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketDetail", args...)
+func (this *HuobiCore) SpotPublicGetMarketDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketDetail", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketDepth", args...)
+func (this *HuobiCore) SpotPublicGetMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketDepth", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketTrade", args...)
+func (this *HuobiCore) SpotPublicGetMarketTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketTrade", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketHistoryTrade", args...)
+func (this *HuobiCore) SpotPublicGetMarketHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketHistoryTrade", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetMarketEtp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetMarketEtp", args...)
+func (this *HuobiCore) SpotPublicGetMarketEtp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetMarketEtp", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV2EtpReference (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV2EtpReference", args...)
+func (this *HuobiCore) SpotPublicGetV2EtpReference(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV2EtpReference", args...)
 }
 
-func (this *HuobiCore) SpotPublicGetV2EtpRebalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPublicGetV2EtpRebalance", args...)
+func (this *HuobiCore) SpotPublicGetV2EtpRebalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetV2EtpRebalance", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1AccountAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1AccountAccounts", args...)
+func (this *HuobiCore) SpotPrivateGetV1AccountAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1AccountAccounts", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1AccountAccountsAccountIdBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1AccountAccountsAccountIdBalance", args...)
+func (this *HuobiCore) SpotPrivateGetV1AccountAccountsAccountIdBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1AccountAccountsAccountIdBalance", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AccountValuation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AccountValuation", args...)
+func (this *HuobiCore) SpotPrivateGetV2AccountValuation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AccountValuation", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AccountAssetValuation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AccountAssetValuation", args...)
+func (this *HuobiCore) SpotPrivateGetV2AccountAssetValuation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AccountAssetValuation", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1AccountHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1AccountHistory", args...)
+func (this *HuobiCore) SpotPrivateGetV1AccountHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1AccountHistory", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AccountLedger (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AccountLedger", args...)
+func (this *HuobiCore) SpotPrivateGetV2AccountLedger(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AccountLedger", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2PointAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2PointAccount", args...)
+func (this *HuobiCore) SpotPrivateGetV2PointAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2PointAccount", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AccountDepositAddress", args...)
+func (this *HuobiCore) SpotPrivateGetV2AccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AccountDepositAddress", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AccountWithdrawQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AccountWithdrawQuota", args...)
+func (this *HuobiCore) SpotPrivateGetV2AccountWithdrawQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AccountWithdrawQuota", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AccountWithdrawAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AccountWithdrawAddress", args...)
+func (this *HuobiCore) SpotPrivateGetV2AccountWithdrawAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AccountWithdrawAddress", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2ReferenceCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2ReferenceCurrencies", args...)
+func (this *HuobiCore) SpotPrivateGetV2ReferenceCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2ReferenceCurrencies", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1QueryDepositWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1QueryDepositWithdraw", args...)
+func (this *HuobiCore) SpotPrivateGetV1QueryDepositWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1QueryDepositWithdraw", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1QueryWithdrawClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1QueryWithdrawClientOrderId", args...)
+func (this *HuobiCore) SpotPrivateGetV1QueryWithdrawClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1QueryWithdrawClientOrderId", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2UserApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2UserApiKey", args...)
+func (this *HuobiCore) SpotPrivateGetV2UserApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2UserApiKey", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2UserUid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2UserUid", args...)
+func (this *HuobiCore) SpotPrivateGetV2UserUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2UserUid", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2SubUserUserList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2SubUserUserList", args...)
+func (this *HuobiCore) SpotPrivateGetV2SubUserUserList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2SubUserUserList", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2SubUserUserState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2SubUserUserState", args...)
+func (this *HuobiCore) SpotPrivateGetV2SubUserUserState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2SubUserUserState", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2SubUserAccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2SubUserAccountList", args...)
+func (this *HuobiCore) SpotPrivateGetV2SubUserAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2SubUserAccountList", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2SubUserDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2SubUserDepositAddress", args...)
+func (this *HuobiCore) SpotPrivateGetV2SubUserDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2SubUserDepositAddress", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2SubUserQueryDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2SubUserQueryDeposit", args...)
+func (this *HuobiCore) SpotPrivateGetV2SubUserQueryDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2SubUserQueryDeposit", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1SubuserAggregateBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1SubuserAggregateBalance", args...)
+func (this *HuobiCore) SpotPrivateGetV1SubuserAggregateBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1SubuserAggregateBalance", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1AccountAccountsSubUid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1AccountAccountsSubUid", args...)
+func (this *HuobiCore) SpotPrivateGetV1AccountAccountsSubUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1AccountAccountsSubUid", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1OrderOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1OrderOpenOrders", args...)
+func (this *HuobiCore) SpotPrivateGetV1OrderOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1OrderOpenOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1OrderOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderId", args...)
+func (this *HuobiCore) SpotPrivateGetV1OrderOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderId", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1OrderOrdersGetClientOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1OrderOrdersGetClientOrder", args...)
+func (this *HuobiCore) SpotPrivateGetV1OrderOrdersGetClientOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersGetClientOrder", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1OrderOrdersOrderIdMatchresult (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresult", args...)
+func (this *HuobiCore) SpotPrivateGetV1OrderOrdersOrderIdMatchresult(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresult", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1OrderOrdersOrderIdMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresults", args...)
+func (this *HuobiCore) SpotPrivateGetV1OrderOrdersOrderIdMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresults", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1OrderOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1OrderOrders", args...)
+func (this *HuobiCore) SpotPrivateGetV1OrderOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1OrderOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1OrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1OrderHistory", args...)
+func (this *HuobiCore) SpotPrivateGetV1OrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1OrderHistory", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1OrderMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1OrderMatchresults", args...)
+func (this *HuobiCore) SpotPrivateGetV1OrderMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1OrderMatchresults", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2ReferenceTransactFeeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2ReferenceTransactFeeRate", args...)
+func (this *HuobiCore) SpotPrivateGetV2ReferenceTransactFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2ReferenceTransactFeeRate", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AlgoOrdersOpening (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersOpening", args...)
+func (this *HuobiCore) SpotPrivateGetV2AlgoOrdersOpening(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersOpening", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AlgoOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersHistory", args...)
+func (this *HuobiCore) SpotPrivateGetV2AlgoOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersHistory", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AlgoOrdersSpecific (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersSpecific", args...)
+func (this *HuobiCore) SpotPrivateGetV2AlgoOrdersSpecific(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersSpecific", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1MarginLoanInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1MarginLoanInfo", args...)
+func (this *HuobiCore) SpotPrivateGetV1MarginLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1MarginLoanInfo", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1MarginLoanOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1MarginLoanOrders", args...)
+func (this *HuobiCore) SpotPrivateGetV1MarginLoanOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1MarginLoanOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1MarginAccountsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1MarginAccountsBalance", args...)
+func (this *HuobiCore) SpotPrivateGetV1MarginAccountsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1MarginAccountsBalance", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1CrossMarginLoanInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1CrossMarginLoanInfo", args...)
+func (this *HuobiCore) SpotPrivateGetV1CrossMarginLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1CrossMarginLoanInfo", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1CrossMarginLoanOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1CrossMarginLoanOrders", args...)
+func (this *HuobiCore) SpotPrivateGetV1CrossMarginLoanOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1CrossMarginLoanOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1CrossMarginAccountsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1CrossMarginAccountsBalance", args...)
+func (this *HuobiCore) SpotPrivateGetV1CrossMarginAccountsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1CrossMarginAccountsBalance", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2AccountRepayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2AccountRepayment", args...)
+func (this *HuobiCore) SpotPrivateGetV2AccountRepayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2AccountRepayment", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1StableCoinQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1StableCoinQuote", args...)
+func (this *HuobiCore) SpotPrivateGetV1StableCoinQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1StableCoinQuote", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV1StableCoinExchangeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV1StableCoinExchangeRate", args...)
+func (this *HuobiCore) SpotPrivateGetV1StableCoinExchangeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV1StableCoinExchangeRate", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2EtpTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2EtpTransactions", args...)
+func (this *HuobiCore) SpotPrivateGetV2EtpTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2EtpTransactions", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2EtpTransaction (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2EtpTransaction", args...)
+func (this *HuobiCore) SpotPrivateGetV2EtpTransaction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2EtpTransaction", args...)
 }
 
-func (this *HuobiCore) SpotPrivateGetV2EtpLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivateGetV2EtpLimit", args...)
+func (this *HuobiCore) SpotPrivateGetV2EtpLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetV2EtpLimit", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1AccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1AccountTransfer", args...)
+func (this *HuobiCore) SpotPrivatePostV1AccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1AccountTransfer", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1FuturesTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1FuturesTransfer", args...)
+func (this *HuobiCore) SpotPrivatePostV1FuturesTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1FuturesTransfer", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2PointTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2PointTransfer", args...)
+func (this *HuobiCore) SpotPrivatePostV2PointTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2PointTransfer", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2AccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2AccountTransfer", args...)
+func (this *HuobiCore) SpotPrivatePostV2AccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2AccountTransfer", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1DwWithdrawApiCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1DwWithdrawApiCreate", args...)
+func (this *HuobiCore) SpotPrivatePostV1DwWithdrawApiCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1DwWithdrawApiCreate", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel", args...)
+func (this *HuobiCore) SpotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2SubUserDeductMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2SubUserDeductMode", args...)
+func (this *HuobiCore) SpotPrivatePostV2SubUserDeductMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2SubUserDeductMode", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2SubUserCreation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2SubUserCreation", args...)
+func (this *HuobiCore) SpotPrivatePostV2SubUserCreation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2SubUserCreation", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2SubUserManagement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2SubUserManagement", args...)
+func (this *HuobiCore) SpotPrivatePostV2SubUserManagement(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2SubUserManagement", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2SubUserTradableMarket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2SubUserTradableMarket", args...)
+func (this *HuobiCore) SpotPrivatePostV2SubUserTradableMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2SubUserTradableMarket", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2SubUserTransferability (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2SubUserTransferability", args...)
+func (this *HuobiCore) SpotPrivatePostV2SubUserTransferability(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2SubUserTransferability", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2SubUserApiKeyGeneration (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyGeneration", args...)
+func (this *HuobiCore) SpotPrivatePostV2SubUserApiKeyGeneration(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyGeneration", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2SubUserApiKeyModification (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyModification", args...)
+func (this *HuobiCore) SpotPrivatePostV2SubUserApiKeyModification(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyModification", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2SubUserApiKeyDeletion (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyDeletion", args...)
+func (this *HuobiCore) SpotPrivatePostV2SubUserApiKeyDeletion(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyDeletion", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1SubuserTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1SubuserTransfer", args...)
+func (this *HuobiCore) SpotPrivatePostV1SubuserTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1SubuserTransfer", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1TrustUserActiveCredit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1TrustUserActiveCredit", args...)
+func (this *HuobiCore) SpotPrivatePostV1TrustUserActiveCredit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1TrustUserActiveCredit", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1OrderOrdersPlace (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1OrderOrdersPlace", args...)
+func (this *HuobiCore) SpotPrivatePostV1OrderOrdersPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersPlace", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1OrderBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1OrderBatchOrders", args...)
+func (this *HuobiCore) SpotPrivatePostV1OrderBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1OrderBatchOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1OrderAutoPlace (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1OrderAutoPlace", args...)
+func (this *HuobiCore) SpotPrivatePostV1OrderAutoPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1OrderAutoPlace", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1OrderOrdersOrderIdSubmitcancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1OrderOrdersOrderIdSubmitcancel", args...)
+func (this *HuobiCore) SpotPrivatePostV1OrderOrdersOrderIdSubmitcancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersOrderIdSubmitcancel", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1OrderOrdersSubmitCancelClientOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1OrderOrdersSubmitCancelClientOrder", args...)
+func (this *HuobiCore) SpotPrivatePostV1OrderOrdersSubmitCancelClientOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersSubmitCancelClientOrder", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchCancelOpenOrders", args...)
+func (this *HuobiCore) SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchCancelOpenOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1OrderOrdersBatchcancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchcancel", args...)
+func (this *HuobiCore) SpotPrivatePostV1OrderOrdersBatchcancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchcancel", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2AlgoOrdersCancelAllAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2AlgoOrdersCancelAllAfter", args...)
+func (this *HuobiCore) SpotPrivatePostV2AlgoOrdersCancelAllAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2AlgoOrdersCancelAllAfter", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2AlgoOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2AlgoOrders", args...)
+func (this *HuobiCore) SpotPrivatePostV2AlgoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2AlgoOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2AlgoOrdersCancellation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2AlgoOrdersCancellation", args...)
+func (this *HuobiCore) SpotPrivatePostV2AlgoOrdersCancellation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2AlgoOrdersCancellation", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2AccountRepayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2AccountRepayment", args...)
+func (this *HuobiCore) SpotPrivatePostV2AccountRepayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2AccountRepayment", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1DwTransferInMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1DwTransferInMargin", args...)
+func (this *HuobiCore) SpotPrivatePostV1DwTransferInMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1DwTransferInMargin", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1DwTransferOutMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1DwTransferOutMargin", args...)
+func (this *HuobiCore) SpotPrivatePostV1DwTransferOutMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1DwTransferOutMargin", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1MarginOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1MarginOrders", args...)
+func (this *HuobiCore) SpotPrivatePostV1MarginOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1MarginOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1MarginOrdersOrderIdRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1MarginOrdersOrderIdRepay", args...)
+func (this *HuobiCore) SpotPrivatePostV1MarginOrdersOrderIdRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1MarginOrdersOrderIdRepay", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1CrossMarginTransferIn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1CrossMarginTransferIn", args...)
+func (this *HuobiCore) SpotPrivatePostV1CrossMarginTransferIn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1CrossMarginTransferIn", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1CrossMarginTransferOut (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1CrossMarginTransferOut", args...)
+func (this *HuobiCore) SpotPrivatePostV1CrossMarginTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1CrossMarginTransferOut", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1CrossMarginOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1CrossMarginOrders", args...)
+func (this *HuobiCore) SpotPrivatePostV1CrossMarginOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1CrossMarginOrders", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1CrossMarginOrdersOrderIdRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1CrossMarginOrdersOrderIdRepay", args...)
+func (this *HuobiCore) SpotPrivatePostV1CrossMarginOrdersOrderIdRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1CrossMarginOrdersOrderIdRepay", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV1StableCoinExchange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV1StableCoinExchange", args...)
+func (this *HuobiCore) SpotPrivatePostV1StableCoinExchange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV1StableCoinExchange", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2EtpCreation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2EtpCreation", args...)
+func (this *HuobiCore) SpotPrivatePostV2EtpCreation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2EtpCreation", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2EtpRedemption (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2EtpRedemption", args...)
+func (this *HuobiCore) SpotPrivatePostV2EtpRedemption(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2EtpRedemption", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2EtpTransactIdCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2EtpTransactIdCancel", args...)
+func (this *HuobiCore) SpotPrivatePostV2EtpTransactIdCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2EtpTransactIdCancel", args...)
 }
 
-func (this *HuobiCore) SpotPrivatePostV2EtpBatchCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("spotPrivatePostV2EtpBatchCancel", args...)
+func (this *HuobiCore) SpotPrivatePostV2EtpBatchCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostV2EtpBatchCancel", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1Timestamp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1Timestamp", args...)
+func (this *HuobiCore) ContractPublicGetApiV1Timestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1Timestamp", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetHeartbeat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetHeartbeat", args...)
+func (this *HuobiCore) ContractPublicGetHeartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetHeartbeat", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractContractInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractContractInfo", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractContractInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractContractInfo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractIndex", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractIndex", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractQueryElements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractQueryElements", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractQueryElements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractQueryElements", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractPriceLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractPriceLimit", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractPriceLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractPriceLimit", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractOpenInterest", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractOpenInterest", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractDeliveryPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractDeliveryPrice", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractDeliveryPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractDeliveryPrice", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetMarketDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetMarketDepth", args...)
+func (this *HuobiCore) ContractPublicGetMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetMarketDepth", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetMarketBbo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetMarketBbo", args...)
+func (this *HuobiCore) ContractPublicGetMarketBbo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetMarketBbo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetMarketHistoryKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetMarketHistoryKline", args...)
+func (this *HuobiCore) ContractPublicGetMarketHistoryKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetMarketHistoryKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistoryMarkPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistoryMarkPriceKline", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistoryMarkPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryMarkPriceKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetMarketDetailMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetMarketDetailMerged", args...)
+func (this *HuobiCore) ContractPublicGetMarketDetailMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetMarketDetailMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetMarketDetailBatchMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetMarketDetailBatchMerged", args...)
+func (this *HuobiCore) ContractPublicGetMarketDetailBatchMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetMarketDetailBatchMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetV2MarketDetailBatchMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetV2MarketDetailBatchMerged", args...)
+func (this *HuobiCore) ContractPublicGetV2MarketDetailBatchMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetV2MarketDetailBatchMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetMarketTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetMarketTrade", args...)
+func (this *HuobiCore) ContractPublicGetMarketTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetMarketTrade", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetMarketHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetMarketHistoryTrade", args...)
+func (this *HuobiCore) ContractPublicGetMarketHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetMarketHistoryTrade", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractRiskInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractRiskInfo", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractRiskInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractRiskInfo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractInsuranceFund (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractInsuranceFund", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractInsuranceFund(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractInsuranceFund", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractAdjustfactor (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractAdjustfactor", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractAdjustfactor(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractAdjustfactor", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractHisOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractHisOpenInterest", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractHisOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractHisOpenInterest", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractLadderMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractLadderMargin", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractLadderMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractLadderMargin", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractApiState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractApiState", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractApiState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractApiState", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractEliteAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractEliteAccountRatio", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractEliteAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractEliteAccountRatio", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractElitePositionRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractElitePositionRatio", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractElitePositionRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractElitePositionRatio", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractLiquidationOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractLiquidationOrders", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractLiquidationOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractLiquidationOrders", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractSettlementRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractSettlementRecords", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractSettlementRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractSettlementRecords", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistoryIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistoryIndex", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistoryIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryIndex", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistoryBasis (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistoryBasis", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistoryBasis(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryBasis", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV1ContractEstimatedSettlementPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV1ContractEstimatedSettlementPrice", args...)
+func (this *HuobiCore) ContractPublicGetApiV1ContractEstimatedSettlementPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV1ContractEstimatedSettlementPrice", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetApiV3ContractLiquidationOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetApiV3ContractLiquidationOrders", args...)
+func (this *HuobiCore) ContractPublicGetApiV3ContractLiquidationOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetApiV3ContractLiquidationOrders", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapContractInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapContractInfo", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapContractInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapContractInfo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapIndex", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapIndex", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapQueryElements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapQueryElements", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapQueryElements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapQueryElements", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapPriceLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapPriceLimit", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapPriceLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapPriceLimit", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapOpenInterest", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapOpenInterest", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapExMarketDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapExMarketDepth", args...)
+func (this *HuobiCore) ContractPublicGetSwapExMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapExMarketDepth", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapExMarketBbo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapExMarketBbo", args...)
+func (this *HuobiCore) ContractPublicGetSwapExMarketBbo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapExMarketBbo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapExMarketHistoryKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapExMarketHistoryKline", args...)
+func (this *HuobiCore) ContractPublicGetSwapExMarketHistoryKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapExMarketHistoryKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistorySwapMarkPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapMarkPriceKline", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistorySwapMarkPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapMarkPriceKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapExMarketDetailMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapExMarketDetailMerged", args...)
+func (this *HuobiCore) ContractPublicGetSwapExMarketDetailMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapExMarketDetailMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetV2SwapExMarketDetailBatchMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetV2SwapExMarketDetailBatchMerged", args...)
+func (this *HuobiCore) ContractPublicGetV2SwapExMarketDetailBatchMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetV2SwapExMarketDetailBatchMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistorySwapPremiumIndexKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapPremiumIndexKline", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistorySwapPremiumIndexKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapPremiumIndexKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapExMarketDetailBatchMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapExMarketDetailBatchMerged", args...)
+func (this *HuobiCore) ContractPublicGetSwapExMarketDetailBatchMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapExMarketDetailBatchMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapExMarketTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapExMarketTrade", args...)
+func (this *HuobiCore) ContractPublicGetSwapExMarketTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapExMarketTrade", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapExMarketHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapExMarketHistoryTrade", args...)
+func (this *HuobiCore) ContractPublicGetSwapExMarketHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapExMarketHistoryTrade", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapRiskInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapRiskInfo", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapRiskInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapRiskInfo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapInsuranceFund (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapInsuranceFund", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapInsuranceFund(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapInsuranceFund", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapAdjustfactor (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapAdjustfactor", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapAdjustfactor(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapAdjustfactor", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapHisOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapHisOpenInterest", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapHisOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapHisOpenInterest", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapLadderMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapLadderMargin", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapLadderMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapLadderMargin", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapApiState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapApiState", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapApiState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapApiState", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapEliteAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapEliteAccountRatio", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapEliteAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapEliteAccountRatio", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapElitePositionRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapElitePositionRatio", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapElitePositionRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapElitePositionRatio", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapEstimatedSettlementPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapEstimatedSettlementPrice", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapEstimatedSettlementPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapEstimatedSettlementPrice", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapLiquidationOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapLiquidationOrders", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapLiquidationOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapLiquidationOrders", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapSettlementRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapSettlementRecords", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapSettlementRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapSettlementRecords", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapFundingRate", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapFundingRate", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapBatchFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapBatchFundingRate", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapBatchFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapBatchFundingRate", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1SwapHistoricalFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1SwapHistoricalFundingRate", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1SwapHistoricalFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapHistoricalFundingRate", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV3SwapLiquidationOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV3SwapLiquidationOrders", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV3SwapLiquidationOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV3SwapLiquidationOrders", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistorySwapEstimatedRateKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapEstimatedRateKline", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistorySwapEstimatedRateKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapEstimatedRateKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistorySwapBasis (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapBasis", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistorySwapBasis(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapBasis", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapContractInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapContractInfo", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapContractInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapContractInfo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapIndex", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapIndex", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapQueryElements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapQueryElements", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapQueryElements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapQueryElements", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapPriceLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapPriceLimit", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapPriceLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapPriceLimit", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapOpenInterest", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapOpenInterest", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapExMarketDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDepth", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapExMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDepth", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapExMarketBbo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapExMarketBbo", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapExMarketBbo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketBbo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapExMarketHistoryKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryKline", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapExMarketHistoryKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapExMarketDetailMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDetailMerged", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapExMarketDetailMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDetailMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapExMarketDetailBatchMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDetailBatchMerged", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapExMarketDetailBatchMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDetailBatchMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetV2LinearSwapExMarketDetailBatchMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetV2LinearSwapExMarketDetailBatchMerged", args...)
+func (this *HuobiCore) ContractPublicGetV2LinearSwapExMarketDetailBatchMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetV2LinearSwapExMarketDetailBatchMerged", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapExMarketTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapExMarketTrade", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapExMarketTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketTrade", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapExMarketHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryTrade", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapExMarketHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryTrade", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapRiskInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapRiskInfo", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapRiskInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapRiskInfo", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund", args...)
+func (this *HuobiCore) ContractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapAdjustfactor (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapAdjustfactor", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapAdjustfactor(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapAdjustfactor", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapCrossAdjustfactor (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapCrossAdjustfactor(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapHisOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapHisOpenInterest", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapHisOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapHisOpenInterest", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapLadderMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapLadderMargin", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapLadderMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapLadderMargin", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapCrossLadderMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossLadderMargin", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapCrossLadderMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossLadderMargin", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapApiState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapApiState", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapApiState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapApiState", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapCrossTransferState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossTransferState", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapCrossTransferState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossTransferState", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapCrossTradeState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossTradeState", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapCrossTradeState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossTradeState", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapEliteAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapEliteAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapElitePositionRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapElitePositionRatio", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapElitePositionRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapElitePositionRatio", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapLiquidationOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapLiquidationOrders", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapLiquidationOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapLiquidationOrders", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapSettlementRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapSettlementRecords", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapSettlementRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapSettlementRecords", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapFundingRate", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapFundingRate", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapBatchFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapBatchFundingRate", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapBatchFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapBatchFundingRate", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapHistoricalFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV3SwapLiquidationOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV3SwapLiquidationOrders", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV3SwapLiquidationOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV3SwapLiquidationOrders", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetIndexMarketHistoryLinearSwapBasis (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapBasis", args...)
+func (this *HuobiCore) ContractPublicGetIndexMarketHistoryLinearSwapBasis(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapBasis", args...)
 }
 
-func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice", args...)
+func (this *HuobiCore) ContractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetApiV1ContractSubAuthList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetApiV1ContractSubAuthList", args...)
+func (this *HuobiCore) ContractPrivateGetApiV1ContractSubAuthList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetApiV1ContractSubAuthList", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetApiV1ContractApiTradingStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetApiV1ContractApiTradingStatus", args...)
+func (this *HuobiCore) ContractPrivateGetApiV1ContractApiTradingStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetApiV1ContractApiTradingStatus", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetSwapApiV1SwapSubAuthList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapSubAuthList", args...)
+func (this *HuobiCore) ContractPrivateGetSwapApiV1SwapSubAuthList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapSubAuthList", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetSwapApiV1SwapApiTradingStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapApiTradingStatus", args...)
+func (this *HuobiCore) ContractPrivateGetSwapApiV1SwapApiTradingStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapApiTradingStatus", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetLinearSwapApiV1SwapSubAuthList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapSubAuthList", args...)
+func (this *HuobiCore) ContractPrivateGetLinearSwapApiV1SwapSubAuthList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapSubAuthList", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetLinearSwapApiV1SwapApiTradingStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapApiTradingStatus", args...)
+func (this *HuobiCore) ContractPrivateGetLinearSwapApiV1SwapApiTradingStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapApiTradingStatus", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetLinearSwapApiV1SwapCrossPositionSide (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapCrossPositionSide", args...)
+func (this *HuobiCore) ContractPrivateGetLinearSwapApiV1SwapCrossPositionSide(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapCrossPositionSide", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetLinearSwapApiV1SwapPositionSide (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapPositionSide", args...)
+func (this *HuobiCore) ContractPrivateGetLinearSwapApiV1SwapPositionSide(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV1SwapPositionSide", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3UnifiedAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3UnifiedAccountInfo", args...)
+func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3UnifiedAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3UnifiedAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord", args...)
+func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3SwapUnifiedAccountType (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType", args...)
+func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3SwapUnifiedAccountType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType", args...)
 }
 
-func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo", args...)
+func (this *HuobiCore) ContractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractBalanceValuation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractBalanceValuation", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractBalanceValuation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractBalanceValuation", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractAccountInfo", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractSubAuth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAuth", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractSubAuth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAuth", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractSubAccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountList", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractSubAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountList", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractSubAccountInfoList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountInfoList", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractSubAccountInfoList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountInfoList", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractSubAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountInfo", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractSubAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractSubPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractSubPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractSubPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractFinancialRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractFinancialRecord", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractFinancialRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractFinancialRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractFinancialRecordExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractFinancialRecordExact", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractFinancialRecordExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractFinancialRecordExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractUserSettlementRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractUserSettlementRecords", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractUserSettlementRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractUserSettlementRecords", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractOrderLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderLimit", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractOrderLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractFee", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractFee", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTransferLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTransferLimit", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTransferLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTransferLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractPositionLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractPositionLimit", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractPositionLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractPositionLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractAccountPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractAccountPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractAccountPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractAccountPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractMasterSubTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractMasterSubTransfer", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractMasterSubTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractMasterSubTransfer", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractMasterSubTransferRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractMasterSubTransferRecord", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractMasterSubTransferRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractMasterSubTransferRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractAvailableLevelRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractAvailableLevelRate", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractAvailableLevelRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractAvailableLevelRate", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV3ContractFinancialRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV3ContractFinancialRecord", args...)
+func (this *HuobiCore) ContractPrivatePostApiV3ContractFinancialRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV3ContractFinancialRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV3ContractFinancialRecordExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV3ContractFinancialRecordExact", args...)
+func (this *HuobiCore) ContractPrivatePostApiV3ContractFinancialRecordExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV3ContractFinancialRecordExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractCancelAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractCancelAfter", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractCancelAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancelAfter", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractOrder", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractBatchorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractBatchorder", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractBatchorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractBatchorder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractCancel", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractSwitchLeverRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractSwitchLeverRate", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractSwitchLeverRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractSwitchLeverRate", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1LightningClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1LightningClosePosition", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1LightningClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1LightningClosePosition", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractOrderInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderInfo", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderDetail", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderDetail", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractHisordersExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractHisordersExact", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractHisordersExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractHisordersExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractMatchresults", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractMatchresults", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractMatchresultsExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractMatchresultsExact", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractMatchresultsExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractMatchresultsExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV3ContractHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV3ContractHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV3ContractHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV3ContractHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV3ContractHisordersExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV3ContractHisordersExact", args...)
+func (this *HuobiCore) ContractPrivatePostApiV3ContractHisordersExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV3ContractHisordersExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV3ContractMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV3ContractMatchresults", args...)
+func (this *HuobiCore) ContractPrivatePostApiV3ContractMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV3ContractMatchresults", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV3ContractMatchresultsExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV3ContractMatchresultsExact", args...)
+func (this *HuobiCore) ContractPrivatePostApiV3ContractMatchresultsExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV3ContractMatchresultsExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerOrder", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerCancel", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTriggerHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslOrder", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslCancel", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTpslHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractRelationTpslOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractRelationTpslOrder", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractRelationTpslOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractRelationTpslOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackOrder", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackCancel", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostApiV1ContractTrackHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapBalanceValuation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapBalanceValuation", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapBalanceValuation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapBalanceValuation", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAccountInfo", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapAccountPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAccountPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapAccountPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAccountPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubAuth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAuth", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubAuth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAuth", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubAccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountList", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountList", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubAccountInfoList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountInfoList", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubAccountInfoList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountInfoList", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountInfo", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSubPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapFinancialRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFinancialRecord", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapFinancialRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFinancialRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapFinancialRecordExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFinancialRecordExact", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapFinancialRecordExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFinancialRecordExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapUserSettlementRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapUserSettlementRecords", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapUserSettlementRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapUserSettlementRecords", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapAvailableLevelRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAvailableLevelRate", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapAvailableLevelRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAvailableLevelRate", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOrderLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderLimit", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOrderLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFee", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFee", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTransferLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTransferLimit", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTransferLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTransferLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapPositionLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapPositionLimit", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapPositionLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapPositionLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapMasterSubTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMasterSubTransfer", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapMasterSubTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMasterSubTransfer", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapMasterSubTransferRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMasterSubTransferRecord", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapMasterSubTransferRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMasterSubTransferRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapFinancialRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapFinancialRecord", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapFinancialRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapFinancialRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapFinancialRecordExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapFinancialRecordExact", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapFinancialRecordExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapFinancialRecordExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapCancelAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancelAfter", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapCancelAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancelAfter", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrder", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapBatchorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapBatchorder", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapBatchorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapBatchorder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancel", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapLightningClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapLightningClosePosition", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapLightningClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapLightningClosePosition", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSwitchLeverRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSwitchLeverRate", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapSwitchLeverRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSwitchLeverRate", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOrderInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderInfo", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderDetail", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderDetail", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapHisordersExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapHisordersExact", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapHisordersExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapHisordersExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMatchresults", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMatchresults", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapMatchresultsExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMatchresultsExact", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapMatchresultsExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMatchresultsExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapMatchresults", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapMatchresults", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapMatchresultsExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapMatchresultsExact", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapMatchresultsExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapMatchresultsExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapHisordersExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapHisordersExact", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV3SwapHisordersExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapHisordersExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerOrder", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerCancel", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTriggerHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslOrder", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslCancel", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTpslHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapRelationTpslOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapRelationTpslOrder", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapRelationTpslOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapRelationTpslOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackOrder", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackCancel", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostSwapApiV1SwapTrackHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapLeverPositionLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapLeverPositionLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapBalanceValuation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapBalanceValuation", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapBalanceValuation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapBalanceValuation", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapAccountInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapAccountPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapAccountPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubAuth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAuth", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubAuth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAuth", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountList", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountList", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountInfoList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountInfoList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSubPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSubPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapFinancialRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFinancialRecord", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapFinancialRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFinancialRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapFinancialRecordExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapFinancialRecordExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapUserSettlementRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapUserSettlementRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapAvailableLevelRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapAvailableLevelRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOrderLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrderLimit", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOrderLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrderLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFee", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapFee", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTransferLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTransferLimit", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTransferLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTransferLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTransferLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTransferLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapPositionLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapPositionLimit", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapPositionLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapPositionLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossPositionLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossPositionLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapMasterSubTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapMasterSubTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTransferInner (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTransferInner", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTransferInner(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTransferInner", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapFinancialRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapFinancialRecord", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapFinancialRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapFinancialRecord", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapFinancialRecordExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapBatchorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapBatchorder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapBatchorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapBatchorder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossBatchorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossBatchorder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossBatchorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossBatchorder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCancel", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossCancel", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSwitchLeverRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSwitchLeverRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapLightningClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapLightningClosePosition", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapLightningClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapLightningClosePosition", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOrderInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrderInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrderInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossOrderInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrderDetail", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOrderDetail", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrderDetail", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrderDetail", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapHisordersExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapHisordersExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapHisordersExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapHisordersExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossHisordersExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossHisordersExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossHisordersExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossHisordersExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMatchresults", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMatchresults", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossMatchresults", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossMatchresults", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapMatchresultsExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMatchresultsExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapMatchresultsExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapMatchresultsExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1LinearCancelAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1LinearCancelAfter", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1LinearCancelAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1LinearCancelAfter", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSwitchPositionMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapSwitchPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapMatchresults", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapMatchresults", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapCrossMatchresults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossMatchresults", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapCrossMatchresults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossMatchresults", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapMatchresultsExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapMatchresultsExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapMatchresultsExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapMatchresultsExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapCrossHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapCrossHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapHisordersExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapHisordersExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapHisordersExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapHisordersExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapCrossHisordersExact (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapCrossHisordersExact(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3FixPositionMarginChange (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3FixPositionMarginChange", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3FixPositionMarginChange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3FixPositionMarginChange", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapSwitchAccountType (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapSwitchAccountType", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3SwapSwitchAccountType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3SwapSwitchAccountType", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerCancel", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTriggerHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTriggerHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslCancel", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTpslHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTpslHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapRelationTpslOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapRelationTpslOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackCancel", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapTrackHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapTrackHisorders", args...)
 }
 
-func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders", args...)
+func (this *HuobiCore) ContractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders", args...)
 }

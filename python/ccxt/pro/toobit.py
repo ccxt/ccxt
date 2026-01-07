@@ -709,10 +709,11 @@ class toobit(ccxt.async_support.toobit):
         type = 'spot' if (marketType == 'spot') else 'contract'
         self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve()
-        client.resolve(self.balance[type], type + ':fetchBalanceSnapshot')
-        client.resolve(self.balance[type], type + ':balance')  # we should also resolve right away after snapshot, so user doesn't double-fetch balance
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve()
+            client.resolve(self.balance[type], type + ':fetchBalanceSnapshot')
+            client.resolve(self.balance[type], type + ':balance')  # we should also resolve right away after snapshot, so user doesn't double-fetch balance
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -954,9 +955,10 @@ class toobit(ccxt.async_support.toobit):
             position = positions[i]
             cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, type + ':positions')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, type + ':positions')
 
     def handle_positions(self, client, message):
         #
@@ -1059,7 +1061,7 @@ class toobit(ccxt.async_support.toobit):
                     future.resolve(True)
                     self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
                 except Exception as e:
-                    err = AuthenticationError(self.id + ' ' + self.json(e))
+                    err = AuthenticationError(self.id + ' ' + self.exception_message(e))
                     client.reject(err, messageHash)
                     if messageHash in client.subscriptions:
                         del client.subscriptions[messageHash]

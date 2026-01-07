@@ -857,11 +857,11 @@ class bigone extends Exchange {
             'ask' => $this->safe_string($ask, 'price'),
             'askVolume' => $this->safe_string($ask, 'quantity'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'), // openValue is a broken number, we don't use it
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $this->safe_string_2($ticker, 'daily_change', 'last24hPriceChange'),
+            'change' => $this->safe_string($ticker, 'daily_change'), // last24hPriceChange is incorrect value, eg see PUMPUSDT contract
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'volume', 'volume24h'),

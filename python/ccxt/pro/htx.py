@@ -1917,7 +1917,7 @@ class htx(ccxt.async_support.htx):
                 pingTs = self.safe_integer(message, 'ts')
                 await client.send({'op': 'pong', 'ts': pingTs})
         except Exception as e:
-            error = NetworkError(self.id + ' pong failed ' + self.json(e))
+            error = NetworkError(self.id + ' pong failed ' + self.exception_message(e))
             client.reset(error)
 
     def handle_ping(self, client: Client, message):

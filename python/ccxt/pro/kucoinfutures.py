@@ -393,9 +393,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         cache = self.positions
         cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(position, 'position:' + symbol)
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(position, 'position:' + symbol)
 
     def handle_position(self, client: Client, message):
         #
