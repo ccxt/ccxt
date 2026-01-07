@@ -84,7 +84,7 @@
             },
             "fetchCurrencies": {
                 "precision":"not provided",
-                "maxInactiveCurrenciesPercentage": 65
+                "maxInactiveCurrenciesPercentage": 77
             },
             "fetchTrades": {
                 "side": "not provided"
