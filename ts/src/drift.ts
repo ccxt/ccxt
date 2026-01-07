@@ -41,7 +41,7 @@ export default class drift extends Exchange {
             'name': 'Drift Protocol',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 1000,
+            'rateLimit': 250,
             'certified': false,
             'pro': false,
             'requiredCredentials': {
