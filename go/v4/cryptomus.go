@@ -77,7 +77,7 @@ func (this *CryptomusCore) Describe() interface{} {
 			"fetchConvertTradeHistory":               false,
 			"fetchCrossBorrowRate":                   false,
 			"fetchCrossBorrowRates":                  false,
-			"fetchCurrencies":                        true,
+			"fetchCurrencies":                        false,
 			"fetchDepositAddress":                    false,
 			"fetchDeposits":                          false,
 			"fetchDepositsWithdrawals":               false,
