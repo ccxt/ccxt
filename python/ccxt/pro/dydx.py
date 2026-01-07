@@ -100,7 +100,7 @@ class dydx(ccxt.async_support.dydx):
         #                 "size": "0.024",
         #                 "price": "114581",
         #                 "type": "LIMIT",
-        #                 "createdAt": "2025-08-04T00:42:07.118Z",
+        #                 "createdAt": "2025-08-04T00:42:07.119Z",
         #                 "createdAtHeight": "45487245"
         #             }
         #         ]
