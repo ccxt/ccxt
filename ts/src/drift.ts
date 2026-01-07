@@ -165,53 +165,47 @@ export default class drift extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        // Mocked single market (SOL/USDC perpetual) for local testing without hitting Drift API
-        // Replace with: const response = await this.publicGetStatsMarkets(params); return this.parseMarkets(response.markets);
-        return [
-            {
-                'id': 'SOL-PERP',
-                'symbol': 'SOL/USDC:USDC',
-                'base': 'SOL',
-                'quote': 'USDC',
-                'settle': 'USDC',
-                'baseId': 'SOL',
-                'quoteId': 'USDC',
-                'settleId': 'USDC',
+        const response = await this.publicGetStatsMarkets (params);
+        const allMarkets = this.safeValue (response, 'markets', []);
+        const result: Market[] = [];
+        for (let i = 0; i < allMarkets.length; i++) {
+            const market = allMarkets[i];
+            const marketType = this.safeString (market, 'marketType');
+            // Only include perp markets
+            if (marketType !== 'perp') {
+                continue;
+            }
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = quote;
+            const symbol = base + '/' + quote + ':' + settle;
+            const status = this.safeString (market, 'status');
+            const activeStatuses = [ 'active', 'fundingPaused', 'ammPaused' ];
+            const active = activeStatuses.includes (status);
+            const limits = this.safeValue (market, 'limits', {});
+            const leverageLimits = this.safeValue (limits, 'leverage', {});
+            const amountLimits = this.safeValue (limits, 'amount', {});
+            const fees = this.safeValue (market, 'fees', {});
+            const precision = this.safeInteger (market, 'precision');
+            result.push (this.safeMarketStructure ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': quoteId,
                 'type': 'swap',
                 'spot': false,
                 'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
-                'contract': true,
-                'linear': true,
-                'inverse': false,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': undefined,
-                'limits': undefined,
-                'active': true,
-                'created': undefined,
-                'info': undefined,
-            },
-            {
-                'id': 'BTC-PERP',
-                'symbol': 'BTC/USDC:USDC',
-                'base': 'BTC',
-                'quote': 'USDC',
-                'settle': 'USDC',
-                'baseId': 'BTC',
-                'quoteId': 'USDC',
-                'settleId': 'USDC',
-                'type': 'swap',
-                'spot': false,
-                'margin': false,
-                'swap': true,
-                'future': false,
-                'option': false,
+                'active': active,
                 'contract': true,
                 'linear': true,
                 'inverse': false,
@@ -221,94 +215,32 @@ export default class drift extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.001'),
-                    'price': this.parseNumber ('0.0001'),
+                    'amount': precision,
+                    'price': precision,
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber ('10'),
+                        'min': this.safeNumber (leverageLimits, 'min', 1),
+                        'max': this.safeNumber (leverageLimits, 'max', 1),
                     },
                     'amount': {
-                        'min': this.parseNumber ('0.1'),
-                        'max': this.parseNumber ('100000'),
+                        'min': this.safeNumber (amountLimits, 'min'),
+                        'max': this.safeNumber (amountLimits, 'max'),
                     },
                     'price': {
-                        'min': this.parseNumber ('0.01'),
-                        'max': this.parseNumber ('100000'),
-                    },
-                    'cost': {
-                        'min': this.parseNumber ('10'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
-                'active': true,
+                'fees': {
+                    'maker': this.safeNumber (fees, 'maker'),
+                    'taker': this.safeNumber (fees, 'taker'),
+                },
                 'created': undefined,
-                'info': {
-                    'mock': true,
-                    'marketIndex': 1,
-                },
-            },
-        ];
-    }
-
-    parseMarket (market: Dict): Market {
-        const id = this.safeString (market, 'marketIndex');
-        const baseId = this.safeString (market, 'baseAsset');
-        const quoteId = this.safeString (market, 'quoteAsset');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const type = this.safeString (market, 'marketType'); // 'spot' or 'perp'
-        return {
-            'id': id,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'settle': undefined,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'swap',
-            'spot': type === 'spot',
-            'margin': false,
-            'swap': type === 'perp',
-            'future': false,
-            'option': false,
-            'active': this.safeValue (market, 'active', true),
-            'contract': type === 'perp',
-            'linear': type === 'perp' ? true : undefined,
-            'inverse': false,
-            'contractSize': type === 'perp' ? this.safeNumber (market, 'contractSize', 1) : undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': this.safeInteger (market, 'amountPrecision'),
-                'price': this.safeInteger (market, 'pricePrecision'),
-            },
-            'limits': {
-                'leverage': {
-                    'min': this.safeNumber (market, 'minLeverage', 1),
-                    'max': this.safeNumber (market, 'maxLeverage', 1),
-                },
-                'amount': {
-                    'min': this.safeNumber (market, 'minOrderSize'),
-                    'max': this.safeNumber (market, 'maxOrderSize'),
-                },
-                'price': {
-                    'min': this.safeNumber (market, 'minPrice'),
-                    'max': this.safeNumber (market, 'maxPrice'),
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'minNotional'),
-                    'max': undefined,
-                },
-            },
-            'created': undefined,
-            'info': market,
-        };
+                'info': market,
+            }));
+        }
+        return result;
     }
 
     /**
@@ -329,39 +261,37 @@ export default class drift extends Exchange {
                 continue;
             }
             const symbol = this.safeString (market, 'symbol');
-            result[symbol] = {
+            const status = this.safeString (market, 'status');
+            const limits = this.safeValue (market, 'limits', {});
+            const depositLimits = this.safeValue (limits, 'deposit', {});
+            const withdrawLimits = this.safeValue (limits, 'withdraw', {});
+            const withdrawEnabled = status !== 'withdrawPaused';
+            const isActive = status === 'active';
+            result[symbol] = this.safeCurrencyStructure ({
                 'id': this.safeString (market, 'marketIndex'),
                 'code': this.safeString (market, 'symbol'),
                 'info': market,
-                'active': true, // todo
-                'deposit': undefined, // todo
-                'withdraw': undefined, // todo
-                'fee': undefined, // no withdraw/deposit fees
-                'precision': undefined, // todo
+                'active': isActive,
+                'deposit': true,
+                'withdraw': withdrawEnabled,
+                'fee': undefined,
+                'precision': this.safeInteger (market, 'precision'),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'deposit': {
+                        'min': this.safeNumber (depositLimits, 'min'),
+                        'max': this.safeNumber (depositLimits, 'max'),
                     },
                     'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (withdrawLimits, 'min'),
+                        'max': this.safeNumber (withdrawLimits, 'max'),
                     },
                 },
                 'networks': {},
-            };
+            });
         }
         return result;
     }
 
-    /**
-     * @method
-     * @name drift#fetchTicker
-     * @description fetches a price ticker for a specific symbol
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1328,7 +1258,7 @@ export default class drift extends Exchange {
         price: Num = undefined,
         params = {}
     ): Promise<Order> {
-		await this.loadMarkets ();
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'accountId': this.accountId,
@@ -1358,7 +1288,6 @@ export default class drift extends Exchange {
      * @name drift#cancelOrder
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1390,7 +1319,7 @@ export default class drift extends Exchange {
                 'filled': undefined,
                 'remaining': undefined,
                 'type': undefined,
-            },
+            }
         );
     }
 
@@ -1475,8 +1404,6 @@ export default class drift extends Exchange {
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Transaction} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
