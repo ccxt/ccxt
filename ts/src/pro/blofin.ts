@@ -112,7 +112,8 @@ export default class blofin extends blofinRest {
             const firstSymbol = this.safeString (firstMarket, 'symbol');
             limit = trades.getLimit (firstSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
     handleTrades (client: Client, message) {
