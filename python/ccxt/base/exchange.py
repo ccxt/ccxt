@@ -2267,6 +2267,20 @@ class Exchange(object):
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
 
+    def lighter_sign_modify_order(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignModifyOrder(
+            request['market_index'],
+            request['index'],
+            request['base_amount'],
+            request['price'],
+            request['trigger_price'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        print(tx_type, tx_info, tx_hash, error)
+        return [tx_type, tx_info]
+
     def lighter_sign_transfer(self, signer, request):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignTransfer(
             request['to_account_index'],

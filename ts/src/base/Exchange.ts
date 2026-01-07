@@ -1930,6 +1930,11 @@ export default class Exchange {
     }
 
     // eslint-disable-next-line no-unused-vars
+    lighterSignModifyOrder (signer, request) {
+        return [ undefined, undefined ];
+    }
+
+    // eslint-disable-next-line no-unused-vars
     lighterSignTransfer (signer, request) {
         return [ undefined, undefined ];
     }
