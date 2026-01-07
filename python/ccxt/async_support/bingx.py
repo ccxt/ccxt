@@ -8,7 +8,7 @@ from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -98,6 +98,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchLiquidations': False,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': True,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMarkPrice': True,
@@ -6342,6 +6343,76 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 result += '&' + key + '=' + value
         return result
+
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+        """
+        retrieve information on the maximum leverage, for different trade sizes for a single market
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports swap markets only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = await self.swapV1PrivateGetMaintMarginRatio(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1767789967284,
+        #         "data": [
+        #             {
+        #                 "tier": "Tier 1",
+        #                 "symbol": "ETH-USDT",
+        #                 "minPositionVal": "0",
+        #                 "maxPositionVal": "900000",
+        #                 "maintMarginRatio": "0.003300",
+        #                 "maintAmount": "0.000000"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+        #
+        #     [
+        #         {
+        #             "tier": "Tier 1",
+        #             "symbol": "ETH-USDT",
+        #             "minPositionVal": "0",
+        #             "maxPositionVal": "900000",
+        #             "maintMarginRatio": "0.003300",
+        #             "maintAmount": "0.000000"
+        #         }
+        #     ]
+        #
+        tiers = []
+        for i in range(0, len(info)):
+            tier = self.safe_dict(info, i)
+            tierString = self.safe_string(tier, 'tier')
+            tierParts = tierString.split(' ')
+            marketId = self.safe_string(tier, 'symbol')
+            market = self.safe_market(marketId, market, None, 'swap')
+            tiers.append({
+                'tier': self.safe_number(tierParts, 1),
+                'symbol': self.safe_symbol(marketId, market),
+                'currency': self.safe_string(market, 'settle'),
+                'minNotional': self.safe_number(tier, 'minPositionVal'),
+                'maxNotional': self.safe_number(tier, 'maxPositionVal'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintMarginRatio'),
+                'maxLeverage': None,
+                'info': tier,
+            })
+        return tiers
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
