@@ -726,7 +726,7 @@ export default class backpack extends backpackRest {
         //         b: '5121861755',
         //         e: 'trade',
         //         m: false,
-        //         p: '3870.26',
+        //         p: '3870.25',
         //         q: '0.0008',
         //         s: 'ETH_USDC_PERP',
         //         t: 10782547
