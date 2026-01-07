@@ -1076,6 +1076,14 @@ export default class hyperliquid extends Exchange {
         });
     }
 
+    updateSpotCurrencyCode (code: string): string {
+        if (code === undefined) {
+            return code;
+        }
+        const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
+        return this.safeString (spotCurrencyMapping, code, code);
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchBalance
@@ -1143,7 +1151,8 @@ export default class hyperliquid extends Exchange {
             const spotBalances: Dict = { 'info': response };
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+                const unifiedCode = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+                const code = isSpot ? this.updateSpotCurrencyCode (unifiedCode) : unifiedCode;
                 const account = this.account ();
                 const total = this.safeString (balance, 'total');
                 const used = this.safeString (balance, 'hold');

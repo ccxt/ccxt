@@ -1087,6 +1087,14 @@ class hyperliquid extends Exchange {
         ));
     }
 
+    public function update_spot_currency_code(string $code): string {
+        if ($code === null) {
+            return $code;
+        }
+        $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+        return $this->safe_string($spotCurrencyMapping, $code, $code);
+    }
+
     public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1155,7 +1163,8 @@ class hyperliquid extends Exchange {
                 $spotBalances = array( 'info' => $response );
                 for ($i = 0; $i < count($balances); $i++) {
                     $balance = $balances[$i];
-                    $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+                    $unifiedCode = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+                    $code = $isSpot ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
                     $account = $this->account();
                     $total = $this->safe_string($balance, 'total');
                     $used = $this->safe_string($balance, 'hold');

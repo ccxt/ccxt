@@ -1336,7 +1336,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //       "channel" => "pong"
         //   }
         //
-        $client->lastPong = $this->safe_integer($message, 'pong');
+        $client->lastPong = $this->safe_integer($message, 'pong', $this->milliseconds());
         return $message;
     }
 

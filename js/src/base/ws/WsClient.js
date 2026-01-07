@@ -42,6 +42,7 @@ export default class WsClient extends Client {
         }
         else {
             this.connection = new WebSocketPlatform(this.url, this.protocols);
+            this.connection.binaryType = "arraybuffer"; // for browsers not to use blob by default
         }
         this.connection.onopen = this.onOpen.bind(this);
         this.connection.onmessage = this.onMessage.bind(this);

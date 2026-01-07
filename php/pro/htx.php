@@ -2069,7 +2069,7 @@ class htx extends \ccxt\async\htx {
                     Async\await($client->send (array( 'op' => 'pong', 'ts' => $pingTs )));
                 }
             } catch (Exception $e) {
-                $error = new NetworkError ($this->id . ' pong failed ' . $this->json($e));
+                $error = new NetworkError ($this->id . ' pong failed ' . $this->exception_message($e));
                 $client->reset ($error);
             }
         }) ();

@@ -1153,7 +1153,7 @@ class bingx(ccxt.async_support.bingx):
                     'time': time,
                 })
         except Exception as e:
-            error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
+            error = NetworkError(self.id + ' pong failed with error ' + self.exception_message(e))
             client.reset(error)
 
     def handle_order(self, client, message):

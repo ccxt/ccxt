@@ -65,7 +65,7 @@ class cryptocom extends cryptocom$1["default"] {
             await client.send({ 'id': this.safeInteger(message, 'id'), 'method': 'public/respond-heartbeat' });
         }
         catch (e) {
-            const error = new errors.NetworkError(this.id + ' pong failed with error ' + this.json(e));
+            const error = new errors.NetworkError(this.id + ' pong failed with error ' + this.exceptionMessage(e));
             client.reset(error);
         }
     }

@@ -5283,6 +5283,24 @@ public partial class gate : Exchange
         //
         //  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
+        // cancel trigger order returns timestamps in ms
+        //   id: '2007047737421336576',
+        //   id_string: '2007047737421336576',
+        //   trigger_time: '0',
+        //   trade_id: '0',
+        //   trade_id_string: '',
+        //   status: 'finished',
+        //   finish_as: 'cancelled',
+        //   reason: '',
+        //   create_time: '1767352444402496'
+        //   finish_time: '1767352509535790',
+        //   is_stop_order: false,
+        //   stop_trigger: { rule: '0', trigger_price: '', order_price: '' },
+        //   me_order_id: '0',
+        //   me_order_id_string: '',
+        //   order_type: '',
+        //   in_dual_mode: false,
+        //   parent_id: '0',
         object succeeded = this.safeBool(order, "succeeded", true);
         if (!isTrue(succeeded))
         {
@@ -5329,15 +5347,39 @@ public partial class gate : Exchange
             side = ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "buy" : "sell";
         }
         object rawStatus = this.safeStringN(order, new List<object>() {"finish_as", "status", "open"});
-        object timestamp = this.safeInteger(order, "create_time_ms");
-        if (isTrue(isEqual(timestamp, null)))
+        object timestampStr = this.safeString(order, "create_time_ms");
+        if (isTrue(isEqual(timestampStr, null)))
         {
-            timestamp = this.safeTimestamp2(order, "create_time", "ctime");
+            timestampStr = this.safeString2(order, "create_time", "ctime");
+            if (isTrue(!isEqual(timestampStr, null)))
+            {
+                if (isTrue(isTrue(isEqual(((string)timestampStr).Length, 10)) || isTrue(isGreaterThanOrEqual(getIndexOf(timestampStr, "."), 0))))
+                {
+                    // ts in seconds, multiply to ms
+                    timestampStr = Precise.stringMul(timestampStr, "1000");
+                } else if (isTrue(isEqual(((string)timestampStr).Length, 16)))
+                {
+                    // ts in microseconds, divide to ms
+                    timestampStr = Precise.stringDiv(timestampStr, "1000");
+                }
+            }
         }
-        object lastTradeTimestamp = this.safeInteger(order, "update_time_ms");
-        if (isTrue(isEqual(lastTradeTimestamp, null)))
+        object lastTradeTimestampStr = this.safeString(order, "update_time_ms");
+        if (isTrue(isEqual(lastTradeTimestampStr, null)))
         {
-            lastTradeTimestamp = this.safeTimestamp2(order, "update_time", "finish_time");
+            lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
+            if (isTrue(!isEqual(lastTradeTimestampStr, null)))
+            {
+                if (isTrue(isTrue(isEqual(((string)lastTradeTimestampStr).Length, 10)) || isTrue(isGreaterThanOrEqual(getIndexOf(lastTradeTimestampStr, "."), 0))))
+                {
+                    // ts in seconds, multiply to ms
+                    lastTradeTimestampStr = Precise.stringMul(lastTradeTimestampStr, "1000");
+                } else if (isTrue(isEqual(((string)lastTradeTimestampStr).Length, 16)))
+                {
+                    // ts in microseconds, divide to ms
+                    lastTradeTimestampStr = Precise.stringDiv(lastTradeTimestampStr, "1000");
+                }
+            }
         }
         object marketType = "contract";
         if (isTrue(isTrue((inOp(order, "currency_pair"))) || isTrue((inOp(order, "market")))))
@@ -5389,6 +5431,16 @@ public partial class gate : Exchange
                 cost = amount;
                 amount = Precise.stringDiv(amount, averageString);
             }
+        }
+        object timestamp = null;
+        object lastTradeTimestamp = null;
+        if (isTrue(!isEqual(timestampStr, null)))
+        {
+            timestamp = this.parseToInt(timestampStr);
+        }
+        if (isTrue(!isEqual(lastTradeTimestampStr, null)))
+        {
+            lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "id") },

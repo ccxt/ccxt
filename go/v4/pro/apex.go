@@ -1265,7 +1265,7 @@ func  (this *ApexCore) Pong(client interface{}, message interface{}) <- chan int
                                 }
                                 ret_ = func(this *ApexCore) interface{} {
                                     // catch block:
-                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.Json(e)))
+                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.ExceptionMessage(e)))
                     client.(ccxt.ClientInterface).Reset(error)
                                     return nil
                                 }(this)
@@ -1297,7 +1297,7 @@ func  (this *ApexCore) HandlePong(client interface{}, message interface{}) inter
     //
     //   { pong: 1653296711335 }
     //
-    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong"))
+    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
     return message
 }
 func  (this *ApexCore) HandlePing(client interface{}, message interface{})  {

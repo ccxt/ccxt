@@ -1528,7 +1528,7 @@ func  (this *BingxCore) Pong(client interface{}, message interface{}) <- chan in
                                 }
                                 ret_ = func(this *BingxCore) interface{} {
                                     // catch block:
-                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " pong failed with error "), this.Json(e)))
+                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " pong failed with error "), this.ExceptionMessage(e)))
                     client.(ccxt.ClientInterface).Reset(error)
                                     return nil
                                 }(this)

@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.29';
+const version = '4.5.31';
 
 (Exchange as any).ccxtVersion = version
 
@@ -133,7 +133,6 @@ import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
-import oceanex from  './src/oceanex.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -326,7 +325,6 @@ const exchanges = {
     'myokx':                  myokx,
     'ndax':                   ndax,
     'novadax':                novadax,
-    'oceanex':                oceanex,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -661,7 +659,6 @@ export {
     myokx,
     ndax,
     novadax,
-    oceanex,
     okx,
     okxus,
     onetrading,

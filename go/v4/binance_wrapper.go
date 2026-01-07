@@ -1108,7 +1108,7 @@ func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (map[string]interface{}, error) {
+func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
 	opts := FetchCanceledOrdersOptionsStruct{}
 
@@ -1137,9 +1137,9 @@ func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
 	}
 	res := <-this.Core.FetchCanceledOrders(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return NewOrderArray(res), nil
 }
 
 /**

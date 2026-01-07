@@ -1061,7 +1061,7 @@ class toobit(ccxt.async_support.toobit):
                     future.resolve(True)
                     self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
                 except Exception as e:
-                    err = AuthenticationError(self.id + ' ' + self.json(e))
+                    err = AuthenticationError(self.id + ' ' + self.exception_message(e))
                     client.reject(err, messageHash)
                     if messageHash in client.subscriptions:
                         del client.subscriptions[messageHash]

@@ -161,6 +161,7 @@ public partial class kucoin : Exchange
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "user-info", 30 },
+                        { "user/api-key", 30 },
                         { "accounts", 7.5 },
                         { "accounts/{accountId}", 7.5 },
                         { "accounts/ledgers", 3 },
@@ -239,6 +240,7 @@ public partial class kucoin : Exchange
                         { "convert/limit/order/detail", 5 },
                         { "convert/limit/orders", 5 },
                         { "affiliate/inviter/statistics", 30 },
+                        { "earn/redeem-preview", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "sub/user/created", 22.5 },
@@ -638,6 +640,9 @@ public partial class kucoin : Exchange
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "includeFee", false },
+                } },
+                { "transfer", new Dictionary<string, object>() {
+                    { "fillResponseFromRequest", true },
                 } },
                 { "versions", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
@@ -4642,14 +4647,15 @@ public partial class kucoin : Exchange
      * @method
      * @name kucoin#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
-     * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
-     * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
+     * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+     * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT
+     * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
@@ -4658,89 +4664,86 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object requestedAmount = this.currencyToPrecision(code, amount);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+            { "amount", requestedAmount },
+        };
+        object transferType = "INTERNAL";
+        var transferTypeparametersVariable = this.handleParamString2(parameters, "transferType", "type", transferType);
+        transferType = ((IList<object>)transferTypeparametersVariable)[0];
+        parameters = ((IList<object>)transferTypeparametersVariable)[1];
+        if (isTrue(isEqual(transferType, "PARENT_TO_SUB")))
+        {
+            if (!isTrue((inOp(parameters, "toUserId"))))
+            {
+                throw new ExchangeError ((string)add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
+            }
+        } else if (isTrue(isEqual(transferType, "SUB_TO_PARENT")))
+        {
+            if (!isTrue((inOp(parameters, "fromUserId"))))
+            {
+                throw new ExchangeError ((string)add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
+            }
+        }
+        if (!isTrue((inOp(parameters, "clientOid"))))
+        {
+            ((IDictionary<string,object>)request)["clientOid"] = this.uuid();
+        }
         object fromId = this.convertTypeToAccount(fromAccount);
         object toId = this.convertTypeToAccount(toAccount);
         object fromIsolated = this.inArray(fromId, this.ids);
         object toIsolated = this.inArray(toId, this.ids);
-        if (isTrue(isEqual(fromId, "contract")))
+        if (isTrue(fromIsolated))
         {
-            if (isTrue(!isEqual(toId, "main")))
-            {
-                throw new ExchangeError ((string)add(this.id, " transfer() only supports transferring from futures account to main account")) ;
-            }
-            object request = new Dictionary<string, object>() {
-                { "currency", getValue(currency, "id") },
-                { "amount", requestedAmount },
-            };
-            if (!isTrue((inOp(parameters, "bizNo"))))
-            {
-                // it doesn't like more than 24 characters
-                ((IDictionary<string,object>)request)["bizNo"] = this.uuid22();
-            }
-            object response = await this.futuresPrivatePostTransferOut(this.extend(request, parameters));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "applyId": "605a87217dff1500063d485d",
-            //             "bizNo": "bcd6e5e1291f4905af84dc",
-            //             "payAccountType": "CONTRACT",
-            //             "payTag": "DEFAULT",
-            //             "remark": '',
-            //             "recAccountType": "MAIN",
-            //             "recTag": "DEFAULT",
-            //             "recRemark": '',
-            //             "recSystem": "KUCOIN",
-            //             "status": "PROCESSING",
-            //             "currency": "XBT",
-            //             "amount": "0.00001",
-            //             "fee": "0",
-            //             "sn": "573688685663948",
-            //             "reason": '',
-            //             "createdAt": 1616545569000,
-            //             "updatedAt": 1616545569000
-            //         }
-            //     }
-            //
-            object data = this.safeDict(response, "data");
-            return this.parseTransfer(data, currency);
-        } else
+            ((IDictionary<string,object>)request)["fromAccountTag"] = fromId;
+            fromId = "isolated";
+        }
+        if (isTrue(toIsolated))
         {
-            object request = new Dictionary<string, object>() {
-                { "currency", getValue(currency, "id") },
-                { "amount", requestedAmount },
-            };
-            if (isTrue(isTrue(fromIsolated) || isTrue(toIsolated)))
-            {
-                if (isTrue(this.inArray(fromId, this.ids)))
-                {
-                    ((IDictionary<string,object>)request)["fromTag"] = fromId;
-                    fromId = "isolated";
-                }
-                if (isTrue(this.inArray(toId, this.ids)))
-                {
-                    ((IDictionary<string,object>)request)["toTag"] = toId;
-                    toId = "isolated";
-                }
-            }
+            ((IDictionary<string,object>)request)["toAccountTag"] = toId;
+            toId = "isolated";
+        }
+        object hfOrMining = this.isHfOrMining(fromId, toId);
+        object response = null;
+        if (isTrue(hfOrMining))
+        {
+            // new endpoint does not support hf and mining transfers
+            // use old endpoint for hf and mining transfers
             ((IDictionary<string,object>)request)["from"] = fromId;
             ((IDictionary<string,object>)request)["to"] = toId;
-            if (!isTrue((inOp(parameters, "clientOid"))))
-            {
-                ((IDictionary<string,object>)request)["clientOid"] = this.uuid();
-            }
-            object response = await this.privatePostAccountsInnerTransfer(this.extend(request, parameters));
+            response = await this.privatePostAccountsInnerTransfer(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["type"] = transferType;
+            ((IDictionary<string,object>)request)["fromAccountType"] = ((string)fromId).ToUpper();
+            ((IDictionary<string,object>)request)["toAccountType"] = ((string)toId).ToUpper();
             //
             //     {
             //         "code": "200000",
             //         "data": {
-            //              "orderId": "605a6211e657f00006ad0ad6"
+            //             "orderId": "694fcb5b08bb1600015cda75"
             //         }
             //     }
             //
-            object data = this.safeDict(response, "data");
-            return this.parseTransfer(data, currency);
+            response = await this.privatePostAccountsUniversalTransfer(this.extend(request, parameters));
         }
+        object data = this.safeDict(response, "data");
+        object transfer = this.parseTransfer(data, currency);
+        object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
+        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        if (isTrue(fillResponseFromRequest))
+        {
+            ((IDictionary<string,object>)transfer)["amount"] = amount;
+            ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
+            ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
+            ((IDictionary<string,object>)transfer)["status"] = "ok";
+        }
+        return transfer;
+    }
+
+    public virtual object isHfOrMining(object fromId, object toId)
+    {
+        return (isTrue(isTrue(isTrue(isEqual(fromId, "trade_hf")) || isTrue(isEqual(toId, "trade_hf"))) || isTrue(isEqual(fromId, "pool"))) || isTrue(isEqual(toId, "pool")));
     }
 
     public override object parseTransfer(object transfer, object currency = null)

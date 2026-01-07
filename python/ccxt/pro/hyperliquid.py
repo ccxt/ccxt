@@ -1214,7 +1214,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #       "channel": "pong"
         #   }
         #
-        client.lastPong = self.safe_integer(message, 'pong')
+        client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
     def request_id(self) -> float:

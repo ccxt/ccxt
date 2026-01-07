@@ -1382,14 +1382,30 @@ public partial class kucoin
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2"/>  <br/>
-    /// See <see href="https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.transferType</term>
+    /// <description>
+    /// string : INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.fromUserId</term>
+    /// <description>
+    /// string : required if transferType is SUB_TO_PARENT
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.toUserId</term>
+    /// <description>
+    /// string : required if transferType is PARENT_TO_SUB
     /// </description>
     /// </item>
     /// </list>

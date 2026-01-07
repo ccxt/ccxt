@@ -23,6 +23,7 @@ import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFr
 import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSleep from './test.sleep.js';
+import testEthMethods from './test.ethMethods.js';
 
 async function baseTestsInit () {
     testLanguageSpecific ();
@@ -46,6 +47,7 @@ async function baseTestsInit () {
     testRemoveRepeatedElementsFromArray ();
     testParsePrecision ();
     testArraysConcat ();
+    testEthMethods ();
     await testSleep ();
 }
 
