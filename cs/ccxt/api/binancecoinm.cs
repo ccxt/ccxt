@@ -3091,6 +3091,11 @@ public partial class binancecoinm : binance
         return await this.callAsync ("eapiPrivateGetBlockTrades",parameters);
     }
 
+    public async Task<object> eapiPrivateGetComission (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetComission",parameters);
+    }
+
     public async Task<object> eapiPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePostOrder",parameters);
