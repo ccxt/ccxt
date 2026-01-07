@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.29'
+__version__ = '4.5.31'
 
 # ----------------------------------------------------------------------------
 
@@ -120,6 +120,7 @@ from ccxt.btcmarkets import btcmarkets                                # noqa: F4
 from ccxt.btcturk import btcturk                                      # noqa: F401
 from ccxt.bullish import bullish                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
+from ccxt.bydfi import bydfi                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
 from ccxt.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
@@ -170,7 +171,6 @@ from ccxt.modetrade import modetrade                                  # noqa: F4
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
-from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
@@ -232,6 +232,7 @@ exchanges = [
     'btcturk',
     'bullish',
     'bybit',
+    'bydfi',
     'cex',
     'coinbase',
     'coinbaseadvanced',
@@ -282,7 +283,6 @@ exchanges = [
     'myokx',
     'ndax',
     'novadax',
-    'oceanex',
     'okx',
     'okxus',
     'onetrading',

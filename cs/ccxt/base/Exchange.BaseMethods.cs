@@ -5746,6 +5746,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchClosedOrders() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchCanceledOrders() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -8110,6 +8116,11 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchPositionHistory () is not supported yet")) ;
         }
+    }
+
+    public async virtual Task loadMarketsAndSignIn()
+    {
+        await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
     }
 
     public async virtual Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)

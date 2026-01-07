@@ -153,6 +153,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		bybitItf := NewBybitCore()
 		bybitItf.Init(exchangeArgs)
 		return bybitItf, true
+	case "bydfi":
+		bydfiItf := NewBydfiCore()
+		bydfiItf.Init(exchangeArgs)
+		return bydfiItf, true
 	case "cex":
 		cexItf := NewCexCore()
 		cexItf.Init(exchangeArgs)
@@ -353,10 +357,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		novadaxItf := NewNovadaxCore()
 		novadaxItf.Init(exchangeArgs)
 		return novadaxItf, true
-	case "oceanex":
-		oceanexItf := NewOceanexCore()
-		oceanexItf.Init(exchangeArgs)
-		return oceanexItf, true
 	case "okx":
 		okxItf := NewOkxCore()
 		okxItf.Init(exchangeArgs)

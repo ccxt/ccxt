@@ -3606,6 +3606,39 @@ func (this *ExchangeTyped) FetchClosedOrders(options ...FetchClosedOrdersOptions
 	}
 	return NewOrderArray(res), nil
 }
+func (this *ExchangeTyped) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
+
+	opts := FetchCanceledOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchCanceledOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
 func (this *ExchangeTyped) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 
 	opts := FetchCanceledAndClosedOrdersOptionsStruct{}

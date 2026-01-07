@@ -29,9 +29,10 @@ func BaseTestsInit() <-chan interface{} {
 		TestRemoveRepeatedElementsFromArray()
 		TestParsePrecision()
 		TestArraysConcat()
+		TestEthMethods()
 
-		retRes484 := (<-TestSleep())
-		PanicOnError(retRes484)
+		retRes504 := (<-TestSleep())
+		PanicOnError(retRes504)
 		return nil
 	}()
 	return ch

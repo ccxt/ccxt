@@ -9,6 +9,7 @@ var FunctionsMap = map[string]interface{}{
 	"datetime":                        TestDatetime,
 	"decimalToPrecision":              TestDecimalToPrecision,
 	"deepExtend":                      TestDeepExtend,
+	"ethMethods":                      TestEthMethods,
 	"extend":                          TestExtend,
 	"filterBy":                        TestFilterBy,
 	"groupBy":                         TestGroupBy,

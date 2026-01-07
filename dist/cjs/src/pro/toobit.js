@@ -1105,7 +1105,7 @@ class toobit extends toobit$1["default"] {
                     this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
                 }
                 catch (e) {
-                    const err = new errors.AuthenticationError(this.id + ' ' + this.json(e));
+                    const err = new errors.AuthenticationError(this.id + ' ' + this.exceptionMessage(e));
                     client.reject(err, messageHash);
                     if (messageHash in client.subscriptions) {
                         delete client.subscriptions[messageHash];

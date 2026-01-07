@@ -993,7 +993,7 @@ export default class ascendex extends ascendexRest {
         try {
             await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
         } catch (e) {
-            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.exceptionMessage (e));
             client.reset (error);
         }
     }

@@ -5194,7 +5194,7 @@ class bingx(Exchange, ImplicitAPI):
             '3': 'rejected',
             '4': 'pending',
             '5': 'rejected',
-            '6': 'pending',
+            '6': 'ok',
         }
         return self.safe_string(statuses, status, status)
 

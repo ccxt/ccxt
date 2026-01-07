@@ -491,7 +491,7 @@ class p2b extends p2b$1["default"] {
         //        id: 1706539608030
         //    }
         //
-        client.lastPong = this.safeInteger(message, 'id');
+        client.lastPong = this.safeInteger(message, 'id', this.milliseconds());
         return message;
     }
     onError(client, error) {

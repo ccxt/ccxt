@@ -4,10 +4,11 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.29'
+__version__ = '4.5.31'
 
 # -----------------------------------------------------------------------------
 
+from traceback import format_exception
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
@@ -76,7 +77,7 @@ from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as Type
 # dydx
 try:
     from ccxt.static_dependencies.mnemonic import Mnemonic
-    from ccxt.static_dependencies.bip import Bip44
+    from ccxt.static_dependencies.bip.bip44 import Bip44
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
         AuthInfo,
@@ -1413,6 +1414,21 @@ class Exchange(object):
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
+    def eth_get_address_from_private_key(private_key):
+        # method returns the Ethereum address from a "0x"-prefixed private key
+        # Remove "0x" prefix if present
+        clean_private_key = Exchange.remove0x_prefix(private_key)
+        # Use coincurve to get the public key
+        private_key_obj = coincurve.PrivateKey(bytes.fromhex(clean_private_key))
+        # Get uncompressed public key (remove the 0x04 prefix)
+        public_key_bytes = private_key_obj.public_key.format(compressed=False)[1:]
+        # Hash the public key with Keccak256
+        address_bytes = keccak.SHA3(public_key_bytes)[-20:]
+        # Convert to hex and add 0x prefix
+        address_hex = '0x' + address_bytes.hex()
+        return address_hex
+
+    @staticmethod
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
         privateKey = get_private_key_from_eth_signature(signature)
         publicKey = private_to_stark_key(privateKey)
@@ -1933,6 +1949,11 @@ class Exchange(object):
 
     def set_property(self, obj, property, value):
         setattr(obj, property, value)
+
+    def exception_message(self, exc, include_stack=True):
+        message = '[' + type(exc).__name__ + '] ' + (str(exc) if include_stack else "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6)))
+        length = min(100000, len(message))
+        return message[0:length]
 
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
@@ -5960,6 +5981,9 @@ class Exchange(object):
             return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchCanceledOrders() is not supported yet')
+
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchCanceledAndClosedOrders() is not supported yet')
 
@@ -7441,6 +7465,9 @@ class Exchange(object):
             return positions
         else:
             raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+
+    def load_markets_and_sign_in(self):
+        [self.load_markets(), self.sign_in()]
 
     def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """

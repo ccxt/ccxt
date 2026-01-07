@@ -578,17 +578,24 @@ class hyperliquid extends hyperliquid$1["default"] {
         let fetchDexesList = [];
         const options = this.safeDict(this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict(options, 'hip3', {});
-        const dexesProvided = this.safeList(hip3, 'dexes'); // let users provide their own list of dexes to load
+        const dexesProvided = this.safeList(hip3, 'dexes', []); // let users provide their own list of dexes to load
         const maxLimit = this.safeInteger(hip3, 'limit', 10);
-        if (dexesProvided !== undefined) {
-            const userProvidedDexesLength = dexesProvided.length;
+        const userProvidedDexesLength = dexesProvided.length;
+        if (userProvidedDexesLength > 0) {
             if (userProvidedDexesLength > 0) {
                 fetchDexesList = dexesProvided;
             }
         }
         else {
+            const fetchDexesLength = fetchDexes.length;
             for (let i = 1; i < maxLimit; i++) {
+                if (i >= fetchDexesLength) {
+                    break;
+                }
                 const dex = this.safeDict(fetchDexes, i, {});
+                if (dex === undefined) {
+                    continue;
+                }
                 const dexName = this.safeString(dex, 'name');
                 fetchDexesList.push(dexName);
             }
@@ -1055,6 +1062,13 @@ class hyperliquid extends hyperliquid$1["default"] {
             'info': market,
         });
     }
+    updateSpotCurrencyCode(code) {
+        if (code === undefined) {
+            return code;
+        }
+        const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
+        return this.safeString(spotCurrencyMapping, code, code);
+    }
     /**
      * @method
      * @name hyperliquid#fetchBalance
@@ -1122,7 +1136,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             const spotBalances = { 'info': response };
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const code = this.safeCurrencyCode(this.safeString(balance, 'coin'));
+                const unifiedCode = this.safeCurrencyCode(this.safeString(balance, 'coin'));
+                const code = isSpot ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
                 const used = this.safeString(balance, 'hold');
