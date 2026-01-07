@@ -79,7 +79,7 @@ export default class cryptomus extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false, // temporarily, until they fix the endpoint
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -388,12 +388,7 @@ export default class cryptomus extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        let response = undefined;
-        try {
-            response = await this.publicGetV1ExchangeMarketAssets (params);
-        } catch (e) {
-            response = { 'result': [] }; // temporarily, until they fix the endpoint
-        }
+        const response = await this.publicGetV1ExchangeMarketAssets (params);
         //
         //     {
         //         'state': '0',
