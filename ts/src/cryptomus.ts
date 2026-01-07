@@ -388,7 +388,12 @@ export default class cryptomus extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetV1ExchangeMarketAssets (params);
+        let response = undefined;
+        try {
+            response = await this.publicGetV1ExchangeMarketAssets (params);
+        } catch (e) {
+            response = { 'result': [] }; // temporarily, until they fix the endpoint
+        }
         //
         //     {
         //         'state': '0',
