@@ -1514,6 +1514,20 @@ class Exchange {
         return [ $result['txType'], $result['txInfo'] ];
     }
 
+    public function lighter_sign_modify_order($signer, $request) {
+        $result = $signer->signModifyOrder(
+            $request['market_index'],
+            $request['index'],
+            $request['base_amount'],
+            $request['price'],
+            $request['trigger_price'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
     public function lighter_sign_transfer($signer, $request) {
         $result = $signer->signTransfer(
             $request['to_account_index'],
