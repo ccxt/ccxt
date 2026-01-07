@@ -1855,6 +1855,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function eapiprivate_get_blocktrades($params = array()) {
         return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function eapiprivate_get_comission($params = array()) {
+        return $this->request('comission', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiprivate_post_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -4188,6 +4191,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function eapiPrivateGetBlockTrades($params = array()) {
         return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivateGetComission($params = array()) {
+        return $this->request('comission', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     public function eapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
