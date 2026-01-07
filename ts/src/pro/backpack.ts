@@ -652,7 +652,8 @@ export default class backpack extends backpackRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
     /**
@@ -712,10 +713,9 @@ export default class backpack extends backpackRest {
         const cache = this.trades[symbol];
         const trade = this.parseWsTrade (data, market);
         cache.append (trade);
-        const sorted = this.sortBy (cache, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
         const messageHash = 'trades:' + symbol;
-        client.resolve (sorted, messageHash);
-        client.resolve (sorted, 'trades');
+        client.resolve (cache, messageHash);
+        client.resolve (cache, 'trades');
     }
 
     parseWsTrade (trade, market = undefined) {
