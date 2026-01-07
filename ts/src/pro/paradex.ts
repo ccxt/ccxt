@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import paradexRest from '../paradex.js';
-import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ export default class paradex extends paradexRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchBalance': false,
@@ -38,6 +38,48 @@ export default class paradex extends paradexRest {
             'options': {},
             'streaming': {},
         });
+    }
+
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
+    }
+
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            const token = await this.authenticateRest ();
+            const request: Dict = {
+                'jsonrpc': '2.0',
+                'id': this.requestId (),
+                'method': 'auth',
+                'params': {
+                    'bearer': token,
+                },
+            };
+            this.spawn (this.watch, url, messageHash, this.deepExtend (request, params), messageHash);
+        }
+        return await future;
+    }
+
+    handleAuthenticationMessage (client: Client, message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        const messageHash = 'authenticated';
+        const result = this.safeDict (message, 'result');
+        if (result !== undefined) {
+            client.resolve (true, messageHash);
+        }
     }
 
     /**
@@ -262,6 +304,90 @@ export default class paradex extends paradexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
+    /**
+     * @method
+     * @name paradex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let messageHash = 'orders';
+        let channel = 'orders.';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            channel += market['id'];
+            messageHash += ':' + symbol;
+        } else {
+            channel += 'ALL';
+        }
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const orders = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "orders.ALL",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //                 "avg_fill_price": "26000",
+        //                 "client_id": "x1234",
+        //                 "cancel_reason": "",
+        //                 "created_at": 1681493746016,
+        //                 "flags": ["REDUCE_ONLY"],
+        //                 "id": "123456",
+        //                 "instruction": "GTC",
+        //                 "last_updated_at": 1681493746016,
+        //                 "market": "BTC-USD-PERP",
+        //                 "price": "26000",
+        //                 "remaining_size": "0",
+        //                 "side": "BUY",
+        //                 "size": "0.05",
+        //                 "status": "NEW",
+        //                 "type": "LIMIT"
+        //             }
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
+        const parsed = this.parseOrder (data);
+        const symbol = this.safeString (parsed, 'symbol');
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        this.orders.append (parsed);
+        const messageHash = 'orders';
+        client.resolve (this.orders, messageHash);
+        if (symbol !== undefined) {
+            const symbolMessageHash = messageHash + ':' + symbol;
+            client.resolve (this.orders, symbolMessageHash);
+        }
+    }
+
     handleTicker (client: Client, message) {
         //
         //     {
@@ -338,6 +464,16 @@ export default class paradex extends paradexRest {
             return;
         }
         //
+        // auth response
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscription message
+        //
         //     {
         //         "jsonrpc": "2.0",
         //         "method": "subscription",
@@ -355,6 +491,11 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
+        const result = this.safeValue (message, 'result');
+        if (result !== undefined) {
+            this.handleAuthenticationMessage (client, message);
+            return;
+        }
         const data = this.safeDict (message, 'params');
         if (data !== undefined) {
             const channel = this.safeString (data, 'channel');
@@ -364,7 +505,7 @@ export default class paradex extends paradexRest {
                 'trades': this.handleTrade,
                 'order_book': this.handleOrderBook,
                 'markets_summary': this.handleTicker,
-                // ...
+                'orders': this.handleOrder,
             };
             const method = this.safeValue (methods, name);
             if (method !== undefined) {
