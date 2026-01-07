@@ -80,7 +80,7 @@ class cryptomus extends Exchange {
                 'fetchConvertTradeHistory' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => true,
+                'fetchCurrencies' => false, // temporarily, until they fix the endpoint
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
