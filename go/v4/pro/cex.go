@@ -54,8 +54,10 @@ func  (this *CexCore) Describe() interface{}  {
     })
 }
 func  (this *CexCore) RequestId() interface{}  {
+    this.LockId()
     var requestId interface{} = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
     ccxt.AddElementToObject(this.Options, "requestId", requestId)
+    this.UnlockId()
     return ccxt.ToString(requestId)
 }
 /**
@@ -64,7 +66,7 @@ func  (this *CexCore) RequestId() interface{}  {
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @see https://cex.io/websocket-api#get-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *CexCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -74,8 +76,8 @@ func  (this *CexCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes668 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes668)
+            retRes688 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes688)
             var messageHash interface{} = this.RequestId()
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var subscribe interface{} = map[string]interface{} {
@@ -85,9 +87,9 @@ func  (this *CexCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
             }
             var request interface{} = this.DeepExtend(subscribe, params)
         
-                retRes7515 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
-                ccxt.PanicOnError(retRes7515)
-                ch <- retRes7515
+                retRes7715 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
+                ccxt.PanicOnError(retRes7715)
+                ch <- retRes7715
                 return nil
         
             }()
@@ -142,7 +144,7 @@ func  (this *CexCore) HandleBalance(client interface{}, message interface{})  {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *CexCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -156,8 +158,8 @@ func  (this *CexCore) WatchTrades(symbol interface{}, optionalArgs ...interface{
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes1318 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1318)
+            retRes1338 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1338)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -291,7 +293,7 @@ func  (this *CexCore) HandleTrade(client interface{}, message interface{})  {
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] public or private
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *CexCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -301,8 +303,8 @@ func  (this *CexCore) WatchTicker(symbol interface{}, optionalArgs ...interface{
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2638 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2638)
+            retRes2658 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2658)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -315,8 +317,8 @@ func  (this *CexCore) WatchTicker(symbol interface{}, optionalArgs ...interface{
             var subscriptionHash interface{} = "tickers"
             if ccxt.IsTrue(ccxt.IsEqual(method, "private")) {
         
-                retRes27712 := (<-this.Authenticate())
-                ccxt.PanicOnError(retRes27712)
+                retRes27912 := (<-this.Authenticate())
+                ccxt.PanicOnError(retRes27912)
                 message = map[string]interface{} {
                     "e": "ticker",
                     "data": []interface{}{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
@@ -326,9 +328,9 @@ func  (this *CexCore) WatchTicker(symbol interface{}, optionalArgs ...interface{
             }
             var request interface{} = this.DeepExtend(message, params)
         
-                retRes28815 :=  (<-this.Watch(url, messageHash, request, subscriptionHash))
-                ccxt.PanicOnError(retRes28815)
-                ch <- retRes28815
+                retRes29015 :=  (<-this.Watch(url, messageHash, request, subscriptionHash))
+                ccxt.PanicOnError(retRes29015)
+                ch <- retRes29015
                 return nil
         
             }()
@@ -341,7 +343,7 @@ func  (this *CexCore) WatchTicker(symbol interface{}, optionalArgs ...interface{
  * @description watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *CexCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -353,8 +355,8 @@ func  (this *CexCore) WatchTickers(optionalArgs ...interface{}) <- chan interfac
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes3018 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3018)
+            retRes3038 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3038)
             symbols = this.MarketSymbols(symbols)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = "tickers"
@@ -369,9 +371,9 @@ func  (this *CexCore) WatchTickers(optionalArgs ...interface{}) <- chan interfac
             var tickerSymbol interface{} = ccxt.GetValue(ticker, "symbol")
             if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) && !ccxt.IsTrue(this.InArray(tickerSymbol, symbols))) {
         
-                    retRes31519 :=  (<-this.WatchTickers(symbols, params))
-                    ccxt.PanicOnError(retRes31519)
-                    ch <- retRes31519
+                    retRes31719 :=  (<-this.WatchTickers(symbols, params))
+                    ccxt.PanicOnError(retRes31719)
+                    ch <- retRes31719
                     return nil
             }
             if ccxt.IsTrue(this.NewUpdates) {
@@ -395,7 +397,7 @@ func  (this *CexCore) WatchTickers(optionalArgs ...interface{}) <- chan interfac
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the cex api endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *CexCore) FetchTickerWs(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -405,8 +407,8 @@ func  (this *CexCore) FetchTickerWs(symbol interface{}, optionalArgs ...interfac
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes3358 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3358)
+            retRes3378 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3378)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = this.RequestId()
@@ -416,9 +418,9 @@ func  (this *CexCore) FetchTickerWs(symbol interface{}, optionalArgs ...interfac
                 "data": []interface{}{ccxt.GetValue(market, "base"), ccxt.GetValue(market, "quote")},
             }, params)
         
-                retRes34415 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes34415)
-                ch <- retRes34415
+                retRes34615 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes34615)
+                ch <- retRes34615
                 return nil
         
             }()
@@ -523,7 +525,7 @@ func  (this *CexCore) ParseWsTicker(ticker interface{}, optionalArgs ...interfac
  * @see https://docs.cex.io/#ws-api-get-balance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the cex api endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *CexCore) FetchBalanceWs(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -533,11 +535,11 @@ func  (this *CexCore) FetchBalanceWs(optionalArgs ...interface{}) <- chan interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes4498 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4498)
+            retRes4518 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4518)
         
-            retRes4508 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes4508)
+            retRes4528 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes4528)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = this.RequestId()
             var request interface{} = this.Extend(map[string]interface{} {
@@ -545,9 +547,9 @@ func  (this *CexCore) FetchBalanceWs(optionalArgs ...interface{}) <- chan interf
                 "oid": messageHash,
             }, params)
         
-                retRes45715 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes45715)
-                ch <- retRes45715
+                retRes45915 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes45915)
+                ch <- retRes45915
                 return nil
         
             }()
@@ -562,7 +564,7 @@ func  (this *CexCore) FetchBalanceWs(optionalArgs ...interface{}) <- chan interf
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *CexCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -581,11 +583,11 @@ func  (this *CexCore) WatchOrders(optionalArgs ...interface{}) <- chan interface
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrders() requires a symbol argument")))
             }
         
-            retRes4758 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4758)
+            retRes4778 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4778)
         
-            retRes4768 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes4768)
+            retRes4788 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes4788)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
@@ -620,7 +622,7 @@ func  (this *CexCore) WatchOrders(optionalArgs ...interface{}) <- chan interface
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *CexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -639,11 +641,11 @@ func  (this *CexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interfa
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchMyTrades() requires a symbol argument")))
             }
         
-            retRes5148 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5148)
+            retRes5168 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5168)
         
-            retRes5158 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes5158)
+            retRes5178 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes5178)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var market interface{} = this.Market(symbol)
             var messageHash interface{} = ccxt.Add("myTrades:", ccxt.GetValue(market, "symbol"))
@@ -1079,7 +1081,7 @@ func  (this *CexCore) HandleOrdersSnapshot(client interface{}, message interface
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *CexCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1091,11 +1093,11 @@ func  (this *CexCore) WatchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9558 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9558)
+            retRes9578 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9578)
         
-            retRes9568 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes9568)
+            retRes9588 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes9588)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -1240,8 +1242,8 @@ func  (this *CexCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10908 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10908)
+            retRes10928 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10928)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash interface{} = ccxt.Add("ohlcv:", symbol)
@@ -1372,7 +1374,7 @@ func  (this *CexCore) HandleOHLCV(client interface{}, message interface{})  {
  * @param {string} id the order id
  * @param {string} symbol not used by cex fetchOrder
  * @param {object} [params] extra parameters specific to the cex api endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *CexCore) FetchOrderWs(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1384,11 +1386,11 @@ func  (this *CexCore) FetchOrderWs(id interface{}, optionalArgs ...interface{}) 
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes12388 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12388)
+            retRes12408 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes12408)
         
-            retRes12398 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes12398)
+            retRes12418 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes12418)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1422,7 +1424,7 @@ func  (this *CexCore) FetchOrderWs(id interface{}, optionalArgs ...interface{}) 
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the cex api endpoint
- * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *CexCore) FetchOpenOrdersWs(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1441,11 +1443,11 @@ func  (this *CexCore) FetchOpenOrdersWs(optionalArgs ...interface{}) <- chan int
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchOpenOrdersWs requires a symbol.")))
             }
         
-            retRes12738 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12738)
+            retRes12758 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes12758)
         
-            retRes12748 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes12748)
+            retRes12768 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes12768)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = this.RequestId()
@@ -1494,11 +1496,11 @@ func  (this *CexCore) CreateOrderWs(symbol interface{}, typeVar interface{}, sid
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " createOrderWs requires a price argument")))
             }
         
-            retRes13088 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13088)
+            retRes13108 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13108)
         
-            retRes13098 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes13098)
+            retRes13118 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes13118)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = this.RequestId()
@@ -1555,11 +1557,11 @@ func  (this *CexCore) EditOrderWs(id interface{}, symbol interface{}, typeVar in
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " editOrder() requires a price argument")))
             }
         
-            retRes13498 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13498)
+            retRes13518 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13518)
         
-            retRes13508 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes13508)
+            retRes13528 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes13528)
             var market interface{} = this.Market(symbol)
             var data interface{} = this.Extend(map[string]interface{} {
                 "pair": []interface{}{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
@@ -1593,7 +1595,7 @@ func  (this *CexCore) EditOrderWs(id interface{}, symbol interface{}, typeVar in
  * @param {string} id order id
  * @param {string} symbol not used by cex cancelOrder ()
  * @param {object} [params] extra parameters specific to the cex api endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *CexCore) CancelOrderWs(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1605,11 +1607,11 @@ func  (this *CexCore) CancelOrderWs(id interface{}, optionalArgs ...interface{})
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes13818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes13818)
+            retRes13838 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes13838)
         
-            retRes13828 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes13828)
+            retRes13848 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes13848)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1642,7 +1644,7 @@ func  (this *CexCore) CancelOrderWs(id interface{}, optionalArgs ...interface{})
  * @param {string[]} ids order ids
  * @param {string} symbol not used by cex cancelOrders()
  * @param {object} [params] extra parameters specific to the cex api endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *CexCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1657,11 +1659,11 @@ func  (this *CexCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrderWs does not allow filtering by symbol")))
             }
         
-            retRes14158 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14158)
+            retRes14178 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14178)
         
-            retRes14168 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes14168)
+            retRes14188 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes14188)
             var messageHash interface{} = this.RequestId()
             var data interface{} = this.Extend(map[string]interface{} {
                 "cancel-orders": ids,
@@ -1842,9 +1844,9 @@ func  (this *CexCore) Authenticate(optionalArgs ...interface{}) <- chan interfac
                 this.Watch(url, messageHash, this.Extend(request, params), messageHash)
             }
         
-                retRes157715 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes157715)
-                ch <- retRes157715
+                retRes157915 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes157915)
+                ch <- retRes157915
                 return nil
         
             }()

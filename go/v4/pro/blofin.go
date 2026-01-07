@@ -87,7 +87,7 @@ func  (this *BlofinCore) HandlePong(client interface{}, message interface{})  {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *BlofinCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -119,7 +119,7 @@ func  (this *BlofinCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *BlofinCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -197,7 +197,7 @@ func  (this *BlofinCore) ParseWsTrade(trade interface{}, optionalArgs ...interfa
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BlofinCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -227,7 +227,7 @@ func  (this *BlofinCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BlofinCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -315,7 +315,7 @@ func  (this *BlofinCore) HandleOrderBook(client interface{}, message interface{}
  * @see https://docs.blofin.com/index.html#ws-tickers-channel
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BlofinCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -344,7 +344,7 @@ func  (this *BlofinCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
  * @see https://docs.blofin.com/index.html#ws-tickers-channel
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BlofinCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -413,7 +413,7 @@ func  (this *BlofinCore) ParseWsTicker(ticker interface{}, optionalArgs ...inter
  * @see https://docs.blofin.com/index.html#ws-tickers-channel
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BlofinCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -614,7 +614,7 @@ func  (this *BlofinCore) HandleOHLCV(client interface{}, message interface{})  {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.blofin.com/index.html#ws-account-channel
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *BlofinCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -675,11 +675,14 @@ func  (this *BlofinCore) ParseWsBalance(message interface{}) interface{}  {
  * @method
  * @name biofin#watchOrders
  * @description watches information on multiple orders made by the user
+ * @see https://docs.blofin.com/index.html#ws-order-channel
+ * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+ * @param {boolean} [params.trigger] set to true for trigger orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
  */
 func  (this *BlofinCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -697,9 +700,9 @@ func  (this *BlofinCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             ccxt.AddElementToObject(params, "callerMethodName", "watchOrders")
             var symbolsArray interface{} = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))), []interface{}{symbol}, []interface{}{})
         
-                retRes51815 :=  (<-this.WatchOrdersForSymbols(symbolsArray, since, limit, params))
-                ccxt.PanicOnError(retRes51815)
-                ch <- retRes51815
+                retRes52115 :=  (<-this.WatchOrdersForSymbols(symbolsArray, since, limit, params))
+                ccxt.PanicOnError(retRes52115)
+                ch <- retRes52115
                 return nil
         
             }()
@@ -710,11 +713,13 @@ func  (this *BlofinCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
  * @name blofin#watchOrdersForSymbols
  * @description watches information on multiple orders made by the user across multiple symbols
  * @see https://docs.blofin.com/index.html#ws-order-channel
+ * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
  * @param {string[]} symbols
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+ * @param {boolean} [params.trigger] set to true for trigger orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
  */
 func  (this *BlofinCore) WatchOrdersForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -728,13 +733,16 @@ func  (this *BlofinCore) WatchOrdersForSymbols(symbols interface{}, optionalArgs
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes5338 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes5338)
+            retRes5388 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes5388)
         
-            retRes5348 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5348)
+            retRes5398 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5398)
+            var trigger interface{} = this.SafeValue2(params, "stop", "trigger")
+            params = this.Omit(params, []interface{}{"stop", "trigger"})
+            var channel interface{} = ccxt.Ternary(ccxt.IsTrue(trigger), "orders-algo", "orders")
         
-            orders:= (<-this.WatchMultipleWrapper(false, "orders", "watchOrdersForSymbols", symbols, params))
+            orders:= (<-this.WatchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, params))
             ccxt.PanicOnError(orders)
             if ccxt.IsTrue(this.NewUpdates) {
                 var first interface{} = this.SafeValue(orders, 0)
@@ -805,11 +813,11 @@ func  (this *BlofinCore) WatchPositions(optionalArgs ...interface{}) <- chan int
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes5888 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes5888)
+            retRes5968 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes5968)
         
-            retRes5898 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5898)
+            retRes5978 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5978)
         
             newPositions:= (<-this.WatchMultipleWrapper(false, "positions", "watchPositions", symbols, params))
             ccxt.PanicOnError(newPositions)
@@ -866,8 +874,8 @@ func  (this *BlofinCore) WatchMultipleWrapper(isPublic interface{}, channelName 
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6298 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6298)
+            retRes6378 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6378)
             callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", callerMethodName)
             callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable,0)
             params = ccxt.GetValue(callerMethodNameparamsVariable,1)
@@ -921,7 +929,7 @@ func  (this *BlofinCore) WatchMultipleWrapper(isPublic interface{}, channelName 
                 ccxt.AppendToArray(&messageHashes, channelName)
             }
             // private channel are difference, they only need plural channel name for multiple symbols
-            if ccxt.IsTrue(this.InArray(channelName, []interface{}{"orders", "positions"})) {
+            if ccxt.IsTrue(this.InArray(channelName, []interface{}{"orders", "orders-algo", "positions"})) {
                 rawSubscriptions = []interface{}{map[string]interface{} {
             "channel": channelName,
         }}
@@ -930,9 +938,9 @@ func  (this *BlofinCore) WatchMultipleWrapper(isPublic interface{}, channelName 
             var privateOrPublic interface{} = ccxt.Ternary(ccxt.IsTrue(isPublic), "public", "private")
             var url interface{} = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType), privateOrPublic))
         
-                retRes68315 :=  (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
-                ccxt.PanicOnError(retRes68315)
-                ch <- retRes68315
+                retRes69115 :=  (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
+                ccxt.PanicOnError(retRes69115)
+                ch <- retRes69115
                 return nil
         
             }()
@@ -966,6 +974,7 @@ func  (this *BlofinCore) HandleMessage(client interface{}, message interface{}) 
         "candle": this.HandleOHLCV,
         "account": this.HandleBalance,
         "orders": this.HandleOrders,
+        "orders-algo": this.HandleOrders,
         "positions": this.HandlePositions,
     }
     var method interface{} = nil
@@ -1020,8 +1029,8 @@ func  (this *BlofinCore) Authenticate(optionalArgs ...interface{}) <- chan inter
             var marketType interface{} = "swap" // for now
             var url interface{} = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType), "private"))
         
-            retRes7678 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-            ccxt.PanicOnError(retRes7678)
+            retRes7768 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+            ccxt.PanicOnError(retRes7768)
                 return nil
             }()
             return ch

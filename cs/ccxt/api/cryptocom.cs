@@ -216,6 +216,41 @@ public partial class cryptocom : Exchange
         return await this.callAsync ("v1PrivatePostPrivateGetInstrumentFeeRate",parameters);
     }
 
+    public async Task<object> v1PrivatePostPrivateFiatFiatDepositInfo (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatDepositInfo",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatDepositHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatDepositHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatWithdrawHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatWithdrawHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatCreateWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatCreateWithdraw",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatTransactionQuota (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatTransactionQuota",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatTransactionLimit (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatTransactionLimit",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatGetBankAccounts (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatGetBankAccounts",parameters);
+    }
+
     public async Task<object> v1PrivatePostPrivateStakingStake (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateStakingStake",parameters);

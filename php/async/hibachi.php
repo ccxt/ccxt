@@ -451,7 +451,7 @@ class hibachi extends Exchange {
              * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             $request = array(
                 'accountId' => $this->get_account_id(),
@@ -625,7 +625,7 @@ class hibachi extends Exchange {
              * fetches a price $ticker and the related information for the past 24h
              * @param {string} $symbol unified $symbol of the $market
              * @param {array} [$params] extra parameters specific to the hibachi api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -749,7 +749,7 @@ class hibachi extends Exchange {
              * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -770,7 +770,7 @@ class hibachi extends Exchange {
             /**
              * fetch the trading fee
              * @param $params extra parameters
-             * @return {array} a map of market symbols to ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+             * @return {array} a map of market symbols to ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -849,7 +849,7 @@ class hibachi extends Exchange {
 
     public function create_order_request(float $nonce, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        $feeRate = max ($this->safe_number($market, 'taker'), $this->safe_number($market, 'maker'));
+        $feeRate = max ($this->safe_number($market, 'taker', $this->safe_number($this->options, 'defaultTakerFee', 0.00045)), $this->safe_number($market, 'maker', $this->safe_number($this->options, 'defaultMakerFee', 0.00015)));
         $sideInternal = '';
         if ($side === 'sell') {
             $sideInternal = 'ASK';
@@ -903,7 +903,7 @@ class hibachi extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $nonce = $this->nonce();
@@ -931,7 +931,7 @@ class hibachi extends Exchange {
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $nonce = $this->nonce();
@@ -1000,7 +1000,7 @@ class hibachi extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $nonce = $this->nonce();
@@ -1027,7 +1027,7 @@ class hibachi extends Exchange {
              *
              * @param {Array} $orders list of $orders to edit, each object should contain the parameters required by editOrder, namely $id, $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $nonce = $this->nonce();
@@ -1089,7 +1089,7 @@ class hibachi extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol is unused
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $request = $this->cancel_order_request($id);
             $request['accountId'] = $this->get_account_id();
@@ -1116,7 +1116,7 @@ class hibachi extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified market $symbol, unused
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $orders = array();
             for ($i = 0; $i < count($ids); $i++) {
@@ -1155,7 +1155,7 @@ class hibachi extends Exchange {
              * cancel all open orders in a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $nonce = $this->nonce();
@@ -1224,7 +1224,7 @@ class hibachi extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             $withdrawAddress = mb_substr($address, -40);
             // Get the withdraw fees
@@ -1312,7 +1312,7 @@ class hibachi extends Exchange {
              * @param {string} $symbol unified $symbol of the $market
              * @param {int} [$limit] currently unused
              * @param {array} [$params] extra parameters to be passed -- see documentation link above
-             * @return {array} A dictionary containg ~@link https://docs.ccxt.com/#/?id=order-book-structure orderbook information~
+             * @return {array} A dictionary containg ~@link https://docs.ccxt.com/?id=order-book-structure orderbook information~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1376,7 +1376,7 @@ class hibachi extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1446,7 +1446,7 @@ class hibachi extends Exchange {
              * @param {int} [$since] milisecond timestamp of the earliest order
              * @param {int} [$limit] the maximum number of open orders to return
              * @param {array} [$params] extra parameters
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1547,7 +1547,7 @@ class hibachi extends Exchange {
              *
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1781,7 +1781,7 @@ class hibachi extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency('USDT');
@@ -1886,7 +1886,7 @@ class hibachi extends Exchange {
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters for API
              * @param {string} [$params->publicKey] your public key, you can get it from UI after creating API key
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
             $request = array(
                 'publicKey' => $this->safe_string($params, 'publicKey'),
@@ -1948,7 +1948,7 @@ class hibachi extends Exchange {
              * @param {int} [$since] filter by earliest timestamp (ms)
              * @param {int} [$limit] maximum number of $deposits to be returned
              * @param {array} [$params] extra parameters to be passed to API
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structures~
              */
             $currency = $this->safe_currency($code);
             $request = array(
@@ -2009,7 +2009,7 @@ class hibachi extends Exchange {
              * @param {int} [$since] filter by earliest timestamp (ms)
              * @param {int} [$limit] maximum number of deposits to be returned
              * @param {array} [$params] extra parameters to be passed to API
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structures~
              */
             $currency = $this->safe_currency($code);
             $request = array(
@@ -2086,7 +2086,7 @@ class hibachi extends Exchange {
              *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2118,7 +2118,7 @@ class hibachi extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$funding-rate-structure $funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$funding-rate-structure $funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2175,9 +2175,9 @@ class hibachi extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

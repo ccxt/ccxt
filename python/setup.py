@@ -83,7 +83,7 @@ setup(
         'certifi>=2018.1.18',
         'requests>=2.18.4',
         'cryptography>=2.6.1',
-        'typing_extensions>=4.4.0'
+        'typing_extensions>=4.4.0',
     ],
 
     extras_require={
@@ -91,6 +91,9 @@ setup(
             'aiohttp>=3.10.11',
             'aiodns>=1.1.1',
             'yarl>=1.7.2',
+        ],
+        ':python_version>="3.9" and python_version<="3.13"': [
+            'coincurve==21.0.0',
         ],
         'qa': [
             'ruff==0.0.292',
@@ -101,4 +104,9 @@ setup(
         ],
     },
     project_urls=project_urls,
+
+    include_package_data=True,
+    package_data={
+        "ccxt": ["static_dependencies/mnemonic/wordlist/**/*"],
+    },
 )

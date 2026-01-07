@@ -29,23 +29,40 @@ func (this *ArkhamCore) Describe() interface{} {
 			"swap":                           true,
 			"future":                         false,
 			"option":                         false,
+			"borrowCrossMargin":              false,
+			"borrowIsolatedMargin":           false,
+			"borrowMargin":                   false,
 			"cancelAllOrders":                true,
 			"cancelOrder":                    true,
 			"createDepositAddress":           true,
 			"createOrder":                    true,
 			"fetchAccounts":                  true,
+			"fetchAllGreeks":                 false,
 			"fetchBalance":                   true,
+			"fetchBorrowInterest":            false,
+			"fetchBorrowRate":                false,
+			"fetchBorrowRateHistories":       false,
+			"fetchBorrowRateHistory":         false,
+			"fetchBorrowRates":               false,
+			"fetchBorrowRatesPerSymbol":      false,
 			"fetchClosedOrders":              true,
+			"fetchCrossBorrowRate":           false,
+			"fetchCrossBorrowRates":          false,
 			"fetchCurrencies":                true,
 			"fetchDepositAddress":            false,
 			"fetchDepositAddressesByNetwork": true,
 			"fetchDeposits":                  true,
 			"fetchFundingHistory":            true,
+			"fetchGreeks":                    false,
+			"fetchIsolatedBorrowRate":        false,
+			"fetchIsolatedBorrowRates":       false,
 			"fetchLeverage":                  true,
 			"fetchLeverageTiers":             true,
 			"fetchMyTrades":                  true,
 			"fetchOHLCV":                     true,
 			"fetchOpenOrders":                true,
+			"fetchOption":                    false,
+			"fetchOptionChain":               false,
 			"fetchOrder":                     true,
 			"fetchOrderBook":                 true,
 			"fetchPositions":                 true,
@@ -54,7 +71,10 @@ func (this *ArkhamCore) Describe() interface{} {
 			"fetchTime":                      true,
 			"fetchTrades":                    true,
 			"fetchTradingFees":               true,
+			"fetchVolatilityHistory":         false,
 			"fetchWithdrawals":               true,
+			"repayCrossMargin":               false,
+			"repayIsolatedMargin":            false,
 			"sandbox":                        false,
 			"setLeverage":                    true,
 			"withdraw":                       true,
@@ -716,7 +736,7 @@ func (this *ArkhamCore) FetchTime(optionalArgs ...interface{}) <-chan interface{
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the number of order book entries to return, max 50
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *ArkhamCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -728,8 +748,8 @@ func (this *ArkhamCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes6938 := (<-this.LoadMarkets())
-		PanicOnError(retRes6938)
+		retRes7138 := (<-this.LoadMarkets())
+		PanicOnError(retRes7138)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -808,17 +828,17 @@ func (this *ArkhamCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		_ = params
 		var maxLimit interface{} = 365
 
-		retRes7528 := (<-this.LoadMarkets())
-		PanicOnError(retRes7528)
+		retRes7728 := (<-this.LoadMarkets())
+		PanicOnError(retRes7728)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes75619 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes75619)
-			ch <- retRes75619
+			retRes77619 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+			PanicOnError(retRes77619)
+			ch <- retRes77619
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -936,7 +956,7 @@ func (this *ArkhamCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ArkhamCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -946,8 +966,8 @@ func (this *ArkhamCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes8618 := (<-this.LoadMarkets())
-		PanicOnError(retRes8618)
+		retRes8818 := (<-this.LoadMarkets())
+		PanicOnError(retRes8818)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1023,7 +1043,7 @@ func (this *ArkhamCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *ArkhamCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1037,8 +1057,8 @@ func (this *ArkhamCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes9328 := (<-this.LoadMarkets())
-		PanicOnError(retRes9328)
+		retRes9528 := (<-this.LoadMarkets())
+		PanicOnError(retRes9528)
 		var market interface{} = this.Market(symbol)
 		var marketId interface{} = GetValue(market, "id")
 		var request interface{} = map[string]interface{}{
@@ -1144,7 +1164,7 @@ func (this *ArkhamCore) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ArkhamCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1211,7 +1231,7 @@ func (this *ArkhamCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ArkhamCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1227,8 +1247,8 @@ func (this *ArkhamCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes10858 := (<-this.LoadMarkets())
-		PanicOnError(retRes10858)
+		retRes11058 := (<-this.LoadMarkets())
+		PanicOnError(retRes11058)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1293,7 +1313,7 @@ func (this *ArkhamCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ArkhamCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1309,8 +1329,8 @@ func (this *ArkhamCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes11468 := (<-this.LoadMarkets())
-		PanicOnError(retRes11468)
+		retRes11668 := (<-this.LoadMarkets())
+		PanicOnError(retRes11668)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1343,7 +1363,7 @@ func (this *ArkhamCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ArkhamCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1401,7 +1421,7 @@ func (this *ArkhamCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @see https://arkm.com/docs#post/orders/cancel/all
  * @param {string} symbol cancel alls open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ArkhamCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1457,7 +1477,7 @@ func (this *ArkhamCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
  * @param {string} [params.triggerPriceType] mark, index or last
  * @param {bool} [params.postOnly] true or false whether the order is post-only
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
- * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ArkhamCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1469,8 +1489,8 @@ func (this *ArkhamCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13088 := (<-this.LoadMarkets())
-		PanicOnError(retRes13088)
+		retRes13288 := (<-this.LoadMarkets())
+		PanicOnError(retRes13288)
 		var market interface{} = this.Market(symbol)
 		var isTriggerOrder interface{} = !IsEqual(this.SafeNumberN(params, []interface{}{"triggerPrice", "stopLossPrice", "takeProfitPrice"}), nil)
 		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1728,7 +1748,7 @@ func (this *ArkhamCore) ParseOrderStatus(status interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {string} [params.page_token] page_token - used for paging
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *ArkhamCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1744,8 +1764,8 @@ func (this *ArkhamCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes15828 := (<-this.LoadMarkets())
-		PanicOnError(retRes15828)
+		retRes16028 := (<-this.LoadMarkets())
+		PanicOnError(retRes16028)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -1801,7 +1821,7 @@ func (this *ArkhamCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
  * @description fetch all the accounts associated with a profile
  * @see https://arkm.com/docs#get/user
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *ArkhamCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1811,8 +1831,8 @@ func (this *ArkhamCore) FetchAccounts(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes16328 := (<-this.LoadMarkets())
-		PanicOnError(retRes16328)
+		retRes16528 := (<-this.LoadMarkets())
+		PanicOnError(retRes16528)
 		var request interface{} = map[string]interface{}{}
 		var accountId interface{} = nil
 		accountIdparamsVariable := this.HandleOptionAndParams(params, "fetchAccounts", "accountId")
@@ -1900,7 +1920,7 @@ func (this *ArkhamCore) ParseAccount(account interface{}) interface{} {
  * @description query for account info
  * @see https://arkm.com/docs#get/account/balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *ArkhamCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1910,8 +1930,8 @@ func (this *ArkhamCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17158 := (<-this.LoadMarkets())
-		PanicOnError(retRes17158)
+		retRes17358 := (<-this.LoadMarkets())
+		PanicOnError(retRes17358)
 
 		response := (<-this.V1PrivateGetAccountBalances(params))
 		PanicOnError(response)
@@ -1978,7 +1998,7 @@ func (this *ArkhamCore) ParseBalance(response interface{}) interface{} {
  * @see https://arkm.com/docs#post/account/deposit/addresses/new
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *ArkhamCore) CreateDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1988,8 +2008,8 @@ func (this *ArkhamCore) CreateDepositAddress(code interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17798 := (<-this.LoadMarkets())
-		PanicOnError(retRes17798)
+		retRes17998 := (<-this.LoadMarkets())
+		PanicOnError(retRes17998)
 		var networkCode interface{} = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -2024,7 +2044,7 @@ func (this *ArkhamCore) CreateDepositAddress(code interface{}, optionalArgs ...i
  * @see https://arkm.com/docs#get/account/deposit/addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+ * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
  */
 func (this *ArkhamCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2034,8 +2054,8 @@ func (this *ArkhamCore) FetchDepositAddressesByNetwork(code interface{}, optiona
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18088 := (<-this.LoadMarkets())
-		PanicOnError(retRes18088)
+		retRes18288 := (<-this.LoadMarkets())
+		PanicOnError(retRes18288)
 		var networkCode interface{} = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -2089,7 +2109,7 @@ func (this *ArkhamCore) ParseDepositAddress(entry interface{}, optionalArgs ...i
  * @see https://arkm.com/docs#get/account/deposit/addresses
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *ArkhamCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2099,8 +2119,8 @@ func (this *ArkhamCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18538 := (<-this.LoadMarkets())
-		PanicOnError(retRes18538)
+		retRes18738 := (<-this.LoadMarkets())
+		PanicOnError(retRes18738)
 		var currency interface{} = this.Currency(code)
 		var networkCodeAndParams interface{} = this.HandleNetworkCodeAndParams(params)
 		var networkCode interface{} = GetValue(networkCodeAndParams, 0)
@@ -2129,7 +2149,7 @@ func (this *ArkhamCore) FetchDepositAddress(code interface{}, optionalArgs ...in
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ArkhamCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2145,8 +2165,8 @@ func (this *ArkhamCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes18788 := (<-this.LoadMarkets())
-		PanicOnError(retRes18788)
+		retRes18988 := (<-this.LoadMarkets())
+		PanicOnError(retRes18988)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -2236,7 +2256,7 @@ func (this *ArkhamCore) ParseTransaction(transaction interface{}, optionalArgs .
  * @see https://arkm.com/docs#get/account/fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *ArkhamCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2246,8 +2266,8 @@ func (this *ArkhamCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes19638 := (<-this.LoadMarkets())
-		PanicOnError(retRes19638)
+		retRes19838 := (<-this.LoadMarkets())
+		PanicOnError(retRes19838)
 
 		response := (<-this.V1PrivateGetAccountFees(params))
 		PanicOnError(response)
@@ -2298,7 +2318,7 @@ func (this *ArkhamCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *ArkhamCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2314,8 +2334,8 @@ func (this *ArkhamCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20108 := (<-this.LoadMarkets())
-		PanicOnError(retRes20108)
+		retRes20308 := (<-this.LoadMarkets())
+		PanicOnError(retRes20308)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2385,7 +2405,7 @@ func (this *ArkhamCore) ParseIncome(income interface{}, optionalArgs ...interfac
  * @see https://arkm.com/docs#get/account/leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *ArkhamCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2395,8 +2415,8 @@ func (this *ArkhamCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20758 := (<-this.LoadMarkets())
-		PanicOnError(retRes20758)
+		retRes20958 := (<-this.LoadMarkets())
+		PanicOnError(retRes20958)
 		var market interface{} = this.Market(symbol)
 		var marketId interface{} = this.SafeString(market, "id")
 		var request interface{} = map[string]interface{}{
@@ -2471,8 +2491,8 @@ func (this *ArkhamCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes21338 := (<-this.LoadMarkets())
-		PanicOnError(retRes21338)
+		retRes21538 := (<-this.LoadMarkets())
+		PanicOnError(retRes21538)
 		var market interface{} = this.Market(symbol)
 		var leverageString interface{} = this.NumberToString(leverage)
 		var marketId interface{} = this.SafeString(market, "id")
@@ -2502,7 +2522,7 @@ func (this *ArkhamCore) SetLeverage(leverage interface{}, optionalArgs ...interf
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.standard] whether to fetch standard contract positions
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *ArkhamCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2514,8 +2534,8 @@ func (this *ArkhamCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21598 := (<-this.LoadMarkets())
-		PanicOnError(retRes21598)
+		retRes21798 := (<-this.LoadMarkets())
+		PanicOnError(retRes21798)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.V1PrivateGetAccountPositions(params))
@@ -2629,7 +2649,7 @@ func (this *ArkhamCore) ParsePosition(position interface{}, optionalArgs ...inte
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ArkhamCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2644,8 +2664,8 @@ func (this *ArkhamCore) Withdraw(code interface{}, amount interface{}, address i
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes22698 := (<-this.LoadMarkets())
-		PanicOnError(retRes22698)
+		retRes22898 := (<-this.LoadMarkets())
+		PanicOnError(retRes22898)
 
 		withdrawalAddresses := (<-this.V1PrivateGetAccountWithdrawalAddresses())
 		PanicOnError(withdrawalAddresses)
@@ -2719,7 +2739,7 @@ func (this *ArkhamCore) Withdraw(code interface{}, amount interface{}, address i
  * @see https://arkm.com/docs#get/public/margin-schedules
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *ArkhamCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2731,8 +2751,8 @@ func (this *ArkhamCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes23338 := (<-this.LoadMarkets())
-		PanicOnError(retRes23338)
+		retRes23538 := (<-this.LoadMarkets())
+		PanicOnError(retRes23538)
 		if IsTrue(IsEqual(symbols, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverageTiers() requires a symbols argument")))
 		}

@@ -68,7 +68,7 @@ func  (this *ApexCore) Describe() interface{}  {
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *ApexCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -99,7 +99,7 @@ func  (this *ApexCore) WatchTrades(symbol interface{}, optionalArgs ...interface
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *ApexCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -238,7 +238,7 @@ func  (this *ApexCore) ParseWsTrade(trade interface{}, optionalArgs ...interface
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *ApexCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -266,7 +266,7 @@ func  (this *ApexCore) WatchOrderBook(symbol interface{}, optionalArgs ...interf
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *ApexCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -407,7 +407,7 @@ func  (this *ApexCore) HandleDeltas(bookside interface{}, deltas interface{})  {
  * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *ApexCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -442,7 +442,7 @@ func  (this *ApexCore) WatchTicker(symbol interface{}, optionalArgs ...interface
  * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *ApexCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -705,7 +705,7 @@ func  (this *ApexCore) ParseWsOHLCV(ohlcv interface{}, optionalArgs ...interface
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.unifiedMargin] use unified margin account
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *ApexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -820,7 +820,7 @@ func  (this *ApexCore) WatchPositions(optionalArgs ...interface{}) <- chan inter
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *ApexCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -986,9 +986,11 @@ func  (this *ApexCore) LoadPositionsSnapshot(client interface{}, messageHash int
                 }
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(cache, "positions")
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(cache, "positions")
+            }
                 return nil
             }()
             return ch
@@ -1090,9 +1092,9 @@ func  (this *ApexCore) Authenticate(url interface{}, optionalArgs ...interface{}
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes87015 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes87015)
-                ch <- retRes87015
+                retRes87215 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes87215)
+                ch <- retRes87215
                 return nil
         
             }()
@@ -1133,9 +1135,9 @@ func  (this *ApexCore) HandleErrorMessage(client interface{}, message interface{
     //
     //       },
     //       "header":{
-    //           "X-Bapi-ccxt.Limit":"20",
-    //           "X-Bapi-ccxt.Limit-Status":"19",
-    //           "X-Bapi-ccxt.Limit-Reset-Timestamp":"1714236608944",
+    //           "X-Bapi-Limit":"20",
+    //           "X-Bapi-Limit-Status":"19",
+    //           "X-Bapi-Limit-Reset-Timestamp":"1714236608944",
     //           "Traceid":"3d7168a137bf32a947b7e5e6a575ac7f",
     //           "Timenow":"1714236608946"
     //       },
@@ -1263,7 +1265,7 @@ func  (this *ApexCore) Pong(client interface{}, message interface{}) <- chan int
                                 }
                                 ret_ = func(this *ApexCore) interface{} {
                                     // catch block:
-                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.Json(e)))
+                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.ExceptionMessage(e)))
                     client.(ccxt.ClientInterface).Reset(error)
                                     return nil
                                 }(this)
@@ -1271,11 +1273,11 @@ func  (this *ApexCore) Pong(client interface{}, message interface{}) <- chan int
                         }()
             		    // try block:
                         
-                    retRes100812 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+                    retRes101012 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
                         "args": []interface{}{ccxt.ToString(timeStamp)},
                         "op": "pong",
                     }))
-                    ccxt.PanicOnError(retRes100812)
+                    ccxt.PanicOnError(retRes101012)
             		    return nil
             	    }(this)
                 
@@ -1295,7 +1297,7 @@ func  (this *ApexCore) HandlePong(client interface{}, message interface{}) inter
     //
     //   { pong: 1653296711335 }
     //
-    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong"))
+    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
     return message
 }
 func  (this *ApexCore) HandlePing(client interface{}, message interface{})  {

@@ -1,0 +1,450 @@
+{
+    "BTC": {
+        "info": {
+            "currency": "BTC",
+            "name": "BTC",
+            "fullName": "Bitcoin",
+            "precision": "8",
+            "type": "crypto",
+            "isDebitEnabled": false,
+            "chains": [
+                {
+                    "chainName": "Bitcoin",
+                    "withdrawalMinSize": "0.000482",
+                    "depositMinSize": "0.00000001",
+                    "withdrawalFee": "0.00040000",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "8",
+                    "maxWithdraw": "2.33098086000000",
+                    "maxDeposit": "100.00000000",
+                    "needTag": "false",
+                    "chainId": "bitcoin",
+                    "AddressRegex": "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39,59}|m[a-zA-Z0-9]{25,34}|n[a-zA-Z0-9]{25,34}|^2[a-zA-Z0-9]{25,34}$"
+                }
+            ]
+        },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": null,
+        "name": "BTC",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": 0.0004,
+        "fees": {},
+        "networks": {
+            "bitcoin": {
+                "info": {
+                    "chainName": "Bitcoin",
+                    "withdrawalMinSize": "0.000482",
+                    "depositMinSize": "0.00000001",
+                    "withdrawalFee": "0.00040000",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "8",
+                    "maxWithdraw": "2.33098086000000",
+                    "maxDeposit": "100.00000000",
+                    "needTag": "false",
+                    "chainId": "bitcoin",
+                    "AddressRegex": "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39,59}|m[a-zA-Z0-9]{25,34}|n[a-zA-Z0-9]{25,34}|^2[a-zA-Z0-9]{25,34}$"
+                },
+                "id": "bitcoin",
+                "network": "bitcoin",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.0004,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.000482,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 1e-8,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.000482,
+                "max": null
+            },
+            "deposit": {
+                "min": 1e-8,
+                "max": null
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "currency": "USDT",
+            "name": "USDT",
+            "fullName": "USDT",
+            "precision": "6",
+            "type": "crypto",
+            "isDebitEnabled": false,
+            "chains": [
+                {
+                    "chainName": "TRON(TRC20)",
+                    "withdrawalMinSize": "5.900000",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "5.00000000",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "200000.00000000000000",
+                    "maxDeposit": "10000000.00000000",
+                    "needTag": "false",
+                    "chainId": "tron",
+                    "AddressRegex": "T.{33}"
+                },
+                {
+                    "chainName": "Polygon",
+                    "withdrawalMinSize": "5.900000",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "5.00000000",
+                    "isWithdrawEnabled": "false",
+                    "isDepositEnabled": "false",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "200000.00000000000000",
+                    "maxDeposit": "10000000.00000000",
+                    "needTag": "false",
+                    "chainId": "polygon",
+                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                },
+                {
+                    "chainName": "BNB Smart Chain(BEP20)",
+                    "withdrawalMinSize": "5.900000",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "5.00000000",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "200000.00000000000000",
+                    "maxDeposit": "10000000.00000000",
+                    "needTag": "false",
+                    "chainId": "binance_smart_chain",
+                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                },
+                {
+                    "chainName": "Ethereum(ERC20)",
+                    "withdrawalMinSize": "5.900000",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "5.00000000",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "200000.00000000000000",
+                    "maxDeposit": "10000000.00000000",
+                    "needTag": "false",
+                    "chainId": "ethereum",
+                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                }
+            ]
+        },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": null,
+        "name": "USDT",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": 5,
+        "fees": {},
+        "networks": {
+            "tron": {
+                "info": {
+                    "chainName": "TRON(TRC20)",
+                    "withdrawalMinSize": "5.900000",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "5.00000000",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "200000.00000000000000",
+                    "maxDeposit": "10000000.00000000",
+                    "needTag": "false",
+                    "chainId": "tron",
+                    "AddressRegex": "T.{33}"
+                },
+                "id": "tron",
+                "network": "tron",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 5,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 5.9,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    }
+                }
+            },
+            "polygon": {
+                "info": {
+                    "chainName": "Polygon",
+                    "withdrawalMinSize": "5.900000",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "5.00000000",
+                    "isWithdrawEnabled": "false",
+                    "isDepositEnabled": "false",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "200000.00000000000000",
+                    "maxDeposit": "10000000.00000000",
+                    "needTag": "false",
+                    "chainId": "polygon",
+                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                },
+                "id": "polygon",
+                "network": "polygon",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 5,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 5.9,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    }
+                }
+            },
+            "binance_smart_chain": {
+                "info": {
+                    "chainName": "BNB Smart Chain(BEP20)",
+                    "withdrawalMinSize": "5.900000",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "5.00000000",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "200000.00000000000000",
+                    "maxDeposit": "10000000.00000000",
+                    "needTag": "false",
+                    "chainId": "binance_smart_chain",
+                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                },
+                "id": "binance_smart_chain",
+                "network": "binance_smart_chain",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 5,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 5.9,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    }
+                }
+            },
+            "ethereum": {
+                "info": {
+                    "chainName": "Ethereum(ERC20)",
+                    "withdrawalMinSize": "5.900000",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "5.00000000",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "200000.00000000000000",
+                    "maxDeposit": "10000000.00000000",
+                    "needTag": "false",
+                    "chainId": "ethereum",
+                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                },
+                "id": "ethereum",
+                "network": "ethereum",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 5,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 5.9,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 5.9,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.000001,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "currency": "ETH",
+            "name": "ETH",
+            "fullName": "Ether",
+            "precision": "6",
+            "type": "crypto",
+            "isDebitEnabled": false,
+            "chains": [
+                {
+                    "chainName": "Ethereum(ERC20)",
+                    "withdrawalMinSize": "0.000021",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "0.00001800",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "71.10352600000000",
+                    "maxDeposit": "3000.00000000",
+                    "needTag": "false",
+                    "chainId": "ethereum",
+                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                }
+            ]
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 0.000001,
+        "type": null,
+        "name": "ETH",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": 0.000018,
+        "fees": {},
+        "networks": {
+            "ethereum": {
+                "info": {
+                    "chainName": "Ethereum(ERC20)",
+                    "withdrawalMinSize": "0.000021",
+                    "depositMinSize": "0.00000100",
+                    "withdrawalFee": "0.00001800",
+                    "isWithdrawEnabled": "true",
+                    "isDepositEnabled": "true",
+                    "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+                    "withdrawPrecision": "6",
+                    "maxWithdraw": "71.10352600000000",
+                    "maxDeposit": "3000.00000000",
+                    "needTag": "false",
+                    "chainId": "ethereum",
+                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                },
+                "id": "ethereum",
+                "network": "ethereum",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.000018,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.000021,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.000021,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.000001,
+                "max": null
+            }
+        }
+    },
+    "INR": {
+        "info": {
+            "currency": "INR",
+            "name": "INR",
+            "fullName": "Indian Rupees",
+            "precision": "2",
+            "type": "fiat",
+            "isDebitEnabled": false,
+            "chains": []
+        },
+        "id": "INR",
+        "numericId": null,
+        "code": "INR",
+        "precision": 0.01,
+        "type": null,
+        "name": "INR",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}

@@ -1,13 +1,19 @@
 {
   "name": "ccxt",
-  "version": "4.5.14",
+  "version": "4.5.31",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./js/ccxt.js",
-      "require": "./dist/ccxt.cjs"
+      "import": {
+        "types": "./js/ccxt.d.ts",
+        "default": "./js/ccxt.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./dist/ccxt.cjs"
+      }
     }
   },
   "engines": {
@@ -34,7 +40,7 @@
     "buildGO": "go build -C go ./v4 && go build -C go ./v4/pro",
     "formatGO": "go fmt -C go v4 tests",
     "transpileGOWs": "tsx build/goTranspiler.ts --ws",
-    "transpileGORest": "tsx build/goTranspiler.ts && tsx build/goTranspiler.ts --ws",
+    "transpileGORest": "tsx build/goTranspiler.ts",
     "transpileGO": "npm run transpileGORest && npm run transpileGOWs",
     "buildCSTests": "dotnet build cs/tests/tests.csproj",
     "buildCSRelease": "dotnet build cs --configuration Release",

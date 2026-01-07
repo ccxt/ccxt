@@ -30,9 +30,9 @@ func NewPaymiumFromCore(core *PaymiumCore) *Paymium {
  * @method
  * @name paymium#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
+ * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Paymium) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -46,11 +46,11 @@ func (this *Paymium) FetchBalance(params ...interface{}) (Balances, error) {
  * @method
  * @name paymium#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get
+ * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Paymium) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -80,10 +80,10 @@ func (this *Paymium) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @method
  * @name paymium#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get
+ * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Paymium) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -108,12 +108,12 @@ func (this *Paymium) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @method
  * @name paymium#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get
+ * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Paymium) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -148,10 +148,10 @@ func (this *Paymium) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @method
  * @name paymium#createDepositAddress
  * @description create a currency deposit address
- * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post
+ * @see https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Paymium) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
@@ -176,10 +176,10 @@ func (this *Paymium) CreateDepositAddress(code string, options ...CreateDepositA
  * @method
  * @name paymium#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get
+ * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Paymium) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -204,10 +204,10 @@ func (this *Paymium) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @method
  * @name paymium#fetchDepositAddresses
  * @description fetch deposit addresses for multiple currencies and chain types
- * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
+ * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses
  * @param {string[]|undefined} codes list of unified currency codes, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Paymium) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 
@@ -237,14 +237,14 @@ func (this *Paymium) FetchDepositAddresses(options ...FetchDepositAddressesOptio
  * @method
  * @name paymium#createOrder
  * @description create a trade order
- * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post
+ * @see https://paymium.github.io/api-documentation/#tag/Order/operation/create-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Paymium) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -274,12 +274,11 @@ func (this *Paymium) CreateOrder(symbol string, typeVar string, side string, amo
  * @method
  * @name paymium#cancelOrder
  * @description cancels an open order
- * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D/delete
- * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D~1cancel/delete
+ * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
  * @param {string} id order id
  * @param {string} symbol not used by paymium cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Paymium) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -309,13 +308,13 @@ func (this *Paymium) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @method
  * @name paymium#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post
+ * @see https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Paymium) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -341,11 +340,20 @@ func (this *Paymium) Transfer(code string, amount float64, fromAccount string, t
 func (this *Paymium) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Paymium) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *Paymium) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Paymium) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
 func (this *Paymium) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Paymium) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Paymium) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -427,6 +435,9 @@ func (this *Paymium) EditLimitSellOrder(id string, symbol string, amount float64
 }
 func (this *Paymium) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
+}
+func (this *Paymium) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Paymium) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -601,6 +612,9 @@ func (this *Paymium) FetchOptionChain(code string, options ...FetchOptionChainOp
 }
 func (this *Paymium) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 	return this.exchangeTyped.FetchOrder(id, options...)
+}
+func (this *Paymium) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Paymium) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

@@ -64,6 +64,7 @@ type IExchange interface {
 	EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error)
 	EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error)
 	EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error)
+	EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error)
 	EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error)
 	FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error)
 	FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error)
@@ -101,6 +102,7 @@ type IExchange interface {
 	WatchTickers(options ...WatchTickersOptions) (Tickers, error)
 	UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error)
 	FetchOrder(id string, options ...FetchOrderOptions) (Order, error)
+	FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error)
 	FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error)
 	FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error)
 	CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error)
@@ -128,7 +130,10 @@ type IExchange interface {
 	EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error)
 	CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error)
 	CancelOrder(id string, options ...CancelOrderOptions) (Order, error)
+	CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error)
 	CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error)
+	CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error)
+	CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error)
 	CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error)
 	CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error)
 	CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error)
@@ -317,8 +322,14 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "btcturk":
 		itf := NewBtcturk(options)
 		return itf
+	case "bullish":
+		itf := NewBullish(options)
+		return itf
 	case "bybit":
 		itf := NewBybit(options)
+		return itf
+	case "bydfi":
+		itf := NewBydfi(options)
 		return itf
 	case "cex":
 		itf := NewCex(options)
@@ -365,6 +376,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "cryptomus":
 		itf := NewCryptomus(options)
 		return itf
+	case "deepcoin":
+		itf := NewDeepcoin(options)
+		return itf
 	case "defx":
 		itf := NewDefx(options)
 		return itf
@@ -379,6 +393,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "digifinex":
 		itf := NewDigifinex(options)
+		return itf
+	case "dydx":
+		itf := NewDydx(options)
 		return itf
 	case "exmo":
 		itf := NewExmo(options)
@@ -464,9 +481,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "novadax":
 		itf := NewNovadax(options)
 		return itf
-	case "oceanex":
-		itf := NewOceanex(options)
-		return itf
 	case "okx":
 		itf := NewOkx(options)
 		return itf
@@ -529,6 +543,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "zaif":
 		itf := NewZaif(options)
+		return itf
+	case "zebpay":
+		itf := NewZebpay(options)
 		return itf
 	case "zonda":
 		itf := NewZonda(options)

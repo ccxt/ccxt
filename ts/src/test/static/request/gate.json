@@ -1545,6 +1545,19 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel trigger swap order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders/2007048638370418688?contract=LTC_USDT",
+                "input": [
+                    "2007048638370418688",
+                    "LTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Cancel Order - spot",
                 "method": "cancelOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders/d82cc6af-b131-4398-b269-ddbafa760a19?account=spot&currency_pair=BTC_USDT",

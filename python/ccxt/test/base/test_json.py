@@ -12,7 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-import ccxt  # noqa: F402
+import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.base.errors import BadRequest  # noqa E402
 
 def test_json():
@@ -29,14 +29,3 @@ def test_json():
     list = [1, 2]
     list_json = exchange.json(list)
     assert list_json == '[1,2]'
-    assert 'GO_SKIP_START'
-    try:
-        raise BadRequest('some error')
-    except Exception as e:
-        err_string = exchange.json(e)
-        assert err_string == '{"name":"BadRequest"}'
-    assert 'GO_SKIP_END'
-    # Test: json a string
-    str = 'ccxt, rocks!'
-    serialized_string = exchange.json(str)
-    assert serialized_string == '"ccxt, rocks!"'

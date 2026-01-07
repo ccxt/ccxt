@@ -40,6 +40,7 @@ type IBaseExchange interface {
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
 	SetSandboxMode(enable interface{})
+	EnableDemoTrading(enable interface{})
 	LoadMarkets(params ...interface{}) (map[string]MarketInterface, error)
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
@@ -50,7 +51,7 @@ type IBaseExchange interface {
 	GetMarketsList() []MarketInterface
 	GetCurrency(currencyId string) Currency
 	GetCurrenciesList() []Currency
-
+	Throttle(cost interface{}) <-chan interface{}
 	// methods from base
 }
 
@@ -220,6 +221,7 @@ type ICoreExchange interface {
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
 	GetProperty(obj interface{}, property interface{}) interface{}
+	ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
@@ -323,6 +325,7 @@ type IDerivedExchange interface {
 	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	ParseTrades(trades interface{}, optionalArgs ...interface{}) interface{}
 	ParseGreeks(greeks interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
 	ParseCurrency(rawCurrency interface{}) interface{}
@@ -333,6 +336,7 @@ type IDerivedExchange interface {
 	ParseLastPrice(item interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrder(order interface{}, optionalArgs ...interface{}) interface{}
 	ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}
+	ParseTickers(tickers interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}
 	ParsePosition(position interface{}, optionalArgs ...interface{}) interface{}
 	SafeMarketStructure(optionalArgs ...interface{}) interface{}
@@ -354,9 +358,14 @@ type IDerivedExchange interface {
 	Sign(path interface{}, optionalArgs ...interface{}) interface{}
 	FetchBalance(optionalArgs ...interface{}) <-chan interface{}
 	CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CancelOrdersWithClientOrderIds(clientOrderIds interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CancelOrderWithClientOrderId(clientOrderId interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{}
 	EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{}
+	EditOrderWithClientOrderId(clientOrderId interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOrderWithClientOrderId(clientOrderId interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrders(optionalArgs ...interface{}) <-chan interface{}
 	CreateExpiredOptionMarket(symbol interface{}) interface{}
 	FetchTime(optionalArgs ...interface{}) <-chan interface{}

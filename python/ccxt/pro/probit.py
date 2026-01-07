@@ -53,7 +53,7 @@ class probit(ccxt.async_support.probit):
         https://docs-en.probit.com/reference/balance-1
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.authenticate(params)
         messageHash = 'balance'
@@ -113,7 +113,7 @@ class probit(ccxt.async_support.probit):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.interval]: Unit time to synchronize market information(ms). Available units: 100, 500
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         channel = 'ticker'
         return await self.subscribe_public('watchTicker', symbol, 'ticker', channel, params)
@@ -157,7 +157,7 @@ class probit(ccxt.async_support.probit):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.interval]: Unit time to synchronize market information(ms). Available units: 100, 500
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         channel = 'recent_trades'
         symbol = self.safe_symbol(symbol)
@@ -216,7 +216,7 @@ class probit(ccxt.async_support.probit):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         await self.authenticate(params)
@@ -291,7 +291,7 @@ class probit(ccxt.async_support.probit):
         :param int [limit]: the maximum amount of orders to watch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: choose what channel to use. Can open_order or order_history.
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.authenticate(params)
         messageHash = 'orders'
@@ -361,7 +361,7 @@ class probit(ccxt.async_support.probit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrderBook', 'filter', 'order_books')
