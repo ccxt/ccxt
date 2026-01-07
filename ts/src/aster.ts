@@ -2137,8 +2137,14 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
      * @param {boolean} [params.test] whether to use the test endpoint or not, default is false
+     * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
      * @param {string} [params.positionSide] "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+     * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
