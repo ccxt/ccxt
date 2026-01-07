@@ -357,8 +357,33 @@ export default class lighter extends Exchange {
         return signer;
     }
 
+    async createSubAccount (params = {}) {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' createSubAccount() requires an accountIndex parameter');
+        }
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' createSubAccount() requires an apiKeyIndex parameter');
+        }
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const signRaw: Dict = {
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.lighterSignCreateSubAccount (signer, this.extend (signRaw, params));
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        return await this.publicPostSendTx (request);
+    }
+
     createAuth (params = {}) {
-        const privateKey = this.privateKey;
         // don't omit [accountIndex, apiKeyIndex], request may need them
         let apiKeyIndex = this.safeInteger2 (params, 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
@@ -370,7 +395,7 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const signer = this.loadAccount (this.options['chainId'], privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
         const rs = {
             'deadline': this.seconds () + 60,
             'api_key_index': apiKeyIndex,
