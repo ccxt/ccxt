@@ -6707,12 +6707,14 @@ export default class bingx extends Exchange {
         //
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
-            const tier = info[i];
+            const tier = this.safeDict (info, i);
             const tierString = this.safeString (tier, 'tier');
             const tierParts = tierString.split (' ');
+            const marketId = this.safeString (tier, 'symbol');
+            market = this.safeMarket (marketId, market, undefined, 'swap');
             tiers.push ({
                 'tier': this.safeNumber (tierParts, 1),
-                'symbol': this.safeSymbol (undefined, market),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': this.safeString (market, 'settle'),
                 'minNotional': this.safeNumber (tier, 'minPositionVal'),
                 'maxNotional': this.safeNumber (tier, 'maxPositionVal'),
