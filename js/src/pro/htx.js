@@ -2034,7 +2034,7 @@ export default class htx extends htxRest {
             }
         }
         catch (e) {
-            const error = new NetworkError(this.id + ' pong failed ' + this.json(e));
+            const error = new NetworkError(this.id + ' pong failed ' + this.exceptionMessage(e));
             client.reset(error);
         }
     }

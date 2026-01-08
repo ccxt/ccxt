@@ -1003,6 +1003,7 @@ class binance extends binance$1["default"] {
                         'block/order/execute': 5,
                         'block/user-trades': 5,
                         'blockTrades': 5,
+                        'comission': 5,
                     },
                     'post': {
                         'order': 1,
@@ -2633,6 +2634,7 @@ class binance extends binance$1["default"] {
                     'PERCENT_PRICE_BY_SIDE': errors.InvalidOrder, // {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
                 },
             },
+            'rollingWindowSize': 60000.0,
         });
     }
     isInverse(type, subType = undefined) {

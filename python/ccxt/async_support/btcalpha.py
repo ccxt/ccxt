@@ -23,6 +23,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'name': 'BTC-Alpha',
             'countries': ['US'],
             'version': 'v1',
+            'rateLimit': 10,  # https://btc-alpha.github.io/api-docs/?utm_source=chatgpt.com#http-api-v1
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -150,28 +151,28 @@ class btcalpha(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies/',
-                        'pairs/',
-                        'orderbook/{pair_name}',
-                        'exchanges/',
-                        'charts/{pair}/{type}/chart/',
-                        'ticker/',
-                    ],
+                    'get': {
+                        'currencies/': 1,
+                        'pairs/': 1,
+                        'orderbook/{pair_name}': 1,
+                        'exchanges/': 1,
+                        'charts/{pair}/{type}/chart/': 1,
+                        'ticker/': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'wallets/',
-                        'orders/own/',
-                        'order/{id}/',
-                        'exchanges/own/',
-                        'deposits/',
-                        'withdraws/',
-                    ],
-                    'post': [
-                        'order/',
-                        'order-cancel/',
-                    ],
+                    'get': {
+                        'wallets/': 50,
+                        'orders/own/': 50,
+                        'order/{id}/': 50,
+                        'exchanges/own/': 50,
+                        'deposits/': 50,
+                        'withdraws/': 50,
+                    },
+                    'post': {
+                        'order/': 50,
+                        'order-cancel/': 50,
+                    },
                 },
             },
             'fees': {

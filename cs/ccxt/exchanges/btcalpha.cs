@@ -12,6 +12,7 @@ public partial class btcalpha : Exchange
             { "name", "BTC-Alpha" },
             { "countries", new List<object>() {"US"} },
             { "version", "v1" },
+            { "rateLimit", 10 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -139,11 +140,28 @@ public partial class btcalpha : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"currencies/", "pairs/", "orderbook/{pair_name}", "exchanges/", "charts/{pair}/{type}/chart/", "ticker/"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "currencies/", 1 },
+                        { "pairs/", 1 },
+                        { "orderbook/{pair_name}", 1 },
+                        { "exchanges/", 1 },
+                        { "charts/{pair}/{type}/chart/", 1 },
+                        { "ticker/", 1 },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"wallets/", "orders/own/", "order/{id}/", "exchanges/own/", "deposits/", "withdraws/"} },
-                    { "post", new List<object>() {"order/", "order-cancel/"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "wallets/", 50 },
+                        { "orders/own/", 50 },
+                        { "order/{id}/", 50 },
+                        { "exchanges/own/", 50 },
+                        { "deposits/", 50 },
+                        { "withdraws/", 50 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "order/", 50 },
+                        { "order-cancel/", 50 },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {

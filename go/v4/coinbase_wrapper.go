@@ -1630,6 +1630,40 @@ func (this *Coinbase) FetchTradingFees(params ...interface{}) (TradingFees, erro
 	return NewTradingFees(res), nil
 }
 
+/**
+ * @method
+ * @name coinbase#fetchDepositAddresses
+ * @description fetch deposit addresses for multiple currencies (when available)
+ * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+ * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.accountId] account ID to fetch deposit addresses for
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
+ */
+func (this *Coinbase) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
+
+	opts := FetchDepositAddressesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var codes interface{} = nil
+	if opts.Codes != nil {
+		codes = *opts.Codes
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchDepositAddresses(codes, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewDepositAddressArray(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Coinbase) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
@@ -1751,9 +1785,6 @@ func (this *Coinbase) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowR
 }
 func (this *Coinbase) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddress(code, options...)
-}
-func (this *Coinbase) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
 func (this *Coinbase) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)

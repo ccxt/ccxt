@@ -579,17 +579,24 @@ export default class hyperliquid extends Exchange {
         let fetchDexesList = [];
         const options = this.safeDict(this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict(options, 'hip3', {});
-        const dexesProvided = this.safeList(hip3, 'dexes'); // let users provide their own list of dexes to load
+        const dexesProvided = this.safeList(hip3, 'dexes', []); // let users provide their own list of dexes to load
         const maxLimit = this.safeInteger(hip3, 'limit', 10);
-        if (dexesProvided !== undefined) {
-            const userProvidedDexesLength = dexesProvided.length;
+        const userProvidedDexesLength = dexesProvided.length;
+        if (userProvidedDexesLength > 0) {
             if (userProvidedDexesLength > 0) {
                 fetchDexesList = dexesProvided;
             }
         }
         else {
+            const fetchDexesLength = fetchDexes.length;
             for (let i = 1; i < maxLimit; i++) {
+                if (i >= fetchDexesLength) {
+                    break;
+                }
                 const dex = this.safeDict(fetchDexes, i, {});
+                if (dex === undefined) {
+                    continue;
+                }
                 const dexName = this.safeString(dex, 'name');
                 fetchDexesList.push(dexName);
             }
@@ -1056,6 +1063,13 @@ export default class hyperliquid extends Exchange {
             'info': market,
         });
     }
+    updateSpotCurrencyCode(code) {
+        if (code === undefined) {
+            return code;
+        }
+        const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
+        return this.safeString(spotCurrencyMapping, code, code);
+    }
     /**
      * @method
      * @name hyperliquid#fetchBalance
@@ -1123,7 +1137,8 @@ export default class hyperliquid extends Exchange {
             const spotBalances = { 'info': response };
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const code = this.safeCurrencyCode(this.safeString(balance, 'coin'));
+                const unifiedCode = this.safeCurrencyCode(this.safeString(balance, 'coin'));
+                const code = isSpot ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
                 const used = this.safeString(balance, 'hold');
@@ -1574,7 +1589,7 @@ export default class hyperliquid extends Exchange {
             'connectionId': hash,
         };
     }
-    actionHash(action, vaultAddress, nonce) {
+    actionHash(action, vaultAddress, nonce, expiresAfter = undefined) {
         const dataBinary = this.packb(action);
         const dataHex = this.binaryToBase16(dataBinary);
         let data = dataHex;
@@ -1586,10 +1601,14 @@ export default class hyperliquid extends Exchange {
             data += '01';
             data += vaultAddress;
         }
+        if (expiresAfter !== undefined) {
+            data += '00';
+            data += '00000' + this.intToBase16(expiresAfter);
+        }
         return this.hash(this.base16ToBinary(data), keccak, 'binary');
     }
-    signL1Action(action, nonce, vaultAdress = undefined) {
-        const hash = this.actionHash(action, vaultAdress, nonce);
+    signL1Action(action, nonce, vaultAdress = undefined, expiresAfter = undefined) {
+        const hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
         const isTestnet = this.safeBool(this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         // const data: Dict = {
@@ -4303,6 +4322,35 @@ export default class hyperliquid extends Exchange {
             'weight': weight,
         };
         const signature = this.signL1Action(action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange(this.extend(request, params));
+        return response;
+    }
+    /**
+     * @method
+     * @name hyperliquid#createAccount
+     * @description creates a sub-account under the main account
+     * @param {string} name the name of the sub-account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
+     * @returns {object} a response object
+     */
+    async createSubAccount(name, params = {}) {
+        const nonce = this.milliseconds();
+        const request = {
+            'nonce': nonce,
+        };
+        const action = {
+            'type': 'createSubAccount',
+            'name': name,
+        };
+        const expiresAfter = this.safeInteger(params, 'expiresAfter');
+        if (expiresAfter !== undefined) {
+            params = this.omit(params, 'expiresAfter');
+            request['expiresAfter'] = expiresAfter;
+        }
+        const signature = this.signL1Action(action, nonce, undefined, expiresAfter);
         request['action'] = action;
         request['signature'] = signature;
         const response = await this.privatePostExchange(this.extend(request, params));

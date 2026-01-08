@@ -237,9 +237,11 @@ export default class bitmart extends bitmartRest {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve ();
-        client.resolve (this.balance[type], 'balance:' + type);
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve ();
+            client.resolve (this.balance[type], 'balance:' + type);
+        }
     }
 
     handleBalance (client: Client, message) {
@@ -1746,7 +1748,7 @@ export default class bitmart extends bitmartRest {
 
     /**
      * @method
-     * @name binance#unWatchOrderBookForSymbols
+     * @name bitmart#unWatchOrderBookForSymbols
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
      * @param {string[]} symbols unified array of symbols

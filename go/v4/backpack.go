@@ -525,7 +525,7 @@ func (this *BackpackCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 		//                     "depositEnabled": true,
 		//                     "displayName": "Jito",
 		//                     "maximumWithdrawal": null,
-		//                     "minimumDeposit": "0.29",
+		//                     "minimumDeposit": "0.28",
 		//                     "minimumWithdrawal": "0.58",
 		//                     "withdrawEnabled": true,
 		//                     "withdrawalFee": "0.29"

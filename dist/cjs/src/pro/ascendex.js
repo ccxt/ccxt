@@ -975,7 +975,7 @@ class ascendex extends ascendex$1["default"] {
             await client.send({ 'op': 'pong', 'hp': this.safeInteger(message, 'hp') });
         }
         catch (e) {
-            const error = new errors.NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
+            const error = new errors.NetworkError(this.id + ' handlePing failed with error ' + this.exceptionMessage(e));
             client.reset(error);
         }
     }

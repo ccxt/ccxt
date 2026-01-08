@@ -17,10 +17,11 @@ require('../static_dependencies/ethers/utils/events.js');
 require('../static_dependencies/ethers/utils/fixednumber.js');
 require('../static_dependencies/ethers/utils/maths.js');
 require('../static_dependencies/ethers/utils/utf8.js');
-require('../static_dependencies/noble-hashes/sha3.js');
+var sha3 = require('../static_dependencies/noble-hashes/sha3.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 require('../static_dependencies/ethers/address/address.js');
 var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
+var secp256k1 = require('../static_dependencies/noble-curves/secp256k1.js');
 var rng = require('../static_dependencies/jsencrypt/lib/jsbn/rng.js');
 var index$1 = require('../static_dependencies/scure-starknet/index.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
@@ -147,6 +148,8 @@ class Exchange {
         this.tokenBucket = undefined;
         this.throttler = undefined;
         this.enableRateLimit = undefined;
+        this.rollingWindowSize = 0.0; // set to 0.0 to use leaky bucket rate limiter
+        this.rateLimiterAlgorithm = 'leakyBucket';
         this.httpExceptions = undefined;
         this.limits = undefined;
         this.markets_by_id = undefined;
@@ -613,11 +616,15 @@ class Exchange {
         return undefined;
     }
     isBinaryMessage(msg) {
-        return msg instanceof Uint8Array;
+        return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
     decodeProtoMsg(data) {
         if (!protobufMexc) {
             throw new errors.NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof ArrayBuffer) {
+            // browser case
+            data = new Uint8Array(data);
         }
         if (data instanceof Uint8Array) {
             const decoded = protobufMexc.default.PushDataV3ApiWrapper.decode(data);
@@ -1289,6 +1296,11 @@ class Exchange {
     setProperty(obj, property, defaultValue = undefined) {
         obj[property] = defaultValue;
     }
+    exceptionMessage(exc, includeStack = true) {
+        const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
+        const length = Math.min(100000, message.length);
+        return message.slice(0, length);
+    }
     axolotl(payload, hexKey, ed25519) {
         return crypto.axolotl(payload, hexKey, ed25519);
     }
@@ -1308,6 +1320,23 @@ class Exchange {
     }
     ethEncodeStructuredData(domain, messageTypes, messageData) {
         return this.base16ToBinary(typedData.TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
+    }
+    ethGetAddressFromPrivateKey(privateKey) {
+        // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
+        // Removes the "0x" prefix if present
+        const cleanPrivateKey = this.remove0xPrefix(privateKey);
+        // Get the public key from the private key using secp256k1 curve
+        const publicKeyBytes = secp256k1.secp256k1.getPublicKey(cleanPrivateKey);
+        // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
+        // secp256k1.getPublicKey returns compressed key, we need uncompressed
+        const publicKeyUncompressed = secp256k1.secp256k1.ProjectivePoint.fromHex(publicKeyBytes).toRawBytes(false).slice(1); // Remove 0x04 prefix
+        // Hash the public key with Keccak256
+        const publicKeyHash = sha3.keccak_256(publicKeyUncompressed);
+        // Take the last 20 bytes (40 hex chars)
+        const addressBytes = publicKeyHash.slice(-20);
+        // Convert to hex and add 0x prefix
+        const addressHex = '0x' + this.binaryToBase16(addressBytes);
+        return addressHex;
     }
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
         const privateKey = index$1.ethSigToPrivate(signature);
@@ -1921,6 +1950,7 @@ class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
+            'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
@@ -2716,12 +2746,16 @@ class Exchange {
         if (this.rateLimit > 0) {
             refillRate = 1 / this.rateLimit;
         }
+        const useLeaky = (this.rollingWindowSize === 0.0) || (this.rateLimiterAlgorithm === 'leakyBucket');
+        const algorithm = useLeaky ? 'leakyBucket' : 'rollingWindow';
         const defaultBucket = {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': this.safeInteger(this.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
+            'algorithm': algorithm,
+            'windowSize': this.rollingWindowSize,
+            'rateLimit': this.rateLimit,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);
@@ -5976,6 +6010,9 @@ class Exchange {
         }
         throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
     }
+    async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchCanceledOrders() is not supported yet');
+    }
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
     }
@@ -6439,6 +6476,9 @@ class Exchange {
         }
         const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
+    }
+    async createSubAccount(name, params = {}) {
+        throw new errors.NotSupported(this.id + ' createSubAccount() is not supported yet');
     }
     safeCurrencyCode(currencyId, currency = undefined) {
         currency = this.safeCurrency(currencyId, currency);
@@ -7722,6 +7762,9 @@ class Exchange {
         else {
             throw new errors.NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
         }
+    }
+    async loadMarketsAndSignIn() {
+        await Promise.all([this.loadMarkets(), this.signIn()]);
     }
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**

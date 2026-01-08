@@ -1003,6 +1003,7 @@ export default class binance extends Exchange {
                         'block/order/execute': 5,
                         'block/user-trades': 5,
                         'blockTrades': 5,
+                        'comission': 5,
                     },
                     'post': {
                         'order': 1,
@@ -7538,7 +7539,7 @@ export default class binance extends Exchange {
         }
         const orders = await this.fetchOrders (symbol, since, undefined, params);
         const filteredOrders = this.filterBy (orders, 'status', 'canceled');
-        return this.filterBySinceLimit (filteredOrders, since, limit);
+        return this.filterBySinceLimit (filteredOrders, since, limit) as Order[];
     }
 
     /**

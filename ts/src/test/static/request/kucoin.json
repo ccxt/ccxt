@@ -7,9 +7,17 @@
     ],
     "outputType": "json",
     "options": {
-        "hf": false  
     },
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.kucoin.com/api/v1/accounts/ledgers?bizType=TRANSFER&pageSize=500",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy order",
@@ -548,28 +556,64 @@
         ],
         "transfer": [
             {
-                "description": "transfer from spot to swap",
+                "description": "Transfer from swap to spot",
                 "method": "transfer",
-                "url": "https://api.kucoin.com/api/v2/accounts/inner-transfer",
+                "url": "https://api.kucoin.com/api/v3/accounts/universal-transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "swap",
+                    "spot"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"d9713a5d-e3c6-4ea0-99cf-47a73559d91c\",\"fromAccountType\":\"CONTRACT\",\"toAccountType\":\"TRADE\",\"type\":\"INTERNAL\"}"
+            },
+            {
+                "description": "Transfer from spot to cross",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/v3/accounts/universal-transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "cross"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"6ab3492d-49a5-475a-9b42-017f96d456a0\",\"fromAccountType\":\"TRADE\",\"toAccountType\":\"MARGIN\",\"type\":\"INTERNAL\"}"
+            },
+            {
+                "description": "Transfer from spot to isolated",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/v3/accounts/universal-transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "LTC/USDT"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"cf245304-9da9-4309-a1e9-dd9f16748250\",\"fromAccountType\":\"TRADE\",\"toAccountType\":\"ISOLATED\",\"toAccountTag\":\"LTC-USDT\",\"type\":\"INTERNAL\"}"
+            },
+            {
+                "description": "Transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/v3/accounts/universal-transfer",
                 "input": [
                     "USDT",
                     1,
                     "spot",
                     "swap"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"from\":\"trade\",\"to\":\"contract\",\"clientOid\":\"eac5ee3a-c116-4109-9a47-29c4b1aa6567\"}"
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"9c6bdb0e-cc97-4ddc-96e2-0a5a59ddad09\",\"fromAccountType\":\"TRADE\",\"toAccountType\":\"CONTRACT\",\"type\":\"INTERNAL\"}"
             },
             {
-                "description": "transfer from trade to hf account",
+                "description": "Transfer from main to spot",
                 "method": "transfer",
-                "url": "https://api.kucoin.com/api/v2/accounts/inner-transfer",
+                "url": "https://api.kucoin.com/api/v3/accounts/universal-transfer",
                 "input": [
                     "USDT",
                     5,
-                    "trade",
-                    "trade_hf"
+                    "main",
+                    "spot"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"from\":\"trade\",\"to\":\"trade_hf\",\"clientOid\":\"d0da1feb-d76c-4562-b727-ddfabec6ca45\"}"
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"clientOid\":\"c1bef535-afd2-49f0-a09b-2ab1d7aade85\",\"fromAccountType\":\"MAIN\",\"toAccountType\":\"TRADE\",\"type\":\"INTERNAL\"}"
             }
         ],
         "withdraw": [

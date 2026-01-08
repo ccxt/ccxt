@@ -16,6 +16,7 @@ class btcalpha extends Exchange {
             'name' => 'BTC-Alpha',
             'countries' => array( 'US' ),
             'version' => 'v1',
+            'rateLimit' => 10,  // https://btc-alpha.github.io/api-docs/?utm_source=chatgpt.com#http-api-v1
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -144,26 +145,26 @@ class btcalpha extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'currencies/',
-                        'pairs/',
-                        'orderbook/{pair_name}',
-                        'exchanges/',
-                        'charts/{pair}/{type}/chart/',
-                        'ticker/',
+                        'currencies/' => 1,
+                        'pairs/' => 1,
+                        'orderbook/{pair_name}' => 1,
+                        'exchanges/' => 1,
+                        'charts/{pair}/{type}/chart/' => 1,
+                        'ticker/' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'wallets/',
-                        'orders/own/',
-                        'order/{id}/',
-                        'exchanges/own/',
-                        'deposits/',
-                        'withdraws/',
+                        'wallets/' => 50,
+                        'orders/own/' => 50,
+                        'order/{id}/' => 50,
+                        'exchanges/own/' => 50,
+                        'deposits/' => 50,
+                        'withdraws/' => 50,
                     ),
                     'post' => array(
-                        'order/',
-                        'order-cancel/',
+                        'order/' => 50,
+                        'order-cancel/' => 50,
                     ),
                 ),
             ),

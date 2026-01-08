@@ -23,9 +23,9 @@ class Throttler {
             'algorithm' => 'leakyBucket',
             'rateLimit' => 0.0,
             'windowSize' => 60000.0,         // rolling window size in milliseconds
-            'maxWeight' => 0.0                 // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit  
+            'maxWeight' => 0.0               // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit  
         ), $config);
-        if ($this->config['windowSize'] !== 0.0) {
+        if ($this->config['algorithm'] !== 'leakyBucket') {
             $this->config['maxWeight'] = $this->config['windowSize'] / $this->config['rateLimit'];
         }
         $this->queue = new \SplQueue();

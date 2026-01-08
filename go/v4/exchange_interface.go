@@ -51,7 +51,7 @@ type IBaseExchange interface {
 	GetMarketsList() []MarketInterface
 	GetCurrency(currencyId string) Currency
 	GetCurrenciesList() []Currency
-
+	Throttle(cost interface{}) <-chan interface{}
 	// methods from base
 }
 
@@ -221,6 +221,7 @@ type ICoreExchange interface {
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
 	GetProperty(obj interface{}, property interface{}) interface{}
+	ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
