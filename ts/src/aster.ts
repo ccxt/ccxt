@@ -2132,9 +2132,7 @@ export default class aster extends Exchange {
      * @param {boolean} [params.test] whether to use the test endpoint or not, default is false
      * @param {float} [params.trailingPercent] the percent to trail away from the current market price
      * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
      * @param {string} [params.positionSide] "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
-     * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
