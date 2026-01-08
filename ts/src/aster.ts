@@ -726,18 +726,21 @@ export default class aster extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const contractType = this.safeString (market, 'contractType');
-            const contract = ('contractType' in market);
-            const spot = !contract;
+            const contract = contractType !== undefined;
+            let spot = true;
             if (contractType === 'PERPETUAL') {
                 swap = true;
+                spot = false;
             }
             let contractSize = undefined;
             let linear = undefined;
             let inverse = undefined;
             let symbol = base + '/' + quote;
-            const settleId = this.safeString (market, 'marginAsset');
-            const settle = this.safeCurrencyCode (settleId);
+            let settle = undefined;
+            let settleId = undefined;
             if (contract) {
+                settleId = this.safeString (market, 'marginAsset');
+                settle = this.safeCurrencyCode (settleId);
                 if (swap) {
                     symbol = symbol + ':' + settle;
                 }

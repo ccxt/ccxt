@@ -2162,5 +2162,12 @@
                 "compareOHLC": "open higher than high from API"
             }
         }
+    },
+    "aster": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            }
+        }
     }
 }
