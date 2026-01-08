@@ -129,7 +129,6 @@ from ccxt.async_support.foxbit import foxbit                                    
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
-from ccxt.async_support.grvt import grvt                                        # noqa: F401
 from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
 from ccxt.async_support.hibachi import hibachi                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
@@ -242,7 +241,6 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
-    'grvt',
     'hashkey',
     'hibachi',
     'hitbtc',

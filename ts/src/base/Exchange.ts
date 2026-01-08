@@ -1606,13 +1606,8 @@ export default class Exchange {
         return this.base16ToBinary (ethers.encode (types, args).slice (2));
     }
 
-    ethEncodeStructuredDataOnly (domain, messageTypes, messageData) {
-        return TypedDataEncoder.hash (domain, messageTypes, messageData);
-    }
-
     ethEncodeStructuredData (domain, messageTypes, messageData) {
-        const encoded = TypedDataEncoder.encode (domain, messageTypes, messageData);
-        return this.base16ToBinary (encoded.slice (-132));
+        return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
     }
 
     ethGetAddressFromPrivateKey (privateKey: string): string {
