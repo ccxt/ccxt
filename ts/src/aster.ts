@@ -1638,7 +1638,7 @@ export default class aster extends Exchange {
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString2 (balance, 'availableBalance', 'free');
+            account['free'] = this.safeString2 (balance, 'free', 'maxWithdrawAmount');
             account['used'] = this.safeString (balance, 'locked');
             account['total'] = this.safeString (balance, 'walletBalance');
             result[code] = account;
