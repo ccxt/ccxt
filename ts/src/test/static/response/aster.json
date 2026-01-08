@@ -2031,7 +2031,6 @@
                         "marginRatio": 0,
                         "datetime": "2021-07-05T08:38:24.765Z",
                         "marginMode": "isolated",
-                        "marginType": "isolated",
                         "side": null,
                         "hedged": true,
                         "percentage": null,

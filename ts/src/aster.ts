@@ -2074,6 +2074,7 @@ export default class aster extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let response = undefined;

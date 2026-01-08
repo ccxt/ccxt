@@ -431,5 +431,157 @@
         },
         "tierBased": true,
         "percentage": true
+    },
+    "ASTER/USDT:USDT": {
+        "id": "ASTERUSDT",
+        "lowercaseId": null,
+        "symbol": "ASTER/USDT:USDT",
+        "base": "ASTER",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ASTER",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00035,
+        "maker": 0.0001,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001,
+            "base": 1e-8,
+            "quote": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.01,
+                "max": 2000000
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 200
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            },
+            "market": {
+                "min": 0.01,
+                "max": 200000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1758178800000,
+        "info": {
+            "symbol": "ASTERUSDT",
+            "pair": "ASTERUSDT",
+            "contractType": "PERPETUAL",
+            "deliveryDate": "4133404800000",
+            "onboardDate": "1758178800000",
+            "status": "TRADING",
+            "maintMarginPercent": "12.5000",
+            "requiredMarginPercent": "25.0000",
+            "baseAsset": "ASTER",
+            "quoteAsset": "USDT",
+            "marginAsset": "USDT",
+            "pricePrecision": "5",
+            "quantityPrecision": "2",
+            "baseAssetPrecision": "8",
+            "quotePrecision": "8",
+            "underlyingType": "COIN",
+            "underlyingSubType": [],
+            "symbolType": "0",
+            "tradingMode": "0",
+            "name": "ASTER",
+            "channel": "{}",
+            "sequenceNo": "100",
+            "twapMinNotional": "1000",
+            "settlePlan": "0",
+            "triggerProtect": "0.1500",
+            "liquidationFee": "0.025000",
+            "marketTakeBound": "0.05",
+            "createTime": "1758215451058",
+            "filters": [
+                {
+                    "minPrice": "0.00010",
+                    "maxPrice": "200",
+                    "filterType": "PRICE_FILTER",
+                    "tickSize": "0.00010"
+                },
+                {
+                    "stepSize": "0.01",
+                    "filterType": "LOT_SIZE",
+                    "maxQty": "2000000",
+                    "minQty": "0.01"
+                },
+                {
+                    "stepSize": "0.01",
+                    "filterType": "MARKET_LOT_SIZE",
+                    "maxQty": "200000",
+                    "minQty": "0.01"
+                },
+                {
+                    "limit": "200",
+                    "filterType": "MAX_NUM_ORDERS"
+                },
+                {
+                    "limit": "10",
+                    "filterType": "MAX_NUM_ALGO_ORDERS"
+                },
+                {
+                    "notional": "5",
+                    "filterType": "MIN_NOTIONAL"
+                },
+                {
+                    "multiplierDown": "0.9500",
+                    "multiplierUp": "1.0500",
+                    "ltMultiplierDown": "0.9700",
+                    "multiplierDecimal": "4",
+                    "filterType": "PERCENT_PRICE",
+                    "ltMultiplierUp": "1.0300"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "STOP",
+                "STOP_MARKET",
+                "TAKE_PROFIT",
+                "TAKE_PROFIT_MARKET",
+                "TRAILING_STOP_MARKET"
+            ],
+            "timeInForce": [
+                "GTC",
+                "IOC",
+                "FOK",
+                "GTX",
+                "RPI",
+                "HIDDEN"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true
     }
 }
