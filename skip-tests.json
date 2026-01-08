@@ -2166,7 +2166,8 @@
     "aster": {
         "skipMethods":{
             "loadMarkets": {
-                "currencyIdAndCode": "messed"
+                "currencyIdAndCode": "messed",
+                "precision":"is undefined"
             }
         }
     }
