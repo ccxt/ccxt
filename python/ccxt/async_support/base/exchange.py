@@ -352,7 +352,7 @@ class Exchange(BaseExchange):
         try:
             async with asyncio.TaskGroup() as tg:
                 task_objects = [tg.create_task(task) for task in tasks]
-            
+
             return [task.result() for task in task_objects]
         except BaseException as e:
             if isinstance(e, ExceptionGroup):
