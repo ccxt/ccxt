@@ -3050,7 +3050,7 @@ export default class okx extends Exchange {
         };
         const isConditionalOrOCO = conditional || (type === 'oco');
         const closeFraction = this.safeString (params, 'closeFraction');
-        const shouldOmitSize = isConditionalOrOCO || closeFraction !== undefined;
+        const shouldOmitSize = isConditionalOrOCO && closeFraction !== undefined;
         if (!shouldOmitSize) {
             request['sz'] = this.amountToPrecision (symbol, amount);
         }
