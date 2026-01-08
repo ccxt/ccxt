@@ -10,6 +10,114 @@
     },
     "outputType": "urlencoded",
     "methods": {
+        "createOrder": [
+            {
+                "description": "market buy trigger  order",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order",
+                "input": [
+                    "ASTER/USDT",
+                    "market",
+                    "buy",
+                    9.996,
+                    null,
+                    {
+                        "triggerPrice": 0.9
+                    }
+                ],
+                "output": "timestamp=1767869133664&symbol=ASTERUSDT&side=BUY&type=STOP_MARKET&quantity=9.99&stopPrice=0.9&recvWindow=10000&signature=b57d40b5492c14d3caf9fc6160b9ebf2ab8022b618e4358c913e8dbfd7cca47a"
+            },
+            {
+                "description": "market sell order",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order",
+                "input": [
+                    "ASTER/USDT",
+                    "market",
+                    "sell",
+                    9.996
+                ],
+                "output": "timestamp=1767869080826&symbol=ASTERUSDT&side=SELL&type=MARKET&quantity=9.99&recvWindow=10000&signature=9394fb3567bca1f40f63742342494b988ad5e18af804bd71f4418e1ea61c1d92"
+            },
+            {
+                "description": "market buy order",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order",
+                "input": [
+                    "ASTER/USDT",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "timestamp=1767869058417&symbol=ASTERUSDT&side=BUY&type=MARKET&quantity=10&recvWindow=10000&signature=1219d72552019cbabe68725089bc8b958d23b2d6d6bcc0e689fde4188420c6c3"
+            },
+            {
+                "description": "create swap limit trigger order",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.7,
+                    {
+                        "triggerPrice": 0.8
+                    }
+                ],
+                "output": "timestamp=1767868923180&symbol=ASTERUSDT&side=BUY&type=STOP&quantity=10&price=0.7&stopPrice=0.8&recvWindow=10000&signature=9b38bd66a95cd70317de92b140cfd48dfbe37a4e5d161dbbaa9908ce138a163d"
+            },
+            {
+                "description": "limit sell  order",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "limit",
+                    "sell",
+                    10,
+                    1
+                ],
+                "output": "timestamp=1767868883088&symbol=ASTERUSDT&side=SELL&type=LIMIT&quantity=10&price=1&timeInForce=GTC&recvWindow=10000&signature=32fca6ddc645ba59e93ccd78b42aaaf32a7a713369a55024fa84f783b6818b0c"
+            },
+            {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.7
+                ],
+                "output": "timestamp=1767868843413&symbol=ASTERUSDT&side=BUY&type=LIMIT&quantity=10&price=0.7&timeInForce=GTC&recvWindow=10000&signature=80af081d316dab34dfb77326e2da301e691cbcfc12152b01718d92b0359c580c"
+            },
+            {
+                "description": "swap market sell",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "market",
+                    "sell",
+                    10
+                ],
+                "output": "timestamp=1767868817663&symbol=ASTERUSDT&side=SELL&type=MARKET&quantity=10&recvWindow=10000&signature=13cf3a76954f868ae7d5aa06078a0d97f460e0e1f10b04337dde17e91c34b40b"
+            },
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "timestamp=1767868777769&symbol=ASTERUSDT&side=BUY&type=MARKET&quantity=10&recvWindow=10000&signature=40c0b7671e378e18c03b4e744cac91309b175e427733fe621321b938ddd0a8ba"
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
@@ -441,6 +549,16 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel trigger roder",
+                "method": "cancelOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "2117364602",
+                    "ASTER/USDT:USDT"
+                ],
+                "output": "timestamp=1767869003080&symbol=ASTERUSDT&orderId=2117364602&recvWindow=10000&signature=7f3b030b7bd160fb557b910f91ee140b200f34df565ed4f717dabcea231a1580"
+            },
             {
                 "description": "cancelOrder - spot",
                 "method": "cancelOrder",

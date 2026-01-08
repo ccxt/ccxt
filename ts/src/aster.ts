@@ -1007,7 +1007,7 @@ export default class aster extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const costString = this.safeString2 (trade, 'quoteQty', 'baseQty');
         const timestamp = this.safeInteger (trade, 'time');
-        let side = this.safeString (trade, 'side');
+        let side = this.safeStringLower (trade, 'side');
         const isMaker = this.safeBool (trade, 'maker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
@@ -2069,20 +2069,13 @@ export default class aster extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         let market = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
         let type = undefined;
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
-            const marketType = ('type' in market) ? market['type'] : defaultType;
-            type = this.safeString (params, 'type', marketType);
-            params = this.omit (params, 'type');
-        } else {
-            type = this.safeString (params, 'type', defaultType);
         }
-        params = this.omit (params, 'type');
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let response = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPrivateGetV1OpenOrders (this.extend (request, params));
@@ -3141,7 +3134,7 @@ export default class aster extends Exchange {
         }
         const positionSide = this.safeString (position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3162,13 +3155,12 @@ export default class aster extends Exchange {
             'marginRatio': marginRatio,
             'datetime': this.iso8601 (timestamp),
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
 
     /**

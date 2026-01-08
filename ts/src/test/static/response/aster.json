@@ -152,7 +152,7 @@
                         "symbol": "BTC/USDT:USDT",
                         "order": "25851813",
                         "type": null,
-                        "side": "SELL",
+                        "side": "sell",
                         "takerOrMaker": "taker",
                         "price": 7819.01,
                         "amount": 0.002,
@@ -684,6 +684,67 @@
             }
         ],
         "fetchBalance": [
+            {
+                "description": "spot balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "feeTier": "0",
+                    "canTrade": true,
+                    "canDeposit": true,
+                    "canWithdraw": true,
+                    "canBurnAsset": false,
+                    "updateTime": "1767810156430279925",
+                    "balances": [
+                        {
+                            "asset": "USDT",
+                            "free": "29.99723191",
+                            "locked": "0"
+                        },
+                        {
+                            "asset": "ASTER",
+                            "free": "0.00620000",
+                            "locked": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "asset": "USDT",
+                            "free": "29.99723191",
+                            "locked": "0"
+                        },
+                        {
+                            "asset": "ASTER",
+                            "free": "0.00620000",
+                            "locked": "0"
+                        }
+                    ],
+                    "USDT": {
+                        "free": 29.99723191,
+                        "used": 0,
+                        "total": 29.99723191
+                    },
+                    "ASTER": {
+                        "free": 0.0062,
+                        "used": 0,
+                        "total": 0.0062
+                    },
+                    "free": {
+                        "USDT": 29.99723191,
+                        "ASTER": 0.0062
+                    },
+                    "used": {
+                        "USDT": 0,
+                        "ASTER": 0
+                    },
+                    "total": {
+                        "USDT": 29.99723191,
+                        "ASTER": 0.0062
+                    }
+                }
+            },
             {
                 "description": "fetchBalance - spot",
                 "method": "fetchBalance",
