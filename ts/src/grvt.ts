@@ -4,7 +4,7 @@
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -644,20 +644,20 @@ export default class grvt extends Exchange {
         return this.safeTicker ({
             'info': ticker,
             'symbol': this.safeSymbol (marketId, market),
-            'open': this.safeNumber (ticker, 'open_price'),
-            'high': this.safeNumber (ticker, 'high_price'),
-            'low': this.safeNumber (ticker, 'low_price'),
-            'last': this.safeNumber (ticker, 'last_price'),
-            'bid': this.safeNumber (ticker, 'best_bid_price'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
-            'ask': this.safeNumber (ticker, 'best_ask_price'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
+            'open': this.safeString (ticker, 'open_price'),
+            'high': this.safeString (ticker, 'high_price'),
+            'low': this.safeString (ticker, 'low_price'),
+            'last': this.safeString (ticker, 'last_price'),
+            'bid': this.safeString (ticker, 'best_bid_price'),
+            'bidVolume': this.safeString (ticker, 'best_bid_size'),
+            'ask': this.safeString (ticker, 'best_ask_price'),
+            'askVolume': this.safeString (ticker, 'best_ask_size'),
             'change': undefined,
             'percentage': undefined,
-            'baseVolume': this.safeNumber (ticker, 'buy_volume_24h_b'),
-            'quoteVolume': this.safeNumber (ticker, 'buy_volume_24h_q'),
-            'markPrice': this.safeNumber (ticker, 'mark_price'),
-            'indexPrice': this.safeNumber (ticker, 'index_price'),
+            'baseVolume': this.safeString (ticker, 'buy_volume_24h_b'),
+            'quoteVolume': this.safeString (ticker, 'buy_volume_24h_q'),
+            'markPrice': this.safeString (ticker, 'mark_price'),
+            'indexPrice': this.safeString (ticker, 'index_price'),
             'vwap': undefined,
             'average': undefined,
             'previousClose': undefined,
@@ -680,10 +680,8 @@ export default class grvt extends Exchange {
         const request = {
             'instrument': this.marketId (symbol),
         };
-        if (limit !== undefined) {
+        if (limit !== undefined && limit <= 500) {
             request['depth'] = this.findNearestCeiling ([ 10, 50, 100, 500 ], limit);
-        } else {
-            request['depth'] = 100; // default
         }
         const response = await this.publicMarketPostFullV1Book (this.extend (request, params));
         //
@@ -713,12 +711,11 @@ export default class grvt extends Exchange {
      * @name grvt#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://api-docs.grvt.io/market_data_api/#trade_1
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {string} symbol unified symbol of the market
+     * @param {int} [since] timestamp in ms of the earliest item to fetch
+     * @param {int} [limit] the maximum amount of items to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.loc] crypto location, default: us
-     * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -848,11 +845,10 @@ export default class grvt extends Exchange {
      * @see https://api-docs.grvt.io/market_data_api/#candlestick_1
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [since] timestamp in ms of the earliest item to fetch
+     * @param {int} [limit] the maximum amount of items to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @param {string} [params.priceType] last, mark, index (default is 'last')
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -942,7 +938,7 @@ export default class grvt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {int} [params.until] timestamp in ms of the latest item
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
@@ -1117,10 +1113,11 @@ export default class grvt extends Exchange {
      * @name grvt#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://api-docs.grvt.io/trading_api/#transfer
-     * @param {string} code unified currency code
+     * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1176,11 +1173,11 @@ export default class grvt extends Exchange {
      * @name grvrt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
-     * @param {string} code unified currency code of the currency transferred
+     * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1396,7 +1393,7 @@ export default class grvt extends Exchange {
      * @name grvt#fetchTransfers
      * @description fetch a history of internal transfers made on an account
      * @see https://api-docs.grvt.io/trading_api/#transfer-history
-     * @param {string} [code] unified currency code of the currency transferred
+     * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1655,7 +1652,7 @@ export default class grvt extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        // await this.initializeClient ();
+        // await this.initializeClient (); // todo: after clarifying about another endpoint
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
@@ -1855,12 +1852,17 @@ export default class grvt extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {string} [params.page_token] page_token - used for paging
+     * @param {int} [params.until] timestamp in ms of the latest item
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+        }
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -1922,7 +1924,6 @@ export default class grvt extends Exchange {
      * @see https://api-docs.grvt.io/trading_api/#positions-request
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
@@ -2181,11 +2182,17 @@ export default class grvt extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 1000) as FundingHistory[];
+        }
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -2259,6 +2266,7 @@ export default class grvt extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2352,11 +2360,10 @@ export default class grvt extends Exchange {
      * @name grvt#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://api-docs.grvt.io/trading_api/#open-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2437,6 +2444,7 @@ export default class grvt extends Exchange {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2695,7 +2703,7 @@ export default class grvt extends Exchange {
         //    }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseOrder (result, undefined);
+        return this.parseOrders ([ result ], undefined);
     }
 
     /**
@@ -2704,8 +2712,9 @@ export default class grvt extends Exchange {
      * @description cancels an open order
      * @see https://api-docs.grvt.io/trading_api/#cancel-order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
