@@ -1046,7 +1046,7 @@ class gate extends Exchange {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions' => array(
                 'exact' => array(
-                    'INVALID_PARAM_VALUE' => '\\ccxt\\BadRequest',
+                    'INVALID_PARAM_VALUE' => '\\ccxt\\InvalidOrder', // array("label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT")
                     'INVALID_PROTOCOL' => '\\ccxt\\BadRequest',
                     'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
                     'INVALID_REQUEST_BODY' => '\\ccxt\\BadRequest',
@@ -1142,6 +1142,7 @@ class gate extends Exchange {
                     'POSITION_HOLDING' => '\\ccxt\\BadRequest',
                     'USER_LOAN_EXCEEDED' => '\\ccxt\\BadRequest', // array("label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded")
                     'NO_CHANGE' => '\\ccxt\\InvalidOrder', // array("label":"NO_CHANGE","message":"No change is made")
+                    'PRICE_THRESHOLD_EXCEEDED' => '\\ccxt\\InvalidOrder', // array("label":"PRICE_THRESHOLD_EXCEEDED","message":" => 0.45288")
                 ),
                 'broad' => array(),
             ),
@@ -5029,6 +5030,24 @@ class gate extends Exchange {
         //
         //  array("user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL")
         //
+        // cancel $trigger $order returns timestamps in ms
+        //   id => '2007047737421336576',
+        //   id_string => '2007047737421336576',
+        //   trigger_time => '0',
+        //   trade_id => '0',
+        //   trade_id_string => '',
+        //   $status => 'finished',
+        //   finish_as => 'cancelled',
+        //   reason => '',
+        //   create_time => '1767352444402496'
+        //   finish_time => '1767352509535790',
+        //   is_stop_order => false,
+        //   stop_trigger => array( rule => '0', trigger_price => '', order_price => '' ),
+        //   me_order_id => '0',
+        //   me_order_id_string => '',
+        //   order_type => '',
+        //   in_dual_mode => false,
+        //   parent_id => '0',
         $succeeded = $this->safe_bool($order, 'succeeded', true);
         if (!$succeeded) {
             // cancelOrders response
@@ -5071,13 +5090,31 @@ class gate extends Exchange {
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
         }
         $rawStatus = $this->safe_string_n($order, array( 'finish_as', 'status', 'open' ));
-        $timestamp = $this->safe_integer($order, 'create_time_ms');
-        if ($timestamp === null) {
-            $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');
+        $timestampStr = $this->safe_string($order, 'create_time_ms');
+        if ($timestampStr === null) {
+            $timestampStr = $this->safe_string_2($order, 'create_time', 'ctime');
+            if ($timestampStr !== null) {
+                if (strlen($timestampStr) === 10 || mb_strpos($timestampStr, '.') !== false) {
+                    // ts in seconds, multiply to ms
+                    $timestampStr = Precise::string_mul($timestampStr, '1000');
+                } elseif (strlen($timestampStr) === 16) {
+                    // ts in microseconds, divide to ms
+                    $timestampStr = Precise::string_div($timestampStr, '1000');
+                }
+            }
         }
-        $lastTradeTimestamp = $this->safe_integer($order, 'update_time_ms');
-        if ($lastTradeTimestamp === null) {
-            $lastTradeTimestamp = $this->safe_timestamp_2($order, 'update_time', 'finish_time');
+        $lastTradeTimestampStr = $this->safe_string($order, 'update_time_ms');
+        if ($lastTradeTimestampStr === null) {
+            $lastTradeTimestampStr = $this->safe_string_2($order, 'update_time', 'finish_time');
+            if ($lastTradeTimestampStr !== null) {
+                if (strlen($lastTradeTimestampStr) === 10 || mb_strpos($lastTradeTimestampStr, '.') !== false) {
+                    // ts in seconds, multiply to ms
+                    $lastTradeTimestampStr = Precise::string_mul($lastTradeTimestampStr, '1000');
+                } elseif (strlen($lastTradeTimestampStr) === 16) {
+                    // ts in microseconds, divide to ms
+                    $lastTradeTimestampStr = Precise::string_div($lastTradeTimestampStr, '1000');
+                }
+            }
         }
         $marketType = 'contract';
         if ((is_array($order) && array_key_exists('currency_pair', $order)) || (is_array($order) && array_key_exists('market', $order))) {
@@ -5123,6 +5160,14 @@ class gate extends Exchange {
                 $cost = $amount;
                 $amount = Precise::string_div($amount, $averageString);
             }
+        }
+        $timestamp = null;
+        $lastTradeTimestamp = null;
+        if ($timestampStr !== null) {
+            $timestamp = $this->parse_to_int($timestampStr);
+        }
+        if ($lastTradeTimestampStr !== null) {
+            $lastTradeTimestamp = $this->parse_to_int($lastTradeTimestampStr);
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),

@@ -568,15 +568,20 @@ class hyperliquid(Exchange, ImplicitAPI):
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         hip3 = self.safe_dict(options, 'hip3', {})
-        dexesProvided = self.safe_list(hip3, 'dexes')  # users provide their own list of dexes to load
+        dexesProvided = self.safe_list(hip3, 'dexes', [])  # users provide their own list of dexes to load
         maxLimit = self.safe_integer(hip3, 'limit', 10)
-        if dexesProvided is not None:
-            userProvidedDexesLength = len(dexesProvided)
+        userProvidedDexesLength = len(dexesProvided)
+        if userProvidedDexesLength > 0:
             if userProvidedDexesLength > 0:
                 fetchDexesList = dexesProvided
         else:
+            fetchDexesLength = len(fetchDexes)
             for i in range(1, maxLimit):
+                if i >= fetchDexesLength:
+                    break
                 dex = self.safe_dict(fetchDexes, i, {})
+                if dex is None:
+                    continue
                 dexName = self.safe_string(dex, 'name')
                 fetchDexesList.append(dexName)
         rawPromises = []
@@ -1029,6 +1034,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': market,
         })
 
+    def update_spot_currency_code(self, code: str) -> str:
+        if code is None:
+            return code
+        spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
+        return self.safe_string(spotCurrencyMapping, code, code)
+
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1096,7 +1107,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             spotBalances: dict = {'info': response}
             for i in range(0, len(balances)):
                 balance = balances[i]
-                code = self.safe_currency_code(self.safe_string(balance, 'coin'))
+                unifiedCode = self.safe_currency_code(self.safe_string(balance, 'coin'))
+                code = self.update_spot_currency_code(unifiedCode) if isSpot else unifiedCode
                 account = self.account()
                 total = self.safe_string(balance, 'total')
                 used = self.safe_string(balance, 'hold')

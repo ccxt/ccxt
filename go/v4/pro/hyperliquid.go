@@ -1615,7 +1615,7 @@ func  (this *HyperliquidCore) HandlePong(client interface{}, message interface{}
     //       "channel": "pong"
     //   }
     //
-    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong"))
+    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
     return message
 }
 func  (this *HyperliquidCore) RequestId() interface{}  {

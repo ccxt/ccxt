@@ -1602,9 +1602,11 @@ class bybit extends \ccxt\async\bybit {
                 }
             }
             // don't remove the $future from the .futures $cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($cache, 'position');
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($cache, 'position');
+            }
         }) ();
     }
 
@@ -2584,7 +2586,7 @@ class bybit extends \ccxt\async\bybit {
         //       "conn_id" => "d266o6hqo29sqmnq4vk0-1yus1"
         //   }
         //
-        $client->lastPong = $this->safe_integer($message, 'pong');
+        $client->lastPong = $this->safe_integer($message, 'pong', $this->milliseconds());
         return $message;
     }
 

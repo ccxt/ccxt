@@ -759,6 +759,13 @@ var WithFetchClosedOrdersSince = ccxt.WithFetchClosedOrdersSince
 var WithFetchClosedOrdersLimit = ccxt.WithFetchClosedOrdersLimit
 var WithFetchClosedOrdersParams = ccxt.WithFetchClosedOrdersParams
 
+type FetchCanceledOrdersOptionsStruct = ccxt.FetchCanceledOrdersOptionsStruct
+type FetchCanceledOrdersOptions = ccxt.FetchCanceledOrdersOptions
+var WithFetchCanceledOrdersSymbol = ccxt.WithFetchCanceledOrdersSymbol
+var WithFetchCanceledOrdersSince = ccxt.WithFetchCanceledOrdersSince
+var WithFetchCanceledOrdersLimit = ccxt.WithFetchCanceledOrdersLimit
+var WithFetchCanceledOrdersParams = ccxt.WithFetchCanceledOrdersParams
+
 type FetchCanceledAndClosedOrdersOptionsStruct = ccxt.FetchCanceledAndClosedOrdersOptionsStruct
 type FetchCanceledAndClosedOrdersOptions = ccxt.FetchCanceledAndClosedOrdersOptions
 var WithFetchCanceledAndClosedOrdersSymbol = ccxt.WithFetchCanceledAndClosedOrdersSymbol

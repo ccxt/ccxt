@@ -7,170 +7,170 @@
 
 package ccxt
 
-func (this *ZebpayCore) PublicSpotGetV2SystemTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2SystemTime", args...)
+func (this *ZebpayCore) PublicSpotGetV2SystemTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2SystemTime", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2SystemStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2SystemStatus", args...)
+func (this *ZebpayCore) PublicSpotGetV2SystemStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2SystemStatus", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2MarketOrderbook", args...)
+func (this *ZebpayCore) PublicSpotGetV2MarketOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2MarketOrderbook", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2MarketTrades", args...)
+func (this *ZebpayCore) PublicSpotGetV2MarketTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2MarketTrades", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2MarketTicker", args...)
+func (this *ZebpayCore) PublicSpotGetV2MarketTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2MarketTicker", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketAllTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2MarketAllTickers", args...)
+func (this *ZebpayCore) PublicSpotGetV2MarketAllTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2MarketAllTickers", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2ExExchangeInfo", args...)
+func (this *ZebpayCore) PublicSpotGetV2ExExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2ExExchangeInfo", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2ExCurrencies", args...)
+func (this *ZebpayCore) PublicSpotGetV2ExCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2ExCurrencies", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2MarketKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2MarketKlines", args...)
+func (this *ZebpayCore) PublicSpotGetV2MarketKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2MarketKlines", args...)
 }
 
-func (this *ZebpayCore) PublicSpotGetV2ExTradefees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetV2ExTradefees", args...)
+func (this *ZebpayCore) PublicSpotGetV2ExTradefees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetV2ExTradefees", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1SystemTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetV1SystemTime", args...)
+func (this *ZebpayCore) PublicSwapGetV1SystemTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetV1SystemTime", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1SystemStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetV1SystemStatus", args...)
+func (this *ZebpayCore) PublicSwapGetV1SystemStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetV1SystemStatus", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetV1ExchangeTradefee", args...)
+func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetV1ExchangeTradefee", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetV1ExchangeTradefees", args...)
+func (this *ZebpayCore) PublicSwapGetV1ExchangeTradefees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetV1ExchangeTradefees", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketOrderBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetV1MarketOrderBook", args...)
+func (this *ZebpayCore) PublicSwapGetV1MarketOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetV1MarketOrderBook", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketTicker24Hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetV1MarketTicker24Hr", args...)
+func (this *ZebpayCore) PublicSwapGetV1MarketTicker24Hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetV1MarketTicker24Hr", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketMarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetV1MarketMarkets", args...)
+func (this *ZebpayCore) PublicSwapGetV1MarketMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetV1MarketMarkets", args...)
 }
 
-func (this *ZebpayCore) PublicSwapGetV1MarketAggTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetV1MarketAggTrade", args...)
+func (this *ZebpayCore) PublicSwapGetV1MarketAggTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetV1MarketAggTrade", args...)
 }
 
-func (this *ZebpayCore) PublicSwapPostV1MarketKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapPostV1MarketKlines", args...)
+func (this *ZebpayCore) PublicSwapPostV1MarketKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapPostV1MarketKlines", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotPostV2ExOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostV2ExOrders", args...)
+func (this *ZebpayCore) PrivateSpotPostV2ExOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostV2ExOrders", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetV2ExOrders", args...)
+func (this *ZebpayCore) PrivateSpotGetV2ExOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetV2ExOrders", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2AccountBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetV2AccountBalance", args...)
+func (this *ZebpayCore) PrivateSpotGetV2AccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetV2AccountBalance", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExTradefee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetV2ExTradefee", args...)
+func (this *ZebpayCore) PrivateSpotGetV2ExTradefee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetV2ExTradefee", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetV2ExOrder", args...)
+func (this *ZebpayCore) PrivateSpotGetV2ExOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetV2ExOrder", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotGetV2ExOrderFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetV2ExOrderFills", args...)
+func (this *ZebpayCore) PrivateSpotGetV2ExOrderFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetV2ExOrderFills", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotDeleteV2ExOrder", args...)
+func (this *ZebpayCore) PrivateSpotDeleteV2ExOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotDeleteV2ExOrder", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotDeleteV2ExOrders", args...)
+func (this *ZebpayCore) PrivateSpotDeleteV2ExOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotDeleteV2ExOrders", args...)
 }
 
-func (this *ZebpayCore) PrivateSpotDeleteV2ExOrdersCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotDeleteV2ExOrdersCancelAll", args...)
+func (this *ZebpayCore) PrivateSpotDeleteV2ExOrdersCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotDeleteV2ExOrdersCancelAll", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1WalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetV1WalletBalance", args...)
+func (this *ZebpayCore) PrivateSwapGetV1WalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetV1WalletBalance", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetV1TradeOrder", args...)
+func (this *ZebpayCore) PrivateSwapGetV1TradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetV1TradeOrder", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeOrderOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetV1TradeOrderOpenOrders", args...)
+func (this *ZebpayCore) PrivateSwapGetV1TradeOrderOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetV1TradeOrderOpenOrders", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverages (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetV1TradeUserLeverages", args...)
+func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverages(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetV1TradeUserLeverages", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetV1TradeUserLeverage", args...)
+func (this *ZebpayCore) PrivateSwapGetV1TradeUserLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetV1TradeUserLeverage", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradePositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetV1TradePositions", args...)
+func (this *ZebpayCore) PrivateSwapGetV1TradePositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetV1TradePositions", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapGetV1TradeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetV1TradeHistory", args...)
+func (this *ZebpayCore) PrivateSwapGetV1TradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetV1TradeHistory", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostV1TradeOrder", args...)
+func (this *ZebpayCore) PrivateSwapPostV1TradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostV1TradeOrder", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeOrderAddTPSL (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostV1TradeOrderAddTPSL", args...)
+func (this *ZebpayCore) PrivateSwapPostV1TradeOrderAddTPSL(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostV1TradeOrderAddTPSL", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeAddMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostV1TradeAddMargin", args...)
+func (this *ZebpayCore) PrivateSwapPostV1TradeAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostV1TradeAddMargin", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeReduceMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostV1TradeReduceMargin", args...)
+func (this *ZebpayCore) PrivateSwapPostV1TradeReduceMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostV1TradeReduceMargin", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradePositionClose (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostV1TradePositionClose", args...)
+func (this *ZebpayCore) PrivateSwapPostV1TradePositionClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostV1TradePositionClose", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapPostV1TradeUpdateUserLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostV1TradeUpdateUserLeverage", args...)
+func (this *ZebpayCore) PrivateSwapPostV1TradeUpdateUserLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostV1TradeUpdateUserLeverage", args...)
 }
 
-func (this *ZebpayCore) PrivateSwapDeleteV1TradeOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapDeleteV1TradeOrder", args...)
+func (this *ZebpayCore) PrivateSwapDeleteV1TradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapDeleteV1TradeOrder", args...)
 }

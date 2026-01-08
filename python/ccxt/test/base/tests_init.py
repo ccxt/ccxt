@@ -37,6 +37,7 @@ from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_
 from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E402
 from ccxt.test.base.test_arrays_concat import test_arrays_concat  # noqa E402
 from ccxt.test.base.test_sleep import test_sleep  # noqa E402
+from ccxt.test.base.test_eth_methods import test_eth_methods  # noqa E402
 
 async def base_tests_init():
     test_language_specific()
@@ -60,4 +61,5 @@ async def base_tests_init():
     test_remove_repeated_elements_from_array()
     test_parse_precision()
     test_arrays_concat()
+    test_eth_methods()
     await test_sleep()
