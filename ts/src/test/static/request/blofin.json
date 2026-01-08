@@ -567,10 +567,10 @@
                 "output": "{\"positionMode\":\"long_short_mode\"}"
             }
         ],
-        "fetchPositionAutoDeLeverageRank": [
+        "fetchPositionADLRank": [
             {
-                "description": "linear swap fetch position auto de leverage rank",
-                "method": "fetchPositionAutoDeLeverageRank",
+                "description": "linear swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
                 "url": "https://openapi.blofin.com/api/v1/account/positions",
                 "input": [
                     "BTC/USDT:USDT"

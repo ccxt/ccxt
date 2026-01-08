@@ -2024,7 +2024,7 @@ public struct LongShortRatio
     }
 }
 
-public struct AutoDeLeverage
+public struct ADL
 {
     public Dictionary<string, object>? info;
     public string? symbol;
@@ -2034,7 +2034,7 @@ public struct AutoDeLeverage
     public Int64? timestamp;
     public string? datetime;
 
-    public AutoDeLeverage(object ADLObj)
+    public ADL(object ADLObj)
     {
         info = Helper.GetInfo(ADLObj);
         symbol = Exchange.SafeString(ADLObj, "symbol");

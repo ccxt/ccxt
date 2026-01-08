@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, AutoDeLeverage } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -77,8 +77,8 @@ export default class phemex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchPositionAutoDeLeverageRank': true,
-                'fetchPositionsAutoDeLeverageRank': true,
+                'fetchPositionADLRank': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -5311,7 +5311,7 @@ export default class phemex extends Exchange {
 
     /**
      * @method
-     * @name phemex#fetchPositionAutoDeLeverageRank
+     * @name phemex#fetchPositionADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://phemex-docs.github.io/#query-account-positions
      * @see https://phemex-docs.github.io/#query-trading-account-and-positions
@@ -5322,7 +5322,7 @@ export default class phemex extends Exchange {
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchPositionsAutoDeLeverageRank (symbols: Strings = undefined, params = {}): Promise<AutoDeLeverage[]> {
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         let subType = undefined;
@@ -5336,9 +5336,9 @@ export default class phemex extends Exchange {
             settle = market['settle'];
             code = market['settle'];
         } else {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositionsAutoDeLeverageRank', 'settle', code);
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositionsADLRank', 'settle', code);
         }
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsAutoDeLeverageRank', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params);
         const isUSDTSettled = settle === 'USDT';
         if (isUSDTSettled) {
             code = 'USDT';
@@ -5354,7 +5354,7 @@ export default class phemex extends Exchange {
         let response = undefined;
         if (isUSDTSettled) {
             let method = undefined;
-            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositionsAutoDeLeverageRank', 'method', 'privateGetGAccountsAccountPositions');
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');
             if (method === 'privateGetGAccountsAccountPositions') {
                 response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
             } else {
@@ -5515,14 +5515,14 @@ export default class phemex extends Exchange {
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
             const rank = ranks[i];
-            result.push (this.parseAutoDeLeverageRank (rank));
+            result.push (this.parseADLRank (rank));
         }
-        return this.filterByArrayAutoDeleverageRanks (result, 'symbol', symbols, false);
+        return this.filterByArrayADLRanks (result, 'symbol', symbols, false);
     }
 
-    parseAutoDeLeverageRank (info: Dict, market: Market = undefined): AutoDeLeverage {
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
-        // fetchPositionAutoDeLeverageRank: linear
+        // fetchPositionADLRank: linear
         //
         //     {
         //         "userID": 940666,
@@ -5571,7 +5571,7 @@ export default class phemex extends Exchange {
         //         "sellLeavesQtyRq": "0"
         //     }
         //
-        // fetchPositionAutoDeLeverageRank: inverse
+        // fetchPositionADLRank: inverse
         //
         //     {
         //         "userID": 940666,
@@ -5646,7 +5646,7 @@ export default class phemex extends Exchange {
             'percentage': this.safeNumber2 (info, 'deleveragePercentileRr', 'deleveragePercentileEr'),
             'timestamp': undefined,
             'datetime': undefined,
-        } as AutoDeLeverage;
+        } as ADL;
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

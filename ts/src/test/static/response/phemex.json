@@ -9731,10 +9731,10 @@
                 }
             }
         ],
-        "fetchPositionAutoDeLeverageRank":[
+        "fetchPositionADLRank":[
             {
-                "description": "linear swap fetch position auto deleverage rank",
-                "method": "fetchPositionAutoDeLeverageRank",
+                "description": "linear swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
                 "input": [
                     "BTC/USDT:USDT"
                 ],
@@ -9858,8 +9858,8 @@
                 }
             },
             {
-                "description": "inverse swap fetch position auto deleverage rank",
-                "method": "fetchPositionAutoDeLeverageRank",
+                "description": "inverse swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
                 "input": [
                     "BTC/USD:BTC"
                 ],

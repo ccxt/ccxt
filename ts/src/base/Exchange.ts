@@ -39,7 +39,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, AutoDeLeverage } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -167,7 +167,7 @@ const {
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, AutoDeLeverage } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -2023,7 +2023,7 @@ export default class Exchange {
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
-                'fetchAutoDeLeverageRank': undefined,
+                'fetchADLRank': undefined,
                 'fetchBalance': true,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
@@ -2109,8 +2109,8 @@ export default class Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPosition': undefined,
-                'fetchPositionAutoDeLeverageRank': undefined,
-                'fetchPositionsAutoDeLeverageRank': undefined,
+                'fetchPositionADLRank': undefined,
+                'fetchPositionsADLRank': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
@@ -5058,16 +5058,16 @@ export default class Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseAutoDeLeverageRank (info: Dict, market: Market = undefined): AutoDeLeverage {
-        throw new NotSupported (this.id + ' parseAutoDeLeverageRank() is not supported yet');
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
     }
 
-    parseAutoDeLeverageRanks (ranks: any[], symbols: string[] = undefined, params = {}): AutoDeLeverage[] {
+    parseADLRanks (ranks: any[], symbols: string[] = undefined, params = {}): ADL[] {
         symbols = this.marketSymbols (symbols);
         ranks = this.toArray (ranks);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend (this.parseAutoDeLeverageRank (ranks[i], undefined), params);
+            const rank = this.extend (this.parseADLRank (ranks[i], undefined), params);
             result.push (rank);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
@@ -6031,28 +6031,28 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionMode() is not supported yet');
     }
 
-    async fetchAutoDeLeverageRank (symbol: string, params = {}): Promise<AutoDeLeverage> {
-        throw new NotSupported (this.id + ' fetchAutoDeLeverageRank() is not supported yet');
+    async fetchADLRank (symbol: string, params = {}): Promise<ADL> {
+        throw new NotSupported (this.id + ' fetchADLRank() is not supported yet');
     }
 
-    async fetchPositionsAutoDeLeverageRank (symbols: Strings = undefined, params = {}): Promise<AutoDeLeverage[]> {
-        throw new NotSupported (this.id + ' fetchPositionsAutoDeLeverageRank() is not supported yet');
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        throw new NotSupported (this.id + ' fetchPositionsADLRank() is not supported yet');
     }
 
-    async fetchPositionAutoDeLeverageRank (symbol: string, params = {}): Promise<AutoDeLeverage> {
-        if (this.has['fetchPositionsAutoDeLeverageRank']) {
+    async fetchPositionADLRank (symbol: string, params = {}): Promise<ADL> {
+        if (this.has['fetchPositionsADLRank']) {
             await this.loadMarkets ();
             const market = this.market (symbol);
             symbol = market['symbol'];
-            const ranks = await this.fetchPositionsAutoDeLeverageRank ([ symbol ], params);
+            const ranks = await this.fetchPositionsADLRank ([ symbol ], params);
             const rank = this.safeDict (ranks, 0);
             if (rank === undefined) {
-                throw new NullResponse (this.id + ' fetchPositionsAutoDeLeverageRank() could not find a rank for ' + symbol);
+                throw new NullResponse (this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
             } else {
-                return rank as AutoDeLeverage;
+                return rank as ADL;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchPositionsAutoDeLeverageRank() is not supported yet');
+            throw new NotSupported (this.id + ' fetchPositionsADLRank() is not supported yet');
         }
     }
 
@@ -7837,13 +7837,13 @@ export default class Exchange {
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
     }
 
-    filterByArrayAutoDeleverageRanks (objects, key: IndexType, values = undefined, indexed = true): AutoDeLeverage[] {
+    filterByArrayADLRanks (objects, key: IndexType, values = undefined, indexed = true): ADL[] {
         /**
          * @ignore
          * @method
-         * @description Typed wrapper for filterByArray that returns a list of Auto DeLeverage Ranks
+         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
-        return this.filterByArray (objects, key, values, indexed) as AutoDeLeverage[];
+        return this.filterByArray (objects, key, values, indexed) as ADL[];
     }
 
     createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {

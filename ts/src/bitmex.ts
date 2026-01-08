@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Exchang
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, AutoDeLeverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, ADL } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -81,8 +81,8 @@ export default class bitmex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
-                'fetchPositionAutoDeLeverageRank': true,
-                'fetchPositionsAutoDeLeverageRank': true,
+                'fetchPositionADLRank': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositions': true,
                 'fetchPositionsHistory': false,
@@ -3058,14 +3058,14 @@ export default class bitmex extends Exchange {
 
     /**
      * @method
-     * @name bitmex#fetchPositionsAutoDeLeverageRank
+     * @name bitmex#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchPositionsAutoDeLeverageRank (symbols: Strings = undefined, params = {}): Promise<AutoDeLeverage[]> {
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const response = await this.privateGetPosition (params);
@@ -3185,12 +3185,12 @@ export default class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseAutoDeLeverageRanks (response, symbols);
+        return this.parseADLRanks (response, symbols);
     }
 
-    parseAutoDeLeverageRank (info: Dict, market: Market = undefined): AutoDeLeverage {
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
-        // fetchPositionsAutoDeLeverageRank
+        // fetchPositionsADLRank
         //
         //     {
         //         "account": 395724,
@@ -3315,7 +3315,7 @@ export default class bitmex extends Exchange {
             'percentage': undefined,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-        } as AutoDeLeverage;
+        } as ADL;
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

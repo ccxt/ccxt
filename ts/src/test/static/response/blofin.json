@@ -1013,10 +1013,10 @@
                 }
             }
         ],
-        "fetchPositionAutoDeLeverageRank": [
+        "fetchPositionADLRank": [
             {
-                "description": "linear swap fetchPositionAutoDeLeverageRank",
-                "method": "fetchPositionAutoDeLeverageRank",
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
                 "input": [
                     "BTC/USDT:USDT"
                 ],

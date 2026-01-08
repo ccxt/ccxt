@@ -944,10 +944,10 @@
                 ]
               }
         ],
-        "fetchPositionAutoDeLeverageRank":[
+        "fetchPositionADLRank":[
             {
-                "description": "linear swap fetch position auto de leverage rank",
-                "method": "fetchPositionAutoDeLeverageRank",
+                "description": "linear swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
                 "input": [
                     "BTC/USDT:USDT"
                 ],

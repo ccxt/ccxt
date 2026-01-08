@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, Inv
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, AutoDeLeverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -104,8 +104,8 @@ export default class blofin extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
-                'fetchPositionAutoDeLeverageRank': true,
-                'fetchPositionsAutoDeLeverageRank': true,
+                'fetchPositionADLRank': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
@@ -2536,14 +2536,14 @@ export default class blofin extends Exchange {
 
     /**
      * @method
-     * @name blofin#fetchPositionsAutoDeLeverageRank
+     * @name blofin#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://docs.blofin.com/index.html#get-positions
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchPositionsAutoDeLeverageRank (symbols: Strings = undefined, params = {}): Promise<AutoDeLeverage[]> {
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const response = await this.privateGetAccountPositions (params);
@@ -2577,12 +2577,12 @@ export default class blofin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseAutoDeLeverageRanks (data, symbols);
+        return this.parseADLRanks (data, symbols);
     }
 
-    parseAutoDeLeverageRank (info: Dict, market: Market = undefined): AutoDeLeverage {
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
-        // fetchPositionAutoDeLeverageRank
+        // fetchPositionsADLRank
         //
         //     {
         //         "positionId": "756786",
@@ -2616,7 +2616,7 @@ export default class blofin extends Exchange {
             'percentage': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        } as AutoDeLeverage;
+        } as ADL;
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

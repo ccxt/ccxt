@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, AutoDeLeverage } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -67,7 +67,7 @@ export default class binance extends Exchange {
                 'editOrders': true,
                 'fetchAccounts': undefined,
                 'fetchAllGreeks': true,
-                'fetchAutoDeLeverageRank': true,
+                'fetchADLRank': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': true,
@@ -136,8 +136,8 @@ export default class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
-                'fetchPositionAutoDeLeverageRank': true,
-                'fetchPositionsAutoDeLeverageRank': true,
+                'fetchPositionADLRank': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
@@ -14416,21 +14416,21 @@ export default class binance extends Exchange {
 
     /**
      * @method
-     * @name binance#fetchAutoDeLeverageRank
+     * @name binance#fetchADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a symbol
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
      * @param {string} symbol unified symbol of the market to fetch the auto deleveraging rank for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchAutoDeLeverageRank (symbol: string, params = {}): Promise<AutoDeLeverage> {
+    async fetchADLRank (symbol: string, params = {}): Promise<ADL> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchAutoDeLeverageRank', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchADLRank', market, params);
         let response = undefined;
         if (subType === 'linear') {
             response = await this.fapiPublicGetSymbolAdlRisk (this.extend (request, params));
@@ -14442,14 +14442,14 @@ export default class binance extends Exchange {
             //     }
             //
         } else {
-            throw new BadRequest (this.id + ' fetchAutoDeLeverageRank() supports linear subTypes only');
+            throw new BadRequest (this.id + ' fetchADLRank() supports linear subTypes only');
         }
-        return this.parseAutoDeLeverageRank (response, market);
+        return this.parseADLRank (response, market);
     }
 
     /**
      * @method
-     * @name binance#fetchPositionsAutoDeLeverageRank
+     * @name binance#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
@@ -14460,14 +14460,14 @@ export default class binance extends Exchange {
      * @param {boolean} [params.portfolioMargin] set to true for the portfolio margin account
      * @returns {object[]} an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchPositionsAutoDeLeverageRank (symbols: Strings = undefined, params = {}): Promise<AutoDeLeverage[]> {
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionAutoDeLeverageRank', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params);
         let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionAutoDeLeverageRank', 'papi', 'portfolioMargin', false);
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
         let response = undefined;
         if (subType === 'linear') {
             if (isPortfolioMargin) {
@@ -14482,7 +14482,7 @@ export default class binance extends Exchange {
                 response = await this.dapiPrivateGetAdlQuantile (params);
             }
         } else {
-            throw new BadRequest (this.id + ' fetchPositionAutoDeLeverageRank() supports linear and inverse subTypes only');
+            throw new BadRequest (this.id + ' fetchPositionsADLRank() supports linear and inverse subTypes only');
         }
         //
         //     [
@@ -14496,12 +14496,12 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        return this.parseAutoDeLeverageRanks (response, symbols);
+        return this.parseADLRanks (response, symbols);
     }
 
-    parseAutoDeLeverageRank (info: Dict, market: Market = undefined): AutoDeLeverage {
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
-        // fetchAutoDeLeverageRank
+        // fetchADLRank
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -14509,7 +14509,7 @@ export default class binance extends Exchange {
         //         "updateTime": 1766827800453
         //     }
         //
-        // fetchPositionAutoDeLeverageRank
+        // fetchPositionADLRank
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -14544,6 +14544,6 @@ export default class binance extends Exchange {
             'percentage': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        } as AutoDeLeverage;
+        } as ADL;
     }
 }

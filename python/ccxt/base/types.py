@@ -564,7 +564,8 @@ class LongShortRatio:
     timeframe: Optional[Str]
     longShortRatio: float
 
-class AutoDeLeverage:
+
+class ADL:
     info: Any
     symbol: Str
     rank: Optional[Int]
@@ -572,7 +573,7 @@ class AutoDeLeverage:
     percentage: Optional[Num]
     timestamp: Optional[Int]
     datetime: Optional[Str]
-}
+
 
 class BorrowInterest:
     info: Any

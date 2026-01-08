@@ -569,7 +569,7 @@ export interface LongShortRatio {
     longShortRatio: number,
 }
 
-export interface AutoDeLeverage {
+export interface ADL {
     info: any;
     symbol: string;
     rank?: Int;

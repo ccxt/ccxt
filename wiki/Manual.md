@@ -3818,10 +3818,10 @@ Returns
 
 *contract only*
 
-Use the `fetchAutoDeLeverageRank` method to get the public details of a symbols auto de leverage rank from the exchange.
+Use the `fetchADLRank` method to get the public details of a symbols auto de leverage rank from the exchange.
 
 ```javascript
-fetchAutoDeLeverageRank (symbol, params = {})
+fetchADLRank (symbol, params = {})
 ```
 
 Parameters
@@ -7013,10 +7013,10 @@ Returns
 
 *contract only*
 
-Use the `fetchPositionAutoDeLeverageRank` or `fetchPositionsAutoDeLeverageRank` methods to get the private details of a positions auto de leverage rank from the exchange.
+Use the `fetchPositionADLRank` or `fetchPositionsADLRank` methods to get the private details of a positions auto de leverage rank from the exchange.
 
 ```javascript
-fetchPositionAutoDeLeverageRank (symbol, params = {})
+fetchPositionADLRank (symbol, params = {})
 ```
 
 Parameters
@@ -7029,7 +7029,7 @@ Returns
 - An [auto de leverage structure](#auto-de-leverage)
 
 ```javascript
-fetchPositionsAutoDeLeverageRank (symbols, params = {})
+fetchPositionsADLRank (symbols, params = {})
 ```
 
 Parameters

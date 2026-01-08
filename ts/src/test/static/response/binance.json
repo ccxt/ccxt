@@ -4417,10 +4417,10 @@
                 ]
             }
         ],
-        "fetchAutoDeLeverageRank": [
+        "fetchADLRank": [
             {
                 "description": "linear swap fetch adl risk rank",
-                "method": "fetchAutoDeLeverageRank",
+                "method": "fetchADLRank",
                 "input": [
                     "BTC/USDT:USDT"
                 ],
@@ -4444,10 +4444,10 @@
                 }
             }
         ],
-        "fetchPositionAutoDeLeverageRank": [
+        "fetchPositionADLRank": [
             {
-                "description": "linear swap fetchPositionAutoDeLeverageRank",
-                "method": "fetchPositionAutoDeLeverageRank",
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
                 "input": [
                     "BTC/USDT:USDT"
                 ],

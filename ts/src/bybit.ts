@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, AutoDeLeverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, ADL } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -115,8 +115,8 @@ export default class bybit extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
-                'fetchPositionAutoDeLeverageRank': true,
-                'fetchPositionsAutoDeLeverageRank': true,
+                'fetchPositionADLRank': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
                 'fetchPositionsHistory': true,
@@ -9429,16 +9429,16 @@ export default class bybit extends Exchange {
 
     /**
      * @method
-     * @name bybit#fetchPositionsAutoDeLeverageRank
+     * @name bybit#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://bybit-exchange.github.io/docs/v5/position#response-parameters
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    async fetchPositionsAutoDeLeverageRank (symbols: Strings = undefined, params = {}): Promise<AutoDeLeverage[]> {
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositionsAutoDeLeverageRank() requires a symbols argument');
+            throw new ArgumentsRequired (this.id + ' fetchPositionsADLRank() requires a symbols argument');
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
@@ -9448,7 +9448,7 @@ export default class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         let type = undefined;
-        [ type, params ] = this.getBybitType ('fetchPositionsAutoDeLeverageRank', market, params);
+        [ type, params ] = this.getBybitType ('fetchPositionsADLRank', market, params);
         request['category'] = type;
         const response = await this.privateGetV5PositionList (this.extend (request, params));
         //
@@ -9504,12 +9504,12 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const ranks = this.safeList (result, 'list', []);
-        return this.parseAutoDeLeverageRanks (ranks, symbols);
+        return this.parseADLRanks (ranks, symbols);
     }
 
-    parseAutoDeLeverageRank (info: Dict, market: Market = undefined): AutoDeLeverage {
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
-        // fetchPositionsAutoDeLeverageRank
+        // fetchPositionsADLRank
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -9559,7 +9559,7 @@ export default class bybit extends Exchange {
             'percentage': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        } as AutoDeLeverage;
+        } as ADL;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
