@@ -676,6 +676,13 @@
         ],
         "fetchPositions": [
             {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=1767869777606&recvWindow=10000&signature=035d145486fc591b8a0ee07f80d62f4e23f4f18dece49891e423999f5eb2eefd",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "fetchPositions",
                 "method": "fetchPositions",
                 "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
