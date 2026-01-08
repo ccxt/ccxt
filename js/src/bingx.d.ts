@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 /**
  * @class bingx
  * @augments Exchange
@@ -766,6 +766,17 @@ export default class bingx extends Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     customEncode(params: any): any;
+    /**
+     * @method
+     * @name bingx#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
+    parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

@@ -995,6 +995,7 @@ class binance extends Exchange {
                         'block/order/execute' => 5,
                         'block/user-trades' => 5,
                         'blockTrades' => 5,
+                        'comission' => 5,
                     ),
                     'post' => array(
                         'order' => 1,

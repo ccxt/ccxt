@@ -58,6 +58,7 @@
 * [editOrder](#editorder)
 * [fetchMarginMode](#fetchmarginmode)
 * [fetchTradingFee](#fetchtradingfee)
+* [fetchMarketLeverageTiers](#fetchmarketleveragetiers)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTrades](#watchtrades)
@@ -1452,6 +1453,27 @@ fetch the trading fees for a market
 
 ```javascript
 bingx.fetchTradingFee (symbol[, params])
+```
+
+
+<a name="fetchMarketLeverageTiers" id="fetchmarketleveragetiers"></a>
+
+### fetchMarketLeverageTiers{docsify-ignore}
+retrieve information on the maximum leverage, for different trade sizes for a single market
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
+
+**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchMarketLeverageTiers (symbol[, params])
 ```
 
 
