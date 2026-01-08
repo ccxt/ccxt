@@ -31,7 +31,26 @@
                 "output": "{\"positionType\":\"CROSSED\",\"positionSide\":\"LONG\",\"symbol\":\"btc_usdt\"}"
             }
         ],
-        "createOrder":[
+        "createOrder": [
+            {
+                "description": "perp limit with SL",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/create",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    70000,
+                    {
+                        "stopLoss": {
+                            "price": 65000,
+                            "triggerPrice": 66000
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"btc_usdt\",\"origQty\":\"10\",\"positionSide\":\"LONG\",\"price\":\"70000\",\"orderSide\":\"BUY\",\"orderType\":\"LIMIT\",\"stopLoss\":{\"price\":65000,\"triggerPrice\":66000},\"clientMedia\":\"CCXT\"}"
+            },
             {
                 "description": "limit spot order",
                 "method": "createOrder",
@@ -300,7 +319,7 @@
                   2,
                   null,
                   {
-                    "stopLoss": 68000
+                    "stopLossPrice": 68000
                   }
                 ],
                 "output": "{\"profitId\":\"484221817085868800\",\"triggerStopPrice\":\"68000\"}"
@@ -317,7 +336,7 @@
                   2,
                   null,
                   {
-                    "takeProfit": 98000
+                    "takeProfitPrice": 98000
                   }
                 ],
                 "output": "{\"profitId\":\"484222823387497216\",\"triggerProfitPrice\":\"98000\"}"
