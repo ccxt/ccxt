@@ -405,7 +405,6 @@ class Exchange {
         'gate',
         'gateio',
         'gemini',
-        'grvt',
         'hashkey',
         'hibachi',
         'hitbtc',
