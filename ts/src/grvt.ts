@@ -137,7 +137,7 @@ export default class grvt extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'sub_account_id': undefined, // needs to be set manually by user
+                'subAccountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
                     'ARBONE': '42161',
@@ -1012,9 +1012,9 @@ export default class grvt extends Exchange {
 
     getSubAccountId (params) {
         let subAccountId = undefined;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, undefined, 'sub_account_id');
+        [ subAccountId, params ] = this.handleOptionAndParams (params, undefined, 'subAccountId');
         if (subAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' you should set params["sub_account_id"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
+            throw new ArgumentsRequired (this.id + ' you should set params["subAccountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
         }
         return subAccountId.toString ();
     }
@@ -1655,7 +1655,7 @@ export default class grvt extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        await this.initializeClient ();
+        // await this.initializeClient ();
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
@@ -2761,14 +2761,14 @@ export default class grvt extends Exchange {
             try {
                 const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
                 let request: Dict = {
-                    'main_account_id': '0x189c758ff708f90afc52659bb041a41aea6dd638',
+                    'main_account_id': defaultFromAccountId,
                     'builder_account_id': this.safeString (this.options, 'builder', '0x21d2a053495994b1132a38cd1171acec40c6741e'),
                     'max_futures_fee_rate': this.safeString (this.options, 'feeRate', '0.001'),
                     'max_spot_fee_rate': this.safeString (this.options, 'feeRate', '0.0001'),
                     'signature': this.defaultSignature (),
                 };
                 request = this.createSignedRequest (request, {}, 'EIP712_BUILDER_APPROVAL_TYPE');
-                const response = await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
+                await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
                 //
                 // {
                 //     "result": {
@@ -2817,7 +2817,7 @@ export default class grvt extends Exchange {
         request['signature']['s'] = '0x' + signature['s'];
         request['signature']['v'] = this.sum (27, signature['v']);
         if (signerAddress === '') {
-            signerAddress = this.options['sub_account_address']; // default to trading sub-account address. // todo: unify later, from privateKey
+            signerAddress = this.ethGetAddressFromPrivateKey (privateKey);
         }
         request['signature']['signer'] = signerAddress;
         return request;
