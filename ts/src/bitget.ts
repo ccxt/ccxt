@@ -2411,7 +2411,7 @@ export default class bitget extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'minOrderAmount'),
                         'max': undefined,
                     },
                 },
