@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.29'
+__version__ = '4.5.32'
 
 # ----------------------------------------------------------------------------
 
@@ -61,6 +61,7 @@ from ccxt.pro.alpaca import alpaca                                        # noqa
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.arkham import arkham                                        # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
+from ccxt.pro.aster import aster                                          # noqa: F401
 from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
@@ -140,6 +141,7 @@ exchanges = [
     'apex',
     'arkham',
     'ascendex',
+    'aster',
     'backpack',
     'bequant',
     'binance',

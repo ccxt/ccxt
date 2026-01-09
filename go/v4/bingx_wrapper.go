@@ -1924,6 +1924,34 @@ func (this *Bingx) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
 	return NewTradingFeeInterface(res), nil
 }
 
+/**
+ * @method
+ * @name bingx#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *Bingx) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
+
+	opts := FetchMarketLeverageTiersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchMarketLeverageTiers(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLeverageTierArray(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Bingx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
@@ -2105,9 +2133,6 @@ func (this *Bingx) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustment
 }
 func (this *Bingx) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Bingx) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
 func (this *Bingx) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)

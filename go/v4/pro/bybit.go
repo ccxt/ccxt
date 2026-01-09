@@ -3112,7 +3112,7 @@ func  (this *BybitCore) HandlePong(client interface{}, message interface{}) inte
     //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
     //   }
     //
-    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong"))
+    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
     return message
 }
 func  (this *BybitCore) HandleAuthenticate(client interface{}, message interface{}) interface{}  {

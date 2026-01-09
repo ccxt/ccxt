@@ -896,7 +896,7 @@ public partial class foxbit : Exchange
         return await this.fetchOrdersByStatus("FILLED", symbol, since, limit, parameters);
     }
 
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("CANCELED", symbol, since, limit, parameters);

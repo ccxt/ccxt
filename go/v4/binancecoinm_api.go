@@ -2471,6 +2471,10 @@ func (this *BinancecoinmCore) EapiPrivateGetBlockTrades(args ...interface{}) <-c
 	return this.callEndpointAsync("eapiPrivateGetBlockTrades", args...)
 }
 
+func (this *BinancecoinmCore) EapiPrivateGetComission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetComission", args...)
+}
+
 func (this *BinancecoinmCore) EapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("eapiPrivatePostOrder", args...)
 }

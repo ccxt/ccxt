@@ -780,7 +780,7 @@ public partial class bigone : Exchange
             { "close", close },
             { "last", close },
             { "previousClose", null },
-            { "change", this.safeString2(ticker, "daily_change", "last24hPriceChange") },
+            { "change", this.safeString(ticker, "daily_change") },
             { "percentage", null },
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "volume", "volume24h") },

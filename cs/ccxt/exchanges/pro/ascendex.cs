@@ -1084,7 +1084,7 @@ public partial class ascendex : ccxt.ascendex
             });
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " handlePing failed with error "), this.json(e)));
+            var error = new NetworkError(add(add(this.id, " handlePing failed with error "), this.exceptionMessage(e)));
             ((WebSocketClient)client).reset(error);
         }
     }

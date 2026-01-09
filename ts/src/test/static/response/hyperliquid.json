@@ -1839,6 +1839,141 @@
         ],
         "fetchBalance": [
             {
+                "description": "spot balance with correct currency codes",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "httpResponse": {
+                    "balances": [
+                        {
+                            "coin": "USDC",
+                            "token": "0",
+                            "total": "1.2908594",
+                            "hold": "0.0",
+                            "entryNtl": "0.0"
+                        },
+                        {
+                            "coin": "HYPE",
+                            "token": "150",
+                            "total": "4.43762752",
+                            "hold": "0.0",
+                            "entryNtl": "78.98078406"
+                        },
+                        {
+                            "coin": "UETH",
+                            "token": "221",
+                            "total": "0.003397716",
+                            "hold": "0.0",
+                            "entryNtl": "10.9633"
+                        },
+                        {
+                            "coin": "USOL",
+                            "token": "254",
+                            "total": "0.07894692",
+                            "hold": "0.0",
+                            "entryNtl": "10.87593"
+                        },
+                        {
+                            "coin": "USDH",
+                            "token": "360",
+                            "total": "0.00621736",
+                            "hold": "0.0",
+                            "entryNtl": "0.00621735"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "balances": [
+                            {
+                                "coin": "USDC",
+                                "token": "0",
+                                "total": "1.2908594",
+                                "hold": "0.0",
+                                "entryNtl": "0.0"
+                            },
+                            {
+                                "coin": "HYPE",
+                                "token": "150",
+                                "total": "4.43762752",
+                                "hold": "0.0",
+                                "entryNtl": "78.98078406"
+                            },
+                            {
+                                "coin": "UETH",
+                                "token": "221",
+                                "total": "0.003397716",
+                                "hold": "0.0",
+                                "entryNtl": "10.9633"
+                            },
+                            {
+                                "coin": "USOL",
+                                "token": "254",
+                                "total": "0.07894692",
+                                "hold": "0.0",
+                                "entryNtl": "10.87593"
+                            },
+                            {
+                                "coin": "USDH",
+                                "token": "360",
+                                "total": "0.00621736",
+                                "hold": "0.0",
+                                "entryNtl": "0.00621735"
+                            }
+                        ]
+                    },
+                    "USDC": {
+                        "free": 1.2908594,
+                        "used": 0,
+                        "total": 1.2908594
+                    },
+                    "HYPE": {
+                        "free": 4.43762752,
+                        "used": 0,
+                        "total": 4.43762752
+                    },
+                    "ETH": {
+                        "free": 0.003397716,
+                        "used": 0,
+                        "total": 0.003397716
+                    },
+                    "SOL": {
+                        "free": 0.07894692,
+                        "used": 0,
+                        "total": 0.07894692
+                    },
+                    "USDH": {
+                        "free": 0.00621736,
+                        "used": 0,
+                        "total": 0.00621736
+                    },
+                    "free": {
+                        "USDC": 1.2908594,
+                        "HYPE": 4.43762752,
+                        "ETH": 0.003397716,
+                        "SOL": 0.07894692,
+                        "USDH": 0.00621736
+                    },
+                    "used": {
+                        "USDC": 0,
+                        "HYPE": 0,
+                        "ETH": 0,
+                        "SOL": 0,
+                        "USDH": 0
+                    },
+                    "total": {
+                        "USDC": 1.2908594,
+                        "HYPE": 4.43762752,
+                        "ETH": 0.003397716,
+                        "SOL": 0.07894692,
+                        "USDH": 0.00621736
+                    }
+                }
+            },
+            {
                 "description": "fetchBalance spot with used",
                 "method": "fetchBalance",
                 "input": [

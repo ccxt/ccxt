@@ -1003,6 +1003,7 @@ class binance extends binance$1["default"] {
                         'block/order/execute': 5,
                         'block/user-trades': 5,
                         'blockTrades': 5,
+                        'comission': 5,
                     },
                     'post': {
                         'order': 1,

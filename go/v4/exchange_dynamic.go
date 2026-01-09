@@ -25,6 +25,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		ascendexItf := NewAscendexCore()
 		ascendexItf.Init(exchangeArgs)
 		return ascendexItf, true
+	case "aster":
+		asterItf := NewAsterCore()
+		asterItf.Init(exchangeArgs)
+		return asterItf, true
 	case "backpack":
 		backpackItf := NewBackpackCore()
 		backpackItf.Init(exchangeArgs)
@@ -357,10 +361,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		novadaxItf := NewNovadaxCore()
 		novadaxItf.Init(exchangeArgs)
 		return novadaxItf, true
-	case "oceanex":
-		oceanexItf := NewOceanexCore()
-		oceanexItf.Init(exchangeArgs)
-		return oceanexItf, true
 	case "okx":
 		okxItf := NewOkxCore()
 		okxItf.Init(exchangeArgs)

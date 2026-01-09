@@ -1262,7 +1262,7 @@ export default class hyperliquid extends hyperliquidRest {
         //       "channel": "pong"
         //   }
         //
-        client.lastPong = this.safeInteger(message, 'pong');
+        client.lastPong = this.safeInteger(message, 'pong', this.milliseconds());
         return message;
     }
     requestId() {

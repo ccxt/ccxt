@@ -1010,7 +1010,7 @@ export default class apex extends apexRest {
         try {
             await client.send ({ 'args': [ timeStamp.toString () ], 'op': 'pong' });
         } catch (e) {
-            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.exceptionMessage (e));
             client.reset (error);
         }
     }
@@ -1026,7 +1026,7 @@ export default class apex extends apexRest {
         //
         //   { pong: 1653296711335 }
         //
-        client.lastPong = this.safeInteger (message, 'pong');
+        client.lastPong = this.safeInteger (message, 'pong', this.milliseconds ());
         return message;
     }
 

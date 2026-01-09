@@ -1226,7 +1226,7 @@ class bingx extends bingx$1["default"] {
             }
         }
         catch (e) {
-            const error = new errors.NetworkError(this.id + ' pong failed with error ' + this.json(e));
+            const error = new errors.NetworkError(this.id + ' pong failed with error ' + this.exceptionMessage(e));
             client.reset(error);
         }
     }

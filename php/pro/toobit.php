@@ -1178,7 +1178,7 @@ class toobit extends \ccxt\async\toobit {
                         $future->resolve (true);
                         $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
                     } catch (Exception $e) {
-                        $err = new AuthenticationError ($this->id . ' ' . $this->json($e));
+                        $err = new AuthenticationError ($this->id . ' ' . $this->exception_message($e));
                         $client->reject ($err, $messageHash);
                         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
                             unset($client->subscriptions[$messageHash]);

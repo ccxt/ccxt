@@ -933,7 +933,7 @@ class apex(ccxt.async_support.apex):
         try:
             await client.send({'args': [str(timeStamp)], 'op': 'pong'})
         except Exception as e:
-            error = NetworkError(self.id + ' handlePing failed with error ' + self.json(e))
+            error = NetworkError(self.id + ' handlePing failed with error ' + self.exception_message(e))
             client.reset(error)
 
     def handle_pong(self, client: Client, message):
@@ -947,7 +947,7 @@ class apex(ccxt.async_support.apex):
         #
         #   {pong: 1653296711335}
         #
-        client.lastPong = self.safe_integer(message, 'pong')
+        client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
     def handle_ping(self, client: Client, message):

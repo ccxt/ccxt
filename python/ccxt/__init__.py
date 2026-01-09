@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.29'
+__version__ = '4.5.32'
 
 # ----------------------------------------------------------------------------
 
@@ -88,6 +88,7 @@ from ccxt.alpaca import alpaca                                        # noqa: F4
 from ccxt.apex import apex                                            # noqa: F401
 from ccxt.arkham import arkham                                        # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
+from ccxt.aster import aster                                          # noqa: F401
 from ccxt.backpack import backpack                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
 from ccxt.bigone import bigone                                        # noqa: F401
@@ -171,7 +172,6 @@ from ccxt.modetrade import modetrade                                  # noqa: F4
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
-from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
@@ -201,6 +201,7 @@ exchanges = [
     'apex',
     'arkham',
     'ascendex',
+    'aster',
     'backpack',
     'bequant',
     'bigone',
@@ -284,7 +285,6 @@ exchanges = [
     'myokx',
     'ndax',
     'novadax',
-    'oceanex',
     'okx',
     'okxus',
     'onetrading',

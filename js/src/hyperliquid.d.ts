@@ -88,6 +88,7 @@ export default class hyperliquid extends Exchange {
      */
     fetchSpotMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
+    updateSpotCurrencyCode(code: string): string;
     /**
      * @method
      * @name hyperliquid#fetchBalance

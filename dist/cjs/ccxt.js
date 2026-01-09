@@ -12,6 +12,7 @@ var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var arkham = require('./src/arkham.js');
 var ascendex = require('./src/ascendex.js');
+var aster = require('./src/aster.js');
 var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
 var bigone = require('./src/bigone.js');
@@ -95,7 +96,6 @@ var modetrade = require('./src/modetrade.js');
 var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
-var oceanex = require('./src/oceanex.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
@@ -123,6 +123,7 @@ var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
 var arkham$1 = require('./src/pro/arkham.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
+var aster$1 = require('./src/pro/aster.js');
 var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
 var binance$1 = require('./src/pro/binance.js');
@@ -199,13 +200,14 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.29';
+const version = '4.5.32';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'arkham': arkham["default"],
     'ascendex': ascendex["default"],
+    'aster': aster["default"],
     'backpack': backpack["default"],
     'bequant': bequant["default"],
     'bigone': bigone["default"],
@@ -289,7 +291,6 @@ const exchanges = {
     'myokx': myokx["default"],
     'ndax': ndax["default"],
     'novadax': novadax["default"],
-    'oceanex': oceanex["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
@@ -319,6 +320,7 @@ const pro = {
     'apex': apex$1["default"],
     'arkham': arkham$1["default"],
     'ascendex': ascendex$1["default"],
+    'aster': aster$1["default"],
     'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
     'binance': binance$1["default"],
@@ -448,6 +450,7 @@ exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.arkham = arkham["default"];
 exports.ascendex = ascendex["default"];
+exports.aster = aster["default"];
 exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
 exports.bigone = bigone["default"];
@@ -531,7 +534,6 @@ exports.modetrade = modetrade["default"];
 exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
 exports.novadax = novadax["default"];
-exports.oceanex = oceanex["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];

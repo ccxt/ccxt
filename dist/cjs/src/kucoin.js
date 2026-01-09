@@ -182,6 +182,7 @@ class kucoin extends kucoin$1["default"] {
                     'get': {
                         // account
                         'user-info': 30,
+                        'user/api-key': 30,
                         'accounts': 7.5,
                         'accounts/{accountId}': 7.5,
                         'accounts/ledgers': 3,
@@ -266,6 +267,8 @@ class kucoin extends kucoin$1["default"] {
                         'convert/limit/orders': 5,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
+                        // earn
+                        'earn/redeem-preview': 5, // 5EW
                     },
                     'post': {
                         // account
@@ -712,6 +715,9 @@ class kucoin extends kucoin$1["default"] {
                 },
                 'withdraw': {
                     'includeFee': false,
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
                 },
                 // endpoint versions
                 'versions': {
@@ -4583,96 +4589,89 @@ class kucoin extends kucoin$1["default"] {
      * @method
      * @name kucoin#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
-     * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
-     * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
+     * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+     * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT
+     * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
         const currency = this.currency(code);
         const requestedAmount = this.currencyToPrecision(code, amount);
+        const request = {
+            'currency': currency['id'],
+            'amount': requestedAmount,
+        };
+        let transferType = 'INTERNAL';
+        [transferType, params] = this.handleParamString2(params, 'transferType', 'type', transferType);
+        if (transferType === 'PARENT_TO_SUB') {
+            if (!('toUserId' in params)) {
+                throw new errors.ExchangeError(this.id + ' transfer() requires a toUserId param for PARENT_TO_SUB transfers');
+            }
+        }
+        else if (transferType === 'SUB_TO_PARENT') {
+            if (!('fromUserId' in params)) {
+                throw new errors.ExchangeError(this.id + ' transfer() requires a fromUserId param for SUB_TO_PARENT transfers');
+            }
+        }
+        if (!('clientOid' in params)) {
+            request['clientOid'] = this.uuid();
+        }
         let fromId = this.convertTypeToAccount(fromAccount);
         let toId = this.convertTypeToAccount(toAccount);
         const fromIsolated = this.inArray(fromId, this.ids);
         const toIsolated = this.inArray(toId, this.ids);
-        if (fromId === 'contract') {
-            if (toId !== 'main') {
-                throw new errors.ExchangeError(this.id + ' transfer() only supports transferring from futures account to main account');
-            }
-            const request = {
-                'currency': currency['id'],
-                'amount': requestedAmount,
-            };
-            if (!('bizNo' in params)) {
-                // it doesn't like more than 24 characters
-                request['bizNo'] = this.uuid22();
-            }
-            const response = await this.futuresPrivatePostTransferOut(this.extend(request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "applyId": "605a87217dff1500063d485d",
-            //             "bizNo": "bcd6e5e1291f4905af84dc",
-            //             "payAccountType": "CONTRACT",
-            //             "payTag": "DEFAULT",
-            //             "remark": '',
-            //             "recAccountType": "MAIN",
-            //             "recTag": "DEFAULT",
-            //             "recRemark": '',
-            //             "recSystem": "KUCOIN",
-            //             "status": "PROCESSING",
-            //             "currency": "XBT",
-            //             "amount": "0.00001",
-            //             "fee": "0",
-            //             "sn": "573688685663948",
-            //             "reason": '',
-            //             "createdAt": 1616545569000,
-            //             "updatedAt": 1616545569000
-            //         }
-            //     }
-            //
-            const data = this.safeDict(response, 'data');
-            return this.parseTransfer(data, currency);
+        if (fromIsolated) {
+            request['fromAccountTag'] = fromId;
+            fromId = 'isolated';
         }
-        else {
-            const request = {
-                'currency': currency['id'],
-                'amount': requestedAmount,
-            };
-            if (fromIsolated || toIsolated) {
-                if (this.inArray(fromId, this.ids)) {
-                    request['fromTag'] = fromId;
-                    fromId = 'isolated';
-                }
-                if (this.inArray(toId, this.ids)) {
-                    request['toTag'] = toId;
-                    toId = 'isolated';
-                }
-            }
+        if (toIsolated) {
+            request['toAccountTag'] = toId;
+            toId = 'isolated';
+        }
+        const hfOrMining = this.isHfOrMining(fromId, toId);
+        let response = undefined;
+        if (hfOrMining) {
+            // new endpoint does not support hf and mining transfers
+            // use old endpoint for hf and mining transfers
             request['from'] = fromId;
             request['to'] = toId;
-            if (!('clientOid' in params)) {
-                request['clientOid'] = this.uuid();
-            }
-            const response = await this.privatePostAccountsInnerTransfer(this.extend(request, params));
+            response = await this.privatePostAccountsInnerTransfer(this.extend(request, params));
+        }
+        else {
+            request['type'] = transferType;
+            request['fromAccountType'] = fromId.toUpperCase();
+            request['toAccountType'] = toId.toUpperCase();
             //
             //     {
             //         "code": "200000",
             //         "data": {
-            //              "orderId": "605a6211e657f00006ad0ad6"
+            //             "orderId": "694fcb5b08bb1600015cda75"
             //         }
             //     }
             //
-            const data = this.safeDict(response, 'data');
-            return this.parseTransfer(data, currency);
+            response = await this.privatePostAccountsUniversalTransfer(this.extend(request, params));
         }
+        const data = this.safeDict(response, 'data');
+        const transfer = this.parseTransfer(data, currency);
+        const transferOptions = this.safeDict(this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['amount'] = amount;
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['status'] = 'ok';
+        }
+        return transfer;
+    }
+    isHfOrMining(fromId, toId) {
+        return (fromId === 'trade_hf' || toId === 'trade_hf' || fromId === 'pool' || toId === 'pool');
     }
     parseTransfer(transfer, currency = undefined) {
         //

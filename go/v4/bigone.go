@@ -801,7 +801,7 @@ func (this *BigoneCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
 		"close":         close,
 		"last":          close,
 		"previousClose": nil,
-		"change":        this.SafeString2(ticker, "daily_change", "last24hPriceChange"),
+		"change":        this.SafeString(ticker, "daily_change"),
 		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString2(ticker, "volume", "volume24h"),

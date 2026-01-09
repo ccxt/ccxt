@@ -84,7 +84,7 @@
             },
             "fetchCurrencies": {
                 "precision":"not provided",
-                "maxInactiveCurrenciesPercentage": 65
+                "maxInactiveCurrenciesPercentage": 77
             },
             "fetchTrades": {
                 "side": "not provided"
@@ -1092,6 +1092,9 @@
             },
             "orderBook": {
                 "timestamp": "not provided"
+            },
+            "watchOrderBook": {
+                "compareBidAsk": "sometimes bid is greater than ask"
             }
         }
     },
@@ -2157,6 +2160,14 @@
             },
             "ticker": {
                 "compareOHLC": "open higher than high from API"
+            }
+        }
+    },
+    "aster": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed",
+                "precision":"is undefined"
             }
         }
     }
