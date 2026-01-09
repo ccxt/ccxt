@@ -50,6 +50,7 @@ class aster(Exchange, ImplicitAPI):
             # for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
             'hostname': 'aster.markets',
+            'certified': False,
             'pro': True,
             'dex': True,
             'urls': {
