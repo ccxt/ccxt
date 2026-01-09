@@ -2820,7 +2820,7 @@ export default class grvt extends Exchange {
         request['signature']['s'] = '0x' + signature['s'];
         request['signature']['v'] = this.sum (27, signature['v']);
         if (signerAddress === '') {
-            signerAddress = this.ethGetAddressFromPrivateKey (privateKey);
+            signerAddress = this.ethGetAddressFromPrivateKey ('0x' + privateKey);
         }
         request['signature']['signer'] = signerAddress;
         return request;
