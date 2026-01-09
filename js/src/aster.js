@@ -23,7 +23,6 @@ export default class aster extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'aster',
             'name': 'Aster',
-            'dex': true,
             'countries': ['US'],
             // 3 req/s for free
             // 150 req/s for subscribers: https://aster.markets/data
@@ -31,6 +30,7 @@ export default class aster extends Exchange {
             'rateLimit': 333,
             'hostname': 'aster.markets',
             'pro': true,
+            'dex': true,
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
                 'www': 'https://www.asterdex.com/en',
