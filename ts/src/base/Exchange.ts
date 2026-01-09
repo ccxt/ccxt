@@ -8453,6 +8453,7 @@ export default class Exchange {
 
     async loadMarketsAndSignIn () {
         await Promise.all ([ this.loadMarkets (), this.signIn () ]);
+        return true;
     }
 
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {

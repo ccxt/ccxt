@@ -1584,7 +1584,7 @@ export default class aster extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.fapiPublicGetV1PremiumIndex (this.extend (params));
+        const response = await this.fapiPublicGetV1PremiumIndex (params);
         //
         //     [
         //         {
