@@ -1488,12 +1488,15 @@ async function runMain () {
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    const baseClassOnly = process.argv.includes ('--baseClass')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
     const transpiler = new NewTranspiler ();
-    if (ws) {
+    if (baseClassOnly){
+        transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
+    } else if (ws) {
         await transpiler.transpileWS (force)
     } else if (test) {
         transpiler.transpileTests ()

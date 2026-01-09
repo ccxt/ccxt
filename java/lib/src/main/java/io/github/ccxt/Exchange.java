@@ -251,16 +251,16 @@ public class Exchange {
 
         // credentials init
         this.requiredCredentials = (Map<String, Object>) SafeMethods.SafeValue(extendedProperties, "requiredCredentials");
-        this.apiKey        = SafeMethods.SafeStringTyped(extendedProperties, "apiKey", null);
-        this.secret        = SafeMethods.SafeStringTyped(extendedProperties, "secret", null   );
-        this.password      = SafeMethods.SafeStringTyped(extendedProperties, "password", null);
-        this.login         = SafeMethods.SafeStringTyped(extendedProperties, "login", null );
-        this.twofa         = SafeMethods.SafeStringTyped(extendedProperties, "twofa", null );
-        this.privateKey    = SafeMethods.SafeStringTyped(extendedProperties, "privateKey", null );
-        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAddress", null );
-        this.token         = SafeMethods.SafeStringTyped(extendedProperties, "token", null );
-        this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid", null);
-        this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId", null );
+        this.apiKey        = SafeMethods.SafeStringTyped(extendedProperties, "apiKey");
+        this.secret        = SafeMethods.SafeStringTyped(extendedProperties, "secret"   );
+        this.password      = SafeMethods.SafeStringTyped(extendedProperties, "password");
+        this.login         = SafeMethods.SafeStringTyped(extendedProperties, "login" );
+        this.twofa         = SafeMethods.SafeStringTyped(extendedProperties, "twofa" );
+        this.privateKey    = SafeMethods.SafeStringTyped(extendedProperties, "privateKey" );
+        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAddress" );
+        this.token         = SafeMethods.SafeStringTyped(extendedProperties, "token" );
+        this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid");
+        this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId" );
 
         var userAgentRes = this.safeValue(extendedProperties, "userAgents", this.userAgents);
         this.userAgents = (Map<String, Object>) userAgentRes;
@@ -1886,6 +1886,12 @@ public class Exchange {
         return "";
     }
 
+    public Object ethGetAddressFromPrivateKey (Object privateKey)
+    {
+        // throw new RuntimeException("Not implemented");
+        return ""; // to do later
+    }
+
     public int randNumber(int size) {
         Random random = new Random();
         StringBuilder number = new StringBuilder();
@@ -2027,7 +2033,8 @@ public class Exchange {
             return null;
 
         } catch (Exception e) {
-            return null;
+            throw new RuntimeException(e.getMessage());
+//            return null;
         }
     }
 
@@ -9012,6 +9019,20 @@ public Object describe()
 
     }
 
+    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            throw new NotSupported((String)Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
+        });
+
+    }
+
     public java.util.concurrent.CompletableFuture<Object> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
 
@@ -11873,6 +11894,17 @@ public Object describe()
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchPositionHistory () is not supported yet")) ;
             }
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> loadMarketsAndSignIn()
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.signIn())))).join();
+            return true;
         });
 
     }
