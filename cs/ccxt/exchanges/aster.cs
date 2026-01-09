@@ -13,6 +13,7 @@ public partial class aster : Exchange
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 333 },
             { "hostname", "aster.markets" },
+            { "certified", false },
             { "pro", true },
             { "dex", true },
             { "urls", new Dictionary<string, object>() {
