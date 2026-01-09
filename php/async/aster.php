@@ -29,6 +29,7 @@ class aster extends Exchange {
             // for brokers => https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit' => 333,
             'hostname' => 'aster.markets',
+            'certified' => false,
             'pro' => true,
             'dex' => true,
             'urls' => array(
