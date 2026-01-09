@@ -437,10 +437,42 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 	return nil
 }
 
+type Number interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
+		~float32 | ~float64
+}
+
+func SafeNum[T Number](v interface{}) T {
+	switch val := v.(type) {
+	case int:
+		return T(val)
+	case int64:
+		return T(val)
+	case float64:
+		return T(val)
+	case uint:
+		return T(val)
+	case uint8:
+		return T(val)
+	case uint32:
+		return T(val)
+	case uint64:
+		return T(val)
+	case float32:
+		return T(val)
+	case nil:
+		var zero T
+		return zero
+	default:
+		panic(fmt.Sprintf("SafeNum: unsupported type %T", v))
+	}
+}
+
 // it's necessary to load lighter library in python
 // we create client with the given api credential in this function
 func (this *Exchange) LoadLighterLibrary(path interface{}, chainId interface{}, privateKey interface{}, apiKeyIndex interface{}, accountIndex interface{}) interface{} {
-	return this.loadLighterLibrary(path.(string), uint32(chainId.(int)), privateKey.(string), uint8(apiKeyIndex.(float64)), int64(accountIndex.(float64)))
+	return this.loadLighterLibrary(path.(string), SafeNum[uint32](chainId), privateKey.(string), SafeNum[uint8](apiKeyIndex), SafeNum[int64](accountIndex))
 }
 
 func (this *Exchange) loadLighterLibrary(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) interface{} {
@@ -468,18 +500,18 @@ func (this *Exchange) LighterSignCreateOrder(signer interface{}, request interfa
 }
 
 func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
-	marketIndex := int16(request["market_index"].(int64))
-	clientOrderIndex := int64(request["client_order_index"].(int))
-	baseAmount := request["base_amount"].(int64)
-	price := uint32(request["avg_execution_price"].(int64))
-	isAsk := uint8(request["is_ask"].(int))
-	orderType := uint8(request["order_type"].(int))
-	timeInForce := uint8(request["time_in_force"].(int))
-	reduceOnly := uint8(request["reduce_only"].(int))
+	marketIndex := SafeNum[int16](request["market_index"])
+	clientOrderIndex := SafeNum[int64](request["client_order_index"])
+	baseAmount := SafeNum[int64](request["base_amount"])
+	price := SafeNum[uint32](request["avg_execution_price"])
+	isAsk := SafeNum[uint8](request["is_ask"])
+	orderType := SafeNum[uint8](request["order_type"])
+	timeInForce := SafeNum[uint8](request["time_in_force"])
+	reduceOnly := SafeNum[uint8](request["reduce_only"])
 	// triggerPrice := uint32(request["trigger_price"]).(int64))
-	triggerPrice := uint32(0)
-	orderExpiry := int64(request["order_expiry"].(int))
-	nonce := request["nonce"].(int64)
+	triggerPrice := SafeNum[uint32](0)
+	orderExpiry := SafeNum[int64](request["order_expiry"])
+	nonce := SafeNum[int64](request["nonce"])
 
 	if orderExpiry == -1 {
 		orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
@@ -587,8 +619,18 @@ func (this *Exchange) LighterCreateAuthToken(signer interface{}, request interfa
 }
 
 func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]interface{}) interface{} {
-	// TODO
-	return nil
+	deadline := time.UnixMilli(SafeNum[int64](request["deadline"]))
+	fmt.Println(deadline)
+
+	auth, err := signer.GetAuthToken(deadline)
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, auth)
+	res = append(res, nil)
+	return res
 }
 
 func (this *Exchange) LighterSignUpdateMargin(signer interface{}, request interface{}) interface{} {

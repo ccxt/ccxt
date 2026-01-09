@@ -447,7 +447,7 @@ export default class lighter extends Exchange {
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
         const request: Dict = {
-            'market_index': market['id'],
+            'market_index': this.parseToInt (market['id']),
         };
         let nonce = undefined;
         let apiKeyIndex = undefined;
