@@ -8194,6 +8194,15 @@ export default class Exchange {
         return [ request, params ];
     }
 
+    handleUntilOptionString (key: string, request, params, multiplier = 1) {
+        const until = this.safeInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request[key] = this.numberToString (this.parseToInt (until * multiplier));
+            params = this.omit (params, [ 'until', 'till' ]);
+        }
+        return [ request, params ];
+    }
+
     safeOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
         let symbol = this.safeString (interest, 'symbol');
         if (symbol === undefined) {

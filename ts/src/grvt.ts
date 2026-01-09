@@ -727,9 +727,9 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
-            request['start_time'] = since * 1000000;
+            request['start_time'] = this.numberToString (since * 1000000);
         }
         const response = await this.publicMarketPostFullV1TradeHistory (this.extend (request, params));
         //
@@ -865,13 +865,6 @@ export default class grvt extends Exchange {
             'instrument': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 1000);
-        }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
-        if (since !== undefined) {
-            request['start_time'] = since * 1000000;
-        }
         const priceTypeMap = {
             'last': 'TRADE',
             'mark': 'MARK',
@@ -880,6 +873,13 @@ export default class grvt extends Exchange {
         };
         const selectedPriceType = this.safeString (params, 'priceType', 'last');
         request['type'] = this.safeString (priceTypeMap, selectedPriceType);
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        if (since !== undefined) {
+            request['start_time'] = this.numberToString (since * 1000000);
+        }
         const response = await this.publicMarketPostFullV1Kline (this.extend (request, params));
         //
         //    {
@@ -956,12 +956,12 @@ export default class grvt extends Exchange {
         let request: Dict = {
             'instrument': market['id'],
         };
-        if (since !== undefined) {
-            request['start_time'] = since * 1000000;
-        }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        if (since !== undefined) {
+            request['start_time'] = this.numberToString (since * 1000000);
         }
         const response = await this.publicMarketPostFullV1Funding (this.extend (request, params));
         //
@@ -1130,15 +1130,12 @@ export default class grvt extends Exchange {
             currency = this.currency (code);
             request['currency'] = [ currency['code'] ];
         }
-        if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
-        }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
-        if ('end_time' in request) {
-            request['end_time'] = this.numberToString (request['end_time']);
-        }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        if (since !== undefined) {
+            request['start_time'] = this.numberToString (since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
@@ -1190,15 +1187,12 @@ export default class grvt extends Exchange {
             currency = this.currency (code);
             request['currency'] = [ currency['code'] ];
         }
-        if (since !== undefined) {
-            request['start_time'] = this.numberToString (since * 1000000);
-        }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
-        if ('end_time' in request) {
-            request['end_time'] = this.numberToString (request['end_time']);
-        }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        if (since !== undefined) {
+            request['start_time'] = this.numberToString (since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
@@ -1413,12 +1407,12 @@ export default class grvt extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, maxLimit);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
-        if ('end_time' in request) {
-            request['end_time'] = this.numberToString (request['end_time']);
-        }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
+        }
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        if (since !== undefined) {
+            request['start_time'] = this.numberToString (since * 1000000);
         }
         const response = await this.privateTradingPostFullV1TransferHistory (this.extend (request, params));
         //
@@ -1877,9 +1871,9 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
-            request['start_time'] = since * 1000000;
+            request['start_time'] = this.numberToString (since * 1000000);
         }
         const response = await this.privateTradingPostFullV1FillHistory (this.extend (request, params));
         //
@@ -2207,9 +2201,9 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
-            request['start_time'] = since * 1000000;
+            request['start_time'] = this.numberToString (since * 1000000);
         }
         const response = await this.privateTradingPostFullV1FundingPaymentHistory (this.extend (request, params));
         //
@@ -2285,9 +2279,9 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end_time', request, params, 1000000);
+        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
-            request['start_time'] = since * 1000000;
+            request['start_time'] = this.numberToString (since * 1000000);
         }
         const response = await this.privateTradingPostFullV1OrderHistory (this.extend (request, params));
         //
