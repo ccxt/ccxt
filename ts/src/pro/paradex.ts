@@ -62,7 +62,7 @@ export default class paradex extends paradexRest {
                     'bearer': token,
                 },
             };
-            this.spawn (this.watch, url, messageHash, this.deepExtend (request, params), messageHash);
+            this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         }
         return await future;
     }
