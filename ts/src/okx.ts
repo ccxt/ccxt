@@ -7,6 +7,12 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { SnapshotDepthResponseEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/SnapshotDepthResponseEvent.js';
+import { BboTbtChannelEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BboTbtChannelEvent.js';
+import { BooksL2TbtChannelEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtChannelEvent.js';
+import { BooksL2TbtExponentUpdateEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtExponentUpdateEvent.js';
+import { BooksL2TbtElpChannelEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtElpChannelEvent.js';
+import { BooksL2TbtElpExponentUpdateEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtElpExponentUpdateEvent.js';
+import { TradesChannelEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/TradesChannelEvent.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -2108,15 +2114,15 @@ export default class okx extends Exchange {
         }
         // Use generated SBE decoder
         const decoderRegistry = {
-            1006: SnapshotDepthResponseEventDecoder, // SnapshotDepthResponseEvent
+            '1006': SnapshotDepthResponseEventDecoder, // SnapshotDepthResponseEvent
         };
         const result = this.decodeSbeMessage (arrayBuffer, decoderRegistry);
         const decoded = result['data'];
         // Auto-apply exponents to mantissas
         const processedData = this.applySbeExponents (decoded);
         // Convert bids/asks to standard format
-        const bids = processedData.bids ? processedData.bids.map (bid => [ bid.px, bid.sz ]) : [];
-        const asks = processedData.asks ? processedData.asks.map (ask => [ ask.px, ask.sz ]) : [];
+        const bids = processedData.bids ? processedData.bids.map ((bid) => [ bid.px, bid.sz ]) : [];
+        const asks = processedData.asks ? processedData.asks.map ((ask) => [ ask.px, ask.sz ]) : [];
         return {
             'instIdCode': Number (decoded.instIdCode),
             'timestamp': Number (decoded.tsUs) / 1000, // convert microseconds to milliseconds
@@ -6621,18 +6627,53 @@ export default class okx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    getSbeDecoder () {
+        // OKX uses specific decoders for each message type
+        // This method returns a mock decoder object to indicate SBE is supported
+        if (this['sbeDecoder'] === undefined) {
+            this['sbeDecoder'] = {
+                'supported': true,
+                'decoders': {
+                    'bboTbt': BboTbtChannelEventDecoder,
+                    'booksL2Tbt': BooksL2TbtChannelEventDecoder,
+                    'booksL2TbtExponentUpdate': BooksL2TbtExponentUpdateEventDecoder,
+                    'booksL2TbtElp': BooksL2TbtElpChannelEventDecoder,
+                    'booksL2TbtElpExponentUpdate': BooksL2TbtElpExponentUpdateEventDecoder,
+                    'trades': TradesChannelEventDecoder,
+                    'snapshotDepth': SnapshotDepthResponseEventDecoder,
+                },
+            };
+        }
+        return this['sbeDecoder'];
+    }
+
+    getSbeDecoderRegistry () {
+        // Registry mapping template IDs to decoder classes
+        return {
+            '1000': BboTbtChannelEventDecoder,
+            '1001': BooksL2TbtChannelEventDecoder,
+            '1002': BooksL2TbtExponentUpdateEventDecoder,
+            '1003': BooksL2TbtElpChannelEventDecoder,
+            '1004': BooksL2TbtElpExponentUpdateEventDecoder,
+            '1005': TradesChannelEventDecoder,
+            '1006': SnapshotDepthResponseEventDecoder,
+        };
+    }
 
     decodeSbeResponse (buffer: ArrayBuffer, url: string) {
-        // Use generic SBE decoder that follows the spec
+        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
         if (this.verbose) {
             this.log ('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength);
         }
         try {
-            const decoder = this.getSbeDecoder ();
-            const decoded = decoder.decode (buffer);
+            // Use global decodeSbeMessage with OKX decoder registry
+            const decoderRegistry = this.getSbeDecoderRegistry ();
+            const result = this.decodeSbeMessage (buffer, decoderRegistry);
+            const templateId = result['templateId'];
+            const decoded = result['data'];
             if (this.verbose) {
+                this.log ('decodeSbeResponse: Template ID:', templateId);
                 this.log ('decodeSbeResponse: Successfully decoded SBE message');
-                this.log ('decodeSbeResponse: Message ID:', decoded.messageId, 'Message Name:', decoded.messageName);
             }
             return decoded;
         } catch (e) {
