@@ -39,9 +39,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
 import org.bouncycastle.jcajce.provider.digest.Keccak;
-import org.web3j.crypto.ECKeyPair;
-import org.web3j.crypto.Hash;
-import org.web3j.crypto.Sign;
+import org.web3j.crypto.*;
 import org.web3j.utils.Numeric;
 
 /**
@@ -675,5 +673,60 @@ public final class Crypto {
             off += p.length;
         }
         return out;
+    }
+
+
+    public static String ethGetAddressFromPrivateKey(Object privateKey) {
+        BigInteger priv = toPrivateKeyBigInt(privateKey);
+
+        // Build keypair and derive address
+        ECKeyPair keyPair = ECKeyPair.create(priv);
+
+        // Returns 40 hex chars, no 0x, lower-case
+        String addressNoPrefix = Keys.getAddress(keyPair);
+
+        return "0x" + addressNoPrefix;
+    }
+
+    private static BigInteger toPrivateKeyBigInt(Object privateKey) {
+        if (privateKey == null) {
+            throw new IllegalArgumentException("privateKey is null");
+        }
+
+        if (privateKey instanceof BigInteger bi) {
+            return bi;
+        }
+
+        if (privateKey instanceof byte[] bytes) {
+            if (bytes.length != 32) {
+                throw new IllegalArgumentException("privateKey byte[] must be 32 bytes. Got: " + bytes.length);
+            }
+            return new BigInteger(1, bytes);
+        }
+
+        // Treat everything else as string
+        String s = String.valueOf(privateKey).trim();
+        s = Numeric.cleanHexPrefix(s);
+
+        if (s.isEmpty()) {
+            throw new IllegalArgumentException("privateKey is empty");
+        }
+
+        // If you want to allow shorter hex keys, you can left-pad to 64 chars:
+        // s = Numeric.toHexStringNoPrefixZeroPadded(new BigInteger(s, 16), 64);
+
+        if (s.length() != 64) {
+            throw new IllegalArgumentException("privateKey hex must be 64 chars (32 bytes). Got: " + s.length());
+        }
+
+        // Safe parse (unsigned)
+        return Numeric.toBigIntNoPrefix(s);
+    }
+
+    // Optional: if you want checksummed output (EIP-55)
+    public static String ethGetChecksumAddressFromPrivateKey(Object privateKey) {
+        BigInteger priv = toPrivateKeyBigInt(privateKey);
+        Credentials credentials = Credentials.create(ECKeyPair.create(priv));
+        return Keys.toChecksumAddress(credentials.getAddress()); // already includes 0x
     }
 }

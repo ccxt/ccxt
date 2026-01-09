@@ -1889,7 +1889,8 @@ public class Exchange {
     public Object ethGetAddressFromPrivateKey (Object privateKey)
     {
         // throw new RuntimeException("Not implemented");
-        return ""; // to do later
+//        return ""; // to do later
+        return Crypto.ethGetAddressFromPrivateKey(privateKey);
     }
 
     public int randNumber(int size) {
