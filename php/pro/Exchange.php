@@ -23,6 +23,7 @@ Exchange::$exchanges = array(
     'apex',
     'arkham',
     'ascendex',
+    'aster',
     'backpack',
     'bequant',
     'binance',
