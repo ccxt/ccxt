@@ -2814,15 +2814,12 @@ export default class grvt extends Exchange {
         const definitions = this.eipDefinitions ();
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const privateKey = this.remove0xPrefix (this.secret);
-        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKey, secp256k1, null);
+        const privateKeyWithoutZero = this.remove0xPrefix (this.secret);
+        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
         request['signature']['r'] = '0x' + signature['r'];
         request['signature']['s'] = '0x' + signature['s'];
         request['signature']['v'] = this.sum (27, signature['v']);
-        if (signerAddress === '') {
-            signerAddress = this.ethGetAddressFromPrivateKey ('0x' + privateKey);
-        }
-        request['signature']['signer'] = signerAddress;
+        request['signature']['signer'] = (signerAddress !== '') ? signerAddress : this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero);
         return request;
     }
 
