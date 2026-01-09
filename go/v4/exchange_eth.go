@@ -455,6 +455,14 @@ func (this *Exchange) loadLighterLibrary(path string, chainId uint32, privateKey
 	return txClient
 }
 
+func (this *Exchange) LighterSignCreateGroupedOrders(signer interface{}, grouping_type interface{}, orders interface{}, nonce interface{}, api_key_index interface{}, account_index interface{}) interface{} {
+	return this.lighterSignCreateGroupedOrders(signer.(*client.TxClient), grouping_type.(int64), orders.([]interface{}), nonce.(int64), api_key_index.(int64), account_index.(int64))
+}
+
+func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, grouping_type int64, orders []interface{}, nonce int64, api_key_index int64, account_index int64) interface{} {
+	return []any{nil, nil}
+}
+
 func (this *Exchange) LighterSignCreateOrder(signer interface{}, request interface{}) interface{} {
 	return this.lighterSignCreateOrder(signer.(*client.TxClient), request.(map[string]interface{}))
 }
@@ -511,6 +519,69 @@ func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request ma
 	return res
 }
 
+func (this *Exchange) LighterSignCancelOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCancelOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
+	return []any{nil, nil}
+}
+
+func (this *Exchange) LighterSignWithdraw(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignWithdraw(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
+	return []any{nil, nil}
+}
+
+func (this *Exchange) LighterSignCreateSubAccount(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateSubAccount(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
+	return []any{nil, nil}
+}
+
+func (this *Exchange) LighterSignCancelAllOrders(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCancelAllOrders(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
+	return []any{nil, nil}
+}
+
+func (this *Exchange) LighterSignModifyOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignModifyOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
+	return []any{nil, nil}
+}
+
+func (this *Exchange) LighterSignTransfer(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignTransfer(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
+	return []any{nil, nil}
+}
+
+func (this *Exchange) LighterSignUpdateLeverage(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignUpdateLeverage(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
+	return []any{nil, nil}
+}
+
 func (this *Exchange) LighterCreateAuthToken(signer interface{}, request interface{}) interface{} {
 	return this.lighterCreateAuthToken(signer.(*client.TxClient), request.(map[string]interface{}))
 }
@@ -518,4 +589,13 @@ func (this *Exchange) LighterCreateAuthToken(signer interface{}, request interfa
 func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]interface{}) interface{} {
 	// TODO
 	return nil
+}
+
+func (this *Exchange) LighterSignUpdateMargin(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignUpdateMargin(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request map[string]interface{}) interface{} {
+	// TODO
+	return []any{nil, nil}
 }
