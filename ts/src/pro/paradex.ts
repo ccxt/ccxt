@@ -50,9 +50,9 @@ export default class paradex extends paradexRest {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future (messageHash);
+        const future = client.reusableFuture ('authenticated');
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const token = await this.authenticateRest ();
             const request: Dict = {
                 'jsonrpc': '2.0',
@@ -75,10 +75,13 @@ export default class paradex extends paradexRest {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        const messageHash = 'authenticated';
         const result = this.safeDict (message, 'result');
         if (result !== undefined) {
-            client.resolve (true, messageHash);
+            // client.resolve (true, messageHash);
+            const future = this.safeValue (client.futures, 'authenticated');
+            if (future !== undefined) {
+                future.resolve (true);
+            }
         }
     }
 
