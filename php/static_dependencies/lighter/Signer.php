@@ -1,6 +1,7 @@
 <?php
 
 namespace Lighter;
+use \RuntimeException;
 
 /**
  * Signer - PHP wrapper for the Lighter signing library

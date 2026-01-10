@@ -1429,22 +1429,21 @@ class Exchange {
         $orders_arr = array();
         foreach ($orders as $order) {
             $orders_arr[] = array(
-                'MarketIndex' => $order['market_index'],
-                'ClientOrderIndex' => $order['client_order_index'],
-                'BaseAmount' => $order['base_amount'],
-                'Price' => $order['avg_execution_price'],
-                'IsAsk' => $order['is_ask'],
-                'Type' => $order['order_type'],
-                'TimeInForce' => $order['time_in_force'],
-                'ReduceOnly' => $order['reduce_only'],
-                'TriggerPrice' => $order['trigger_price'],
-                'OrderExpiry' => $order['order_expiry'],
+                'marketIndex' => $order['market_index'],
+                'clientOrderIndex' => $order['client_order_index'],
+                'baseAmount' => $order['base_amount'],
+                'price' => $order['avg_execution_price'],
+                'isAsk' => $order['is_ask'],
+                'type' => $order['order_type'],
+                'timeInForce' => $order['time_in_force'],
+                'reduceOnly' => $order['reduce_only'],
+                'triggerPrice' => $order['trigger_price'],
+                'orderExpiry' => $order['order_expiry'],
             );
         }
         $result = $signer->signCreateGroupedOrders(
             $grouping_type,
             $orders_arr,
-            count($orders_arr),
             $nonce,
             $api_key_index,
             $account_index

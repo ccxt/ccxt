@@ -428,7 +428,7 @@ export default class lighter extends Exchange {
         this.options['chainId'] = 300;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): any[] {
         /**
          * @method
          * @ignore
@@ -440,7 +440,7 @@ export default class lighter extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} request to be sent to the exchange
+         * @returns {any[]} request to be sent to the exchange
          */
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false); // default false
         const orderType = type.toUpperCase ();
@@ -594,10 +594,12 @@ export default class lighter extends Exchange {
         let groupingType = undefined;
         [ groupingType, params ] = this.handleOptionAndParams (params, 'createOrder', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
+        // for php
+        const totalOrderRequests = orderRequests.length;
         let accountIndex = undefined;
         let apiKeyIndex = undefined;
         let order = undefined;
-        if (orderRequests.length > 0) {
+        if (totalOrderRequests > 0) {
             order = orderRequests[0];
             accountIndex = order['account_index'];
             apiKeyIndex = order['api_key_index'];
@@ -608,7 +610,7 @@ export default class lighter extends Exchange {
         const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
         let txType = undefined;
         let txInfo = undefined;
-        if (orderRequests.length < 2) {
+        if (totalOrderRequests < 2) {
             [ txType, txInfo ] = this.lighterSignCreateOrder (signer, order);
         } else {
             [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, groupingType, orderRequests, order['nonce'], apiKeyIndex, accountIndex);
