@@ -33,8 +33,8 @@ export default class lighter extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': false,
-                'cancelAllOrdersAfter': false,
+                'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelOrdersForSymbols': false,
@@ -2596,19 +2596,56 @@ export default class lighter extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         let accountIndex = undefined;
-        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrders', 'accountIndex', 'account_index');
         if (accountIndex === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an accountIndex parameter');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an accountIndex parameter');
         }
         let apiKeyIndex = undefined;
-        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an apiKeyIndex parameter');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an apiKeyIndex parameter');
         }
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
         const signRaw: Dict = {
             'time_in_force': 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
             'time': 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        return this.parseOrders ([ response ]);
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        let accountIndex = undefined;
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires an accountIndex parameter');
+        }
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrdersAfter() requires an apiKeyIndex parameter');
+        }
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const signRaw: Dict = {
+            'time_in_force': 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            'time': this.milliseconds () + timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
