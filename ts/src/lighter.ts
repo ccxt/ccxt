@@ -440,6 +440,10 @@ export default class lighter extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.nonce] nonce for the account
+         * @param {int} [params.apiKeyIndex] apiKeyIndex
+         * @param {int} [params.accountIndex] accountIndex
+         * @param {int} [params.orderExpiry] orderExpiry
          * @returns {any[]} request to be sent to the exchange
          */
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false); // default false
@@ -2619,6 +2623,15 @@ export default class lighter extends Exchange {
         return this.parseOrders ([ response ]);
     }
 
+    /**
+     * @method
+     * @name lighter#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         const request: Dict = {
             'direction': 1,
@@ -2626,6 +2639,15 @@ export default class lighter extends Exchange {
         return await this.setMargin (symbol, amount, this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name lighter#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         const request: Dict = {
             'direction': 0,
