@@ -508,8 +508,7 @@ func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request ma
 	orderType := SafeNum[uint8](request["order_type"])
 	timeInForce := SafeNum[uint8](request["time_in_force"])
 	reduceOnly := SafeNum[uint8](request["reduce_only"])
-	// triggerPrice := uint32(request["trigger_price"]).(int64))
-	triggerPrice := SafeNum[uint32](0)
+	triggerPrice := SafeNum[uint32](request["trigger_price"])
 	orderExpiry := SafeNum[int64](request["order_expiry"])
 	nonce := SafeNum[int64](request["nonce"])
 

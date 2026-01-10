@@ -2475,7 +2475,7 @@ export default class lighter extends Exchange {
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires an marginMode parameter');
         }
-        return await this.setLeverageAndMarginMode (leverage, marginMode, symbol, params);
+        return await this.modifyLeverageAndMarginMode (leverage, marginMode, symbol, params);
     }
 
     /**
@@ -2499,22 +2499,22 @@ export default class lighter extends Exchange {
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an leverage parameter');
         }
-        return await this.setLeverageAndMarginMode (leverage, marginMode, symbol, params);
+        return await this.modifyLeverageAndMarginMode (leverage, marginMode, symbol, params);
     }
 
-    async setLeverageAndMarginMode (leverage: int, marginMode: string, symbol: Str = undefined, params = {}) {
+    async modifyLeverageAndMarginMode (leverage: int, marginMode: string, symbol: Str = undefined, params = {}) {
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated');
+            throw new BadRequest (this.id + ' modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated');
         }
         let accountIndex = undefined;
-        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverageAndMarginMode', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'modifyLeverageAndMarginMode', 'accountIndex', 'account_index');
         if (accountIndex === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverageAndMarginMode() requires an accountIndex parameter');
+            throw new ArgumentsRequired (this.id + ' modifyLeverageAndMarginMode() requires an accountIndex parameter');
         }
         let apiKeyIndex = undefined;
-        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'setLeverageAndMarginMode', 'apiKeyIndex', 'api_key_index');
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'modifyLeverageAndMarginMode', 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverageAndMarginMode() requires an apiKeyIndex parameter');
+            throw new ArgumentsRequired (this.id + ' modifyLeverageAndMarginMode() requires an apiKeyIndex parameter');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
