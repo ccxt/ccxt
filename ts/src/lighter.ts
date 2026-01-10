@@ -2632,6 +2632,9 @@ export default class lighter extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        if ((timeout < 300000) || (timeout > 1296000000)) {
+            throw new BadRequest (this.id + ' timeout should be between 5 minutes and 15 days.');
+        }
         let accountIndex = undefined;
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'accountIndex', 'account_index');
         if (accountIndex === undefined) {
