@@ -1953,6 +1953,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.toAccountIndex] to account index, defaults to fromAccountIndex
      * @param {string} [params.apiKeyIndex] api key index
+     * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
@@ -1978,8 +1979,10 @@ export default class lighter extends Exchange {
             throw new ExchangeError (this.id + ' transfer() only supports USDC and ETH transfers');
         }
         const fromRouteType = (fromAccount === 'perp') ? 0 : 1; // 0: perp, 1: spot
-        const toRouteType = (toAccount === 'perp') ? 0 : 1; // 0: perp, 1: spot
+        const toRouteType = (toAccount === 'perp') ? 0 : 1;
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const memo = this.safeString (params, 'memo', '0x000000000000000000000000000000');
+        params = this.omit (params, [ 'memo' ]);
         const signRaw: Dict = {
             'to_account_index': toAccountIndex,
             'asset_index': this.parseToInt (currency['id']),
@@ -1987,7 +1990,7 @@ export default class lighter extends Exchange {
             'to_route_type': toRouteType,
             'amount': amount,
             'usdc_fee': 0,
-            'memo': this.encode ('0x000000000000000000000000000000'),
+            'memo': memo,
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
