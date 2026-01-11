@@ -508,7 +508,9 @@ export default class lighter extends Exchange {
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
         let triggerPriceStr = '0'; // default is 0
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const defaultClientOrderId = this.randNumber (14); // 281474976710655 15 digits
+        const clientOrderId = this.safeInteger2 (params, 'client_order_index', 'clientOrderId', defaultClientOrderId);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'client_order_index', 'clientOrderId' ]);
         if (isConditional) {
             amountStr = this.numberToString (amount);
             if (stopLossPrice !== undefined) {
@@ -533,7 +535,7 @@ export default class lighter extends Exchange {
         request['order_type'] = orderTypeNum;
         request['time_in_force'] = timeInForceNum;
         request['reduce_only'] = (reduceOnly) ? 1 : 0;
-        request['client_order_index'] = 0;
+        request['client_order_index'] = clientOrderId;
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
         request['trigger_price'] = this.parseToInt (Precise.stringMul (triggerPriceStr, priceScale));
@@ -632,7 +634,7 @@ export default class lighter extends Exchange {
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.deepExtend (response, order), market);
     }
 
     /**
@@ -1868,7 +1870,7 @@ export default class lighter extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
-            'clientOrderId': this.omitZero (this.safeString (order, 'client_order_id')),
+            'clientOrderId': this.omitZero (this.safeString2 (order, 'client_order_id', 'client_order_index')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -2564,16 +2566,24 @@ export default class lighter extends Exchange {
         if (apiKeyIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an apiKeyIndex parameter');
         }
+        const clientOrderId = this.safeString2 (params, 'client_order_index', 'clientOrderId');
+        params = this.omit (params, [ 'client_order_index', 'clientOrderId' ]);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
         const signRaw: Dict = {
             'market_index': this.parseToInt (market['id']),
-            'order_index': this.parseToInt (id),
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
+        if (id !== undefined) {
+            signRaw['order_index'] = this.parseToInt (id);
+        } else if (clientOrderId !== undefined) {
+            signRaw['order_index'] = this.parseToInt (clientOrderId);
+        } else {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires order id or client order id');
+        }
         const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
         const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
         const request: Dict = {
