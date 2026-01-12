@@ -2541,14 +2541,6 @@ export default class whitebit extends Exchange {
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         request['transactionMethod'] = '2';
         const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
-
-        const records = this.safeList(response, 'records', []);
-        const patchedResponse = [];
-        for (let i = 0; i < records.length; i++) {
-            const r = records[i];
-            patchedResponse.push(this.extend(r, { id: this.safeString(r, 'uniqueId') }));
-        }
-
         //
         //     [
         //         {
@@ -2567,8 +2559,7 @@ export default class whitebit extends Exchange {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-
-        return this.parseTransactions (patchedResponse, currency, since, limit);
+        return this.parseTransactions (response['records'], currency, since, limit);
     }
 
     /**
