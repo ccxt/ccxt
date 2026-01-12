@@ -18,8 +18,8 @@ import { TICK_SIZE } from './base/functions/number.js';
  */
 export default class grvt extends Exchange {
     describe (): any {
-        const rlReadTradeOthers = 40;
-        const rlReadTradeOrders = 20;
+        const rlOthers = 40;
+        const rlOrders = 20;
         return this.deepExtend (super.describe (), {
             'id': 'grvt',
             'name': 'GRVT',
@@ -101,37 +101,37 @@ export default class grvt extends Exchange {
                         'full/v1/cancel_order': 5,
                         'full/v1/cancel_on_disconnect': 100,
                         'full/v1/cancel_all_orders': 50,
-                        'full/v1/order': rlReadTradeOrders,
-                        'full/v1/order_history': rlReadTradeOrders,
-                        'full/v1/open_orders': rlReadTradeOrders,
-                        'full/v1/fill_history': rlReadTradeOrders,
-                        'full/v1/positions': rlReadTradeOrders,
-                        'full/v1/funding_payment_history': rlReadTradeOthers,
-                        'full/v1/account_summary': rlReadTradeOthers,
-                        'full/v1/account_history': rlReadTradeOthers,
-                        'full/v1/aggregated_account_summary': rlReadTradeOthers,
-                        'full/v1/funding_account_summary': rlReadTradeOthers,
+                        'full/v1/order': rlOrders,
+                        'full/v1/order_history': rlOrders,
+                        'full/v1/open_orders': rlOrders,
+                        'full/v1/fill_history': rlOrders,
+                        'full/v1/positions': rlOrders,
+                        'full/v1/funding_payment_history': rlOthers,
+                        'full/v1/account_summary': rlOthers,
+                        'full/v1/account_history': rlOthers,
+                        'full/v1/aggregated_account_summary': rlOthers,
+                        'full/v1/funding_account_summary': rlOthers,
                         'full/v1/transfer': 100,
                         'full/v1/deposit_history': 100,
                         'full/v1/transfer_history': 100,
                         'full/v1/withdrawal': 100,
                         'full/v1/withdrawal_history': 100,
-                        'full/v1/add_position_margin': rlReadTradeOthers, // addMargin
-                        'full/v1/get_position_margin_limits': rlReadTradeOthers,
-                        'full/v1/set_position_config': rlReadTradeOthers,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage': rlReadTradeOthers,
-                        'full/v1/get_all_initial_leverage': rlReadTradeOthers,
-                        'full/v1/set_derisk_mm_ratio': rlReadTradeOthers,
-                        'full/v1/vault_burn_tokens': rlReadTradeOthers,
-                        'full/v1/vault_invest': rlReadTradeOthers,
-                        'full/v1/vault_investor_summary': rlReadTradeOthers,
-                        'full/v1/vault_redeem': rlReadTradeOthers,
-                        'full/v1/vault_redeem_cancel': rlReadTradeOthers,
-                        'full/v1/vault_view_redemption_queue': rlReadTradeOthers,
-                        'full/v1/vault_manager_investor_history': rlReadTradeOthers,
-                        'full/v1/authorize_builder': rlReadTradeOthers,
-                        'full/v1/get_authorized_builders': rlReadTradeOthers,
-                        'full/v1/builder_fill_history': rlReadTradeOthers,
+                        'full/v1/add_position_margin': rlOthers, // addMargin
+                        'full/v1/get_position_margin_limits': rlOthers,
+                        'full/v1/set_position_config': rlOthers,  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage': rlOthers,
+                        'full/v1/get_all_initial_leverage': rlOthers,
+                        'full/v1/set_derisk_mm_ratio': rlOthers,
+                        'full/v1/vault_burn_tokens': rlOthers,
+                        'full/v1/vault_invest': rlOthers,
+                        'full/v1/vault_investor_summary': rlOthers,
+                        'full/v1/vault_redeem': rlOthers,
+                        'full/v1/vault_redeem_cancel': rlOthers,
+                        'full/v1/vault_view_redemption_queue': rlOthers,
+                        'full/v1/vault_manager_investor_history': rlOthers,
+                        'full/v1/authorize_builder': rlOthers,
+                        'full/v1/get_authorized_builders': rlOthers,
+                        'full/v1/builder_fill_history': rlOthers,
                     },
                 },
             },
@@ -2799,7 +2799,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    createSignedRequest (request: any, inputMessageData: any, structureType: string, signerAddress = ''): Dict {
+    createSignedRequest (request: any, inputMessageData: any, structureType: string): Dict {
         let messageData = undefined;
         if (structureType === 'EIP712_TRANSFER_MESSAGE_TYPE') {
             messageData = this.eipMessageForTransfer (request, inputMessageData);
@@ -2816,10 +2816,10 @@ export default class grvt extends Exchange {
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const privateKeyWithoutZero = this.remove0xPrefix (this.secret);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1);
-        request['signature']['r'] = '0x' + signature['r'];
-        request['signature']['s'] = '0x' + signature['s'];
+        request['signature']['r'] = '0x' + (signature['r']).padStart (64, '0');
+        request['signature']['s'] = '0x' + (signature['s']).padStart (64, '0');
         request['signature']['v'] = this.sum (27, signature['v']);
-        request['signature']['signer'] = (signerAddress !== '') ? signerAddress : this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero);
+        request['signature']['signer'] = this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero);
         return request;
     }
 
