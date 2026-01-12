@@ -2,12 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import grvtRest from '../grvt.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position, Bool, Tickers } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
-import { url } from 'inspector';
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +14,17 @@ export default class grvt extends grvtRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
+                'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
+                'watchMyTrades': true,
+                'watchPositions': true,
+                'watchOrders': true,
             },
             'urls': {
                 'api': {
@@ -912,16 +920,7 @@ export default class grvt extends grvtRest {
     }
 
     handleErrorMessage (client: Client, response): Bool {
-        //
-        // error example:
-        //
-        //    {
-        //        "id": "30005",
-        //        "name": "InvalidNotional",
-        //        "message": "order validation failed: invalid notional: notional 0.25 is less than min notional 1"
-        //    }
-        //
-        return false; // 
+        return false;
         const message = this.safeString (response, 'message');
         if (message !== undefined) {
             const body = this.json (response);

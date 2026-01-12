@@ -36,7 +36,31 @@ export default class grvt extends Exchange {
                 'future': false,
                 'option': false,
                 'fetchCurrencies': true,
+                'fetchMarkets': true,
                 'signIn': true,
+                'fetchTicker': true,
+                'fetchOrderBook': true,
+                'fetchTrades': true,
+                'fetchOHLCV': true,
+                'fetchFundingRateHistory': true,
+                'fetchBalance': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransfers': true,
+                'transfer': true,
+                'withdraw': true,
+                'createOrder': true,
+                'fetchMyTrades': true,
+                'fetchPositions': true,
+                'fetchLeverages': true,
+                'setLeverage': true,
+                'fetchMarginModes': true,
+                'fetchFundingHistory': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
             },
             'timeframes': {
                 '1m': 'CI_1_M',
@@ -401,27 +425,28 @@ export default class grvt extends Exchange {
 
     parseMarket (market): Market {
         //
-        //            {
-        //                "instrument": "AAVE_USDT_Perp",
-        //                "instrument_hash": "0x032201",
-        //                "base": "AAVE",
-        //                "quote": "USDT",
-        //                "kind": "PERPETUAL",
-        //                "venues": [
-        //                    "ORDERBOOK",
-        //                    "RFQ"
-        //                ],
-        //                "settlement_period": "PERPETUAL",
-        //                "base_decimals": "9",
-        //                "quote_decimals": "6",
-        //                "tick_size": "0.01",
-        //                "min_size": "0.1",
-        //                "create_time": "1764303867576216941",
-        //                "max_position_size": "3000.0",
-        //                "funding_interval_hours": "8",
-        //                "adjusted_funding_rate_cap": "0.75",
-        //                "adjusted_funding_rate_floor": "-0.75"
-        //            },
+        //    {
+        //        "instrument": "BTC_USDT_Perp",
+        //        "instrument_hash": "0x030501",
+        //        "base": "BTC",
+        //        "quote": "USDT",
+        //        "kind": "PERPETUAL",
+        //        "venues": [
+        //            "ORDERBOOK",
+        //            "RFQ"
+        //        ],
+        //        "settlement_period": "PERPETUAL",
+        //        "base_decimals": 9,
+        //        "quote_decimals": 6,
+        //        "tick_size": "0.1",
+        //        "min_size": "0.001",
+        //        "create_time": "1768040726362828205",
+        //        "max_position_size": "1000.0",
+        //        "funding_interval_hours": 8,
+        //        "adjusted_funding_rate_cap": "0.3",
+        //        "adjusted_funding_rate_floor": "-0.3",
+        //        "min_notional": "100.0"
+        //    }
         //
         const marketId = this.safeString (market, 'instrument');
         const baseId = this.safeString (market, 'base');
@@ -477,14 +502,14 @@ export default class grvt extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'min_size'),
-                    'max': undefined,
+                    'max': this.safeNumber (market, 'max_position_size'),
                 },
                 'price': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber (market, 'min_notional'),
                     'max': undefined,
                 },
             },
@@ -2816,11 +2841,20 @@ export default class grvt extends Exchange {
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const privateKeyWithoutZero = this.remove0xPrefix (this.secret);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1);
-        request['signature']['r'] = '0x' + (signature['r']).padStart (64, '0');
-        request['signature']['s'] = '0x' + (signature['s']).padStart (64, '0');
+        request['signature']['r'] = this.formatSignatureRS (signature['r']);
+        request['signature']['s'] = this.formatSignatureRS (signature['s']);
         request['signature']['v'] = this.sum (27, signature['v']);
         request['signature']['signer'] = this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero);
         return request;
+    }
+
+    formatSignatureRS (value: string) {
+        const padded = value.padStart (64, '0');
+        if (padded.startsWith ('0x')) {
+            return padded;
+        } else {
+            return '0x' + padded;
+        }
     }
 
     defaultSignature () {
