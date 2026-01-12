@@ -348,7 +348,7 @@ export default class lighter extends Exchange {
             return signer;
         }
         let libraryPath = undefined;
-        [ libraryPath, params ] = this.handleOptionAndParams (params, 'test', 'libraryPath');
+        [ libraryPath, params ] = this.handleOptionAndParams (params, '', 'libraryPath');
         if (libraryPath === undefined) {
             throw new ArgumentsRequired (this.id + ' required libraryPath in options');
         }
@@ -508,7 +508,7 @@ export default class lighter extends Exchange {
         const amountScale = this.pow ('10', marketInfo['size_decimals']);
         const priceScale = this.pow ('10', marketInfo['price_decimals']);
         let triggerPriceStr = '0'; // default is 0
-        const defaultClientOrderId = this.randNumber (14); // 281474976710655 15 digits
+        const defaultClientOrderId = this.randNumber (9); // c# only support int32 2147483647.
         const clientOrderId = this.safeInteger2 (params, 'client_order_index', 'clientOrderId', defaultClientOrderId);
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'postOnly', 'nonce', 'apiKeyIndex', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'client_order_index', 'clientOrderId' ]);
         if (isConditional) {

@@ -555,26 +555,53 @@ namespace Lighter
 
             // Unix (Linux/macOS) - dlopen/dlsym/dlclose
             // Linux: libdl.so.2; macOS: libSystem.B.dylib provides dlopen symbols
-            private static string UnixLib =>
-                RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "libSystem.B.dylib" : "libdl.so.2";
+            // private static string UnixLib =>
+            //     RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "libSystem.B.dylib" : "libdl.so.2";
+            // Unix (Linux/macOS) - dlopen/dlsym/dlclose
 
-            [DllImport(nameof(UnixLib), EntryPoint = "dlopen")]
+            // macOS: dlopen/dlsym/dlclose are in libSystem.B.dylib
+            [DllImport("libSystem.B.dylib", EntryPoint = "dlopen")]
+            private static extern IntPtr dlopen_osx(string fileName, int flags);
+
+            [DllImport("libSystem.B.dylib", EntryPoint = "dlsym")]
+            private static extern IntPtr dlsym_osx(IntPtr handle, string symbol);
+
+            [DllImport("libSystem.B.dylib", EntryPoint = "dlclose")]
+            private static extern int dlclose_osx(IntPtr handle);
+
+            // Linux: usually libdl.so.2 (sometimes libdl.so)
+            [DllImport("libdl.so.2", EntryPoint = "dlopen")]
             private static extern IntPtr dlopen_linux(string fileName, int flags);
 
-            [DllImport(nameof(UnixLib), EntryPoint = "dlsym")]
+            [DllImport("libdl.so.2", EntryPoint = "dlsym")]
             private static extern IntPtr dlsym_linux(IntPtr handle, string symbol);
 
-            [DllImport(nameof(UnixLib), EntryPoint = "dlclose")]
+            [DllImport("libdl.so.2", EntryPoint = "dlclose")]
             private static extern int dlclose_linux(IntPtr handle);
 
             private static IntPtr UnixDlopen(string path, int flags)
-                => dlopen_linux(path, flags);
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    return dlopen_osx(path, flags);
+
+                return dlopen_linux(path, flags);
+            }
 
             private static IntPtr UnixDlsym(IntPtr handle, string symbol)
-                => dlsym_linux(handle, symbol);
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    return dlsym_osx(handle, symbol);
+
+                return dlsym_linux(handle, symbol);
+            }
 
             private static void UnixDlclose(IntPtr handle)
-                => dlclose_linux(handle);
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    dlclose_osx(handle);
+                else
+                    dlclose_linux(handle);
+            }
         }
     }
 }

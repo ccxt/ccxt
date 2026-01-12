@@ -14,8 +14,8 @@ public partial class Exchange
         lighterSigner.CreateClient(
             url,
             (string) privateKey,
-            (int) chainId,
-            (int) apiKeyIndex,
+            Convert.ToInt32(chainId),
+            Convert.ToInt32(apiKeyIndex),
             (long) accountIndex
         );
         return lighterSigner;
@@ -47,33 +47,34 @@ public partial class Exchange
     }
 
     public object lighterSignCreateOrder(object signer, object request) {
-        // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateOrder(
-        //     int(request['market_index']),
-        //     request['client_order_index'],
-        //     request['base_amount'],
-        //     request['avg_execution_price'],
-        //     request['is_ask'],
-        //     request['order_type'],
-        //     request['time_in_force'],
-        //     request['reduce_only'],
-        //     request['trigger_price'],
-        //     request['order_expiry'],
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
-        // ))
-        // print(tx_type, tx_info, tx_hash, error)
-        // return [tx_type, tx_info]
-        return null;
+        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateOrder(
+            Convert.ToInt32(getValue(request, "market_index")),
+            Convert.ToInt64(getValue(request, "client_order_index")),
+            Convert.ToInt64(getValue(request, "base_amount")),
+            Convert.ToInt32(getValue(request, "avg_execution_price")),
+            Convert.ToInt32(getValue(request, "is_ask")),
+            Convert.ToInt32(getValue(request, "order_type")),
+            Convert.ToInt32(getValue(request, "time_in_force")),
+            Convert.ToInt32(getValue(request, "reduce_only")),
+            Convert.ToInt32(getValue(request, "trigger_price")),
+            Convert.ToInt64(getValue(request, "order_expiry")),
+            Convert.ToInt64(getValue(request, "nonce")),
+            Convert.ToInt32(getValue(request, "api_key_index")),
+            Convert.ToInt64(getValue(request, "account_index"))
+        );
+        object res = new List<object>() {};
+        ((IList<object>)res).Add(signedTx.TxType);
+        ((IList<object>)res).Add(signedTx.TxInfo);
+        return res;
     }
 
     public object lighterSignCancelOrder(object signer, object request) {
         // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelOrder(
-        //     request['market_index'],
-        //     request['order_index'],
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "market_index"),
+        //     getValue(request, "order_index"),
+        //     getValue(request, "nonce"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
@@ -82,12 +83,12 @@ public partial class Exchange
 
     public object lighterSignWithdraw(object signer, object request) {
         // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignWithdraw(
-        //     request['asset_index'],
-        //     request['route_type'],
-        //     request['amount'],
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "asset_index"),
+        //     getValue(request, "route_type"),
+        //     getValue(request, "amount"),
+        //     getValue(request, "nonce"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
@@ -96,9 +97,9 @@ public partial class Exchange
 
     public object lighterSignCreateSubAccount(object signer, object request) {
         // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateSubAccount(
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "nonce"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
@@ -107,11 +108,11 @@ public partial class Exchange
 
     public object lighterSignCancelAllOrders(object signer, object request) {
         // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelAllOrders(
-        //     request['time_in_force'],
-        //     request['time'],
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "time_in_force"),
+        //     getValue(request, "time"),
+        //     getValue(request, "nonce"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
@@ -120,14 +121,14 @@ public partial class Exchange
 
     public object lighterSignModifyOrder(object signer, object request) {
         // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignModifyOrder(
-        //     request['market_index'],
-        //     request['index'],
-        //     request['base_amount'],
-        //     request['price'],
-        //     request['trigger_price'],
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "market_index"),
+        //     getValue(request, "index"),
+        //     getValue(request, "base_amount"),
+        //     getValue(request, "price"),
+        //     getValue(request, "trigger_price"),
+        //     getValue(request, "nonce"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
@@ -136,16 +137,16 @@ public partial class Exchange
 
     public object lighterSignTransfer(object signer, object request) {
         // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignTransfer(
-        //     request['to_account_index'],
-        //     request['asset_index'],
-        //     request['from_route_type'],
-        //     request['to_route_type'],
-        //     request['amount'],
-        //     request['usdc_fee'],
-        //     request['memo'],
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "to_account_index"),
+        //     getValue(request, "asset_index"),
+        //     getValue(request, "from_route_type"),
+        //     getValue(request, "to_route_type"),
+        //     getValue(request, "amount"),
+        //     getValue(request, "usdc_fee"),
+        //     getValue(request, "memo"),
+        //     getValue(request, "nonce"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
@@ -154,12 +155,12 @@ public partial class Exchange
 
     public object lighterSignUpdateLeverage(object signer, object request) {
         // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignUpdateLeverage(
-        //     request['market_index'],
-        //     request['initial_margin_fraction'],
-        //     request['margin_mode'],
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "market_index"),
+        //     getValue(request, "initial_margin_fraction"),
+        //     getValue(request, "margin_mode"),
+        //     getValue(request, "nonce"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
@@ -168,9 +169,9 @@ public partial class Exchange
 
     public object lighterCreateAuthToken(object signer, object request) {
         // auth, error = decode_auth(signer.CreateAuthToken(
-        //     request['deadline'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "deadline"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // return auth
         return null;
@@ -178,12 +179,12 @@ public partial class Exchange
 
     public object lighterSignUpdateMargin(object signer, object request) {
         // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignUpdateMargin(
-        //     request['market_index'],
-        //     request['usdc_amount'],
-        //     request['direction'],
-        //     request['nonce'],
-        //     request['api_key_index'],
-        //     request['account_index'],
+        //     getValue(request, "market_index"),
+        //     getValue(request, "usdc_amount"),
+        //     getValue(request, "direction"),
+        //     getValue(request, "nonce"),
+        //     getValue(request, "api_key_index"),
+        //     getValue(request, "account_index"),
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
