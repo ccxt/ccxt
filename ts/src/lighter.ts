@@ -1868,6 +1868,15 @@ export default class lighter extends Exchange {
             side = isAsk ? 'sell' : 'buy';
         }
         const type = this.safeString (order, 'type');
+        const triggerPrice = this.parseNumber (this.omitZero (this.safeString (order, 'trigger_price')));
+        let stopLossPrice = undefined;
+        if (type.indexOf ('stop-loss') >= 0) {
+            stopLossPrice = triggerPrice;
+        }
+        let takeProfitPrice = undefined;
+        if (type.indexOf ('take-profit') >= 0) {
+            takeProfitPrice = triggerPrice;
+        }
         const tif = this.safeString (order, 'time_in_force');
         const status = this.safeString (order, 'status');
         return this.safeOrder ({
@@ -1885,7 +1894,9 @@ export default class lighter extends Exchange {
             'reduceOnly': this.safeBool (order, 'reduce_only'),
             'side': side,
             'price': this.safeString (order, 'price'),
-            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'trigger_price'))),
+            'triggerPrice': triggerPrice,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': this.safeString (order, 'initial_base_amount'),
             'cost': this.safeString (order, 'filled_quote_amount'),
             'average': undefined,
