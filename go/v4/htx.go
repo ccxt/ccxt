@@ -152,7 +152,7 @@ func (this *HtxCore) Describe() interface{} {
 		"urls": map[string]interface{}{
 			"logo": "https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg",
 			"hostnames": map[string]interface{}{
-				"contract": "api.hbdm.com",
+				"contract": "api.hbdm.vn",
 				"spot":     "api.huobi.pro",
 				"status": map[string]interface{}{
 					"spot": "status.huobigroup.com",
