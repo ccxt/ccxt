@@ -543,6 +543,7 @@ export default class lighter extends Exchange {
         orders.push (this.extend (request, params));
         if (hasStopLoss || hasTakeProfit) {
             // group order
+            orders[0]['client_order_index'] = 0; // client order index should be 0
             let triggerOrderSide = '';
             if (side === 'BUY') {
                 triggerOrderSide = 'sell';
@@ -560,15 +561,17 @@ export default class lighter extends Exchange {
                 const orderObj = this.createOrderRequest (symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend (params, {
                     'stopLossPrice': stopLossOrderTriggerPrice,
                     'reduceOnly': true,
-                }));
-                orders.push (orderObj[0]);
+                }))[0];
+                orderObj['client_order_index'] = 0;
+                orders.push (orderObj);
             }
             if (takeProfit !== undefined) {
                 const orderObj = this.createOrderRequest (symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend (params, {
                     'takeProfitPrice': takeProfitOrderTriggerPrice,
                     'reduceOnly': true,
-                }));
-                orders.push (orderObj[0]);
+                }))[0];
+                orderObj['client_order_index'] = 0;
+                orders.push (orderObj);
             }
         }
         return orders;
