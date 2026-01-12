@@ -2815,7 +2815,7 @@ export default class grvt extends Exchange {
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const privateKeyWithoutZero = this.remove0xPrefix (this.secret);
-        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
+        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1);
         request['signature']['r'] = '0x' + signature['r'];
         request['signature']['s'] = '0x' + signature['s'];
         request['signature']['v'] = this.sum (27, signature['v']);
@@ -2832,7 +2832,7 @@ export default class grvt extends Exchange {
             'v': 0,
             'expiration': expiration.toString (),
             'nonce': this.nonce (),
-            // 'chain_id': '325',
+            'chain_id': '325',
         };
     }
 
