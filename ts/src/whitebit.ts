@@ -2543,7 +2543,11 @@ export default class whitebit extends Exchange {
         const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
 
         const records = this.safeList(response, 'records', []);
-        const patchedResponse = records.map(r => this.extend(r, { id: this.safeString(r, 'uniqueId') }));
+        const patchedResponse = [];
+        for (let i = 0; i < records.length; i++) {
+            const r = records[i];
+            patchedResponse.push(this.extend(r, { id: this.safeString(r, 'uniqueId') }));
+        }
 
         //
         //     [
