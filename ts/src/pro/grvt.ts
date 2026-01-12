@@ -920,12 +920,23 @@ export default class grvt extends grvtRest {
     }
 
     handleErrorMessage (client: Client, response): Bool {
-        return false;
-        const message = this.safeString (response, 'message');
-        if (message !== undefined) {
+        //
+        //    {
+        //        "jsonrpc": "2.0",
+        //        "error": {
+        //            "code": 3000,
+        //            "message": "Instrument is invalid"
+        //        },
+        //        "id": 1,
+        //        "method": "subscribe"
+        //    }
+        //
+        const error = this.safeDict (response, 'error');
+        const errorCode = this.safeString (error, 'code');
+        if (errorCode !== undefined) {
             const body = this.json (response);
-            const errorCode = this.safeString (response, 'id');
             const feedback = this.id + ' ' + body;
+            const message = this.safeString (error, 'message');
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
