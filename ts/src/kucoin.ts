@@ -30,7 +30,7 @@ export default class kucoin extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'borrowCrossMargin': true,
@@ -182,7 +182,6 @@ export default class kucoin extends Exchange {
                     'get': {
                         // account
                         'user-info': 30, // 20MW
-                        'user/api-key': 30, // 20MW
                         'accounts': 7.5, // 5MW
                         'accounts/{accountId}': 7.5, // 5MW
                         'accounts/ledgers': 3, // 2MW
@@ -267,8 +266,6 @@ export default class kucoin extends Exchange {
                         'convert/limit/orders': 5,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
-                        // earn
-                        'earn/redeem-preview': 5, // 5EW
                     },
                     'post': {
                         // account
@@ -712,6 +709,7 @@ export default class kucoin extends Exchange {
                 },
                 'fetchMarkets': {
                     'fetchTickersFees': true,
+                    'fetchContractMarkets': true,
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -1142,14 +1140,27 @@ export default class kucoin extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        const response = await this.publicGetTimestamp (params);
-        //
-        //     {
-        //         "code":"200000",
-        //         "msg":"success",
-        //         "data":1546837113087
-        //     }
-        //
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        let response = undefined;
+        if (type === 'future' || type === 'swap') {
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": 1637385119302,
+            //    }
+            //
+            response = await this.futuresPublicGetTimestamp (params);
+        } else {
+            //
+            //     {
+            //         "code":"200000",
+            //         "msg":"success",
+            //         "data":1546837113087
+            //     }
+            //
+            response = await this.publicGetTimestamp (params);
+        }
         return this.safeInteger (response, 'data');
     }
 
@@ -1160,6 +1171,7 @@ export default class kucoin extends Exchange {
      * @see https://docs.kucoin.com/#service-status
      * @see https://www.kucoin.com/docs-new/rest/ua/get-service-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] spot, swap or future
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
@@ -1167,6 +1179,8 @@ export default class kucoin extends Exchange {
     async fetchStatus (params = {}) {
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchStatus', 'uta', false);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
         if (uta) {
             const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -1185,6 +1199,17 @@ export default class kucoin extends Exchange {
             //             "msg": ""
             //         }
             //     }
+            //
+        } else if (type === 'future' || type === 'swap') {
+            response = await this.futuresPublicGetStatus (params);
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "status": "open", //open, close, cancelonly
+            //            "msg": "upgrade match engine" //remark for operation
+            //        }
+            //    }
             //
         } else {
             response = await this.publicGetStatus (params);
@@ -1318,6 +1343,11 @@ export default class kucoin extends Exchange {
             //                 }
             //
         }
+        let fetchContractMarkets = true;
+        [ fetchContractMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchContractMarkets', fetchContractMarkets);
+        if (fetchContractMarkets) {
+            promises.push (this.fetchContractMarkets (params));
+        }
         if (credentialsSet) {
             // load migration status for account
             promises.push (this.loadMigrationStatus ());
@@ -1334,7 +1364,7 @@ export default class kucoin extends Exchange {
         const tickersResponse = this.safeDict (responses, tickersIdx, {});
         const tickerItems = this.safeList (this.safeDict (tickersResponse, 'data', {}), 'ticker', []);
         const tickersById = this.indexBy (tickerItems, 'symbol');
-        const result = [];
+        let result = [];
         for (let i = 0; i < symbolsData.length; i++) {
             const market = symbolsData[i];
             const id = this.safeString (market, 'symbol');
@@ -1406,8 +1436,172 @@ export default class kucoin extends Exchange {
                 'info': market,
             });
         }
+        if (fetchContractMarkets) {
+            const increment = fetchTickersFees ? 1 : 0;
+            const contractIdx = tickersIdx + increment;
+            const contractMarkets = this.safeList (responses, contractIdx, []);
+            result = this.arrayConcat (result, contractMarkets);
+        }
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
+        }
+        return result;
+    }
+
+    async fetchContractMarkets (params = {}): Promise<Market[]> {
+        const response = await this.futuresPublicGetContractsActive (params);
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "ETHUSDTM",
+        //            "rootSymbol": "USDT",
+        //            "type": "FFWCSX",
+        //            "firstOpenDate": 1591086000000,
+        //            "expireDate": null,
+        //            "settleDate": null,
+        //            "baseCurrency": "ETH",
+        //            "quoteCurrency": "USDT",
+        //            "settleCurrency": "USDT",
+        //            "maxOrderQty": 1000000,
+        //            "maxPrice": 1000000.0000000000,
+        //            "lotSize": 1,
+        //            "tickSize": 0.05,
+        //            "indexPriceTickSize": 0.01,
+        //            "multiplier": 0.01,
+        //            "initialMargin": 0.01,
+        //            "maintainMargin": 0.005,
+        //            "maxRiskLimit": 1000000,
+        //            "minRiskLimit": 1000000,
+        //            "riskStep": 500000,
+        //            "makerFeeRate": 0.00020,
+        //            "takerFeeRate": 0.00060,
+        //            "takerFixFee": 0.0000000000,
+        //            "makerFixFee": 0.0000000000,
+        //            "settlementFee": null,
+        //            "isDeleverage": true,
+        //            "isQuanto": true,
+        //            "isInverse": false,
+        //            "markMethod": "FairPrice",
+        //            "fairMethod": "FundingRate",
+        //            "fundingBaseSymbol": ".ETHINT8H",
+        //            "fundingQuoteSymbol": ".USDTINT8H",
+        //            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        //            "indexSymbol": ".KETHUSDT",
+        //            "settlementSymbol": "",
+        //            "status": "Open",
+        //            "fundingFeeRate": 0.000535,
+        //            "predictedFundingFeeRate": 0.002197,
+        //            "openInterest": "8724443",
+        //            "turnoverOf24h": 341156641.03354263,
+        //            "volumeOf24h": 74833.54000000,
+        //            "markPrice": 4534.07,
+        //            "indexPrice":4531.92,
+        //            "lastTradePrice": 4545.4500000000,
+        //            "nextFundingRateTime": 25481884,
+        //            "maxLeverage": 100,
+        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
+        //            "premiumsSymbol1M": ".ETHUSDTMPI",
+        //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        //            "fundingBaseSymbol1M": ".ETHINT",
+        //            "fundingQuoteSymbol1M": ".USDTINT",
+        //            "lowPrice": 4456.90,
+        //            "highPrice":  4674.25,
+        //            "priceChgPct": 0.0046,
+        //            "priceChg": 21.15
+        //        }
+        //    }
+        //
+        const result = [];
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
+            const expiry = this.safeInteger (market, 'expireDate');
+            const future = this.safeString (market, 'nextFundingRateTime') === undefined;
+            const swap = !future;
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settleCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            let symbol = base + '/' + quote + ':' + settle;
+            let type = 'swap';
+            if (future) {
+                symbol = symbol + '-' + this.yymmdd (expiry, '');
+                type = 'future';
+            }
+            const inverse = this.safeValue (market, 'isInverse');
+            const status = this.safeString (market, 'status');
+            const multiplier = this.safeString (market, 'multiplier');
+            const tickSize = this.safeNumber (market, 'tickSize');
+            const lotSize = this.safeNumber (market, 'lotSize');
+            let limitAmountMin = lotSize;
+            if (limitAmountMin === undefined) {
+                limitAmountMin = this.safeNumber (market, 'baseMinSize');
+            }
+            let limitAmountMax = this.safeNumber (market, 'maxOrderQty');
+            if (limitAmountMax === undefined) {
+                limitAmountMax = this.safeNumber (market, 'baseMaxSize');
+            }
+            let limitPriceMax = this.safeNumber (market, 'maxPrice');
+            if (limitPriceMax === undefined) {
+                const baseMinSizeString = this.safeString (market, 'baseMinSize');
+                const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
+                limitPriceMax = this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString));
+            }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': false,
+                'margin': false,
+                'swap': swap,
+                'future': future,
+                'option': false,
+                'active': (status === 'Open'),
+                'contract': true,
+                'linear': !inverse,
+                'inverse': inverse,
+                'taker': this.safeNumber (market, 'takerFeeRate'),
+                'maker': this.safeNumber (market, 'makerFeeRate'),
+                'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': lotSize,
+                    'price': tickSize,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'maxLeverage'),
+                    },
+                    'amount': {
+                        'min': limitAmountMin,
+                        'max': limitAmountMax,
+                    },
+                    'price': {
+                        'min': tickSize,
+                        'max': limitPriceMax,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'quoteMinSize'),
+                        'max': this.safeNumber (market, 'quoteMaxSize'),
+                    },
+                },
+                'created': this.safeInteger (market, 'firstOpenDate'),
+                'info': market,
+            });
         }
         return result;
     }
