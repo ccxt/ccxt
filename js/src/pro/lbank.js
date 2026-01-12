@@ -17,7 +17,7 @@ export default class lbank extends lbankRest {
                 'fetchOrderBookWs': true,
                 'fetchTickerWs': true,
                 'fetchTradesWs': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
@@ -53,9 +53,11 @@ export default class lbank extends lbankRest {
         });
     }
     requestId() {
+        this.lockId();
         const previousValue = this.safeInteger(this.options, 'requestId', 0);
         const newValue = this.sum(previousValue, 1);
         this.options['requestId'] = newValue;
+        this.unlockId();
         return newValue;
     }
     /**
@@ -239,7 +241,7 @@ export default class lbank extends lbankRest {
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the cex api endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickerWs(symbol, params = {}) {
         await this.loadMarkets();
@@ -367,7 +369,7 @@ export default class lbank extends lbankRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -396,7 +398,7 @@ export default class lbank extends lbankRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -513,7 +515,7 @@ export default class lbank extends lbankRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} params extra parameters specific to the lbank api endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -668,6 +670,59 @@ export default class lbank extends lbankRest {
             '4': 'closed', // Withrawing
         };
         return this.safeString(statuses, status, status);
+    }
+    /**
+     * @method
+     * @name lbank#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.lbank.com/docs/index.html#update-subscribed-asset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance(params = {}) {
+        await this.loadMarkets();
+        const key = await this.authenticate(params);
+        const url = this.urls['api']['ws'];
+        const messageHash = 'balance';
+        const message = {
+            'action': 'subscribe',
+            'subscribe': 'assetUpdate',
+            'subscribeKey': key,
+        };
+        const request = this.deepExtend(message, params);
+        return await this.watch(url, messageHash, request, messageHash, request);
+    }
+    handleBalance(client, message) {
+        //
+        //     {
+        //         "data": {
+        //             "asset": "114548.31881315",
+        //             "assetCode": "usdt",
+        //             "free": "97430.6739041",
+        //             "freeze": "17117.64490905",
+        //             "time": 1627300043270,
+        //             "type": "ORDER_CREATE"
+        //         },
+        //         "SERVER": "V2",
+        //         "type": "assetUpdate",
+        //         "TS": "2021-07-26T19:48:03.548"
+        //     }
+        //
+        const data = this.safeDict(message, 'data', {});
+        const timestamp = this.parse8601(this.safeString(message, 'TS'));
+        const datetime = this.iso8601(timestamp);
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = datetime;
+        const currencyId = this.safeString(data, 'assetCode');
+        const code = this.safeCurrencyCode(currencyId);
+        const account = this.account();
+        account['free'] = this.safeString(data, 'free');
+        account['used'] = this.safeString(data, 'freeze');
+        account['total'] = this.safeString(data, 'asset');
+        this.balance[code] = account;
+        this.balance = this.safeBalance(this.balance);
+        client.resolve(this.balance, 'balance');
     }
     /**
      * @method
@@ -845,6 +900,7 @@ export default class lbank extends lbankRest {
             'trade': this.handleTrades,
             'tick': this.handleTicker,
             'orderUpdate': this.handleOrders,
+            'assetUpdate': this.handleBalance,
         };
         const handler = this.safeValue(handlers, type);
         if (handler !== undefined) {

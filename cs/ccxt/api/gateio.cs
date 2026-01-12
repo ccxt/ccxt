@@ -16,6 +16,16 @@ public partial class gateio : gate
         return await this.callAsync ("publicWalletGetCurrencyChains",parameters);
     }
 
+    public async Task<object> publicUnifiedGetCurrencies (object parameters = null)
+    {
+        return await this.callAsync ("publicUnifiedGetCurrencies",parameters);
+    }
+
+    public async Task<object> publicUnifiedGetHistoryLoanRate (object parameters = null)
+    {
+        return await this.callAsync ("publicUnifiedGetHistoryLoanRate",parameters);
+    }
+
     public async Task<object> publicSpotGetCurrencies (object parameters = null)
     {
         return await this.callAsync ("publicSpotGetCurrencies",parameters);
@@ -61,6 +71,26 @@ public partial class gateio : gate
         return await this.callAsync ("publicSpotGetTime",parameters);
     }
 
+    public async Task<object> publicSpotGetInsuranceHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicSpotGetInsuranceHistory",parameters);
+    }
+
+    public async Task<object> publicMarginGetUniCurrencyPairs (object parameters = null)
+    {
+        return await this.callAsync ("publicMarginGetUniCurrencyPairs",parameters);
+    }
+
+    public async Task<object> publicMarginGetUniCurrencyPairsCurrencyPair (object parameters = null)
+    {
+        return await this.callAsync ("publicMarginGetUniCurrencyPairsCurrencyPair",parameters);
+    }
+
+    public async Task<object> publicMarginGetLoanMarginTiers (object parameters = null)
+    {
+        return await this.callAsync ("publicMarginGetLoanMarginTiers",parameters);
+    }
+
     public async Task<object> publicMarginGetCurrencyPairs (object parameters = null)
     {
         return await this.callAsync ("publicMarginGetCurrencyPairs",parameters);
@@ -86,14 +116,9 @@ public partial class gateio : gate
         return await this.callAsync ("publicMarginGetCrossCurrenciesCurrency",parameters);
     }
 
-    public async Task<object> publicMarginGetUniCurrencyPairs (object parameters = null)
+    public async Task<object> publicFlash_swapGetCurrencyPairs (object parameters = null)
     {
-        return await this.callAsync ("publicMarginGetUniCurrencyPairs",parameters);
-    }
-
-    public async Task<object> publicMarginGetUniCurrencyPairsCurrencyPair (object parameters = null)
-    {
-        return await this.callAsync ("publicMarginGetUniCurrencyPairsCurrencyPair",parameters);
+        return await this.callAsync ("publicFlash_swapGetCurrencyPairs",parameters);
     }
 
     public async Task<object> publicFlash_swapGetCurrencies (object parameters = null)
@@ -201,6 +226,11 @@ public partial class gateio : gate
         return await this.callAsync ("publicDeliveryGetSettleInsurance",parameters);
     }
 
+    public async Task<object> publicDeliveryGetSettleRiskLimitTiers (object parameters = null)
+    {
+        return await this.callAsync ("publicDeliveryGetSettleRiskLimitTiers",parameters);
+    }
+
     public async Task<object> publicOptionsGetUnderlyings (object parameters = null)
     {
         return await this.callAsync ("publicOptionsGetUnderlyings",parameters);
@@ -269,6 +299,41 @@ public partial class gateio : gate
     public async Task<object> publicEarnGetUniCurrenciesCurrency (object parameters = null)
     {
         return await this.callAsync ("publicEarnGetUniCurrenciesCurrency",parameters);
+    }
+
+    public async Task<object> publicEarnGetDualInvestmentPlan (object parameters = null)
+    {
+        return await this.callAsync ("publicEarnGetDualInvestmentPlan",parameters);
+    }
+
+    public async Task<object> publicEarnGetStructuredProducts (object parameters = null)
+    {
+        return await this.callAsync ("publicEarnGetStructuredProducts",parameters);
+    }
+
+    public async Task<object> publicLoanGetCollateralCurrencies (object parameters = null)
+    {
+        return await this.callAsync ("publicLoanGetCollateralCurrencies",parameters);
+    }
+
+    public async Task<object> publicLoanGetMultiCollateralCurrencies (object parameters = null)
+    {
+        return await this.callAsync ("publicLoanGetMultiCollateralCurrencies",parameters);
+    }
+
+    public async Task<object> publicLoanGetMultiCollateralLtv (object parameters = null)
+    {
+        return await this.callAsync ("publicLoanGetMultiCollateralLtv",parameters);
+    }
+
+    public async Task<object> publicLoanGetMultiCollateralFixedRate (object parameters = null)
+    {
+        return await this.callAsync ("publicLoanGetMultiCollateralFixedRate",parameters);
+    }
+
+    public async Task<object> publicLoanGetMultiCollateralCurrentRate (object parameters = null)
+    {
+        return await this.callAsync ("publicLoanGetMultiCollateralCurrentRate",parameters);
     }
 
     public async Task<object> privateWithdrawalsPostWithdrawals (object parameters = null)
@@ -366,6 +431,11 @@ public partial class gateio : gate
         return await this.callAsync ("privateWalletGetPush",parameters);
     }
 
+    public async Task<object> privateWalletGetGetLowCapExchangeList (object parameters = null)
+    {
+        return await this.callAsync ("privateWalletGetGetLowCapExchangeList",parameters);
+    }
+
     public async Task<object> privateWalletPostTransfers (object parameters = null)
     {
         return await this.callAsync ("privateWalletPostTransfers",parameters);
@@ -441,11 +511,6 @@ public partial class gateio : gate
         return await this.callAsync ("privateUnifiedGetAccounts",parameters);
     }
 
-    public async Task<object> privateUnifiedGetAccountMode (object parameters = null)
-    {
-        return await this.callAsync ("privateUnifiedGetAccountMode",parameters);
-    }
-
     public async Task<object> privateUnifiedGetBorrowable (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedGetBorrowable",parameters);
@@ -454,6 +519,16 @@ public partial class gateio : gate
     public async Task<object> privateUnifiedGetTransferable (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedGetTransferable",parameters);
+    }
+
+    public async Task<object> privateUnifiedGetTransferables (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetTransferables",parameters);
+    }
+
+    public async Task<object> privateUnifiedGetBatchBorrowable (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetBatchBorrowable",parameters);
     }
 
     public async Task<object> privateUnifiedGetLoans (object parameters = null)
@@ -471,16 +546,6 @@ public partial class gateio : gate
         return await this.callAsync ("privateUnifiedGetInterestRecords",parameters);
     }
 
-    public async Task<object> privateUnifiedGetEstimateRate (object parameters = null)
-    {
-        return await this.callAsync ("privateUnifiedGetEstimateRate",parameters);
-    }
-
-    public async Task<object> privateUnifiedGetCurrencyDiscountTiers (object parameters = null)
-    {
-        return await this.callAsync ("privateUnifiedGetCurrencyDiscountTiers",parameters);
-    }
-
     public async Task<object> privateUnifiedGetRiskUnits (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedGetRiskUnits",parameters);
@@ -489,6 +554,16 @@ public partial class gateio : gate
     public async Task<object> privateUnifiedGetUnifiedMode (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedGetUnifiedMode",parameters);
+    }
+
+    public async Task<object> privateUnifiedGetEstimateRate (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetEstimateRate",parameters);
+    }
+
+    public async Task<object> privateUnifiedGetCurrencyDiscountTiers (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetCurrencyDiscountTiers",parameters);
     }
 
     public async Task<object> privateUnifiedGetLoanMarginTiers (object parameters = null)
@@ -506,9 +581,9 @@ public partial class gateio : gate
         return await this.callAsync ("privateUnifiedGetLeverageUserCurrencySetting",parameters);
     }
 
-    public async Task<object> privateUnifiedPostAccountMode (object parameters = null)
+    public async Task<object> privateUnifiedGetAccountMode (object parameters = null)
     {
-        return await this.callAsync ("privateUnifiedPostAccountMode",parameters);
+        return await this.callAsync ("privateUnifiedGetAccountMode",parameters);
     }
 
     public async Task<object> privateUnifiedPostLoans (object parameters = null)
@@ -524,6 +599,16 @@ public partial class gateio : gate
     public async Task<object> privateUnifiedPostLeverageUserCurrencySetting (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedPostLeverageUserCurrencySetting",parameters);
+    }
+
+    public async Task<object> privateUnifiedPostCollateralCurrencies (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedPostCollateralCurrencies",parameters);
+    }
+
+    public async Task<object> privateUnifiedPostAccountMode (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedPostAccountMode",parameters);
     }
 
     public async Task<object> privateUnifiedPutUnifiedMode (object parameters = null)
@@ -666,6 +751,41 @@ public partial class gateio : gate
         return await this.callAsync ("privateMarginGetTransferable",parameters);
     }
 
+    public async Task<object> privateMarginGetUniEstimateRate (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginGetUniEstimateRate",parameters);
+    }
+
+    public async Task<object> privateMarginGetUniLoans (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginGetUniLoans",parameters);
+    }
+
+    public async Task<object> privateMarginGetUniLoanRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginGetUniLoanRecords",parameters);
+    }
+
+    public async Task<object> privateMarginGetUniInterestRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginGetUniInterestRecords",parameters);
+    }
+
+    public async Task<object> privateMarginGetUniBorrowable (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginGetUniBorrowable",parameters);
+    }
+
+    public async Task<object> privateMarginGetUserLoanMarginTiers (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginGetUserLoanMarginTiers",parameters);
+    }
+
+    public async Task<object> privateMarginGetUserAccount (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginGetUserAccount",parameters);
+    }
+
     public async Task<object> privateMarginGetLoans (object parameters = null)
     {
         return await this.callAsync ("privateMarginGetLoans",parameters);
@@ -741,34 +861,19 @@ public partial class gateio : gate
         return await this.callAsync ("privateMarginGetCrossBorrowable",parameters);
     }
 
-    public async Task<object> privateMarginGetUniEstimateRate (object parameters = null)
-    {
-        return await this.callAsync ("privateMarginGetUniEstimateRate",parameters);
-    }
-
-    public async Task<object> privateMarginGetUniLoans (object parameters = null)
-    {
-        return await this.callAsync ("privateMarginGetUniLoans",parameters);
-    }
-
-    public async Task<object> privateMarginGetUniLoanRecords (object parameters = null)
-    {
-        return await this.callAsync ("privateMarginGetUniLoanRecords",parameters);
-    }
-
-    public async Task<object> privateMarginGetUniInterestRecords (object parameters = null)
-    {
-        return await this.callAsync ("privateMarginGetUniInterestRecords",parameters);
-    }
-
-    public async Task<object> privateMarginGetUniBorrowable (object parameters = null)
-    {
-        return await this.callAsync ("privateMarginGetUniBorrowable",parameters);
-    }
-
     public async Task<object> privateMarginPostAutoRepay (object parameters = null)
     {
         return await this.callAsync ("privateMarginPostAutoRepay",parameters);
+    }
+
+    public async Task<object> privateMarginPostUniLoans (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginPostUniLoans",parameters);
+    }
+
+    public async Task<object> privateMarginPostLeverageUserMarketSetting (object parameters = null)
+    {
+        return await this.callAsync ("privateMarginPostLeverageUserMarketSetting",parameters);
     }
 
     public async Task<object> privateMarginPostLoans (object parameters = null)
@@ -796,11 +901,6 @@ public partial class gateio : gate
         return await this.callAsync ("privateMarginPostCrossRepayments",parameters);
     }
 
-    public async Task<object> privateMarginPostUniLoans (object parameters = null)
-    {
-        return await this.callAsync ("privateMarginPostUniLoans",parameters);
-    }
-
     public async Task<object> privateMarginPatchLoansLoanId (object parameters = null)
     {
         return await this.callAsync ("privateMarginPatchLoansLoanId",parameters);
@@ -814,16 +914,6 @@ public partial class gateio : gate
     public async Task<object> privateMarginDeleteLoansLoanId (object parameters = null)
     {
         return await this.callAsync ("privateMarginDeleteLoansLoanId",parameters);
-    }
-
-    public async Task<object> privateFlash_swapGetCurrencies (object parameters = null)
-    {
-        return await this.callAsync ("privateFlash_swapGetCurrencies",parameters);
-    }
-
-    public async Task<object> privateFlash_swapGetCurrencyPairs (object parameters = null)
-    {
-        return await this.callAsync ("privateFlash_swapGetCurrencyPairs",parameters);
     }
 
     public async Task<object> privateFlash_swapGetOrders (object parameters = null)
@@ -916,9 +1006,9 @@ public partial class gateio : gate
         return await this.callAsync ("privateFuturesGetSettleFee",parameters);
     }
 
-    public async Task<object> privateFuturesGetSettleRiskLimitTiers (object parameters = null)
+    public async Task<object> privateFuturesGetSettleRiskLimitTable (object parameters = null)
     {
-        return await this.callAsync ("privateFuturesGetSettleRiskLimitTiers",parameters);
+        return await this.callAsync ("privateFuturesGetSettleRiskLimitTable",parameters);
     }
 
     public async Task<object> privateFuturesGetSettlePriceOrders (object parameters = null)
@@ -944,6 +1034,16 @@ public partial class gateio : gate
     public async Task<object> privateFuturesPostSettlePositionsContractRiskLimit (object parameters = null)
     {
         return await this.callAsync ("privateFuturesPostSettlePositionsContractRiskLimit",parameters);
+    }
+
+    public async Task<object> privateFuturesPostSettlePositionsCrossMode (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesPostSettlePositionsCrossMode",parameters);
+    }
+
+    public async Task<object> privateFuturesPostSettleDualCompPositionsCrossMode (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesPostSettleDualCompPositionsCrossMode",parameters);
     }
 
     public async Task<object> privateFuturesPostSettleDualMode (object parameters = null)
@@ -986,6 +1086,16 @@ public partial class gateio : gate
         return await this.callAsync ("privateFuturesPostSettleBatchCancelOrders",parameters);
     }
 
+    public async Task<object> privateFuturesPostSettleBatchAmendOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesPostSettleBatchAmendOrders",parameters);
+    }
+
+    public async Task<object> privateFuturesPostSettleBboOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesPostSettleBboOrders",parameters);
+    }
+
     public async Task<object> privateFuturesPostSettlePriceOrders (object parameters = null)
     {
         return await this.callAsync ("privateFuturesPostSettlePriceOrders",parameters);
@@ -994,6 +1104,11 @@ public partial class gateio : gate
     public async Task<object> privateFuturesPutSettleOrdersOrderId (object parameters = null)
     {
         return await this.callAsync ("privateFuturesPutSettleOrdersOrderId",parameters);
+    }
+
+    public async Task<object> privateFuturesPutSettlePriceOrdersOrderId (object parameters = null)
+    {
+        return await this.callAsync ("privateFuturesPutSettlePriceOrdersOrderId",parameters);
     }
 
     public async Task<object> privateFuturesDeleteSettleOrders (object parameters = null)
@@ -1201,16 +1316,6 @@ public partial class gateio : gate
         return await this.callAsync ("privateOptionsDeleteOrdersOrderId",parameters);
     }
 
-    public async Task<object> privateEarnGetUniCurrencies (object parameters = null)
-    {
-        return await this.callAsync ("privateEarnGetUniCurrencies",parameters);
-    }
-
-    public async Task<object> privateEarnGetUniCurrenciesCurrency (object parameters = null)
-    {
-        return await this.callAsync ("privateEarnGetUniCurrenciesCurrency",parameters);
-    }
-
     public async Task<object> privateEarnGetUniLends (object parameters = null)
     {
         return await this.callAsync ("privateEarnGetUniLends",parameters);
@@ -1236,9 +1341,84 @@ public partial class gateio : gate
         return await this.callAsync ("privateEarnGetUniInterestStatusCurrency",parameters);
     }
 
+    public async Task<object> privateEarnGetUniChart (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetUniChart",parameters);
+    }
+
+    public async Task<object> privateEarnGetUniRate (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetUniRate",parameters);
+    }
+
+    public async Task<object> privateEarnGetStakingEth2RateRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetStakingEth2RateRecords",parameters);
+    }
+
+    public async Task<object> privateEarnGetDualOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetDualOrders",parameters);
+    }
+
+    public async Task<object> privateEarnGetStructuredOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetStructuredOrders",parameters);
+    }
+
+    public async Task<object> privateEarnGetStakingCoins (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetStakingCoins",parameters);
+    }
+
+    public async Task<object> privateEarnGetStakingOrderList (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetStakingOrderList",parameters);
+    }
+
+    public async Task<object> privateEarnGetStakingAwardList (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetStakingAwardList",parameters);
+    }
+
+    public async Task<object> privateEarnGetStakingAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetStakingAssets",parameters);
+    }
+
+    public async Task<object> privateEarnGetUniCurrencies (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetUniCurrencies",parameters);
+    }
+
+    public async Task<object> privateEarnGetUniCurrenciesCurrency (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetUniCurrenciesCurrency",parameters);
+    }
+
     public async Task<object> privateEarnPostUniLends (object parameters = null)
     {
         return await this.callAsync ("privateEarnPostUniLends",parameters);
+    }
+
+    public async Task<object> privateEarnPostStakingEth2Swap (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnPostStakingEth2Swap",parameters);
+    }
+
+    public async Task<object> privateEarnPostDualOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnPostDualOrders",parameters);
+    }
+
+    public async Task<object> privateEarnPostStructuredOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnPostStructuredOrders",parameters);
+    }
+
+    public async Task<object> privateEarnPostStakingSwap (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnPostStakingSwap",parameters);
     }
 
     public async Task<object> privateEarnPutUniInterestReinvest (object parameters = null)
@@ -1281,11 +1461,6 @@ public partial class gateio : gate
         return await this.callAsync ("privateLoanGetCollateralLtv",parameters);
     }
 
-    public async Task<object> privateLoanGetCollateralCurrencies (object parameters = null)
-    {
-        return await this.callAsync ("privateLoanGetCollateralCurrencies",parameters);
-    }
-
     public async Task<object> privateLoanGetMultiCollateralOrders (object parameters = null)
     {
         return await this.callAsync ("privateLoanGetMultiCollateralOrders",parameters);
@@ -1309,6 +1484,11 @@ public partial class gateio : gate
     public async Task<object> privateLoanGetMultiCollateralCurrencyQuota (object parameters = null)
     {
         return await this.callAsync ("privateLoanGetMultiCollateralCurrencyQuota",parameters);
+    }
+
+    public async Task<object> privateLoanGetCollateralCurrencies (object parameters = null)
+    {
+        return await this.callAsync ("privateLoanGetCollateralCurrencies",parameters);
     }
 
     public async Task<object> privateLoanGetMultiCollateralCurrencies (object parameters = null)
@@ -1366,6 +1546,11 @@ public partial class gateio : gate
         return await this.callAsync ("privateAccountGetDetail",parameters);
     }
 
+    public async Task<object> privateAccountGetMainKeys (object parameters = null)
+    {
+        return await this.callAsync ("privateAccountGetMainKeys",parameters);
+    }
+
     public async Task<object> privateAccountGetRateLimit (object parameters = null)
     {
         return await this.callAsync ("privateAccountGetRateLimit",parameters);
@@ -1386,6 +1571,11 @@ public partial class gateio : gate
         return await this.callAsync ("privateAccountGetStpGroupsDebitFee",parameters);
     }
 
+    public async Task<object> privateAccountGetDebitFee (object parameters = null)
+    {
+        return await this.callAsync ("privateAccountGetDebitFee",parameters);
+    }
+
     public async Task<object> privateAccountPostStpGroups (object parameters = null)
     {
         return await this.callAsync ("privateAccountPostStpGroups",parameters);
@@ -1394,6 +1584,11 @@ public partial class gateio : gate
     public async Task<object> privateAccountPostStpGroupsStpIdUsers (object parameters = null)
     {
         return await this.callAsync ("privateAccountPostStpGroupsStpIdUsers",parameters);
+    }
+
+    public async Task<object> privateAccountPostDebitFee (object parameters = null)
+    {
+        return await this.callAsync ("privateAccountPostDebitFee",parameters);
     }
 
     public async Task<object> privateAccountDeleteStpGroupsStpIdUsers (object parameters = null)
@@ -1409,6 +1604,41 @@ public partial class gateio : gate
     public async Task<object> privateRebateGetAgencyCommissionHistory (object parameters = null)
     {
         return await this.callAsync ("privateRebateGetAgencyCommissionHistory",parameters);
+    }
+
+    public async Task<object> privateRebateGetPartnerTransactionHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateRebateGetPartnerTransactionHistory",parameters);
+    }
+
+    public async Task<object> privateRebateGetPartnerCommissionHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateRebateGetPartnerCommissionHistory",parameters);
+    }
+
+    public async Task<object> privateRebateGetPartnerSubList (object parameters = null)
+    {
+        return await this.callAsync ("privateRebateGetPartnerSubList",parameters);
+    }
+
+    public async Task<object> privateRebateGetBrokerCommissionHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateRebateGetBrokerCommissionHistory",parameters);
+    }
+
+    public async Task<object> privateRebateGetBrokerTransactionHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateRebateGetBrokerTransactionHistory",parameters);
+    }
+
+    public async Task<object> privateRebateGetUserInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateRebateGetUserInfo",parameters);
+    }
+
+    public async Task<object> privateRebateGetUserSubRelation (object parameters = null)
+    {
+        return await this.callAsync ("privateRebateGetUserSubRelation",parameters);
     }
 
 }

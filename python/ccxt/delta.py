@@ -75,6 +75,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOption': True,
                 'fetchOptionChain': False,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -153,6 +154,8 @@ class delta(Exchange, ImplicitAPI):
                 'private': {
                     'get': [
                         'orders',
+                        'orders/{order_id}',
+                        'orders/client_order_id/{client_oid}',
                         'products/{product_id}/orders/leverage',
                         'positions/margined',
                         'positions',
@@ -166,8 +169,8 @@ class delta(Exchange, ImplicitAPI):
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'heartbeat',
                         'deposits/address',
-                        'orders/leverage',
                     ],
                     'post': [
                         'orders',
@@ -177,6 +180,8 @@ class delta(Exchange, ImplicitAPI):
                         'positions/change_margin',
                         'positions/close_all',
                         'wallets/sub_account_balance_transfer',
+                        'heartbeat/create',
+                        'heartbeat',
                         'orders/cancel_after',
                         'orders/leverage',
                     ],
@@ -223,6 +228,7 @@ class delta(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'userAgent': self.userAgents['chrome39'],  # needed for C#
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
@@ -430,7 +436,7 @@ class delta(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         response = self.publicGetSettings(params)
         #
@@ -1092,7 +1098,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1235,7 +1241,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1387,7 +1393,7 @@ class delta(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1523,7 +1529,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1569,7 +1575,7 @@ class delta(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1646,7 +1652,7 @@ class delta(Exchange, ImplicitAPI):
         https://docs.delta.exchange/#get-wallet-balances
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetWalletBalances(params)
@@ -1681,7 +1687,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1710,7 +1716,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         response = self.privateGetPositionsMargined(params)
@@ -1850,9 +1856,37 @@ class delta(Exchange, ImplicitAPI):
         #         "user_id":22142
         #     }
         #
+        # fetchOrder
+        #
+        #     {
+        #         "id": 123,
+        #         "user_id": 453671,
+        #         "size": 10,
+        #         "unfilled_size": 2,
+        #         "side": "buy",
+        #         "order_type": "limit_order",
+        #         "limit_price": "59000",
+        #         "stop_order_type": "stop_loss_order",
+        #         "stop_price": "55000",
+        #         "paid_commission": "0.5432",
+        #         "commission": "0.5432",
+        #         "reduce_only": False,
+        #         "client_order_id": "my_signal_34521712",
+        #         "state": "open",
+        #         "created_at": "1725865012000000",
+        #         "product_id": 27,
+        #         "product_symbol": "BTCUSD"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')
-        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        createdAt = self.safe_string(order, 'created_at')
+        timestamp = None
+        if createdAt is not None:
+            if createdAt.find('-') >= 0:
+                timestamp = self.parse8601(createdAt)
+            else:
+                timestamp = self.safe_integer_product(order, 'created_at', 0.001)
         marketId = self.safe_string(order, 'product_id')
         marketsByNumericId = self.safe_dict(self.options, 'marketsByNumericId', {})
         market = self.safe_value(marketsByNumericId, marketId, market)
@@ -1860,7 +1894,8 @@ class delta(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'order_type')
-        type = type.replace('_order', '')
+        if type is not None:
+            type = type.replace('_order', '')
         price = self.safe_string(order, 'limit_price')
         amount = self.safe_string(order, 'size')
         remaining = self.safe_string(order, 'unfilled_size')
@@ -1911,7 +1946,7 @@ class delta(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         orderType = type + '_order'
@@ -1990,7 +2025,7 @@ class delta(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2034,7 +2069,7 @@ class delta(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2092,7 +2127,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -2116,6 +2151,60 @@ class delta(Exchange, ImplicitAPI):
             }),
         ]
 
+    def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        fetches information on an order made by the user
+
+        https://docs.delta.exchange/#get-order-by-id
+        https://docs.delta.exchange/#get-order-by-client-oid
+
+        :param str id: the order id
+        :param str [symbol]: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id of the order
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        clientOrderId = self.safe_string_n(params, ['clientOrderId', 'client_oid', 'clientOid'])
+        params = self.omit(params, ['clientOrderId', 'client_oid', 'clientOid'])
+        request: dict = {}
+        response = None
+        if clientOrderId is not None:
+            request['client_oid'] = clientOrderId
+            response = self.privateGetOrdersClientOrderIdClientOid(self.extend(request, params))
+        else:
+            request['order_id'] = id
+            response = self.privateGetOrdersOrderId(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "result": {
+        #             "id": 123,
+        #             "user_id": 453671,
+        #             "size": 10,
+        #             "unfilled_size": 2,
+        #             "side": "buy",
+        #             "order_type": "limit_order",
+        #             "limit_price": "59000",
+        #             "stop_order_type": "stop_loss_order",
+        #             "stop_price": "55000",
+        #             "paid_commission": "0.5432",
+        #             "commission": "0.5432",
+        #             "reduce_only": False,
+        #             "client_order_id": "my_signal_34521712",
+        #             "state": "open",
+        #             "created_at": "1725865012000000",
+        #             "product_id": 27,
+        #             "product_symbol": "BTCUSD"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_order(result, market)
+
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
@@ -2126,7 +2215,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         return self.fetch_orders_with_method('privateGetOrders', symbol, since, limit, params)
 
@@ -2140,7 +2229,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         return self.fetch_orders_with_method('privateGetOrdersHistory', symbol, since, limit, params)
 
@@ -2205,7 +2294,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -2284,7 +2373,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
         """
         self.load_markets()
         request: dict = {
@@ -2401,7 +2490,7 @@ class delta(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: unified network code
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2468,7 +2557,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2534,7 +2623,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2669,7 +2758,7 @@ class delta(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
@@ -2682,7 +2771,7 @@ class delta(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
@@ -2767,7 +2856,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2903,7 +2992,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2938,7 +3027,7 @@ class delta(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -2980,7 +3069,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
         :param dict [params]: exchange specific params
-        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/#/?id=settlement-history-structure>`
+        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/?id=settlement-history-structure>`
         """
         self.load_markets()
         market = None
@@ -3133,7 +3222,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
+        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3281,7 +3370,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.user_id]: the users id
-        :returns dict[]: A list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: A list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -3304,7 +3393,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         self.load_markets()
         market = None
@@ -3395,7 +3484,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        :returns dict: an `option chain structure <https://docs.ccxt.com/?id=option-chain-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

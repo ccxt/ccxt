@@ -16,7 +16,7 @@ public partial class lbank : ccxt.lbank
                 { "fetchOrderBookWs", true },
                 { "fetchTickerWs", true },
                 { "fetchTradesWs", true },
-                { "watchBalance", false },
+                { "watchBalance", true },
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
@@ -54,9 +54,11 @@ public partial class lbank : ccxt.lbank
 
     public virtual object requestId()
     {
+        this.lockId();
         object previousValue = this.safeInteger(this.options, "requestId", 0);
         object newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)this.options)["requestId"] = newValue;
+        this.unlockId();
         return newValue;
     }
 
@@ -243,7 +245,7 @@ public partial class lbank : ccxt.lbank
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the cex api endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
@@ -381,7 +383,7 @@ public partial class lbank : ccxt.lbank
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -414,7 +416,7 @@ public partial class lbank : ccxt.lbank
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -542,7 +544,7 @@ public partial class lbank : ccxt.lbank
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} params extra parameters specific to the lbank api endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -709,6 +711,64 @@ public partial class lbank : ccxt.lbank
             { "4", "closed" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name lbank#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.lbank.com/docs/index.html#update-subscribed-asset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public async override Task<object> watchBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object key = await this.authenticate(parameters);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object messageHash = "balance";
+        object message = new Dictionary<string, object>() {
+            { "action", "subscribe" },
+            { "subscribe", "assetUpdate" },
+            { "subscribeKey", key },
+        };
+        object request = this.deepExtend(message, parameters);
+        return await this.watch(url, messageHash, request, messageHash, request);
+    }
+
+    public virtual void handleBalance(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "data": {
+        //             "asset": "114548.31881315",
+        //             "assetCode": "usdt",
+        //             "free": "97430.6739041",
+        //             "freeze": "17117.64490905",
+        //             "time": 1627300043270,
+        //             "type": "ORDER_CREATE"
+        //         },
+        //         "SERVER": "V2",
+        //         "type": "assetUpdate",
+        //         "TS": "2021-07-26T19:48:03.548"
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object timestamp = this.parse8601(this.safeString(message, "TS"));
+        object datetime = this.iso8601(timestamp);
+        ((IDictionary<string,object>)this.balance)["info"] = data;
+        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)this.balance)["datetime"] = datetime;
+        object currencyId = this.safeString(data, "assetCode");
+        object code = this.safeCurrencyCode(currencyId);
+        object account = this.account();
+        ((IDictionary<string,object>)account)["free"] = this.safeString(data, "free");
+        ((IDictionary<string,object>)account)["used"] = this.safeString(data, "freeze");
+        ((IDictionary<string,object>)account)["total"] = this.safeString(data, "asset");
+        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        this.balance = this.safeBalance(this.balance);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }
 
     /**
@@ -906,6 +966,7 @@ public partial class lbank : ccxt.lbank
             { "trade", this.handleTrades },
             { "tick", this.handleTicker },
             { "orderUpdate", this.handleOrders },
+            { "assetUpdate", this.handleBalance },
         };
         object handler = this.safeValue(handlers, type);
         if (isTrue(!isEqual(handler, null)))

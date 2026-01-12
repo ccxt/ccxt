@@ -10,6 +10,28 @@ public partial class xt
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://doc.xt.com/#websocket_publictickerRealTime"/>  <br/>
+    /// See <see href="https://doc.xt.com/#futures_market_websocket_v2tickerRealTime"/>  <br/>
+    /// See <see href="https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}.</returns>
+    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+    /// </summary>
+    /// <remarks>
     /// See <see href="https://doc.xt.com/#websocket_publicallTicker"/>  <br/>
     /// See <see href="https://doc.xt.com/#futures_market_websocket_v2allTicker"/>  <br/>
     /// See <see href="https://doc.xt.com/#futures_market_websocket_v2allAggTicker"/>  <br/>
@@ -29,16 +51,33 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}.</returns>
-    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTicker(symbol, parameters);
-        return new Ticker(res);
-    }
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
         return new Tickers(res);
     }
+    /// <summary>
+    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/#websocket_publicsymbolKline"/>  <br/>
+    /// See <see href="https://doc.xt.com/#futures_market_websocket_v2symbolKline"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : not used by xt watchOHLCV
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : not used by xt watchOHLCV
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
     public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -114,7 +153,7 @@ public partial class xt
     /// <list type="table">
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -143,7 +182,7 @@ public partial class xt
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

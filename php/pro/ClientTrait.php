@@ -58,6 +58,7 @@ trait ClientTrait {
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
                 'throttle' => new Throttler($this->tokenBucket),
+                'decompressBinary' => $this->safe_bool($this->options, 'decompressBinary', true),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
             $this->configure_proxy_client($this->clients[$url]);

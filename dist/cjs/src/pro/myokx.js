@@ -1,10 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okx = require('./okx.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class myokx extends okx {
+class myokx extends okx["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'myokx',
@@ -35,4 +37,4 @@ class myokx extends okx {
     }
 }
 
-module.exports = myokx;
+exports["default"] = myokx;

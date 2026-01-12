@@ -43,6 +43,7 @@ class xt extends Exchange {
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => false,
@@ -67,6 +68,7 @@ class xt extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => true,
@@ -81,6 +83,8 @@ class xt extends Exchange {
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -104,6 +108,7 @@ class xt extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
@@ -332,7 +337,7 @@ class xt extends Exchange {
                             'user/account/api-key' => 1,
                         ),
                         'delete' => array(
-                            'user/account/{apikeyId}' => 1,
+                            'user/account/{apiKeyId}' => 1,
                         ),
                     ),
                 ),
@@ -1382,7 +1387,7 @@ class xt extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -2391,7 +2396,7 @@ class xt extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3928,7 +3933,7 @@ class xt extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -4062,7 +4067,7 @@ class xt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -4121,7 +4126,7 @@ class xt extends Exchange {
          * @param {float} $amount amount of margin to add
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @param {string} $params->positionSide 'LONG' or 'SHORT'
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
     }
@@ -4136,7 +4141,7 @@ class xt extends Exchange {
          * @param {float} $amount the $amount of margin to remove
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @param {string} $params->positionSide 'LONG' or 'SHORT'
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
@@ -4194,7 +4199,7 @@ class xt extends Exchange {
          *
          * @param {string} [$symbols] a list of unified market $symbols
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~
          */
         $this->load_markets();
         $subType = null;
@@ -4277,7 +4282,7 @@ class xt extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4366,12 +4371,18 @@ class xt extends Exchange {
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
          * @param {array} $params extra parameters specific to the xt api endpoint
+         * @param {bool} $params->paginate true/false whether to use the pagination helper to aumatically $paginate through the results
          * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'id', 'id', 1, 200);
+        }
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
@@ -4381,6 +4392,8 @@ class xt extends Exchange {
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
+        } else {
+            $request['limit'] = 200; // max
         }
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRateHistory', $market, $params);
@@ -4438,7 +4451,7 @@ class xt extends Exchange {
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         return $this->fetch_funding_rate($symbol, $params);
     }
@@ -4451,7 +4464,7 @@ class xt extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4534,7 +4547,7 @@ class xt extends Exchange {
          * @param {int} [$since] the starting timestamp in milliseconds
          * @param {int} [$limit] the number of entries to return
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4625,7 +4638,7 @@ class xt extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4686,7 +4699,7 @@ class xt extends Exchange {
          *
          * @param {string} [$symbols] list of unified market $symbols, not supported with xt
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $subType = null;
@@ -4796,7 +4809,7 @@ class xt extends Exchange {
          * @param {string} $fromAccount account to transfer from -  spot, swap, leverage, finance
          * @param {string} $toAccount account to transfer to - spot, swap, leverage, finance
          * @param {array} $params extra parameters specific to the whitebit api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4912,7 +4925,7 @@ class xt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopLoss] $price to set a stop-loss on an open position
          * @param {float} [$params->takeProfit] $price to set a take-profit on an open position
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');

@@ -287,6 +287,26 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "above 50",
+                "method": "fetchOrderBook",
+                "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT&depth=50",
+                "input": [
+                    "BTC/USDT",
+                    150
+                ],
+                "output": null
+            },
+            {
+                "description": "below 50",
+                "method": "fetchOrderBook",
+                "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT&depth=40",
+                "input": [
+                    "BTC/USDT",
+                    40
+                ],
+                "output": null
+            },
+            {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
                 "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT",

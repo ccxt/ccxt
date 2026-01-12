@@ -7,354 +7,354 @@
 
 package ccxt
 
-func (this *digifinex) PublicSpotGetMarketSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetMarketSymbols", args...)
+func (this *DigifinexCore) PublicSpotGetMarketSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetMarketSymbols", args...)
 }
 
-func (this *digifinex) PublicSpotGetKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetKline", args...)
+func (this *DigifinexCore) PublicSpotGetKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetKline", args...)
 }
 
-func (this *digifinex) PublicSpotGetMarginCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetMarginCurrencies", args...)
+func (this *DigifinexCore) PublicSpotGetMarginCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetMarginCurrencies", args...)
 }
 
-func (this *digifinex) PublicSpotGetMarginSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetMarginSymbols", args...)
+func (this *DigifinexCore) PublicSpotGetMarginSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetMarginSymbols", args...)
 }
 
-func (this *digifinex) PublicSpotGetMarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetMarkets", args...)
+func (this *DigifinexCore) PublicSpotGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetMarkets", args...)
 }
 
-func (this *digifinex) PublicSpotGetOrderBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetOrderBook", args...)
+func (this *DigifinexCore) PublicSpotGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetOrderBook", args...)
 }
 
-func (this *digifinex) PublicSpotGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetPing", args...)
+func (this *DigifinexCore) PublicSpotGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetPing", args...)
 }
 
-func (this *digifinex) PublicSpotGetSpotSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetSpotSymbols", args...)
+func (this *DigifinexCore) PublicSpotGetSpotSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetSpotSymbols", args...)
 }
 
-func (this *digifinex) PublicSpotGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetTime", args...)
+func (this *DigifinexCore) PublicSpotGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetTime", args...)
 }
 
-func (this *digifinex) PublicSpotGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetTrades", args...)
+func (this *DigifinexCore) PublicSpotGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetTrades", args...)
 }
 
-func (this *digifinex) PublicSpotGetTradesSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetTradesSymbols", args...)
+func (this *DigifinexCore) PublicSpotGetTradesSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetTradesSymbols", args...)
 }
 
-func (this *digifinex) PublicSpotGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetTicker", args...)
+func (this *DigifinexCore) PublicSpotGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetTicker", args...)
 }
 
-func (this *digifinex) PublicSpotGetCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSpotGetCurrencies", args...)
+func (this *DigifinexCore) PublicSpotGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetCurrencies", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicApiWeight (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicApiWeight", args...)
+func (this *DigifinexCore) PublicSwapGetPublicApiWeight(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicApiWeight", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicCandles", args...)
+func (this *DigifinexCore) PublicSwapGetPublicCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicCandles", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicCandlesHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicCandlesHistory", args...)
+func (this *DigifinexCore) PublicSwapGetPublicCandlesHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicCandlesHistory", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicDepth", args...)
+func (this *DigifinexCore) PublicSwapGetPublicDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicDepth", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicFundingRate", args...)
+func (this *DigifinexCore) PublicSwapGetPublicFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicFundingRate", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicFundingRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicFundingRateHistory", args...)
+func (this *DigifinexCore) PublicSwapGetPublicFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicFundingRateHistory", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicInstrument", args...)
+func (this *DigifinexCore) PublicSwapGetPublicInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicInstrument", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicInstruments", args...)
+func (this *DigifinexCore) PublicSwapGetPublicInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicInstruments", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicTicker", args...)
+func (this *DigifinexCore) PublicSwapGetPublicTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicTicker", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicTickers", args...)
+func (this *DigifinexCore) PublicSwapGetPublicTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicTickers", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicTime", args...)
+func (this *DigifinexCore) PublicSwapGetPublicTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicTime", args...)
 }
 
-func (this *digifinex) PublicSwapGetPublicTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicSwapGetPublicTrades", args...)
+func (this *DigifinexCore) PublicSwapGetPublicTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicTrades", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarketFinancelog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarketFinancelog", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketFinancelog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketFinancelog", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarketMytrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarketMytrades", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketMytrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketMytrades", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarketOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarketOrder", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketOrder", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarketOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarketOrderDetail", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketOrderDetail", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarketOrderCurrent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarketOrderCurrent", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketOrderCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketOrderCurrent", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarketOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarketOrderHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketOrderHistory", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarginAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarginAssets", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginAssets", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarginFinancelog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarginFinancelog", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginFinancelog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginFinancelog", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarginMytrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarginMytrades", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginMytrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginMytrades", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarginOrder", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginOrder", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarginOrderCurrent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarginOrderCurrent", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginOrderCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginOrderCurrent", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarginOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarginOrderHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginOrderHistory", args...)
 }
 
-func (this *digifinex) PrivateSpotGetMarginPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetMarginPositions", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginPositions", args...)
 }
 
-func (this *digifinex) PrivateSpotGetOtcFinancelog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetOtcFinancelog", args...)
+func (this *DigifinexCore) PrivateSpotGetOtcFinancelog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetOtcFinancelog", args...)
 }
 
-func (this *digifinex) PrivateSpotGetSpotAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetSpotAssets", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotAssets", args...)
 }
 
-func (this *digifinex) PrivateSpotGetSpotFinancelog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetSpotFinancelog", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotFinancelog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotFinancelog", args...)
 }
 
-func (this *digifinex) PrivateSpotGetSpotMytrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetSpotMytrades", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotMytrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotMytrades", args...)
 }
 
-func (this *digifinex) PrivateSpotGetSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetSpotOrder", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotOrder", args...)
 }
 
-func (this *digifinex) PrivateSpotGetSpotOrderCurrent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetSpotOrderCurrent", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotOrderCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotOrderCurrent", args...)
 }
 
-func (this *digifinex) PrivateSpotGetSpotOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetSpotOrderHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotOrderHistory", args...)
 }
 
-func (this *digifinex) PrivateSpotGetDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetDepositAddress", args...)
+func (this *DigifinexCore) PrivateSpotGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetDepositAddress", args...)
 }
 
-func (this *digifinex) PrivateSpotGetDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetDepositHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetDepositHistory", args...)
 }
 
-func (this *digifinex) PrivateSpotGetWithdrawHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotGetWithdrawHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetWithdrawHistory", args...)
 }
 
-func (this *digifinex) PrivateSpotPostMarketOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostMarketOrderCancel", args...)
+func (this *DigifinexCore) PrivateSpotPostMarketOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarketOrderCancel", args...)
 }
 
-func (this *digifinex) PrivateSpotPostMarketOrderNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostMarketOrderNew", args...)
+func (this *DigifinexCore) PrivateSpotPostMarketOrderNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarketOrderNew", args...)
 }
 
-func (this *digifinex) PrivateSpotPostMarketOrderBatchNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostMarketOrderBatchNew", args...)
+func (this *DigifinexCore) PrivateSpotPostMarketOrderBatchNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarketOrderBatchNew", args...)
 }
 
-func (this *digifinex) PrivateSpotPostMarginOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostMarginOrderCancel", args...)
+func (this *DigifinexCore) PrivateSpotPostMarginOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarginOrderCancel", args...)
 }
 
-func (this *digifinex) PrivateSpotPostMarginOrderNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostMarginOrderNew", args...)
+func (this *DigifinexCore) PrivateSpotPostMarginOrderNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarginOrderNew", args...)
 }
 
-func (this *digifinex) PrivateSpotPostMarginPositionClose (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostMarginPositionClose", args...)
+func (this *DigifinexCore) PrivateSpotPostMarginPositionClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarginPositionClose", args...)
 }
 
-func (this *digifinex) PrivateSpotPostSpotOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostSpotOrderCancel", args...)
+func (this *DigifinexCore) PrivateSpotPostSpotOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostSpotOrderCancel", args...)
 }
 
-func (this *digifinex) PrivateSpotPostSpotOrderNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostSpotOrderNew", args...)
+func (this *DigifinexCore) PrivateSpotPostSpotOrderNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostSpotOrderNew", args...)
 }
 
-func (this *digifinex) PrivateSpotPostTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostTransfer", args...)
+func (this *DigifinexCore) PrivateSpotPostTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostTransfer", args...)
 }
 
-func (this *digifinex) PrivateSpotPostWithdrawNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostWithdrawNew", args...)
+func (this *DigifinexCore) PrivateSpotPostWithdrawNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostWithdrawNew", args...)
 }
 
-func (this *digifinex) PrivateSpotPostWithdrawCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSpotPostWithdrawCancel", args...)
+func (this *DigifinexCore) PrivateSpotPostWithdrawCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostWithdrawCancel", args...)
 }
 
-func (this *digifinex) PrivateSwapGetAccountBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetAccountBalance", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountBalance", args...)
 }
 
-func (this *digifinex) PrivateSwapGetAccountPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetAccountPositions", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountPositions", args...)
 }
 
-func (this *digifinex) PrivateSwapGetAccountFinanceRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetAccountFinanceRecord", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountFinanceRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountFinanceRecord", args...)
 }
 
-func (this *digifinex) PrivateSwapGetAccountTradingFeeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetAccountTradingFeeRate", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountTradingFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountTradingFeeRate", args...)
 }
 
-func (this *digifinex) PrivateSwapGetAccountTransferRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetAccountTransferRecord", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountTransferRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountTransferRecord", args...)
 }
 
-func (this *digifinex) PrivateSwapGetAccountFundingFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetAccountFundingFee", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountFundingFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountFundingFee", args...)
 }
 
-func (this *digifinex) PrivateSwapGetTradeHistoryOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetTradeHistoryOrders", args...)
+func (this *DigifinexCore) PrivateSwapGetTradeHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetTradeHistoryOrders", args...)
 }
 
-func (this *digifinex) PrivateSwapGetTradeHistoryTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetTradeHistoryTrades", args...)
+func (this *DigifinexCore) PrivateSwapGetTradeHistoryTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetTradeHistoryTrades", args...)
 }
 
-func (this *digifinex) PrivateSwapGetTradeOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetTradeOpenOrders", args...)
+func (this *DigifinexCore) PrivateSwapGetTradeOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetTradeOpenOrders", args...)
 }
 
-func (this *digifinex) PrivateSwapGetTradeOrderInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapGetTradeOrderInfo", args...)
+func (this *DigifinexCore) PrivateSwapGetTradeOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetTradeOrderInfo", args...)
 }
 
-func (this *digifinex) PrivateSwapPostAccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostAccountTransfer", args...)
+func (this *DigifinexCore) PrivateSwapPostAccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostAccountTransfer", args...)
 }
 
-func (this *digifinex) PrivateSwapPostAccountLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostAccountLeverage", args...)
+func (this *DigifinexCore) PrivateSwapPostAccountLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostAccountLeverage", args...)
 }
 
-func (this *digifinex) PrivateSwapPostAccountPositionMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostAccountPositionMode", args...)
+func (this *DigifinexCore) PrivateSwapPostAccountPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostAccountPositionMode", args...)
 }
 
-func (this *digifinex) PrivateSwapPostAccountPositionMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostAccountPositionMargin", args...)
+func (this *DigifinexCore) PrivateSwapPostAccountPositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostAccountPositionMargin", args...)
 }
 
-func (this *digifinex) PrivateSwapPostTradeBatchCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostTradeBatchCancelOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostTradeBatchCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostTradeBatchCancelOrder", args...)
 }
 
-func (this *digifinex) PrivateSwapPostTradeBatchOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostTradeBatchOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostTradeBatchOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostTradeBatchOrder", args...)
 }
 
-func (this *digifinex) PrivateSwapPostTradeCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostTradeCancelOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostTradeCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostTradeCancelOrder", args...)
 }
 
-func (this *digifinex) PrivateSwapPostTradeOrderPlace (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostTradeOrderPlace", args...)
+func (this *DigifinexCore) PrivateSwapPostTradeOrderPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostTradeOrderPlace", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowSponsorOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowSponsorOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowSponsorOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowSponsorOrder", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowCloseOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowCloseOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowCloseOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowCloseOrder", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowCancelOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowCancelOrder", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowUserCenterCurrent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowUserCenterCurrent", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowUserCenterCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowUserCenterCurrent", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowUserCenterHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowUserCenterHistory", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowUserCenterHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowUserCenterHistory", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowExpertCurrentOpenOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowExpertCurrentOpenOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowExpertCurrentOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowExpertCurrentOpenOrder", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowAddAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowAddAlgo", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowAddAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowAddAlgo", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowCancelAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowCancelAlgo", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowCancelAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowCancelAlgo", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowAccountAvailable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowAccountAvailable", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowAccountAvailable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowAccountAvailable", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowPlanTask (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowPlanTask", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowPlanTask(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowPlanTask", args...)
 }
 
-func (this *digifinex) PrivateSwapPostFollowInstrumentList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateSwapPostFollowInstrumentList", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowInstrumentList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowInstrumentList", args...)
 }

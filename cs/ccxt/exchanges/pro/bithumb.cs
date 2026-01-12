@@ -12,7 +12,8 @@ public partial class bithumb : ccxt.bithumb
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
-                { "watchBalance", false },
+                { "watchBalance", true },
+                { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
@@ -21,7 +22,11 @@ public partial class bithumb : ccxt.bithumb
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
-                    { "ws", "wss://pubwss.bithumb.com/pub/ws" },
+                    { "ws", new Dictionary<string, object>() {
+                        { "public", "wss://pubwss.bithumb.com/pub/ws" },
+                        { "publicV2", "wss://ws-api.bithumb.com/websocket/v1" },
+                        { "privateV2", "wss://ws-api.bithumb.com/websocket/v1/private" },
+                    } },
                 } },
             } },
             { "options", new Dictionary<string, object>() {} },
@@ -43,7 +48,7 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         await this.loadMarkets();
         object market = this.market(symbol);
         object messageHash = add("ticker:", getValue(market, "symbol"));
@@ -62,13 +67,13 @@ public partial class bithumb : ccxt.bithumb
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object marketIds = new List<object>() {};
         object messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols, null, false, true, true);
@@ -193,7 +198,7 @@ public partial class bithumb : ccxt.bithumb
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add(add("orderbook", ":"), symbol);
@@ -292,7 +297,7 @@ public partial class bithumb : ccxt.bithumb
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("trade:", symbol);
@@ -412,6 +417,280 @@ public partial class bithumb : ccxt.bithumb
         return true;
     }
 
+    /**
+     * @method
+     * @name bithumb#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public async override Task<object> watchBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.authenticate();
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
+        object messageHash = "myAsset";
+        object request = new List<object>() {new Dictionary<string, object>() {
+    { "ticket", "ccxt" },
+}, new Dictionary<string, object>() {
+    { "type", messageHash },
+}};
+        object balance = await this.watch(url, messageHash, request, messageHash);
+        return balance;
+    }
+
+    public virtual void handleBalance(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "type": "myAsset",
+        //        "assets": [
+        //            {
+        //                "currency": "KRW",
+        //                "balance": "2061832.35",
+        //                "locked": "3824127.3"
+        //            }
+        //        ],
+        //        "asset_timestamp": 1727052537592,
+        //        "timestamp": 1727052537687,
+        //        "stream_type": "REALTIME"
+        //    }
+        //
+        object messageHash = "myAsset";
+        object assets = this.safeList(message, "assets", new List<object>() {});
+        if (isTrue(isEqual(this.balance, null)))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        {
+            object asset = getValue(assets, i);
+            object currencyId = this.safeString(asset, "currency");
+            object code = this.safeCurrencyCode(currencyId);
+            object account = this.account();
+            ((IDictionary<string,object>)account)["free"] = this.safeString(asset, "balance");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(asset, "locked");
+            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        }
+        ((IDictionary<string,object>)this.balance)["info"] = message;
+        object timestamp = this.safeInteger(message, "timestamp");
+        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+        this.balance = this.safeBalance(this.balance);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
+    }
+
+    public async virtual Task<object> authenticate(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredCredentials();
+        object wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        object authenticated = this.safeString(wsOptions, "token");
+        if (isTrue(isEqual(authenticated, null)))
+        {
+            object payload = new Dictionary<string, object>() {
+                { "access_key", this.apiKey },
+                { "nonce", this.uuid() },
+                { "timestamp", this.milliseconds() },
+            };
+            object jwtToken = jwt(payload, this.encode(this.secret), sha256);
+            ((IDictionary<string,object>)wsOptions)["token"] = jwtToken;
+            ((IDictionary<string,object>)wsOptions)["options"] = new Dictionary<string, object>() {
+                { "headers", new Dictionary<string, object>() {
+                    { "authorization", add("Bearer ", jwtToken) },
+                } },
+            };
+            ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
+        var client = this.client(url);
+        return client;
+    }
+
+    /**
+     * @method
+     * @name bithumb#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.codes] market codes to filter orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.authenticate();
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
+        object messageHash = "myOrder";
+        object codes = this.safeList(parameters, "codes", new List<object>() {});
+        object request = new List<object>() {new Dictionary<string, object>() {
+    { "ticket", "ccxt" },
+}, new Dictionary<string, object>() {
+    { "type", messageHash },
+    { "codes", codes },
+}};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            messageHash = add(add(messageHash, ":"), symbol);
+        }
+        object orders = await this.watch(url, messageHash, request, messageHash);
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+
+    public virtual void handleOrders(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "type": "myOrder",
+        //        "code": "KRW-BTC",
+        //        "uuid": "C0101000000001818113",
+        //        "ask_bid": "BID",
+        //        "order_type": "limit",
+        //        "state": "trade",
+        //        "trade_uuid": "C0101000000001744207",
+        //        "price": 1927000,
+        //        "volume": 0.4697,
+        //        "remaining_volume": 0.0803,
+        //        "executed_volume": 0.4697,
+        //        "trades_count": 1,
+        //        "reserved_fee": 0,
+        //        "remaining_fee": 0,
+        //        "paid_fee": 0,
+        //        "executed_funds": 905111.9000,
+        //        "trade_timestamp": 1727052318148,
+        //        "order_timestamp": 1727052318074,
+        //        "timestamp": 1727052318369,
+        //        "stream_type": "REALTIME"
+        //    }
+        //
+        object messageHash = "myOrder";
+        object parsed = this.parseWsOrder(message);
+        object symbol = this.safeString(parsed, "symbol");
+        // const orderId = this.safeString (parsed, 'id');
+        if (isTrue(isEqual(this.orders, null)))
+        {
+            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        object cachedOrders = this.orders;
+        callDynamically(cachedOrders, "append", new object[] {parsed});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {cachedOrders, messageHash});
+        object symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {cachedOrders, symbolSpecificMessageHash});
+    }
+
+    public override object parseWsOrder(object order, object market = null)
+    {
+        //
+        //    {
+        //        "type": "myOrder",
+        //        "code": "KRW-BTC",
+        //        "uuid": "C0101000000001818113",
+        //        "ask_bid": "BID",
+        //        "order_type": "limit",
+        //        "state": "trade",
+        //        "trade_uuid": "C0101000000001744207",
+        //        "price": 1927000,
+        //        "volume": 0.4697,
+        //        "remaining_volume": 0.0803,
+        //        "executed_volume": 0.4697,
+        //        "trades_count": 1,
+        //        "reserved_fee": 0,
+        //        "remaining_fee": 0,
+        //        "paid_fee": 0,
+        //        "executed_funds": 905111.9000,
+        //        "trade_timestamp": 1727052318148,
+        //        "order_timestamp": 1727052318074,
+        //        "timestamp": 1727052318369,
+        //        "stream_type": "REALTIME"
+        //    }
+        //
+        object marketId = this.safeString(order, "code");
+        object symbol = this.safeSymbol(marketId, market, "-");
+        object timestamp = this.safeInteger(order, "order_timestamp");
+        object sideId = this.safeString(order, "ask_bid");
+        object side = ((bool) isTrue((isEqual(sideId, "BID")))) ? ("buy") : ("sell");
+        object typeId = this.safeString(order, "order_type");
+        object type = null;
+        if (isTrue(isEqual(typeId, "limit")))
+        {
+            type = "limit";
+        } else if (isTrue(isEqual(typeId, "price")))
+        {
+            type = "market";
+        } else if (isTrue(isEqual(typeId, "market")))
+        {
+            type = "market";
+        }
+        object stateId = this.safeString(order, "state");
+        object status = null;
+        if (isTrue(isEqual(stateId, "wait")))
+        {
+            status = "open";
+        } else if (isTrue(isEqual(stateId, "trade")))
+        {
+            status = "open";
+        } else if (isTrue(isEqual(stateId, "done")))
+        {
+            status = "closed";
+        } else if (isTrue(isEqual(stateId, "cancel")))
+        {
+            status = "canceled";
+        }
+        object price = this.safeString(order, "price");
+        object amount = this.safeString(order, "volume");
+        object remaining = this.safeString(order, "remaining_volume");
+        object filled = this.safeString(order, "executed_volume");
+        object cost = this.safeString(order, "executed_funds");
+        object feeCost = this.safeString(order, "paid_fee");
+        object fee = null;
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            object marketForFee = this.safeMarket(marketId, market);
+            object feeCurrency = this.safeString(marketForFee, "quote");
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "currency", feeCurrency },
+            };
+        }
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", order },
+            { "id", this.safeString(order, "uuid") },
+            { "clientOrderId", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "lastTradeTimestamp", this.safeInteger(order, "trade_timestamp") },
+            { "symbol", symbol },
+            { "type", type },
+            { "timeInForce", null },
+            { "postOnly", null },
+            { "side", side },
+            { "price", price },
+            { "stopPrice", null },
+            { "triggerPrice", null },
+            { "amount", amount },
+            { "cost", cost },
+            { "average", null },
+            { "filled", filled },
+            { "remaining", remaining },
+            { "status", status },
+            { "fee", fee },
+            { "trades", null },
+        }, market);
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         if (!isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
@@ -425,6 +704,8 @@ public partial class bithumb : ccxt.bithumb
                 { "ticker", this.handleTicker },
                 { "orderbookdepth", this.handleOrderBook },
                 { "transaction", this.handleTrades },
+                { "myAsset", this.handleBalance },
+                { "myOrder", this.handleOrders },
             };
             object method = this.safeValue(methods, topic);
             if (isTrue(!isEqual(method, null)))

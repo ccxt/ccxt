@@ -7,6 +7,113 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingIntervals": [
+            {
+                "description": "fetchFundingIntervals with params",
+                "method": "fetchFundingIntervals",
+                "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=COIN-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "productType": "COIN-FUTURES"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchFundingIntervals without params",
+                "method": "fetchFundingIntervals",
+                "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=USDT-FUTURES",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createTakeProfitOrder": [
+            {
+                "description": "place tk order on a short position in one-way  mode",
+                "method": "createTakeProfitOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    60
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"sell\",\"triggerPrice\":\"60\",\"planType\":\"pos_profit\"}"
+            },
+            {
+                "description": "place tk  order on a short  position in hedged mode",
+                "method": "createTakeProfitOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    50,
+                    {
+                        "hedged": true,
+                        "takeProfitPrice": 50
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"short\",\"triggerPrice\":\"50\",\"planType\":\"pos_profit\"}"
+            },
+            {
+                "description": "place tk  order on a long position in hedged mode",
+                "method": "createTakeProfitOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    130,
+                    {
+                        "hedged": true,
+                        "takeProfitPrice": 130
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"long\",\"triggerPrice\":\"130\",\"planType\":\"pos_profit\"}"
+            }
+        ],
+        "createStopLossOrder": [
+            {
+                "description": "place sl  order on a long position in one-way  mode",
+                "method": "createStopLossOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    60
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"buy\",\"triggerPrice\":\"60\",\"planType\":\"pos_loss\"}"
+            },
+            {
+                "description": "place sl order on a long position in hedged mode",
+                "method": "createStopLossOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    60,
+                    {
+                        "hedged": true,
+                        "stopLossPrice": 60
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"long\",\"triggerPrice\":\"60\",\"planType\":\"pos_loss\"}"
+            }
+        ],
         "withdraw": [
             {
                 "description": "with_precision",
@@ -34,6 +141,22 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "open short position in hedged mode",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "hedged": true
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Open\",\"side\":\"sell\"}"
+            },
             {
                 "description": "Spot limit buy",
                 "method": "createOrder",
@@ -606,6 +729,23 @@
         ],
         "editOrder": [
             {
+                "description": "edit spot order with clientOrderId",
+                "method": "editOrder",
+                "url": "https://api.bitget.com/api/v2/spot/trade/cancel-replace-order",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.11,
+                    85,
+                    {
+                        "clientOrderId": "bitget1"
+                    }
+                ],
+                "output": "{\"clientOid\":\"bitget1\",\"size\":\"0.11\",\"orderType\":\"limit\",\"price\":\"85\",\"symbol\":\"LTCUSDT\"}"
+            },
+            {
                 "description": "Spot edit a trigger order",
                 "method": "editOrder",
                 "url": "https://api.bitget.com/api/v2/spot/trade/modify-plan-order",
@@ -803,6 +943,19 @@
             }
         ],
         "fetchOrder": [
+            {
+                "description": "fetching order with clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.bitget.com/api/v2/spot/trade/orderInfo?clientOid=myid1",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    {
+                        "clientOid": "myid1"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Spot fetch order",
                 "method": "fetchOrder",
@@ -1128,7 +1281,7 @@
             {
                 "description": "Fetch cross margin balance",
                 "method": "fetchBalance",
-                "url": "https://api.bitget.com/api/margin/v1/cross/account/assets",
+                "url": "https://api.bitget.com/api/v2/margin/crossed/account/assets",
                 "input": [
                     {
                         "marginMode": "cross"
@@ -1138,7 +1291,7 @@
             {
                 "description": "Fetch isolated margin balance",
                 "method": "fetchBalance",
-                "url": "https://api.bitget.com/api/margin/v1/isolated/account/assets",
+                "url": "https://api.bitget.com/api/v2/margin/isolated/account/assets",
                 "input": [
                     {
                         "marginMode": "isolated"
@@ -1179,6 +1332,15 @@
         ],
         "fetchPositions": [
             {
+                "description": "fetch positions empty list",
+                "method": "fetchPositions",
+                "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",
+                "input": [
+                    []
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch linear positions",
                 "method": "fetchPositions",
                 "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",
@@ -1203,6 +1365,17 @@
                   {
                     "useHistoryEndpoint": true
                   }
+                ]
+            },
+            {
+                "description": "fetchPositions uta",
+                "method": "fetchPositions",
+                "url": "https://api.bitget.com/api/v3/position/current-position?category=USDT-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1405,7 +1578,7 @@
                         "trailing": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1121635717619453955\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
             },
             {
                 "description": "uta spot cancelOrder",
@@ -1446,6 +1619,47 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1330984742276198400\"}"
+            },
+            {
+                "description": "cancel uta linear swap order using the clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-order",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "123abc",
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"123abc\"}"
+            },
+            {
+                "description": "cancel linear swap order by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/cancel-order",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "abc321"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"abc321\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "trailing cancel order using clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/cancel-plan-order",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "a1b2c3",
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"clientOid\":\"a1b2c3\"}],\"planType\":\"track_plan\"}"
             }
         ],
         "cancelOrders": [
@@ -1554,30 +1768,6 @@
                     "BTC/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\"}"
-            },
-            {
-                "description": "Cross margin cancel all orders",
-                "method": "cancelAllOrders",
-                "url": "https://api.bitget.com/api/margin/v1/cross/order/batchCancelOrder",
-                "input": [
-                    "BTC/USDT",
-                    {
-                        "marginMode": "cross"
-                    }
-                ],
-                "output": "{\"symbol\":\"BTCUSDT\"}"
-            },
-            {
-                "description": "Isolated margin cancel all orders",
-                "method": "cancelAllOrders",
-                "url": "https://api.bitget.com/api/margin/v1/isolated/order/batchCancelOrder",
-                "input": [
-                    "BTC/USDT",
-                    {
-                        "marginMode": "isolated"
-                    }
-                ],
-                "output": "{\"symbol\":\"BTCUSDT\"}"
             },
             {
                 "description": "uta spot cancelAllOrders",
@@ -1698,6 +1888,30 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "futures 2h candle",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=2H&limit=10&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "2h",
+                    null,
+                    10
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch 3min candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=3min&limit=100",
+                "input": [
+                    "BTC/USDT",
+                    "3m",
+                    null,
+                    100
+                ],
+                "output": null
+            },
             {
                 "description": "spot ohlcv should retrieve 1000 candles",
                 "method": "fetchOHLCV",
@@ -2641,6 +2855,18 @@
             }
         ],
         "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates with publicMixGetV2MixMarketCurrentFundRate",
+                "method": "fetchFundingRates",
+                "url": "https://api.bitget.com/api/v2/mix/market/current-fund-rate?productType=USDT-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "method": "publicMixGetV2MixMarketCurrentFundRate"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetchFundingRates",
                 "method": "fetchFundingRates",

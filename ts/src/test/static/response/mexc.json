@@ -2,6 +2,135 @@
     "exchange": "mexc",
     "options": {},
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "fromAccountType": "spot",
+                        "toAccountType": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "rows": [
+                        {
+                            "tranId": "254fb21f3c074e639d62a0c484ecf123",
+                            "clientTranId": null,
+                            "asset": "USDT",
+                            "amount": "1",
+                            "fromAccountType": "SPOT",
+                            "toAccountType": "FUTURES",
+                            "symbol": null,
+                            "status": "SUCCESS",
+                            "timestamp": "1759328120000"
+                        },
+                        {
+                            "tranId": "d6f4b3cc3d404976b971d32080b96be0",
+                            "clientTranId": null,
+                            "asset": "USDT",
+                            "amount": "5",
+                            "fromAccountType": "SPOT",
+                            "toAccountType": "FUTURES",
+                            "symbol": null,
+                            "status": "SUCCESS",
+                            "timestamp": "1759319733000"
+                        }
+                    ],
+                    "total": "2"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tranId": "d6f4b3cc3d404976b971d32080b96be0",
+                            "clientTranId": null,
+                            "asset": "USDT",
+                            "amount": "5",
+                            "fromAccountType": "SPOT",
+                            "toAccountType": "FUTURES",
+                            "symbol": null,
+                            "status": "SUCCESS",
+                            "timestamp": "1759319733000"
+                        },
+                        "id": "d6f4b3cc3d404976b971d32080b96be0",
+                        "timestamp": 1759319733000,
+                        "datetime": "2025-10-01T11:55:33.000Z",
+                        "currency": "USDT",
+                        "amount": 5,
+                        "fromAccount": "spot",
+                        "toAccount": "swap",
+                        "status": "ok"
+                    },
+                    {
+                        "info": {
+                            "tranId": "254fb21f3c074e639d62a0c484ecf123",
+                            "clientTranId": null,
+                            "asset": "USDT",
+                            "amount": "1",
+                            "fromAccountType": "SPOT",
+                            "toAccountType": "FUTURES",
+                            "symbol": null,
+                            "status": "SUCCESS",
+                            "timestamp": "1759328120000"
+                        },
+                        "id": "254fb21f3c074e639d62a0c484ecf123",
+                        "timestamp": 1759328120000,
+                        "datetime": "2025-10-01T14:15:20.000Z",
+                        "currency": "USDT",
+                        "amount": 1,
+                        "fromAccount": "spot",
+                        "toAccount": "swap",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "internal transfer withdraw",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    0.1,
+                    "to_someone@gmail.com",
+                    null,
+                    {
+                        "internal": true,
+                        "toAccountType": "EMAIL"
+                    }
+                ],
+                "httpResponse": {
+                    "tranId": "bbf2b4b7be1c46298e2547c3f90ba1eb"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tranId": "bbf2b4b7be1c46298e2547c3f90ba1eb"
+                    },
+                    "id": "bbf2b4b7be1c46298e2547c3f90ba1eb",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot market buy order",
@@ -483,7 +612,7 @@
                             "origQuoteOrderQty": "5.27894"
                         },
                         "fees": [],
-                        "lastUpdateTimestamp": null,
+                        "lastUpdateTimestamp": 1707671871000,
                         "postOnly": null,
                         "reduceOnly": null,
                         "takeProfitPrice": null,

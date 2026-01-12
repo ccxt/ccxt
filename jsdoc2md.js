@@ -109,7 +109,7 @@ const baseOutput = await Promise.all(templateDataGroupedByMethod.map(data =>
 console.log ('📰 creating index of exchange functions')
 const exchangeLinks = []
 outputByExchange.forEach ((output, i) => {
-  const name = templateData[i][0].id
+  const name = templateData[i][0].name
   const fileName = 'exchanges/' + name + '.md'
   try {
     fs.writeFileSync(outputFolder + fileName, output)

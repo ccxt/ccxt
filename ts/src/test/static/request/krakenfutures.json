@@ -203,6 +203,15 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "open order",
+                "method": "fetchOpenOrders",
+                "url": "https://futures.kraken.com/derivatives/api/v3/openorders",
+                "input": [
+                    "LTC/USD:USD"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://futures.kraken.com/derivatives/api/v3/openorders",

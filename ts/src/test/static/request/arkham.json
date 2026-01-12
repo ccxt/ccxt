@@ -1,0 +1,466 @@
+{
+    "exchange": "arkm",
+    "skipKeys": [
+        "client_order_id"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address using ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://arkm.com/api/account/deposit/addresses?chain=ETH",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "with args",
+                "method": "fetchLeverageTiers",
+                "url": "https://arkm.com/api/public/margin-schedules",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "SOL/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "withdraw": [
+            {
+                "disabled": true,
+                "description": "disabled because of multiple endpoints",
+                "method": "withdraw",
+                "url": "https://arkm.com/api/account/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "0x743f79D65EA07AA222F4a83c10dee4210A920a6e",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "{\"symbol\":\"USDT\",\"amount\":\"5\",\"subaccountId\":\"0\",\"addressId\":\"1234709779980\"}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "with args",
+                "method": "fetchPositions",
+                "url": "https://arkm.com/api/account/positions",
+                "input": [
+                    [
+                        "SOL/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "with args",
+                "method": "setLeverage",
+                "url": "https://arkm.com/api/account/leverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC_USDT_PERP\",\"leverage\":\"10\"}"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "with args",
+                "method": "fetchLeverage",
+                "url": "https://arkm.com/api/account/leverage?symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "without args",
+                "method": "fetchFundingHistory",
+                "url": "https://arkm.com/api/account/funding-rate-payments",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "without args",
+                "method": "fetchTradingFees",
+                "url": "https://arkm.com/api/account/fees",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "without args",
+                "method": "fetchDeposits",
+                "url": "https://arkm.com/api/account/deposits",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "with network",
+                "method": "createDepositAddress",
+                "url": "https://arkm.com/api/account/deposit/addresses/new",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "{\"chain\":\"ETH\"}"
+            }
+        ],
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "with code",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://arkm.com/api/account/deposit/addresses?chain=SOL",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "without args",
+                "method": "fetchBalance",
+                "url": "https://arkm.com/api/account/balances",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "without args",
+                "method": "fetchAccounts",
+                "url": "https://arkm.com/api/user",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "using since",
+                "method": "fetchMyTrades",
+                "url": "https://arkm.com/api/trades/time?from=1753772400000000&to=1753858800000000",
+                "input": [
+                    null,
+                    1753772400000
+                ],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "trigger",
+                "method": "cancelAllOrders",
+                "url": "https://arkm.com/api/trigger-orders/cancel/all",
+                "input": [
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "without args",
+                "method": "fetchClosedOrders",
+                "url": "https://arkm.com/api/orders/history",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "trigger",
+                "method": "fetchOpenOrders",
+                "url": "https://arkm.com/api/trigger-orders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "without args",
+                "method": "fetchOpenOrders",
+                "url": "https://arkm.com/api/orders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "trigger",
+                "method": "cancelOrder",
+                "url": "https://arkm.com/api/trigger-orders/cancel",
+                "input": [
+                    3716783503516,
+                    "SOL/USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"triggerOrderId\":3716783503516,\"symbol\":\"SOL_USDT\"}"
+            },
+            {
+                "description": "with id",
+                "method": "cancelOrder",
+                "url": "https://arkm.com/api/orders/cancel",
+                "input": [
+                    "3696995236595"
+                ],
+                "output": "{\"orderId\":3696995236595}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "with id",
+                "method": "fetchOrder",
+                "url": "https://arkm.com/api/orders/3696995236595",
+                "input": [
+                    "3696995236595"
+                ],
+                "output": null
+            },
+            {
+                "description": "with id numeric",
+                "method": "fetchOrder",
+                "url": "https://arkm.com/api/orders/3696995236595",
+                "input": [
+                    3696995236595
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "trigger sell desc",
+                "method": "createOrder",
+                "url": "https://arkm.com/api/trigger-orders/new",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"sell\",\"size\":\"0.05\",\"triggerPrice\":\"170\",\"triggerType\":\"stopLoss\",\"triggerPriceType\":\"last\",\"price\":\"180\",\"type\":\"limitGtc\"}"
+            },
+            {
+                "description": "trigger sell asc",
+                "method": "createOrder",
+                "url": "https://arkm.com/api/trigger-orders/new",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"sell\",\"size\":\"0.05\",\"triggerPrice\":\"170\",\"triggerType\":\"takeProfit\",\"triggerPriceType\":\"last\",\"price\":\"180\",\"type\":\"limitGtc\"}"
+            },
+            {
+                "description": "trigger buy desc",
+                "method": "createOrder",
+                "url": "https://arkm.com/api/trigger-orders/new",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"buy\",\"size\":\"0.05\",\"triggerPrice\":\"170\",\"triggerType\":\"takeProfit\",\"triggerPriceType\":\"last\",\"price\":\"180\",\"type\":\"limitGtc\"}"
+            },
+            {
+                "description": "trigger buy asc",
+                "method": "createOrder",
+                "url": "https://arkm.com/api/trigger-orders/new",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"buy\",\"size\":\"0.05\",\"triggerPrice\":\"170\",\"triggerType\":\"stopLoss\",\"triggerPriceType\":\"last\",\"price\":\"180\",\"type\":\"limitGtc\"}"
+            },
+            {
+                "description": "with args & params",
+                "method": "createOrder",
+                "url": "https://arkm.com/api/orders/new",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "timeInForce": "FOK",
+                        "clientOrderId": "test123"
+                    }
+                ],
+                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"buy\",\"size\":\"0.05\",\"clientOrderId\":\"test123\",\"price\":\"180\",\"type\":\"limitFok\"}"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://arkm.com/api/public/server-time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot  with args",
+                "method": "fetchOHLCV",
+                "url": "https://arkm.com/api/public/candles?symbol=BTC_USDT&duration=1m&start=1745000000000000&end=1745000120000000",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap with args",
+                "method": "fetchOHLCV",
+                "url": "https://arkm.com/api/public/candles?symbol=BTC_USDT_PERP&duration=1m&start=1745000000000000&end=1745000120000000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "swap with args",
+                "method": "fetchTrades",
+                "url": "https://arkm.com/api/public/trades?symbol=BTC_USDT_PERP&limit=2",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1745000000000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot with args",
+                "method": "fetchTrades",
+                "url": "https://arkm.com/api/public/trades?symbol=BTC_USDT&limit=5",
+                "input": [
+                    "BTC/USDT",
+                    1745000000000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot",
+                "method": "fetchTicker",
+                "url": "https://arkm.com/api/public/ticker?symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap",
+                "method": "fetchTicker",
+                "url": "https://arkm.com/api/public/ticker?symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "with symbols",
+                "method": "fetchTickers",
+                "url": "https://arkm.com/api/public/tickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "with limit",
+                "method": "fetchOrderBook",
+                "url": "https://arkm.com/api/public/book?symbol=BTC_USDT&limit=8",
+                "input": [
+                    "BTC/USDT",
+                    8
+                ],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "without params",
+                "method": "fetchCurrencies",
+                "url": "https://arkm.com/api/public/assets",
+                "input": [],
+                "output": null
+            }
+        ]
+    }
+}

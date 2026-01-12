@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitfinex$1 = require('../bitfinex.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
@@ -8,7 +10,7 @@ var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitfinex extends bitfinex$1 {
+class bitfinex extends bitfinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -22,6 +24,10 @@ class bitfinex extends bitfinex$1 {
                 'watchBalance': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
+                'unWatchTicker': true,
+                'unWatchTrades': true,
+                'unWatchOHLCV': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -55,14 +61,42 @@ class bitfinex extends bitfinex$1 {
         };
         const result = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, { 'checksum': false });
         const checksum = this.safeBool(this.options, 'checksum', true);
-        if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
-            client.subscriptions[messageHash]['checksum'] = true;
-            await client.send({
-                'event': 'conf',
-                'flags': 131072,
-            });
+        if (checksum && (channel === 'book')) {
+            const sub = client.subscriptions[messageHash];
+            if (sub && !sub['checksum']) {
+                client.subscriptions[messageHash]['checksum'] = true;
+                await client.send({
+                    'event': 'conf',
+                    'flags': 131072,
+                });
+            }
         }
         return result;
+    }
+    async unSubscribe(channel, topic, symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const marketId = market['id'];
+        const url = this.urls['api']['ws']['public'];
+        const client = this.client(url);
+        const subMessageHash = channel + ':' + marketId;
+        const messageHash = 'unsubscribe:' + channel + ':' + marketId;
+        const unSubTopic = 'unsubscribe' + ':' + topic + ':' + symbol;
+        const channelId = this.safeString(client.subscriptions, unSubTopic);
+        const request = {
+            'event': 'unsubscribe',
+            'chanId': channelId,
+        };
+        const unSubChanMsg = 'unsubscribe:' + channelId;
+        client.subscriptions[unSubChanMsg] = subMessageHash;
+        const subscription = {
+            'messageHashes': [messageHash],
+            'subMessageHashes': [subMessageHash],
+            'topic': topic,
+            'unsubscribe': true,
+            'symbols': [symbol],
+        };
+        return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, subscription);
     }
     async subscribePrivate(messageHash) {
         await this.loadMarkets();
@@ -101,6 +135,42 @@ class bitfinex extends bitfinex$1 {
             limit = ohlcv.getLimit(symbol, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+    /**
+     * @method
+     * @name bitfinex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {bool} true if successfully unsubscribed, false otherwise
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const interval = this.safeString(this.timeframes, timeframe, timeframe);
+        const channel = 'candles';
+        const subMessageHash = channel + ':' + interval + ':' + market['id'];
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        const url = this.urls['api']['ws']['public'];
+        const client = this.client(url);
+        const subId = 'unsubscribe:trade:' + interval + ':' + market['id']; // trade here because we use the key
+        const channelId = this.safeString(client.subscriptions, subId);
+        const request = {
+            'event': 'unsubscribe',
+            'chanId': channelId,
+        };
+        const unSubChanMsg = 'unsubscribe:' + channelId;
+        client.subscriptions[unSubChanMsg] = subMessageHash;
+        const subscription = {
+            'messageHashes': [messageHash],
+            'subMessageHashes': [subMessageHash],
+            'topic': 'ohlcv',
+            'unsubscribe': true,
+            'symbols': [symbol],
+        };
+        return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, subscription);
     }
     handleOHLCV(client, message, subscription) {
         //
@@ -193,7 +263,7 @@ class bitfinex extends bitfinex$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.subscribe('trades', symbol, params);
@@ -204,13 +274,24 @@ class bitfinex extends bitfinex$1 {
     }
     /**
      * @method
+     * @name bitfinex#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unSubscribe('trades', 'trades', symbol, params);
+    }
+    /**
+     * @method
      * @name bitfinex#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -231,10 +312,21 @@ class bitfinex extends bitfinex$1 {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         return await this.subscribe('ticker', symbol, params);
+    }
+    /**
+     * @method
+     * @name bitfinex#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async unWatchTicker(symbol, params = {}) {
+        return await this.unSubscribe('ticker', 'ticker', symbol, params);
     }
     handleMyTrade(client, message, subscription = {}) {
         //
@@ -523,7 +615,7 @@ class bitfinex extends bitfinex$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
@@ -697,7 +789,7 @@ class bitfinex extends bitfinex$1 {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();
@@ -829,6 +921,29 @@ class bitfinex extends bitfinex$1 {
         //
         return message;
     }
+    handleUnsubscriptionStatus(client, message) {
+        //
+        // {
+        //     "event": "unsubscribed",
+        //     "status": "OK",
+        //     "chanId": CHANNEL_ID
+        // }
+        //
+        const channelId = this.safeString(message, 'chanId');
+        const unSubChannel = 'unsubscribe:' + channelId;
+        const subMessageHash = this.safeString(client.subscriptions, unSubChannel);
+        const subscription = this.safeDict(client.subscriptions, 'unsubscribe:' + subMessageHash);
+        delete client.subscriptions[unSubChannel];
+        const messageHashes = this.safeList(subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const subHash = subMessageHashes[i];
+            this.cleanUnsubscription(client, subHash, messageHash);
+        }
+        this.cleanCache(subscription);
+        return true;
+    }
     handleSubscriptionStatus(client, message) {
         //
         //     {
@@ -842,15 +957,44 @@ class bitfinex extends bitfinex$1 {
         //         "pair": "BTCUSD"
         //     }
         //
+        //   {
+        //       event: 'subscribed',
+        //       channel: 'candles',
+        //       chanId: 128306,
+        //       key: 'trade:1m:tBTCUST'
+        //  }
+        //
         const channelId = this.safeString(message, 'chanId');
         client.subscriptions[channelId] = message;
+        // store the opposite direction too for unWatch
+        const mappings = {
+            'book': 'orderbook',
+            'candles': 'ohlcv',
+            'ticker': 'ticker',
+            'trades': 'trades',
+        };
+        const unifiedChannel = this.safeString(mappings, this.safeString(message, 'channel'));
+        if ('key' in message) {
+            // handle ohlcv differently because the message is different
+            const key = this.safeString(message, 'key');
+            const subKeyId = 'unsubscribe:' + key;
+            client.subscriptions[subKeyId] = channelId;
+        }
+        else {
+            const marketId = this.safeString(message, 'symbol');
+            const symbol = this.safeSymbol(marketId);
+            if (unifiedChannel !== undefined) {
+                const subId = 'unsubscribe:' + unifiedChannel + ':' + symbol;
+                client.subscriptions[subId] = channelId;
+            }
+        }
         return message;
     }
     async authenticate(params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const nonce = this.milliseconds();
@@ -894,7 +1038,7 @@ class bitfinex extends bitfinex$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1150,6 +1294,7 @@ class bitfinex extends bitfinex$1 {
                 const methods = {
                     'info': this.handleSystemStatus,
                     'subscribed': this.handleSubscriptionStatus,
+                    'unsubscribed': this.handleUnsubscriptionStatus,
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue(methods, event);
@@ -1161,4 +1306,4 @@ class bitfinex extends bitfinex$1 {
     }
 }
 
-module.exports = bitfinex;
+exports["default"] = bitfinex;

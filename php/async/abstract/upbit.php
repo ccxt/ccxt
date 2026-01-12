@@ -70,8 +70,8 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function public_get_orderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
-    public function public_get_orderbook_supported_levels($params = array()) {
-        return $this->request('orderbook/supported_levels', 'public', 'GET', $params, null, null, array("cost" => 2));
+    public function public_get_orderbook_instruments($params = array()) {
+        return $this->request('orderbook/instruments', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 0.67));
@@ -130,6 +130,9 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function private_post_orders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
+    public function private_post_orders_test($params = array()) {
+        return $this->request('orders/test', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function private_post_orders_cancel_and_new($params = array()) {
         return $this->request('orders/cancel_and_new', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -159,6 +162,9 @@ abstract class upbit extends \ccxt\async\Exchange {
     }
     public function private_delete_orders_uuids($params = array()) {
         return $this->request('orders/uuids', 'private', 'DELETE', $params, null, null, array("cost" => 0.67));
+    }
+    public function private_delete_withdraws_coin($params = array()) {
+        return $this->request('withdraws/coin', 'private', 'DELETE', $params, null, null, array("cost" => 0.67));
     }
     public function publicGetMarketAll($params = array()) {
         return $this->request('market/all', 'public', 'GET', $params, null, null, array("cost" => 2));
@@ -223,8 +229,8 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function publicGetOrderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
-    public function publicGetOrderbookSupportedLevels($params = array()) {
-        return $this->request('orderbook/supported_levels', 'public', 'GET', $params, null, null, array("cost" => 2));
+    public function publicGetOrderbookInstruments($params = array()) {
+        return $this->request('orderbook/instruments', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 0.67));
@@ -283,6 +289,9 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function privatePostOrders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
+    public function privatePostOrdersTest($params = array()) {
+        return $this->request('orders/test', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function privatePostOrdersCancelAndNew($params = array()) {
         return $this->request('orders/cancel_and_new', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -312,5 +321,8 @@ abstract class upbit extends \ccxt\async\Exchange {
     }
     public function privateDeleteOrdersUuids($params = array()) {
         return $this->request('orders/uuids', 'private', 'DELETE', $params, null, null, array("cost" => 0.67));
+    }
+    public function privateDeleteWithdrawsCoin($params = array()) {
+        return $this->request('withdraws/coin', 'private', 'DELETE', $params, null, null, array("cost" => 0.67));
     }
 }

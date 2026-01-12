@@ -2,7 +2,7 @@ package ccxt
 
 import "sync"
 
-func (this *Exchange) SetRateLimit(rateLimit bool) {
+func (this *Exchange) SetEnableRateLimit(rateLimit bool) {
 	this.EnableRateLimit = rateLimit
 }
 
@@ -80,6 +80,10 @@ func (this *Exchange) GetMarkets() *sync.Map {
 
 func (this *Exchange) SetPrivateKey(privateKey interface{}) {
 	this.PrivateKey = privateKey.(string)
+}
+
+func (this *Exchange) SetAccountId(accountId interface{}) {
+	this.AccountId = accountId.(string)
 }
 
 func (this *Exchange) SetWalletAddress(publicKey interface{}) {

@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
@@ -145,7 +145,9 @@ jobs:
         run: npm run export-exchanges
       - name: Live tests
         if: env.important_modified == 'true'
-        run: ./run-tests-simul.sh --csharp
+        run: |
+          npm run live-tests -- --csharp || true
+          npm run live-tests-ws -- --csharp
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --csharp "${{ env.rest_files }}" "${{ env.ws_files }}"

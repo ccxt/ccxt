@@ -1,0 +1,78 @@
+{
+    "BTC": {
+        "info": {
+            "coin": "BTC",
+            "name": "BTC"
+        },
+        "id": "BTC",
+        "code": "BTC",
+        "name": "BTC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {}
+    },
+    "USDT": {
+        "info": null,
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 1e-12,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "coin": "ETH",
+            "name": "ETH"
+        },
+        "id": "ETH",
+        "code": "ETH",
+        "name": "ETH",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {}
+    },
+    "LTC": {
+        "info": null,
+        "id": "LTC",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}

@@ -373,7 +373,8 @@ export default class coincatch extends Exchange {
                     'StratisEVM': 'STRAT',
                     'ChilizChain': 'ChilizChain',
                     'StellarLumens': 'XLM',
-                    'CronosChain': 'CRO', // todo check
+                    'CronosChain': 'CRO',
+                    'Optimism': 'Optimism',
                 },
             },
             'features': {
@@ -611,8 +612,8 @@ export default class coincatch extends Exchange {
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString(network, 'chain');
-                const networkCode = this.networkCodeToId(networkId);
-                parsedNetworks[networkId] = {
+                const networkCode = this.networkIdToCode(networkId);
+                parsedNetworks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'limits': {
@@ -670,7 +671,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
      * @param {string[]} [codes] list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
         await this.loadMarkets();
@@ -1055,7 +1056,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#get-single-symbol-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -1140,14 +1141,14 @@ export default class coincatch extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
      * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl') - USDT perpetual contract or Universal margin perpetual contract
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         const methodName = 'fetchTickers';
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);
-        let marketType = 'spot';
+        let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams(methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
@@ -1315,7 +1316,7 @@ export default class coincatch extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return (maximum and default value is 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.precision] 'scale0' (default), 'scale1', 'scale2' or 'scale3' - price accuracy, according to the selected accuracy as the step size to return the cumulative depth
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1487,7 +1488,7 @@ export default class coincatch extends Exchange {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchTrades';
@@ -1656,7 +1657,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
@@ -1724,7 +1725,7 @@ export default class coincatch extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.pageNo] the page number to fetch
      * @param {bool} [params.nextPage] whether to query the next page (default false)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1782,7 +1783,7 @@ export default class coincatch extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
      * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl')
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -1911,7 +1912,7 @@ export default class coincatch extends Exchange {
      * @param {string} toAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the transfer
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
@@ -1984,7 +1985,7 @@ export default class coincatch extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] network for fetch deposit address
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
@@ -2055,7 +2056,7 @@ export default class coincatch extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
      * @param {int} [params.pageNo] pageNo default 1
      * @param {int} [params.pageSize] pageSize (default 20, max 100)
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchDeposits';
@@ -2118,7 +2119,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.clientOid] clientOid
      * @param {string} [params.orderId] The response orderId
      * @param {string} [params.idLessThan] Requests the content on the page before this ID (older data), the value input should be the orderId of the corresponding interface.
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchWithdrawals';
@@ -2159,7 +2160,7 @@ export default class coincatch extends Exchange {
      * @param {string} params.network network for withdraw (mandatory)
      * @param {string} [params.remark] remark
      * @param {string} [params.clientOid] custom id
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
@@ -2280,7 +2281,7 @@ export default class coincatch extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         await this.loadMarkets();
@@ -2307,12 +2308,13 @@ export default class coincatch extends Exchange {
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] *swap markets only* must be set to true if position mode is hedged (default false)
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.triggerPrice] the price that the order is to be triggered
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -2345,7 +2347,7 @@ export default class coincatch extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {string} [params.clientOrderId] a unique id for the order (max length 40)
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -2509,6 +2511,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
      * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
      * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2520,7 +2523,7 @@ export default class coincatch extends Exchange {
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createSwapOrder(symbol, type, side, amount, price = undefined, params = {}) {
         params['methodName'] = this.safeString(params, 'methodName', 'createSwapOrder');
@@ -2566,7 +2569,7 @@ export default class coincatch extends Exchange {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.hedged] default false
+         * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
          * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
          * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2605,31 +2608,42 @@ export default class coincatch extends Exchange {
         }
         if ((endpointType !== 'tpsl')) {
             request['orderType'] = type;
+            let sideIsExchangeSpecific = false;
             let hedged = false;
-            [hedged, params] = this.handleOptionAndParams(params, methodName, 'hedged', hedged);
-            // hedged and non-hedged orders have different side values and reduceOnly handling
-            let reduceOnly = false;
-            [reduceOnly, params] = this.handleParamBool(params, 'reduceOnly', reduceOnly);
-            if (hedged) {
-                if (reduceOnly) {
-                    if (side === 'buy') {
-                        side = 'close_short';
+            if ((side === 'buy_single') || (side === 'sell_single') || (side === 'open_long') || (side === 'open_short') || (side === 'close_long') || (side === 'close_short')) {
+                sideIsExchangeSpecific = true;
+                if ((side !== 'buy_single') && (side !== 'sell_single')) {
+                    hedged = true;
+                }
+            }
+            if (!sideIsExchangeSpecific) {
+                [hedged, params] = this.handleOptionAndParams(params, methodName, 'hedged', hedged);
+                // hedged and non-hedged orders have different side values and reduceOnly handling
+                const reduceOnly = this.safeBool(params, 'reduceOnly');
+                if (hedged) {
+                    if ((reduceOnly !== undefined) && reduceOnly) {
+                        if (side === 'buy') {
+                            side = 'close_short';
+                        }
+                        else if (side === 'sell') {
+                            side = 'close_long';
+                        }
                     }
-                    else if (side === 'sell') {
-                        side = 'close_long';
+                    else {
+                        if (side === 'buy') {
+                            side = 'open_long';
+                        }
+                        else if (side === 'sell') {
+                            side = 'open_short';
+                        }
                     }
                 }
                 else {
-                    if (side === 'buy') {
-                        side = 'open_long';
-                    }
-                    else if (side === 'sell') {
-                        side = 'open_short';
-                    }
+                    side = side.toLowerCase() + '_single';
                 }
             }
-            else {
-                side = side.toLowerCase() + '_single';
+            if (hedged) {
+                params = this.omit(params, 'reduceOnly');
             }
             request['side'] = side;
         }
@@ -2641,22 +2655,22 @@ export default class coincatch extends Exchange {
         let stopLossPrice = this.safeString(params, 'stopLossPrice');
         let takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         let requestTriggerPrice = undefined;
-        const takeProfitParams = this.safeDict(params, 'takeProfit');
-        const stopLossParams = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const isTrigger = (triggerPrice !== undefined);
         const trailingPercent = this.safeString(params, 'trailingPercent');
         const trailingTriggerPrice = this.safeString(params, 'trailingTriggerPrice');
         let hasTPPrice = (takeProfitPrice !== undefined);
         let hasSLPrice = (stopLossPrice !== undefined);
-        const hasTPParams = (takeProfitParams !== undefined);
-        if (hasTPParams && !hasTPPrice) {
-            takeProfitPrice = this.safeString(takeProfitParams, 'triggerPrice');
+        const hasTakeProfit = (takeProfit !== undefined);
+        if (hasTakeProfit && !hasTPPrice) {
+            takeProfitPrice = this.safeString(takeProfit, 'triggerPrice');
             hasTPPrice = (takeProfitPrice !== undefined);
         }
-        const hasSLParams = (stopLossParams !== undefined);
-        if (hasSLParams && !hasSLPrice) {
-            stopLossPrice = this.safeString(stopLossParams, 'triggerPrice');
+        const hasStopLoss = (stopLoss !== undefined);
+        if (hasStopLoss && !hasSLPrice) {
+            stopLossPrice = this.safeString(stopLoss, 'triggerPrice');
             hasSLPrice = (stopLossPrice !== undefined);
         }
         const hasBothTPAndSL = hasTPPrice && hasSLPrice;
@@ -2731,7 +2745,7 @@ export default class coincatch extends Exchange {
      * @param {float} [takeProfit] the take profit price, in units of the quote currency
      * @param {float} [stopLoss] the stop loss price, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price = undefined, takeProfit = undefined, stopLoss = undefined, params = {}) {
         const methodName = 'createOrderWithTakeProfitAndStopLoss';
@@ -2759,7 +2773,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/spot/#batch-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params (max 50 entries)
      * @param {object} [params] extra parameters specific to the api endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
         await this.loadMarkets();
@@ -2899,7 +2913,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const methodName = 'editOrder';
@@ -2931,7 +2945,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
      * @param {string} params.triggerPrice *mandatory* the price that the order is to be triggered at
      * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editSpotOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -3002,7 +3016,7 @@ export default class coincatch extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
      * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         const methodName = 'fetchOrder';
@@ -3141,7 +3155,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
      * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
      * @param {string} [params.isPlan] *swap trigger only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchOpenOrders';
@@ -3176,7 +3190,7 @@ export default class coincatch extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
      * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenSpotOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3281,7 +3295,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.isPlan] 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
      * @param {string} [params.productType] 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
      * @param {string} [params.marginCoin] the margin coin of the market to fetch entries for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenSwapOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3417,7 +3431,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
      * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchCanceledAndClosedOrders';
@@ -3453,7 +3467,7 @@ export default class coincatch extends Exchange {
      * @param {int} [params.until] *for trigger orders only* the latest time in ms to fetch orders for
      * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
      * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedSpotOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let methodName = 'fetchCanceledAndClosedSpotOrders';
@@ -3601,7 +3615,7 @@ export default class coincatch extends Exchange {
      * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
      * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
      * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedSwapOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let methodName = 'fetchCanceledAndClosedSwapOrders';
@@ -3760,7 +3774,7 @@ export default class coincatch extends Exchange {
      * @param {bool} [params.trigger] true for canceling a trigger order (default false)
      * @param {bool} [params.stop] *swap only* an alternative for trigger param
      * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const methodName = 'cancelOrder';
@@ -3961,7 +3975,7 @@ export default class coincatch extends Exchange {
      * @param {string} symbol *is mandatory* unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         const methodName = 'cancelOrders';
@@ -4495,7 +4509,7 @@ export default class coincatch extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchOrderTrades';
@@ -4515,7 +4529,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
         await this.loadMarkets();
@@ -4705,7 +4719,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
         await this.loadMarkets();
@@ -4883,7 +4897,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         params['methodName'] = 'reduceMargin';
@@ -4898,7 +4912,7 @@ export default class coincatch extends Exchange {
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         params['methodName'] = 'addMargin';
@@ -4912,7 +4926,7 @@ export default class coincatch extends Exchange {
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
         const methodName = 'fetchPosition';
@@ -4928,7 +4942,7 @@ export default class coincatch extends Exchange {
                 }
             }
         }
-        return positions[0];
+        return this.safeDict(positions, 0, {});
     }
     /**
      * @method
@@ -4938,7 +4952,7 @@ export default class coincatch extends Exchange {
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsForSymbol(symbol, params = {}) {
         await this.loadMarkets();
@@ -4991,7 +5005,7 @@ export default class coincatch extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbols are not provided)
      * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         const methodName = 'fetchPositions';
@@ -5180,7 +5194,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.business] *swap only*
      * @param {string} [params.lastEndId] *swap only*
      * @param {bool} [params.next] *swap only*
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchLedger';

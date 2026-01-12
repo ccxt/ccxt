@@ -28,6 +28,10 @@ class bitfinex extends \ccxt\async\bitfinex {
                 'watchBalance' => true,
                 'watchOHLCV' => true,
                 'watchOrders' => true,
+                'unWatchTicker' => true,
+                'unWatchTrades' => true,
+                'unWatchOHLCV' => true,
+                'unWatchOrderBook' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -63,14 +67,45 @@ class bitfinex extends \ccxt\async\bitfinex {
             );
             $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
             $checksum = $this->safe_bool($this->options, 'checksum', true);
-            if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
-                $client->subscriptions[$messageHash]['checksum'] = true;
-                Async\await($client->send (array(
-                    'event' => 'conf',
-                    'flags' => 131072,
-                )));
+            if ($checksum && ($channel === 'book')) {
+                $sub = $client->subscriptions[$messageHash];
+                if ($sub && !$sub['checksum']) {
+                    $client->subscriptions[$messageHash]['checksum'] = true;
+                    Async\await($client->send (array(
+                        'event' => 'conf',
+                        'flags' => 131072,
+                    )));
+                }
             }
             return $result;
+        }) ();
+    }
+
+    public function un_subscribe($channel, $topic, $symbol, $params = array ()) {
+        return Async\async(function () use ($channel, $topic, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $url = $this->urls['api']['ws']['public'];
+            $client = $this->client($url);
+            $subMessageHash = $channel . ':' . $marketId;
+            $messageHash = 'unsubscribe:' . $channel . ':' . $marketId;
+            $unSubTopic = 'unsubscribe' . ':' . $topic . ':' . $symbol;
+            $channelId = $this->safe_string($client->subscriptions, $unSubTopic);
+            $request = array(
+                'event' => 'unsubscribe',
+                'chanId' => $channelId,
+            );
+            $unSubChanMsg = 'unsubscribe:' . $channelId;
+            $client->subscriptions[$unSubChanMsg] = $subMessageHash;
+            $subscription = array(
+                'messageHashes' => array( $messageHash ),
+                'subMessageHashes' => array( $subMessageHash ),
+                'topic' => $topic,
+                'unsubscribe' => true,
+                'symbols' => array( $symbol ),
+            );
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
         }) ();
     }
 
@@ -83,7 +118,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -113,6 +148,43 @@ class bitfinex extends \ccxt\async\bitfinex {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()) {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {bool} true if successfully unsubscribed, false otherwise
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            $channel = 'candles';
+            $subMessageHash = $channel . ':' . $interval . ':' . $market['id'];
+            $messageHash = 'unsubscribe:' . $subMessageHash;
+            $url = $this->urls['api']['ws']['public'];
+            $client = $this->client($url);
+            $subId = 'unsubscribe:trade:' . $interval . ':' . $market['id']; // trade here because we use the key
+            $channelId = $this->safe_string($client->subscriptions, $subId);
+            $request = array(
+                'event' => 'unsubscribe',
+                'chanId' => $channelId,
+            );
+            $unSubChanMsg = 'unsubscribe:' . $channelId;
+            $client->subscriptions[$unSubChanMsg] = $subMessageHash;
+            $subscription = array(
+                'messageHashes' => array( $messageHash ),
+                'subMessageHashes' => array( $subMessageHash ),
+                'topic' => 'ohlcv',
+                'unsubscribe' => true,
+                'symbols' => array( $symbol ),
+            );
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
         }) ();
     }
 
@@ -165,7 +237,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $data = $this->safe_value($message, 1, array());
         $ohlcvs = null;
         $first = $this->safe_value($data, 0);
-        if (gettype($first) === 'array' && array_keys($first) === array_keys(array_keys($first))) {
+        if ((gettype($first) === 'array' && array_keys($first) === array_keys(array_keys($first)))) {
             // snapshot
             $ohlcvs = $data;
         } else {
@@ -207,13 +279,25 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $trades = Async\await($this->subscribe('trades', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function un_watch_trades(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+             */
+            return Async\await($this->un_subscribe('trades', 'trades', $symbol, $params));
         }) ();
     }
 
@@ -225,7 +309,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrade';
@@ -247,9 +331,21 @@ class bitfinex extends \ccxt\async\bitfinex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             return Async\await($this->subscribe('ticker', $symbol, $params));
+        }) ();
+    }
+
+    public function un_watch_ticker(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+             */
+            return Async\await($this->un_subscribe('ticker', 'ticker', $symbol, $params));
         }) ();
     }
 
@@ -543,7 +639,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
              */
             if ($limit !== null) {
                 if (($limit !== 25) && ($limit !== 100)) {
@@ -716,7 +812,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $balanceType = $this->safe_string($params, 'wallet', 'exchange'); // exchange, margin
@@ -851,6 +947,30 @@ class bitfinex extends \ccxt\async\bitfinex {
         return $message;
     }
 
+    public function handle_unsubscription_status(Client $client, $message) {
+        //
+        // {
+        //     "event" => "unsubscribed",
+        //     "status" => "OK",
+        //     "chanId" => CHANNEL_ID
+        // }
+        //
+        $channelId = $this->safe_string($message, 'chanId');
+        $unSubChannel = 'unsubscribe:' . $channelId;
+        $subMessageHash = $this->safe_string($client->subscriptions, $unSubChannel);
+        $subscription = $this->safe_dict($client->subscriptions, 'unsubscribe:' . $subMessageHash);
+        unset($client->subscriptions[$unSubChannel]);
+        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $subHash = $subMessageHashes[$i];
+            $this->clean_unsubscription($client, $subHash, $messageHash);
+        }
+        $this->clean_cache($subscription);
+        return true;
+    }
+
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
@@ -864,8 +984,36 @@ class bitfinex extends \ccxt\async\bitfinex {
         //         "pair" => "BTCUSD"
         //     }
         //
+        //   {
+        //       event => 'subscribed',
+        //       channel => 'candles',
+        //       chanId => 128306,
+        //       $key => 'trade:1m:tBTCUST'
+        //  }
+        //
         $channelId = $this->safe_string($message, 'chanId');
         $client->subscriptions[$channelId] = $message;
+        // store the opposite direction too for unWatch
+        $mappings = array(
+            'book' => 'orderbook',
+            'candles' => 'ohlcv',
+            'ticker' => 'ticker',
+            'trades' => 'trades',
+        );
+        $unifiedChannel = $this->safe_string($mappings, $this->safe_string($message, 'channel'));
+        if (is_array($message) && array_key_exists('key', $message)) {
+            // handle ohlcv differently because the $message is different
+            $key = $this->safe_string($message, 'key');
+            $subKeyId = 'unsubscribe:' . $key;
+            $client->subscriptions[$subKeyId] = $channelId;
+        } else {
+            $marketId = $this->safe_string($message, 'symbol');
+            $symbol = $this->safe_symbol($marketId);
+            if ($unifiedChannel !== null) {
+                $subId = 'unsubscribe:' . $unifiedChannel . ':' . $symbol;
+                $client->subscriptions[$subId] = $channelId;
+            }
+        }
         return $message;
     }
 
@@ -874,7 +1022,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $url = $this->urls['api']['ws']['private'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $nonce = $this->milliseconds();
@@ -920,7 +1068,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';
@@ -1138,7 +1286,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //        }
         //    }
         //
-        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             if ($message[1] === 'hb') {
                 return; // skip heartbeats within $subscription channels for now
             }
@@ -1176,6 +1324,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                 $methods = array(
                     'info' => array($this, 'handle_system_status'),
                     'subscribed' => array($this, 'handle_subscription_status'),
+                    'unsubscribed' => array($this, 'handle_unsubscription_status'),
                     'auth' => array($this, 'handle_authentication_message'),
                 );
                 $method = $this->safe_value($methods, $event);

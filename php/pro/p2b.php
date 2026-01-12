@@ -87,7 +87,7 @@ class p2b extends \ccxt\async\p2b {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '15m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '15m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market-> Can only subscribe to one $timeframe at a time for each $symbol
@@ -132,7 +132,7 @@ class p2b extends \ccxt\async\p2b {
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->method] 'state' (default) or 'price'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $watchTickerOptions = $this->safe_dict($this->options, 'watchTicker');
@@ -159,7 +159,7 @@ class p2b extends \ccxt\async\p2b {
              * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->method] 'state' (default) or 'price'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -195,7 +195,7 @@ class p2b extends \ccxt\async\p2b {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
@@ -212,7 +212,7 @@ class p2b extends \ccxt\async\p2b {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false, true, true);
@@ -251,7 +251,7 @@ class p2b extends \ccxt\async\p2b {
              * @param {int} [$limit] 1-100, default=100
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, $interval of precision for order, default=0.001
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -522,7 +522,7 @@ class p2b extends \ccxt\async\p2b {
         //        id => 1706539608030
         //    }
         //
-        $client->lastPong = $this->safe_integer($message, 'id');
+        $client->lastPong = $this->safe_integer($message, 'id', $this->milliseconds());
         return $message;
     }
 

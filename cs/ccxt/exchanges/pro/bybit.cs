@@ -164,8 +164,10 @@ public partial class bybit : ccxt.bybit
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return requestId;
     }
 
@@ -263,7 +265,7 @@ public partial class bybit : ccxt.bybit
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -308,7 +310,7 @@ public partial class bybit : ccxt.bybit
      * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
      * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -341,12 +343,16 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrderWs() requires a symbol argument")) ;
+        }
         object orderRequest = this.cancelOrderRequest(id, symbol, parameters);
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "trade");
         await this.authenticate(url);
@@ -375,7 +381,7 @@ public partial class bybit : ccxt.bybit
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -405,7 +411,7 @@ public partial class bybit : ccxt.bybit
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -443,7 +449,7 @@ public partial class bybit : ccxt.bybit
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
@@ -474,15 +480,15 @@ public partial class bybit : ccxt.bybit
      * @description unWatches a price ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {string[]} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchTicker(object symbols, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        return await this.unWatchTickers(new List<object>() {symbols}, parameters);
+        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -556,7 +562,7 @@ public partial class bybit : ccxt.bybit
         // spot
         //     {
         //         "topic": "tickers.BTCUSDT",
-        //         "ts": 1673853746003,
+        //         "ts": 1673853746002,
         //         "type": "snapshot",
         //         "cs": 2588407389,
         //         "data": {
@@ -640,7 +646,7 @@ public partial class bybit : ccxt.bybit
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -803,7 +809,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -896,7 +902,7 @@ public partial class bybit : ccxt.bybit
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -912,7 +918,7 @@ public partial class bybit : ccxt.bybit
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -929,31 +935,22 @@ public partial class bybit : ccxt.bybit
         object market = this.market(getValue(symbols, 0));
         if (isTrue(isEqual(limit, null)))
         {
-            limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 500;
+            limit = 50;
             if (isTrue(getValue(market, "option")))
             {
                 limit = 100;
             }
         } else
         {
-            if (!isTrue(getValue(market, "spot")))
+            object limits = new Dictionary<string, object>() {
+                { "spot", new List<object>() {1, 50, 200, 1000} },
+                { "option", new List<object>() {25, 100} },
+                { "default", new List<object>() {1, 50, 200, 1000} },
+            };
+            object selectedLimits = this.safeList2(limits, getValue(market, "type"), "default");
+            if (!isTrue(this.inArray(limit, selectedLimits)))
             {
-                if (isTrue(getValue(market, "option")))
-                {
-                    if (isTrue(isTrue((!isEqual(limit, 25))) && isTrue((!isEqual(limit, 100)))))
-                    {
-                        throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.")) ;
-                    }
-                } else if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))) && isTrue((!isEqual(limit, 500)))))
-                {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.")) ;
-                }
-            } else
-            {
-                if (isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))))
-                {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.")) ;
-                }
+                throw new BadRequest ((string)add(add(add(add(this.id, " watchOrderBookForSymbols(): for "), getValue(market, "type")), " markets limit can be one of: "), this.json(selectedLimits))) ;
             }
         }
         object topics = new List<object>() {};
@@ -979,7 +976,7 @@ public partial class bybit : ccxt.bybit
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
@@ -1022,7 +1019,7 @@ public partial class bybit : ccxt.bybit
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -1082,6 +1079,7 @@ public partial class bybit : ccxt.bybit
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         object orderbook = getValue(this.orderbooks, symbol);
+        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
         if (isTrue(isSnapshot))
         {
             object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
@@ -1131,7 +1129,7 @@ public partial class bybit : ccxt.bybit
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1148,7 +1146,7 @@ public partial class bybit : ccxt.bybit
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -1370,12 +1368,14 @@ public partial class bybit : ccxt.bybit
      * @name bybit#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {boolean} [params.executionFast] use fast execution
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1396,6 +1396,14 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         object topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        object executionFast = false;
+        var executionFastparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
+        executionFast = ((IList<object>)executionFastparametersVariable)[0];
+        parameters = ((IList<object>)executionFastparametersVariable)[1];
+        if (isTrue(executionFast))
+        {
+            topic = "execution.fast";
+        }
         object trades = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -1409,12 +1417,14 @@ public partial class bybit : ccxt.bybit
      * @name bybit#unWatchMyTrades
      * @description unWatches information on multiple trades made by the user
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {boolean} [params.executionFast] use fast execution
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object method = "watchMyTrades";
@@ -1433,6 +1443,14 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         object topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        object executionFast = false;
+        var executionFastparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
+        executionFast = ((IList<object>)executionFastparametersVariable)[0];
+        parameters = ((IList<object>)executionFastparametersVariable)[1];
+        if (isTrue(executionFast))
+        {
+            topic = "execution.fast";
+        }
         return await this.unWatchTopics(url, "myTrades", new List<object>() {}, new List<object>() {messageHash}, new List<object>() {subHash}, new List<object>() {topic}, parameters);
     }
 
@@ -1500,8 +1518,31 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
+        // execution.fast
+        //
+        //     {
+        //         "topic": "execution.fast",
+        //         "creationTime": 1757405601981,
+        //         "data": [
+        //             {
+        //                 "category": "linear",
+        //                 "symbol": "BTCUSDT",
+        //                 "execId": "ffcac6ac-7571-536d-a28a-847dd7d08a0f",
+        //                 "execPrice": "112529.6",
+        //                 "execQty": "0.001",
+        //                 "orderId": "6e25ab73-7a55-4ae7-adc2-8ea95f167c85",
+        //                 "isMaker": false,
+        //                 "orderLinkId": "test-00001",
+        //                 "side": "Buy",
+        //                 "execTime": "1757405601977",
+        //                 "seq": 9515624038
+        //             }
+        //         ]
+        //     }
+        //
         object topic = this.safeString(message, "topic");
         object spot = isEqual(topic, "ticketInfo");
+        object executionFast = isEqual(topic, "execution.fast");
         object data = this.safeValue(message, "data", new List<object>() {});
         if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
@@ -1519,13 +1560,17 @@ public partial class bybit : ccxt.bybit
         {
             object rawTrade = getValue(data, i);
             object parsed = null;
-            if (isTrue(spot))
+            if (isTrue(isTrue(spot) && !isTrue(executionFast)))
             {
                 parsed = this.parseWsTrade(rawTrade);
             } else
             {
                 // filter unified trades
                 object execType = this.safeString(rawTrade, "execType", "");
+                if (isTrue(executionFast))
+                {
+                    execType = "Trade";
+                }
                 if (!isTrue(this.inArray(execType, filterExecTypes)))
                 {
                     continue;
@@ -1636,9 +1681,12 @@ public partial class bybit : ccxt.bybit
             }
         }
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve(cache);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "position"});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "position"});
+        }
     }
 
     public virtual void handlePositions(WebSocketClient client, object message)
@@ -1888,6 +1936,7 @@ public partial class bybit : ccxt.bybit
             { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber2(liquidation, "price", "p") },
+            { "side", this.safeStringLower(liquidation, "side", "S") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
@@ -1904,7 +1953,7 @@ public partial class bybit : ccxt.bybit
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1941,7 +1990,7 @@ public partial class bybit : ccxt.bybit
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
@@ -2121,7 +2170,7 @@ public partial class bybit : ccxt.bybit
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -2478,7 +2527,7 @@ public partial class bybit : ccxt.bybit
         this.checkRequiredCredentials();
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -2589,13 +2638,14 @@ public partial class bybit : ccxt.bybit
 
     public override void handleMessage(WebSocketClient client, object message)
     {
+        object topic = this.safeString2(message, "topic", "op", "");
         if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
         {
             return;
         }
         // contract pong
         object ret_msg = this.safeString(message, "ret_msg");
-        if (isTrue(isEqual(ret_msg, "pong")))
+        if (isTrue(isTrue((isEqual(ret_msg, "pong"))) || isTrue((isEqual(topic, "pong")))))
         {
             this.handlePong(client as WebSocketClient, message);
             return;
@@ -2609,12 +2659,11 @@ public partial class bybit : ccxt.bybit
         }
         // pong
         object eventVar = this.safeString(message, "event");
-        if (isTrue(isEqual(eventVar, "sub")))
+        if (isTrue(isTrue(isEqual(eventVar, "sub")) || isTrue((isEqual(topic, "subscribe")))))
         {
             this.handleSubscriptionStatus(client as WebSocketClient, message);
             return;
         }
-        object topic = this.safeString2(message, "topic", "op", "");
         object methods = new Dictionary<string, object>() {
             { "orderbook", this.handleOrderBook },
             { "kline", this.handleOHLCV },
@@ -2627,6 +2676,7 @@ public partial class bybit : ccxt.bybit
             { "wallet", this.handleBalance },
             { "outboundAccountInfo", this.handleBalance },
             { "execution", this.handleMyTrades },
+            { "execution.fast", this.handleMyTrades },
             { "ticketInfo", this.handleMyTrades },
             { "user.openapi.perp.trade", this.handleMyTrades },
             { "position", this.handlePositions },
@@ -2684,7 +2734,15 @@ public partial class bybit : ccxt.bybit
         //
         //   { pong: 1653296711335 }
         //
-        client.lastPong = this.safeInteger(message, "pong");
+        //
+        //   {
+        //       "req_id": "2",
+        //       "op": "pong",
+        //       "args": [ "1757405570352" ],
+        //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
+        //   }
+        //
+        client.lastPong = this.safeInteger(message, "pong", this.milliseconds());
         return message;
     }
 
@@ -2703,6 +2761,13 @@ public partial class bybit : ccxt.bybit
         //        "retMsg":"OK",
         //        "op":"auth",
         //        "connId":"cojifin88smerbj9t560-404"
+        //    }
+        //
+        //    {
+        //        "success": true,
+        //        "ret_msg": "",
+        //        "op": "auth",
+        //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
         object success = this.safeValue(message, "success");
@@ -2780,7 +2845,7 @@ public partial class bybit : ccxt.bybit
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);
-                    object usePrefix = isTrue((isEqual(subHash, "orders"))) || isTrue((isEqual(subHash, "myTrades")));
+                    object usePrefix = isTrue(isTrue((isEqual(subHash, "orders"))) || isTrue((isEqual(subHash, "myTrades")))) || isTrue((isEqual(subHash, "positions")));
                     this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash, usePrefix);
                 }
                 this.cleanCache(subscription);

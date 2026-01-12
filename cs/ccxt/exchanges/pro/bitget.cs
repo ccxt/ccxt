@@ -38,10 +38,14 @@ public partial class bitget : ccxt.bitget
                     { "ws", new Dictionary<string, object>() {
                         { "public", "wss://ws.bitget.com/v2/ws/public" },
                         { "private", "wss://ws.bitget.com/v2/ws/private" },
+                        { "utaPublic", "wss://ws.bitget.com/v3/ws/public" },
+                        { "utaPrivate", "wss://ws.bitget.com/v3/ws/private" },
                     } },
                     { "demo", new Dictionary<string, object>() {
                         { "public", "wss://wspap.bitget.com/v2/ws/public" },
                         { "private", "wss://wspap.bitget.com/v2/ws/private" },
+                        { "utaPublic", "wss://wspap.bitget.com/v3/ws/public" },
+                        { "utaPrivate", "wss://wspap.bitget.com/v3/ws/private" },
                     } },
                 } },
             } },
@@ -50,6 +54,7 @@ public partial class bitget : ccxt.bitget
                 { "OHLCVLimit", 1000 },
                 { "timeframes", new Dictionary<string, object>() {
                     { "1m", "1m" },
+                    { "3m", "3m" },
                     { "5m", "5m" },
                     { "15m", "15m" },
                     { "30m", "30m" },
@@ -93,9 +98,16 @@ public partial class bitget : ccxt.bitget
         });
     }
 
-    public virtual object getInstType(object market, object parameters = null)
+    public virtual object getInstType(object market, object uta = null, object parameters = null)
     {
+        uta ??= false;
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isTrue((isEqual(uta, null))) || !isTrue(uta)))
+        {
+            var utaparametersVariable = this.handleOptionAndParams(parameters, "getInstType", "uta", false);
+            uta = ((IList<object>)utaparametersVariable)[0];
+            parameters = ((IList<object>)utaparametersVariable)[1];
+        }
         object instType = null;
         if (isTrue(isEqual(market, null)))
         {
@@ -116,6 +128,10 @@ public partial class bitget : ccxt.bitget
         instypeAux = ((IList<object>)instypeAuxparametersVariable)[0];
         parameters = ((IList<object>)instypeAuxparametersVariable)[1];
         instType = instypeAux;
+        if (isTrue(uta))
+        {
+            instType = ((string)instType).ToLower();
+        }
         return new List<object>() {instType, parameters};
     }
 
@@ -125,9 +141,11 @@ public partial class bitget : ccxt.bitget
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
      * @param {string} symbol unified symbol of the market to watch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -137,14 +155,20 @@ public partial class bitget : ccxt.bitget
         symbol = getValue(market, "symbol");
         object messageHash = add("ticker:", symbol);
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, parameters);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", "ticker" },
-            { "instId", getValue(market, "id") },
         };
+        object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+        object symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
+        ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
+        ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(market, "id");
         return await this.watchPublic(messageHash, args, parameters);
     }
 
@@ -158,7 +182,7 @@ public partial class bitget : ccxt.bitget
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -171,9 +195,11 @@ public partial class bitget : ccxt.bitget
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
      * @param {string[]} symbols unified symbol of the market to watch the tickers for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -182,7 +208,11 @@ public partial class bitget : ccxt.bitget
         symbols = this.marketSymbols(symbols, null, false);
         object market = this.market(getValue(symbols, 0));
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, parameters);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
         object topics = new List<object>() {};
@@ -193,9 +223,11 @@ public partial class bitget : ccxt.bitget
             object marketInner = this.market(symbol);
             object args = new Dictionary<string, object>() {
                 { "instType", instType },
-                { "channel", "ticker" },
-                { "instId", getValue(marketInner, "id") },
             };
+            object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+            object symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
+            ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(marketInner, "id");
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("ticker:", symbol));
         }
@@ -211,6 +243,8 @@ public partial class bitget : ccxt.bitget
 
     public virtual void handleTicker(WebSocketClient client, object message)
     {
+        //
+        // default
         //
         //     {
         //         "action": "snapshot",
@@ -239,6 +273,29 @@ public partial class bitget : ccxt.bitget
         //             }
         //         ],
         //         "ts": 1701842994341
+        //     }
+        //
+        // uta
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": { "instType": "spot", topic: "ticker", symbol: "BTCUSDT" },
+        //         "data": [
+        //             {
+        //                 "highPrice24h": "120255.61",
+        //                 "lowPrice24h": "116145.88",
+        //                 "openPrice24h": "118919.38",
+        //                 "lastPrice": "119818.83",
+        //                 "turnover24h": "215859996.272276",
+        //                 "volume24h": "1819.756798",
+        //                 "bid1Price": "119811.26",
+        //                 "ask1Price": "119831.18",
+        //                 "bid1Size": "0.008732",
+        //                 "ask1Size": "0.004297",
+        //                 "price24hPcnt": "0.02002"
+        //             }
+        //         ],
+        //         "ts": 1753230479687
         //     }
         //
         this.handleBidAsk(client as WebSocketClient, message);
@@ -321,37 +378,62 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701843962812
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": { "instType": "spot", topic: "ticker", symbol: "BTCUSDT" },
+        //         "data": [
+        //             {
+        //                 "highPrice24h": "120255.61",
+        //                 "lowPrice24h": "116145.88",
+        //                 "openPrice24h": "118919.38",
+        //                 "lastPrice": "119818.83",
+        //                 "turnover24h": "215859996.272276",
+        //                 "volume24h": "1819.756798",
+        //                 "bid1Price": "119811.26",
+        //                 "ask1Price": "119831.18",
+        //                 "bid1Size": "0.008732",
+        //                 "ask1Size": "0.004297",
+        //                 "price24hPcnt": "0.02002"
+        //             }
+        //         ],
+        //         "ts": 1753230479687
+        //     }
+        //
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object data = this.safeValue(message, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(ticker, "ts");
-        object instType = this.safeString(arg, "instType");
-        object marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "contract";
-        object marketId = this.safeString(ticker, "instId");
+        object utaTimestamp = this.safeInteger(message, "ts");
+        object timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
+        object instType = this.safeStringLower(arg, "instType");
+        object marketType = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object utaMarketId = this.safeString(arg, "symbol");
+        object marketId = this.safeString(ticker, "instId", utaMarketId);
         market = this.safeMarket(marketId, market, null, marketType);
-        object close = this.safeString(ticker, "lastPr");
-        object changeDecimal = this.safeString(ticker, "change24h");
-        object change = Precise.stringMul(changeDecimal, "100");
+        object close = this.safeString2(ticker, "lastPr", "lastPrice");
+        object changeDecimal = this.safeString(ticker, "change24h", "");
+        object change = this.safeString(ticker, "price24hPcnt", Precise.stringMul(changeDecimal, "100"));
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "high", this.safeString(ticker, "high24h") },
-            { "low", this.safeString(ticker, "low24h") },
-            { "bid", this.safeString(ticker, "bidPr") },
-            { "bidVolume", this.safeString(ticker, "bidSz") },
-            { "ask", this.safeString(ticker, "askPr") },
-            { "askVolume", this.safeString(ticker, "askSz") },
+            { "high", this.safeString2(ticker, "high24h", "highPrice24h") },
+            { "low", this.safeString2(ticker, "low24h", "lowPrice24h") },
+            { "bid", this.safeString2(ticker, "bidPr", "bid1Price") },
+            { "bidVolume", this.safeString2(ticker, "bidSz", "bid1Size") },
+            { "ask", this.safeString2(ticker, "askPr", "ask1Price") },
+            { "askVolume", this.safeString2(ticker, "askSz", "ask1Size") },
             { "vwap", null },
-            { "open", this.safeString(ticker, "open24h") },
+            { "open", this.safeString2(ticker, "open24h", "openPrice24h") },
             { "close", close },
             { "last", close },
             { "previousClose", null },
             { "change", null },
             { "percentage", change },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, "baseVolume") },
-            { "quoteVolume", this.safeString(ticker, "quoteVolume") },
+            { "baseVolume", this.safeString2(ticker, "baseVolume", "volume24h") },
+            { "quoteVolume", this.safeString2(ticker, "quoteVolume", "turnover24h") },
             { "info", ticker },
         }, market);
     }
@@ -359,12 +441,14 @@ public partial class bitget : ccxt.bitget
     /**
      * @method
      * @name bitget#watchBidsAsks
+     * @description watches best bid & ask for symbols
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
-     * @description watches best bid & ask for symbols
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -373,7 +457,11 @@ public partial class bitget : ccxt.bitget
         symbols = this.marketSymbols(symbols, null, false);
         object market = this.market(getValue(symbols, 0));
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, parameters);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
         object topics = new List<object>() {};
@@ -384,9 +472,11 @@ public partial class bitget : ccxt.bitget
             object marketInner = this.market(symbol);
             object args = new Dictionary<string, object>() {
                 { "instType", instType },
-                { "channel", "ticker" },
-                { "instId", getValue(marketInner, "id") },
             };
+            object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+            object symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
+            ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(marketInner, "id");
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("bidask:", symbol));
         }
@@ -414,19 +504,21 @@ public partial class bitget : ccxt.bitget
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object data = this.safeValue(message, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(ticker, "ts");
-        object instType = this.safeString(arg, "instType");
-        object marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "contract";
-        object marketId = this.safeString(ticker, "instId");
+        object utaTimestamp = this.safeInteger(message, "ts");
+        object timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
+        object instType = this.safeStringLower(arg, "instType");
+        object marketType = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object utaMarketId = this.safeString(arg, "symbol");
+        object marketId = this.safeString(ticker, "instId", utaMarketId);
         market = this.safeMarket(marketId, market, null, marketType);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "ask", this.safeString(ticker, "askPr") },
-            { "askVolume", this.safeString(ticker, "askSz") },
-            { "bid", this.safeString(ticker, "bidPr") },
-            { "bidVolume", this.safeString(ticker, "bidSz") },
+            { "ask", this.safeString2(ticker, "askPr", "ask1Price") },
+            { "askVolume", this.safeString2(ticker, "askSz", "ask1Size") },
+            { "bid", this.safeString2(ticker, "bidPr", "bid1Price") },
+            { "bidVolume", this.safeString2(ticker, "bidSz", "bid1Size") },
             { "info", ticker },
         }, market);
     }
@@ -437,11 +529,13 @@ public partial class bitget : ccxt.bitget
      * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Candlesticks-Channel
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -453,16 +547,33 @@ public partial class bitget : ccxt.bitget
         symbol = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes");
         object interval = this.safeString(timeframes, timeframe);
-        object messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        object messageHash = null;
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, parameters);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", add("candle", interval) },
-            { "instId", getValue(market, "id") },
         };
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)args)["topic"] = "kline";
+            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["interval"] = interval;
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            });
+            messageHash = add("kline:", symbol);
+        } else
+        {
+            ((IDictionary<string,object>)args)["channel"] = add("candle", interval);
+            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+            messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        }
         object ohlcv = await this.watchPublic(messageHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -477,20 +588,57 @@ public partial class bitget : ccxt.bitget
      * @description unsubscribe from the ohlcv channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Candlesticks-Channel
      * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object timeframes = this.safeDict(this.options, "timeframes");
         object interval = this.safeString(timeframes, timeframe);
-        object channel = add("candle", interval);
-        return await this.unWatchChannel(symbol, channel, add("candles:", timeframe), parameters);
+        object channel = null;
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object instType = null;
+        object messageHash = null;
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
+        instType = ((IList<object>)instTypeparametersVariable)[0];
+        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        object args = new Dictionary<string, object>() {
+            { "instType", instType },
+        };
+        if (isTrue(uta))
+        {
+            channel = "kline";
+            ((IDictionary<string,object>)args)["topic"] = channel;
+            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["interval"] = interval;
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            });
+            ((IDictionary<string,object>)parameters)["interval"] = interval;
+            messageHash = add(channel, symbol);
+        } else
+        {
+            channel = add("candle", interval);
+            ((IDictionary<string,object>)args)["channel"] = channel;
+            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+            messageHash = add("candles:", interval);
+        }
+        return await this.unWatchChannel(symbol, channel, messageHash, parameters);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -528,15 +676,48 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701901610417
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": {
+        //             "instType": "usdt-futures",
+        //             "topic": "kline",
+        //             "symbol": "BTCUSDT",
+        //             "interval": "1m"
+        //         },
+        //         "data": [
+        //             {
+        //                 "start": "1755564480000",
+        //                 "open": "116286",
+        //                 "close": "116256.2",
+        //                 "high": "116310.2",
+        //                 "low": "116232.8",
+        //                 "volume": "39.7062",
+        //                 "turnover": "4616746.46654"
+        //             },
+        //         ],
+        //         "ts": 1755594421877
+        //     }
+        //
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
-        object instType = this.safeString(arg, "instType");
-        object marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "contract";
-        object marketId = this.safeString(arg, "instId");
+        object instType = this.safeStringLower(arg, "instType");
+        object marketType = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object marketId = this.safeString2(arg, "instId", "symbol");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
-        object interval = ((string)channel).Replace((string)"candle", (string)"");
+        object channel = this.safeString2(arg, "channel", "topic");
+        object interval = this.safeString(arg, "interval");
+        object isUta = null;
+        if (isTrue(isEqual(interval, null)))
+        {
+            isUta = false;
+            interval = ((string)channel).Replace((string)"candle", (string)"");
+        } else
+        {
+            isUta = true;
+        }
         object timeframes = this.safeValue(this.options, "timeframes");
         object timeframe = this.findTimeframe(interval, timeframes);
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -552,7 +733,14 @@ public partial class bitget : ccxt.bitget
             object parsed = this.parseWsOHLCV(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        object messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        object messageHash = null;
+        if (isTrue(isUta))
+        {
+            messageHash = add("kline:", symbol);
+        } else
+        {
+            messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -570,8 +758,20 @@ public partial class bitget : ccxt.bitget
         //         "437404.105512" // USDT volume
         //     ]
         //
+        // uta
+        //
+        //     {
+        //         "start": "1755564480000",
+        //         "open": "116286",
+        //         "close": "116256.2",
+        //         "high": "116310.2",
+        //         "low": "116232.8",
+        //         "volume": "39.7062",
+        //         "turnover": "4616746.46654"
+        //     }
+        //
         object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? 6 : 5;
-        return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
+        return new List<object> {this.safeInteger2(ohlcv, "start", 0), this.safeNumber2(ohlcv, "open", 1), this.safeNumber2(ohlcv, "high", 2), this.safeNumber2(ohlcv, "low", 3), this.safeNumber2(ohlcv, "close", 4), this.safeNumber2(ohlcv, "volume", volumeIndex)};
     }
 
     /**
@@ -580,10 +780,12 @@ public partial class bitget : ccxt.bitget
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -597,10 +799,12 @@ public partial class bitget : ccxt.bitget
      * @description unsubscribe from the orderbook channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -608,7 +812,7 @@ public partial class bitget : ccxt.bitget
         await this.loadMarkets();
         object channel = "books";
         object limit = this.safeInteger(parameters, "limit");
-        if (isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))))
+        if (isTrue(isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))) || isTrue((isEqual(limit, 50)))))
         {
             parameters = this.omit(parameters, "limit");
             channel = add(channel, ((object)limit).ToString());
@@ -623,14 +827,30 @@ public partial class bitget : ccxt.bitget
         object market = this.market(symbol);
         object messageHash = add(add(add("unsubscribe:", messageHashTopic), ":"), getValue(market, "symbol"));
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, parameters);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchChannel", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", channel },
-            { "instId", getValue(market, "id") },
         };
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)args)["topic"] = channel;
+            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["interval"] = this.safeString(parameters, "interval", "1m");
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            });
+            parameters = this.omit(parameters, "interval");
+        } else
+        {
+            ((IDictionary<string,object>)args)["channel"] = channel;
+            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+        }
         return await this.unWatchPublic(messageHash, args, parameters);
     }
 
@@ -640,10 +860,12 @@ public partial class bitget : ccxt.bitget
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -652,28 +874,38 @@ public partial class bitget : ccxt.bitget
         symbols = this.marketSymbols(symbols);
         object channel = "books";
         object incrementalFeed = true;
-        if (isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))))
+        if (isTrue(isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))) || isTrue((isEqual(limit, 50)))))
         {
             channel = add(channel, ((object)limit).ToString());
             incrementalFeed = false;
         }
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object instType = null;
-            var instTypeparametersVariable = this.getInstType(market, parameters);
+            var instTypeparametersVariable = this.getInstType(market, uta, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
             object args = new Dictionary<string, object>() {
                 { "instType", instType },
-                { "channel", channel },
-                { "instId", getValue(market, "id") },
             };
+            object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+            object symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
+            ((IDictionary<string,object>)args)[(string)topicOrChannel] = channel;
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(market, "id");
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
+        }
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)parameters)["uta"] = true;
         }
         object orderbook = await this.watchPublicMultiple(messageHashes, topics, parameters);
         if (isTrue(incrementalFeed))
@@ -717,11 +949,27 @@ public partial class bitget : ccxt.bitget
         //       ]
         //   }
         //
+        // {
+        //     "action": "snapshot",
+        //     "arg": { "instType": "usdt-futures", "topic": "books", "symbol": "BTCUSDT" },
+        //     "data": [
+        //         {
+        //             "a": [Array],
+        //             "b": [Array],
+        //             "checksum": 0,
+        //             "pseq": 0,
+        //             "seq": "1343064377779269632",
+        //             "ts": "1755937421270"
+        //         }
+        //     ],
+        //     "ts": 1755937421337
+        // }
+        //
         object arg = this.safeValue(message, "arg");
-        object channel = this.safeString(arg, "channel");
-        object instType = this.safeString(arg, "instType");
-        object marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "contract";
-        object marketId = this.safeString(arg, "instId");
+        object channel = this.safeString2(arg, "channel", "topic");
+        object instType = this.safeStringLower(arg, "instType");
+        object marketType = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object marketId = this.safeString2(arg, "instId", "symbol");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
@@ -740,8 +988,8 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
             object storedOrderBook = getValue(this.orderbooks, symbol);
-            object asks = this.safeValue(rawOrderBook, "asks", new List<object>() {});
-            object bids = this.safeValue(rawOrderBook, "bids", new List<object>() {});
+            object asks = this.safeList2(rawOrderBook, "asks", "a", new List<object>() {});
+            object bids = this.safeList2(rawOrderBook, "bids", "b", new List<object>() {});
             this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
             this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
@@ -821,11 +1069,13 @@ public partial class bitget : ccxt.bitget
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -839,11 +1089,13 @@ public partial class bitget : ccxt.bitget
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -855,6 +1107,10 @@ public partial class bitget : ccxt.bitget
         }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -862,16 +1118,24 @@ public partial class bitget : ccxt.bitget
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object instType = null;
-            var instTypeparametersVariable = this.getInstType(market, parameters);
+            var instTypeparametersVariable = this.getInstType(market, uta, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
             object args = new Dictionary<string, object>() {
                 { "instType", instType },
-                { "channel", "trade" },
-                { "instId", getValue(market, "id") },
             };
+            object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+            object symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
+            ((IDictionary<string,object>)args)[(string)topicOrChannel] = ((bool) isTrue(uta)) ? "publicTrade" : "trade";
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(market, "id");
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("trade:", symbol));
+        }
+        if (isTrue(uta))
+        {
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            });
         }
         object trades = await this.watchPublicMultiple(messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
@@ -896,15 +1160,21 @@ public partial class bitget : ccxt.bitget
      * @description unsubscribe from the trades channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel
      * @param {string} symbol unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {any} status of the unwatch request
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        return await this.unWatchChannel(symbol, "trade", "trade", parameters);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchTrades", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        object channelTopic = ((bool) isTrue(uta)) ? "publicTrade" : "trade";
+        return await this.unWatchChannel(symbol, channelTopic, "trade", parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -925,10 +1195,28 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701910980730
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": { "instType": "spot", "topic": "publicTrade", "symbol": "BTCUSDT" },
+        //         "data": [
+        //             {
+        //                 "T": "1756287827920",
+        //                 "P": "110878.5",
+        //                 "v": "0.07",
+        //                 "S": "buy",
+        //                 "L": "1344534089797185550"
+        //                 "i": "1344534089797185549"
+        //             },
+        //         ],
+        //         "ts": 1701910980730
+        //     }
+        //
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
-        object instType = this.safeString(arg, "instType");
-        object marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "contract";
-        object marketId = this.safeString(arg, "instId");
+        object instType = this.safeStringLower(arg, "instType");
+        object marketType = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object marketId = this.safeString2(arg, "instId", "symbol");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object stored = this.safeValue(this.trades, symbol);
@@ -1011,14 +1299,59 @@ public partial class bitget : ccxt.bitget
         //           "uTime": "1714471204194"
         //        }
         //
+        // uta private
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderType": "market",
+        //         "updatedTime": "1736378720623",
+        //         "side": "buy",
+        //         "orderId": "1288888888888888888",
+        //         "execPnl": "0",
+        //         "feeDetail": [
+        //             {
+        //                 "feeCoin": "USDT",
+        //                 "fee": "0.569958"
+        //             }
+        //         ],
+        //         "execTime": "1736378720623",
+        //         "tradeScope": "taker",
+        //         "tradeSide": "open",
+        //         "execId": "1288888888888888888",
+        //         "execLinkId": "1288888888888888888",
+        //         "execPrice": "94993",
+        //         "holdSide": "long",
+        //         "execValue": "949.93",
+        //         "category": "USDT-FUTURES",
+        //         "execQty": "0.01",
+        //         "clientOid": "1288888888888888889"
+        // uta
+        //
+        //     {
+        //         "i": "1344534089797185549", // Fill execution ID
+        //         "L": "1344534089797185550", // Execution correlation ID
+        //         "p": "110878.5", // Fill price
+        //         "v": "0.07", // Fill size
+        //         "S": "buy", // Fill side
+        //         "T": "1756287827920" // Fill timestamp
+        //     }
+        //
         object instId = this.safeString2(trade, "symbol", "instId");
         object posMode = this.safeString(trade, "posMode");
-        object defaultType = ((bool) isTrue((!isEqual(posMode, null)))) ? "contract" : "spot";
+        object category = this.safeString(trade, "category");
+        object defaultType = null;
+        if (isTrue(!isEqual(category, null)))
+        {
+            defaultType = ((bool) isTrue((!isEqual(category, "SPOT")))) ? "contract" : "spot";
+        } else
+        {
+            defaultType = ((bool) isTrue((!isEqual(posMode, null)))) ? "contract" : "spot";
+        }
         if (isTrue(isEqual(market, null)))
         {
             market = this.safeMarket(instId, null, null, defaultType);
         }
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts"});
+        object timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts", "T", "execTime"});
         object feeDetail = this.safeList(trade, "feeDetail", new List<object>() {});
         object first = this.safeDict(feeDetail, 0);
         object fee = null;
@@ -1027,23 +1360,23 @@ public partial class bitget : ccxt.bitget
             object feeCurrencyId = this.safeString(first, "feeCoin");
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
-                { "cost", Precise.stringAbs(this.safeString(first, "totalFee")) },
+                { "cost", Precise.stringAbs(this.safeString2(first, "totalFee", "fee")) },
                 { "currency", feeCurrencyCode },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
-            { "id", this.safeString(trade, "tradeId") },
-            { "order", this.safeString(trade, "orderId") },
+            { "id", this.safeStringN(trade, new List<object>() {"tradeId", "i", "execId"}) },
+            { "order", this.safeString2(trade, "orderId", "L") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", getValue(market, "symbol") },
             { "type", this.safeString(trade, "orderType") },
-            { "side", this.safeString(trade, "side") },
+            { "side", this.safeString2(trade, "side", "S") },
             { "takerOrMaker", this.safeString(trade, "tradeScope") },
-            { "price", this.safeString2(trade, "priceAvg", "price") },
-            { "amount", this.safeString2(trade, "size", "baseVolume") },
-            { "cost", this.safeString2(trade, "amount", "quoteVolume") },
+            { "price", this.safeStringN(trade, new List<object>() {"priceAvg", "price", "execPrice", "P"}) },
+            { "amount", this.safeStringN(trade, new List<object>() {"size", "baseVolume", "execQty", "v"}) },
+            { "cost", this.safeStringN(trade, new List<object>() {"amount", "quoteVolume", "execValue"}) },
             { "fee", fee },
         }, market);
     }
@@ -1053,11 +1386,13 @@ public partial class bitget : ccxt.bitget
      * @name bitget#watchPositions
      * @description watch all open positions
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/private/Positions-Channel
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum number of positions to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
@@ -1068,20 +1403,38 @@ public partial class bitget : ccxt.bitget
         object messageHash = "";
         object subscriptionHash = "positions";
         object instType = "USDT-FUTURES";
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
         if (!isTrue(this.isEmpty(symbols)))
         {
             market = this.getMarketFromSymbols(symbols);
-            var instTypeparametersVariable = this.getInstType(market, parameters);
+            var instTypeparametersVariable = this.getInstType(market, uta, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
+        }
+        if (isTrue(uta))
+        {
+            instType = "UTA";
         }
         messageHash = add(add(instType, ":positions"), messageHash);
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", "positions" },
-            { "instId", "default" },
         };
+        object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+        object channel = ((bool) isTrue(uta)) ? "position" : "positions";
+        ((IDictionary<string,object>)args)[(string)topicOrChannel] = channel;
+        if (!isTrue(uta))
+        {
+            ((IDictionary<string,object>)args)["instId"] = "default";
+        } else
+        {
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            });
+        }
         object newPositions = await this.watchPrivate(messageHash, subscriptionHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -1129,7 +1482,46 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701913043767
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        // uta
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "leverage": "20",
+        //                 "openFeeTotal": "",
+        //                 "mmr": "",
+        //                 "breakEvenPrice": "",
+        //                 "available": "0",
+        //                 "liqPrice": "",
+        //                 "marginMode": "crossed",
+        //                 "unrealisedPnl": "0",
+        //                 "markPrice": "94987.1",
+        //                 "createdTime": "1736378720620",
+        //                 "avgPrice": "0",
+        //                 "totalFundingFee": "0",
+        //                 "updatedTime": "1736378720620",
+        //                 "marginCoin": "USDT",
+        //                 "frozen": "0",
+        //                 "profitRate": "",
+        //                 "closeFeeTotal": "",
+        //                 "marginSize": "0",
+        //                 "curRealisedPnl": "0",
+        //                 "size": "0",
+        //                 "positionStatus": "ended",
+        //                 "posSide": "long",
+        //                 "holdMode": "hedge_mode"
+        //             }
+        //         ],
+        //         "arg": {
+        //             "instType": "UTA",
+        //             "topic": "position"
+        //         },
+        //         "action": "snapshot",
+        //         "ts": 1730711666652
+        //     }
+        //
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object instType = this.safeString(arg, "instType", "");
         if (isTrue(isEqual(this.positions, null)))
         {
@@ -1141,12 +1533,12 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)this.positions)[(string)instType] = new ArrayCacheBySymbolBySide();
         }
         object cache = getValue(this.positions, instType);
-        object rawPositions = this.safeValue(message, "data", new List<object>() {});
+        object rawPositions = this.safeList(message, "data", new List<object>() {});
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
-            object marketId = this.safeString(rawPosition, "instId");
+            object marketId = this.safeString2(rawPosition, "instId", "symbol");
             object market = this.safeMarket(marketId, null, null, "contract");
             object position = this.parseWsPosition(rawPosition, market);
             ((IList<object>)newPositions).Add(position);
@@ -1195,16 +1587,45 @@ public partial class bitget : ccxt.bitget
         //         "autoMargin": "off"
         //     }
         //
-        object marketId = this.safeString(position, "instId");
+        // uta
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "leverage": "20",
+        //         "openFeeTotal": "",
+        //         "mmr": "",
+        //         "breakEvenPrice": "",
+        //         "available": "0",
+        //         "liqPrice": "",
+        //         "marginMode": "crossed",
+        //         "unrealisedPnl": "0",
+        //         "markPrice": "94987.1",
+        //         "createdTime": "1736378720620",
+        //         "avgPrice": "0",
+        //         "totalFundingFee": "0",
+        //         "updatedTime": "1736378720620",
+        //         "marginCoin": "USDT",
+        //         "frozen": "0",
+        //         "profitRate": "",
+        //         "closeFeeTotal": "",
+        //         "marginSize": "0",
+        //         "curRealisedPnl": "0",
+        //         "size": "0",
+        //         "positionStatus": "ended",
+        //         "posSide": "long",
+        //         "holdMode": "hedge_mode"
+        //     }
+        //
+        object marketId = this.safeString2(position, "instId", "symbol");
         object marginModeId = this.safeString(position, "marginMode");
         object marginMode = this.getSupportedMapping(marginModeId, new Dictionary<string, object>() {
             { "crossed", "cross" },
             { "isolated", "isolated" },
         });
-        object hedgedId = this.safeString(position, "posMode");
+        object hedgedId = this.safeString2(position, "posMode", "holdMode");
         object hedged = ((bool) isTrue((isEqual(hedgedId, "hedge_mode")))) ? true : false;
-        object timestamp = this.safeInteger2(position, "uTime", "cTime");
-        object percentageDecimal = this.safeString(position, "unrealizedPLR");
+        object timestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "uTime", "cTime", "createdTime"});
+        object percentageDecimal = this.safeString2(position, "unrealizedPLR", "profitRate");
         object percentage = Precise.stringMul(percentageDecimal, "100");
         object contractSize = null;
         if (isTrue(!isEqual(market, null)))
@@ -1217,21 +1638,21 @@ public partial class bitget : ccxt.bitget
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "notional", null },
             { "marginMode", marginMode },
-            { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
-            { "entryPrice", this.safeNumber(position, "openPriceAvg") },
-            { "unrealizedPnl", this.safeNumber(position, "unrealizedPL") },
+            { "liquidationPrice", this.safeNumber2(position, "liquidationPrice", "liqPrice") },
+            { "entryPrice", this.safeNumber2(position, "openPriceAvg", "avgPrice") },
+            { "unrealizedPnl", this.safeNumber2(position, "unrealizedPL", "unrealisedPnl") },
             { "percentage", this.parseNumber(percentage) },
-            { "contracts", this.safeNumber(position, "total") },
+            { "contracts", this.safeNumber2(position, "total", "size") },
             { "contractSize", contractSize },
-            { "markPrice", null },
-            { "side", this.safeString(position, "holdSide") },
+            { "markPrice", this.safeNumber(position, "markPrice") },
+            { "side", this.safeString2(position, "holdSide", "posSide") },
             { "hedged", hedged },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "maintenanceMargin", null },
-            { "maintenanceMarginPercentage", this.safeNumber(position, "keepMarginRate") },
-            { "collateral", null },
-            { "initialMargin", null },
+            { "maintenanceMarginPercentage", this.safeNumber2(position, "keepMarginRate", "mmr") },
+            { "collateral", this.safeNumber(position, "available") },
+            { "initialMargin", this.safeNumber(position, "marginSize") },
             { "initialMarginPercentage", null },
             { "leverage", this.safeNumber(position, "leverage") },
             { "marginRatio", this.safeNumber(position, "marginRate") },
@@ -1243,10 +1664,12 @@ public partial class bitget : ccxt.bitget
      * @name bitget#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
      * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders
+     * @see https://www.bitget.com/api-doc/uta/websocket/private/Order-Channel
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1255,7 +1678,8 @@ public partial class bitget : ccxt.bitget
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
      * @param {string} [params.type] 'spot', 'swap'
      * @param {string} [params.subType] 'linear', 'inverse'
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1276,6 +1700,10 @@ public partial class bitget : ccxt.bitget
             marketId = getValue(market, "id");
             messageHash = add(add(messageHash, ":"), symbol);
         }
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object productType = this.safeString(parameters, "productType");
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
@@ -1308,7 +1736,7 @@ public partial class bitget : ccxt.bitget
             instType = "SPOT";
         } else
         {
-            var instTypeparametersVariable = this.getInstType(market, parameters);
+            var instTypeparametersVariable = this.getInstType(market, uta, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
         }
@@ -1338,12 +1766,26 @@ public partial class bitget : ccxt.bitget
                 channel = "orders-crossed";
             }
         }
+        if (isTrue(uta))
+        {
+            instType = "UTA";
+            channel = "order";
+        }
         subscriptionHash = add(add(subscriptionHash, ":"), instType);
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", channel },
-            { "instId", instId },
         };
+        object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+        ((IDictionary<string,object>)args)[(string)topicOrChannel] = channel;
+        if (!isTrue(uta))
+        {
+            ((IDictionary<string,object>)args)["instId"] = instId;
+        } else
+        {
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            });
+        }
         object orders = await this.watchPrivate(messageHash, subscriptionHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -1388,25 +1830,74 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701923982497
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": {
+        //             "instType": "UTA",
+        //             "topic": "order"
+        //         },
+        //         "data": [
+        //             {
+        //                 "category": "usdt-futures",
+        //                 "symbol": "BTCUSDT",
+        //                 "orderId": "xxx",
+        //                 "clientOid": "xxx",
+        //                 "price": "",
+        //                 "qty": "0.001",
+        //                 "amount": "1000",
+        //                 "holdMode": "hedge_mode",
+        //                 "holdSide": "long",
+        //                 "tradeSide": "open",
+        //                 "orderType": "market",
+        //                 "timeInForce": "gtc",
+        //                 "side": "buy",
+        //                 "marginMode": "crossed",
+        //                 "marginCoin": "USDT",
+        //                 "reduceOnly": "no",
+        //                 "cumExecQty": "0.001",
+        //                 "cumExecValue": "83.1315",
+        //                 "avgPrice": "83131.5",
+        //                 "totalProfit": "0",
+        //                 "orderStatus": "filled",
+        //                 "cancelReason": "",
+        //                 "leverage": "20",
+        //                 "feeDetail": [
+        //                     {
+        //                         "feeCoin": "USDT",
+        //                         "fee": "0.0332526"
+        //                     }
+        //                 ],
+        //                 "createdTime": "1742367838101",
+        //                 "updatedTime": "1742367838115",
+        //                 "stpMode": "none"
+        //             }
+        //         ],
+        //         "ts": 1742367838124
+        //     }
+        //
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
-        object instType = this.safeString(arg, "instType");
+        object channel = this.safeString2(arg, "channel", "topic");
+        object instType = this.safeStringLower(arg, "instType");
         object argInstId = this.safeString(arg, "instId");
         object marketType = null;
-        if (isTrue(isEqual(instType, "SPOT")))
+        if (isTrue(isEqual(instType, "spot")))
         {
             marketType = "spot";
-        } else if (isTrue(isEqual(instType, "MARGIN")))
+        } else if (isTrue(isEqual(instType, "margin")))
         {
             marketType = "spot";
         } else
         {
             marketType = "contract";
         }
-        object isLinearSwap = (isEqual(instType, "USDT-FUTURES"));
-        object isInverseSwap = (isEqual(instType, "COIN-FUTURES"));
-        object isUSDCFutures = (isEqual(instType, "USDC-FUTURES"));
-        object data = this.safeValue(message, "data", new List<object>() {});
+        object data = this.safeList(message, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object category = this.safeStringLower(first, "category", instType);
+        object isLinearSwap = (isEqual(category, "usdt-futures"));
+        object isInverseSwap = (isEqual(category, "coin-futures"));
+        object isUSDCFutures = (isEqual(category, "usdc-futures"));
         if (isTrue(isEqual(this.orders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1420,7 +1911,7 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
-            object marketId = this.safeString(order, "instId", argInstId);
+            object marketId = this.safeString2(order, "instId", "symbol", argInstId);
             object market = this.safeMarket(marketId, null, null, marketType);
             object parsed = this.parseWsOrder(order, market);
             callDynamically(stored, "append", new object[] {parsed});
@@ -1575,13 +2066,59 @@ public partial class bitget : ccxt.bitget
         //         orderId: "1183419084588060673",
         //       }
         //
+        // uta
+        //
+        //     {
+        //         "category": "usdt-futures",
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "xxx",
+        //         "clientOid": "xxx",
+        //         "price": "",
+        //         "qty": "0.001",
+        //         "amount": "1000",
+        //         "holdMode": "hedge_mode",
+        //         "holdSide": "long",
+        //         "tradeSide": "open",
+        //         "orderType": "market",
+        //         "timeInForce": "gtc",
+        //         "side": "buy",
+        //         "marginMode": "crossed",
+        //         "marginCoin": "USDT",
+        //         "reduceOnly": "no",
+        //         "cumExecQty": "0.001",
+        //         "cumExecValue": "83.1315",
+        //         "avgPrice": "83131.5",
+        //         "totalProfit": "0",
+        //         "orderStatus": "filled",
+        //         "cancelReason": "",
+        //         "leverage": "20",
+        //         "feeDetail": [
+        //             {
+        //                 "feeCoin": "USDT",
+        //                 "fee": "0.0332526"
+        //             }
+        //         ],
+        //         "createdTime": "1742367838101",
+        //         "updatedTime": "1742367838115",
+        //         "stpMode": "none"
+        //     }
+        //
         object isSpot = !isTrue((inOp(order, "posMode")));
         object isMargin = (inOp(order, "loanType"));
-        object marketId = this.safeString(order, "instId");
+        object category = this.safeStringLower(order, "category");
+        if (isTrue(isEqual(category, "spot")))
+        {
+            isSpot = true;
+        }
+        if (isTrue(isEqual(category, "margin")))
+        {
+            isMargin = true;
+        }
+        object marketId = this.safeString2(order, "instId", "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger(order, "cTime");
+        object timestamp = this.safeInteger2(order, "cTime", "createdTime");
         object symbol = getValue(market, "symbol");
-        object rawStatus = this.safeString(order, "status");
+        object rawStatus = this.safeString2(order, "status", "orderStatus");
         object orderFee = this.safeValue(order, "feeDetail", new List<object>() {});
         object fee = this.safeValue(orderFee, 0);
         object feeAmount = this.safeString(fee, "fee");
@@ -1605,25 +2142,25 @@ public partial class bitget : ccxt.bitget
             // for spot trigger order, limit price is this
             price = this.safeNumber(order, "executePrice");
         }
-        object avgPrice = this.omitZero(this.safeString2(order, "priceAvg", "fillPrice"));
+        object avgPrice = this.omitZero(this.safeStringLowerN(order, new List<object>() {"priceAvg", "fillPrice", "avgPrice"}));
         object side = this.safeString(order, "side");
         object type = this.safeString(order, "orderType");
-        object accBaseVolume = this.omitZero(this.safeString(order, "accBaseVolume"));
-        object newSizeValue = this.omitZero(this.safeString(order, "newSize"));
+        object accBaseVolume = this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty"));
+        object newSizeValue = this.omitZero(this.safeString2(order, "newSize", "cumExecValue"));
         object isMarketOrder = (isEqual(type, "market"));
         object isBuy = (isEqual(side, "buy"));
         object totalAmount = null;
         object filledAmount = null;
         object cost = null;
         object remaining = null;
-        object totalFilled = this.safeString(order, "accBaseVolume");
+        object totalFilled = this.safeString2(order, "accBaseVolume", "cumExecQty");
         if (isTrue(isSpot))
         {
             if (isTrue(isMargin))
             {
-                totalAmount = this.safeString(order, "baseSize");
-                totalFilled = this.safeString(order, "baseVolume");
-                cost = this.safeString(order, "fillTotalAmount");
+                totalAmount = this.safeString2(order, "baseSize", "qty");
+                totalFilled = this.safeString2(order, "baseVolume", "cumExecQty");
+                cost = this.safeString2(order, "fillTotalAmount", "cumExecValue");
             } else
             {
                 object partialFillAmount = this.safeString(order, "baseVolume");
@@ -1646,15 +2183,15 @@ public partial class bitget : ccxt.bitget
                     }
                 } else
                 {
-                    totalAmount = this.safeString(order, "newSize");
+                    totalAmount = this.safeString2(order, "newSize", "qty");
                 }
             }
         } else
         {
             // baseVolume should not be used for "amount" for contracts !
-            filledAmount = this.safeString(order, "baseVolume");
-            totalAmount = this.safeString(order, "size");
-            cost = this.safeString(order, "fillNotionalUsd");
+            filledAmount = this.safeString2(order, "baseVolume", "cumExecQty");
+            totalAmount = this.safeString2(order, "size", "qty");
+            cost = this.safeString2(order, "fillNotionalUsd", "cumExecValue");
         }
         remaining = Precise.stringSub(totalAmount, totalFilled);
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1664,9 +2201,9 @@ public partial class bitget : ccxt.bitget
             { "clientOrderId", this.safeString(order, "clientOid") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimestamp", this.safeInteger(order, "uTime") },
+            { "lastTradeTimestamp", this.safeInteger2(order, "uTime", "updatedTime") },
             { "type", type },
-            { "timeInForce", this.safeStringUpper(order, "force") },
+            { "timeInForce", this.safeStringUpper2(order, "force", "timeInForce") },
             { "postOnly", null },
             { "side", side },
             { "price", price },
@@ -1698,12 +2235,14 @@ public partial class bitget : ccxt.bitget
      * @method
      * @name bitget#watchMyTrades
      * @description watches trades made by the user
-     * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/private/Fill-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/private/Fill-Channel
      * @param {str} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1722,21 +2261,38 @@ public partial class bitget : ccxt.bitget
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object instType = null;
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(isTrue(isEqual(market, null)) && isTrue(isEqual(type, "spot"))))
         {
             instType = "SPOT";
         } else
         {
-            var instTypeparametersVariable = this.getInstType(market, parameters);
+            var instTypeparametersVariable = this.getInstType(market, uta, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
+        }
+        if (isTrue(uta))
+        {
+            instType = "UTA";
         }
         object subscriptionHash = add("fill:", instType);
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", "fill" },
-            { "instId", "default" },
         };
+        object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+        ((IDictionary<string,object>)args)[(string)topicOrChannel] = "fill";
+        if (!isTrue(uta))
+        {
+            ((IDictionary<string,object>)args)["instId"] = "default";
+        } else
+        {
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            });
+        }
         object trades = await this.watchPrivate(messageHash, subscriptionHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -1818,6 +2374,44 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1714471276629
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "orderType": "market",
+        //                 "updatedTime": "1736378720623",
+        //                 "side": "buy",
+        //                 "orderId": "1288888888888888888",
+        //                 "execPnl": "0",
+        //                 "feeDetail": [
+        //                     {
+        //                         "feeCoin": "USDT",
+        //                         "fee": "0.569958"
+        //                     }
+        //                 ],
+        //                 "execTime": "1736378720623",
+        //                 "tradeScope": "taker",
+        //                 "tradeSide": "open",
+        //                 "execId": "1288888888888888888",
+        //                 "execLinkId": "1288888888888888888",
+        //                 "execPrice": "94993",
+        //                 "holdSide": "long",
+        //                 "execValue": "949.93",
+        //                 "category": "USDT-FUTURES",
+        //                 "execQty": "0.01",
+        //                 "clientOid": "1288888888888888889"
+        //             }
+        //         ],
+        //         "arg": {
+        //             "instType": "UTA",
+        //             "topic": "fill"
+        //         },
+        //         "action": "snapshot",
+        //         "ts": 1733904123981
+        //     }
+        //
         if (isTrue(isEqual(this.myTrades, null)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1847,15 +2441,21 @@ public partial class bitget : ccxt.bitget
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
      * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
      * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
+     * @see https://www.bitget.com/api-doc/uta/websocket/private/Account-Channel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
      * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -1872,25 +2472,41 @@ public partial class bitget : ccxt.bitget
         } else if (isTrue(!isEqual(marginMode, null)))
         {
             instType = "MARGIN";
-            if (isTrue(isEqual(marginMode, "isolated")))
+            if (!isTrue(uta))
             {
-                channel = "account-isolated";
-            } else
-            {
-                channel = "account-crossed";
+                if (isTrue(isEqual(marginMode, "isolated")))
+                {
+                    channel = "account-isolated";
+                } else
+                {
+                    channel = "account-crossed";
+                }
             }
-        } else
+        } else if (!isTrue(uta))
         {
             instType = "SPOT";
         }
         var instTypeparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "instType", instType);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            instType = "UTA";
+        }
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", channel },
-            { "coin", "default" },
         };
+        object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+        ((IDictionary<string,object>)args)[(string)topicOrChannel] = channel;
+        if (!isTrue(uta))
+        {
+            ((IDictionary<string,object>)args)["coin"] = "default";
+        } else
+        {
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "uta", true },
+            });
+        }
         object messageHash = add("balance:", ((string)instType).ToLower());
         return await this.watchPrivate(messageHash, messageHash, args, parameters);
     }
@@ -1955,28 +2571,81 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701933110544
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "data": [{
+        //             "unrealisedPnL": "-10116.55",
+        //             "totalEquity": "4976919.05",
+        //             "positionMgnRatio": "0",
+        //             "mmr": "408.08",
+        //             "effEquity": "4847952.35",
+        //             "imr": "17795.97",
+        //             "mgnRatio": "0",
+        //             "coin": [{
+        //                 "debts": "0",
+        //                 "balance": "0.9992",
+        //                 "available": "0.9992",
+        //                 "borrow": "0",
+        //                 "locked": "0",
+        //                 "equity": "0.9992",
+        //                 "coin": "ETH",
+        //                 "usdValue": "2488.667472"
+        //             }]
+        //         }],
+        //         "arg": {
+        //             "instType": "UTA",
+        //             "topic": "account"
+        //         },
+        //         "action": "snapshot",
+        //         "ts": 1740546523244
+        //     }
+        //
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        object instType = this.safeStringLower(arg, "instType");
         object data = this.safeValue(message, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawBalance = getValue(data, i);
-            object currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
-            object code = this.safeCurrencyCode(currencyId);
-            object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
-            object borrow = this.safeString(rawBalance, "borrow");
-            if (isTrue(!isEqual(borrow, null)))
+            if (isTrue(isEqual(instType, "uta")))
             {
-                object interest = this.safeString(rawBalance, "interest");
-                ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(borrow, interest);
+                object coins = this.safeList(rawBalance, "coin", new List<object>() {});
+                for (object j = 0; isLessThan(j, getArrayLength(coins)); postFixIncrement(ref j))
+                {
+                    object entry = getValue(coins, j);
+                    object currencyId = this.safeString(entry, "coin");
+                    object code = this.safeCurrencyCode(currencyId);
+                    object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
+                    object borrow = this.safeString(entry, "borrow");
+                    object debts = this.safeString(entry, "debts");
+                    if (isTrue(isTrue((!isEqual(borrow, null))) || isTrue((!isEqual(debts, null)))))
+                    {
+                        ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(borrow, debts);
+                    }
+                    ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
+                    ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
+                    ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
+                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                }
+            } else
+            {
+                object currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
+                object borrow = this.safeString(rawBalance, "borrow");
+                if (isTrue(!isEqual(borrow, null)))
+                {
+                    object interest = this.safeString(rawBalance, "interest");
+                    ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(borrow, interest);
+                }
+                object freeQuery = ((bool) isTrue((inOp(rawBalance, "maxTransferOut")))) ? "maxTransferOut" : "available";
+                ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, freeQuery);
+                ((IDictionary<string,object>)account)["total"] = this.safeString(rawBalance, "equity");
+                ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "frozen");
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
             }
-            object freeQuery = ((bool) isTrue((inOp(rawBalance, "maxTransferOut")))) ? "maxTransferOut" : "available";
-            ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, freeQuery);
-            ((IDictionary<string,object>)account)["total"] = this.safeString(rawBalance, "equity");
-            ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "frozen");
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
         }
         this.balance = this.safeBalance(this.balance);
-        object arg = this.safeValue(message, "arg");
-        object instType = this.safeStringLower(arg, "instType");
         object messageHash = add("balance:", instType);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
     }
@@ -1984,14 +2653,31 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublic(object messageHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object uta = null;
+        object url = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPublic", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic");
+        } else
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        }
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(sandboxMode))
         {
             object instType = this.safeString(args, "instType");
             if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
             {
-                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+                if (isTrue(uta))
+                {
+                    url = getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPublic");
+                } else
+                {
+                    url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+                }
             }
         }
         object request = new Dictionary<string, object>() {
@@ -2005,14 +2691,31 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> unWatchPublic(object messageHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object uta = null;
+        object url = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchPublic", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic");
+        } else
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        }
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(sandboxMode))
         {
             object instType = this.safeString(args, "instType");
             if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
             {
-                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+                if (isTrue(uta))
+                {
+                    url = getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPublic");
+                } else
+                {
+                    url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+                }
             }
         }
         object request = new Dictionary<string, object>() {
@@ -2026,7 +2729,18 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublicMultiple(object messageHashes, object argsArray, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object uta = null;
+        object url = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPublicMultiple", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic");
+        } else
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        }
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(sandboxMode))
         {
@@ -2034,7 +2748,13 @@ public partial class bitget : ccxt.bitget
             object instType = this.safeString(argsArrayFirst, "instType");
             if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
             {
-                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+                if (isTrue(uta))
+                {
+                    url = getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPublic");
+                } else
+                {
+                    url = getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+                }
             }
         }
         object request = new Dictionary<string, object>() {
@@ -2052,7 +2772,7 @@ public partial class bitget : ccxt.bitget
         object url = this.safeString(parameters, "url");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -2078,14 +2798,31 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPrivate(object messageHash, object subscriptionHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object uta = null;
+        object url = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPrivate", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPrivate");
+        } else
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        }
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(sandboxMode))
         {
             object instType = this.safeString(args, "instType");
             if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
             {
-                url = getValue(getValue(getValue(this.urls, "api"), "demo"), "private");
+                if (isTrue(uta))
+                {
+                    url = getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPrivate");
+                } else
+                {
+                    url = getValue(getValue(getValue(this.urls, "api"), "demo"), "private");
+                }
             }
         }
         await this.authenticate(new Dictionary<string, object>() {
@@ -2193,6 +2930,41 @@ public partial class bitget : ccxt.bitget
         //        ]
         //    }
         //
+        // uta
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": { "instType": "spot", topic: "ticker", symbol: "BTCUSDT" },
+        //         "data": [
+        //             {
+        //                 "highPrice24h": "120255.61",
+        //                 "lowPrice24h": "116145.88",
+        //                 "openPrice24h": "118919.38",
+        //                 "lastPrice": "119818.83",
+        //                 "turnover24h": "215859996.272276",
+        //                 "volume24h": "1819.756798",
+        //                 "bid1Price": "119811.26",
+        //                 "ask1Price": "119831.18",
+        //                 "bid1Size": "0.008732",
+        //                 "ask1Size": "0.004297",
+        //                 "price24hPcnt": "0.02002"
+        //             }
+        //         ],
+        //         "ts": 1753230479687
+        //     }
+        //
+        // unsubscribe
+        //
+        //     {
+        //         "event": "unsubscribe",
+        //         "arg": {
+        //             "instType": "spot",
+        //             "topic": "kline",
+        //             "symbol": "BTCUSDT",
+        //             "interval": "1m"
+        //         }
+        //     }
+        //
         if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
         {
             return;
@@ -2227,19 +2999,23 @@ public partial class bitget : ccxt.bitget
         object methods = new Dictionary<string, object>() {
             { "ticker", this.handleTicker },
             { "trade", this.handleTrades },
+            { "publicTrade", this.handleTrades },
             { "fill", this.handleMyTrades },
+            { "order", this.handleOrder },
             { "orders", this.handleOrder },
             { "ordersAlgo", this.handleOrder },
             { "orders-algo", this.handleOrder },
             { "orders-crossed", this.handleOrder },
             { "orders-isolated", this.handleOrder },
             { "account", this.handleBalance },
+            { "position", this.handlePositions },
             { "positions", this.handlePositions },
             { "account-isolated", this.handleBalance },
             { "account-crossed", this.handleBalance },
+            { "kline", this.handleOHLCV },
         };
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
-        object topic = this.safeValue(arg, "channel", "");
+        object topic = this.safeValue2(arg, "channel", "topic", "");
         object method = this.safeValue(methods, topic);
         if (isTrue(!isEqual(method, null)))
         {
@@ -2303,7 +3079,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " orderbook "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
@@ -2315,7 +3094,7 @@ public partial class bitget : ccxt.bitget
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object instType = this.safeStringLower(arg, "instType");
         object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
-        object instId = this.safeString(arg, "instId");
+        object instId = this.safeString2(arg, "instId", "symbol");
         object market = this.safeMarket(instId, null, null, type);
         object symbol = getValue(market, "symbol");
         object messageHash = add("unsubscribe:trade:", getValue(market, "symbol"));
@@ -2333,7 +3112,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " trades "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
@@ -2345,7 +3127,7 @@ public partial class bitget : ccxt.bitget
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object instType = this.safeStringLower(arg, "instType");
         object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
-        object instId = this.safeString(arg, "instId");
+        object instId = this.safeString2(arg, "instId", "symbol");
         object market = this.safeMarket(instId, null, null, type);
         object symbol = getValue(market, "symbol");
         object messageHash = add("unsubscribe:ticker:", getValue(market, "symbol"));
@@ -2363,7 +3145,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " ticker "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
@@ -2372,18 +3157,40 @@ public partial class bitget : ccxt.bitget
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
         //
+        // UTA
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"kline","symbol":"BTCUSDT","interval":"1m"}}
+        //
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object instType = this.safeStringLower(arg, "instType");
         object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
-        object instId = this.safeString(arg, "instId");
-        object channel = this.safeString(arg, "channel");
-        object interval = ((string)channel).Replace((string)"candle", (string)"");
+        object instId = this.safeString2(arg, "instId", "symbol");
+        object channel = this.safeString2(arg, "channel", "topic");
+        object interval = this.safeString(arg, "interval");
+        object isUta = null;
+        if (isTrue(isEqual(interval, null)))
+        {
+            isUta = false;
+            interval = ((string)channel).Replace((string)"candle", (string)"");
+        } else
+        {
+            isUta = true;
+        }
         object timeframes = this.safeValue(this.options, "timeframes");
         object timeframe = this.findTimeframe(interval, timeframes);
         object market = this.safeMarket(instId, null, null, type);
         object symbol = getValue(market, "symbol");
-        object messageHash = add(add(add("unsubscribe:candles:", timeframe), ":"), getValue(market, "symbol"));
-        object subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        object messageHash = null;
+        object subMessageHash = null;
+        if (isTrue(isUta))
+        {
+            messageHash = add("unsubscribe:kline:", symbol);
+            subMessageHash = add("kline:", symbol);
+        } else
+        {
+            messageHash = add(add(add("unsubscribe:candles:", timeframe), ":"), symbol);
+            subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        }
         if (isTrue(inOp(this.ohlcvs, symbol)))
         {
             if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
@@ -2423,18 +3230,21 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, getArrayLength(argsList)); postFixIncrement(ref i))
         {
             object arg = getValue(argsList, i);
-            object channel = this.safeString(arg, "channel");
+            object channel = this.safeString2(arg, "channel", "topic");
             if (isTrue(isEqual(channel, "books")))
             {
                 // for now only unWatchOrderBook is supporteod
                 this.handleOrderBookUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(isEqual(channel, "trade")))
+            } else if (isTrue(isTrue((isEqual(channel, "trade"))) || isTrue((isEqual(channel, "publicTrade")))))
             {
                 this.handleTradesUnSubscription(client as WebSocketClient, message);
             } else if (isTrue(isEqual(channel, "ticker")))
             {
                 this.handleTickerUnSubscription(client as WebSocketClient, message);
             } else if (isTrue(((string)channel).StartsWith(((string)"candle"))))
+            {
+                this.handleOHLCVUnSubscription(client as WebSocketClient, message);
+            } else if (isTrue(((string)channel).StartsWith(((string)"kline"))))
             {
                 this.handleOHLCVUnSubscription(client as WebSocketClient, message);
             }

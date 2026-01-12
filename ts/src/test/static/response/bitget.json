@@ -1361,6 +1361,66 @@
         ],
         "editOrder": [
             {
+                "description": "edit spot order with clientOrderId",
+                "method": "editOrder",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.11,
+                    85,
+                    {
+                        "clientOrderId": "bitget1"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1762863706194",
+                    "data": {
+                        "orderId": "",
+                        "clientOid": "bitget1",
+                        "success": "success",
+                        "msg": ""
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "",
+                        "clientOid": "bitget1",
+                        "success": "success",
+                        "msg": ""
+                    },
+                    "id": null,
+                    "clientOrderId": "bitget1",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "uta spot edit order",
                 "method": "editOrder",
                 "input": [
@@ -3238,6 +3298,168 @@
         ],
         "fetchBalance": [
             {
+                "description": "spot isolated",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1759831688425",
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "coin": "USDT",
+                            "totalAmount": "0.000001",
+                            "available": "0.000001",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0.000001",
+                            "coupon": "0",
+                            "cTime": "1759826434145",
+                            "uTime": "1759826434146"
+                        },
+                        {
+                            "symbol": "BTCUSDT",
+                            "coin": "BTC",
+                            "totalAmount": "0",
+                            "available": "0",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0",
+                            "coupon": "0",
+                            "cTime": "1759826434145",
+                            "uTime": "1759826434145"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "coin": "USDT",
+                            "totalAmount": "0.000001",
+                            "available": "0.000001",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0.000001",
+                            "coupon": "0",
+                            "cTime": "1759826434145",
+                            "uTime": "1759826434146"
+                        },
+                        {
+                            "symbol": "BTCUSDT",
+                            "coin": "BTC",
+                            "totalAmount": "0",
+                            "available": "0",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0",
+                            "coupon": "0",
+                            "cTime": "1759826434145",
+                            "uTime": "1759826434145"
+                        }
+                    ],
+                    "USDT": {
+                        "free": null,
+                        "used": null,
+                        "total": 0.000001,
+                        "debt": 0
+                    },
+                    "BTC": {
+                        "free": null,
+                        "used": null,
+                        "total": 0,
+                        "debt": 0
+                    },
+                    "free": {
+                        "USDT": null,
+                        "BTC": null
+                    },
+                    "used": {
+                        "USDT": null,
+                        "BTC": null
+                    },
+                    "total": {
+                        "USDT": 0.000001,
+                        "BTC": 0
+                    },
+                    "debt": {
+                        "USDT": 0,
+                        "BTC": 0
+                    }
+                }
+            },
+            {
+                "description": "spot cross",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1759831667066",
+                    "data": [
+                        {
+                            "coin": "USDT",
+                            "totalAmount": "0.01",
+                            "available": "0.01",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0.01",
+                            "coupon": "0",
+                            "cTime": "1759828511592",
+                            "uTime": "1759828511592"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "coin": "USDT",
+                            "totalAmount": "0.01",
+                            "available": "0.01",
+                            "frozen": "0",
+                            "borrow": "0",
+                            "interest": "0",
+                            "net": "0.01",
+                            "coupon": "0",
+                            "cTime": "1759828511592",
+                            "uTime": "1759828511592"
+                        }
+                    ],
+                    "USDT": {
+                        "free": null,
+                        "used": null,
+                        "total": 0.01,
+                        "debt": 0
+                    },
+                    "free": {
+                        "USDT": null
+                    },
+                    "used": {
+                        "USDT": null
+                    },
+                    "total": {
+                        "USDT": 0.01
+                    },
+                    "debt": {
+                        "USDT": 0
+                    }
+                }
+            },
+            {
                 "description": "spot balance",
                 "method": "fetchBalance",
                 "input": [],
@@ -3675,6 +3897,110 @@
                         "initialMarginPercentage": 0.20011016248967226,
                         "leverage": 5,
                         "marginRatio": 0.001458866276,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "fetchPositions uta",
+                "method": "fetchPositions",
+                "input": [
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1758035583917",
+                    "data": {
+                        "list": [
+                            {
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "marginCoin": "USDT",
+                                "holdMode": "one_way_mode",
+                                "posSide": "long",
+                                "marginMode": "crossed",
+                                "positionBalance": "5.82333136",
+                                "available": "0.001",
+                                "frozen": "0",
+                                "total": "0.001",
+                                "leverage": "20",
+                                "curRealisedPnl": "0",
+                                "avgPrice": "115085.6",
+                                "positionStatus": "normal",
+                                "unrealisedPnl": "0",
+                                "liquidationPrice": "0",
+                                "mmr": "0.004",
+                                "profitRate": "0",
+                                "markPrice": "115085.6",
+                                "breakEvenPrice": "115223.7",
+                                "totalFunding": "0",
+                                "openFeeTotal": "-0.06905136",
+                                "closeFeeTotal": "0",
+                                "createdTime": "1750495670699",
+                                "updatedTime": "1758035576809"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "one_way_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "positionBalance": "5.82333136",
+                            "available": "0.001",
+                            "frozen": "0",
+                            "total": "0.001",
+                            "leverage": "20",
+                            "curRealisedPnl": "0",
+                            "avgPrice": "115085.6",
+                            "positionStatus": "normal",
+                            "unrealisedPnl": "0",
+                            "liquidationPrice": "0",
+                            "mmr": "0.004",
+                            "profitRate": "0",
+                            "markPrice": "115085.6",
+                            "breakEvenPrice": "115223.7",
+                            "totalFunding": "0",
+                            "openFeeTotal": "-0.06905136",
+                            "closeFeeTotal": "0",
+                            "createdTime": "1750495670699",
+                            "updatedTime": "1758035576809"
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": 115.0856,
+                        "marginMode": "cross",
+                        "liquidationPrice": null,
+                        "entryPrice": 115085.6,
+                        "unrealizedPnl": 0,
+                        "realizedPnl": 0,
+                        "percentage": 0,
+                        "contracts": 0.001,
+                        "contractSize": 1,
+                        "markPrice": 115085.6,
+                        "lastPrice": null,
+                        "side": "long",
+                        "hedged": false,
+                        "timestamp": 1750495670699,
+                        "datetime": "2025-06-21T08:47:50.699Z",
+                        "lastUpdateTimestamp": 1758035576809,
+                        "maintenanceMargin": 0.06905136,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": null,
+                        "initialMargin": 5.82333136,
+                        "initialMarginPercentage": 0.0506,
+                        "leverage": 20,
+                        "marginRatio": 0.004,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
                     }
@@ -6156,6 +6482,169 @@
                     },
                     "id": null,
                     "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "cancel uta linear swap order using the clientOrderId",
+                "method": "cancelOrder",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "123abc",
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1754804372555",
+                    "data": {
+                        "orderId": "1338311846888062976",
+                        "clientOid": "123abc"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1338311846888062976",
+                        "clientOid": "123abc"
+                    },
+                    "id": "1338311846888062976",
+                    "clientOrderId": "123abc",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "linear swap cancelOrder by clientOrderId",
+                "method": "cancelOrder",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "abc321"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1754866672623",
+                    "data": {
+                        "orderId": "1338573177902235649",
+                        "clientOid": "abc321"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1338573177902235649",
+                        "clientOid": "abc321"
+                    },
+                    "id": "1338573177902235649",
+                    "clientOrderId": "abc321",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "trailing cancel order with clientOrderId",
+                "method": "cancelOrder",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "a1b2c3",
+                        "trailing": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1754872808218",
+                    "data": {
+                        "successList": [
+                            {
+                                "clientOid": "a1b2c3",
+                                "orderId": "1338599016943681536"
+                            }
+                        ],
+                        "failureList": []
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clientOid": "a1b2c3",
+                        "orderId": "1338599016943681536"
+                    },
+                    "id": "1338599016943681536",
+                    "clientOrderId": "a1b2c3",
                     "timestamp": null,
                     "datetime": null,
                     "lastTradeTimestamp": null,

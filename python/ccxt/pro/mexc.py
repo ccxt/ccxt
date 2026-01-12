@@ -49,13 +49,14 @@ class mexc(ccxt.async_support.mexc):
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://wbs.mexc.com/ws',
+                        'spot': 'wss://wbs-api.mexc.com/ws',
                         'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
             },
             'options': {
                 'listenKeyRefreshRate': 1200000,
+                'decompressBinary': False,
                 # TODO add reset connection after  #16754 is merged
                 'timeframes': {
                     '1m': 'Min1',
@@ -94,19 +95,13 @@ class mexc(ccxt.async_support.mexc):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         if market['spot']:
-            miniTicker = False
-            miniTicker, params = self.handle_option_and_params(params, 'watchTicker', 'miniTicker')
-            channel = None
-            if miniTicker:
-                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8'
-            else:
-                channel = 'spot@public.bookTicker.v3.api@' + market['id']
+            channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']
             return await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.ticker'
@@ -123,7 +118,7 @@ class mexc(ccxt.async_support.mexc):
         #         "symbol": "BTC_USDT",
         #         "data": {
         #             "symbol": "BTC_USDT",
-        #             "lastPrice": 76376.2,
+        #             "lastPrice": 76376.1,
         #             "riseFallRate": -0.0006,
         #             "fairPrice": 76374.4,
         #             "indexPrice": 76385.8,
@@ -184,9 +179,9 @@ class mexc(ccxt.async_support.mexc):
         #     }
         #
         self.handle_bid_ask(client, message)
-        rawTicker = self.safe_dict_2(message, 'd', 'data')
+        rawTicker = self.safe_dict_n(message, ['d', 'data', 'publicAggreBookTicker'])
         marketId = self.safe_string_2(message, 's', 'symbol')
-        timestamp = self.safe_integer(message, 't')
+        timestamp = self.safe_integer_2(message, 't', 'sendTime')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         ticker = None
@@ -211,7 +206,7 @@ class mexc(ccxt.async_support.mexc):
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None)
@@ -226,27 +221,33 @@ class mexc(ccxt.async_support.mexc):
         url = self.urls['api']['ws']['spot'] if (isSpot) else self.urls['api']['ws']['swap']
         request: dict = {}
         if isSpot:
-            miniTicker = False
-            miniTicker, params = self.handle_option_and_params(params, 'watchTickers', 'miniTicker')
-            topics = []
-            if not miniTicker:
-                if symbols is None:
-                    raise ArgumentsRequired(self.id + ' watchTickers required symbols argument for the bookTicker channel')
-                marketIds = self.market_ids(symbols)
-                for i in range(0, len(marketIds)):
-                    marketId = marketIds[i]
-                    messageHashes.append('ticker:' + symbols[i])
-                    channel = 'spot@public.bookTicker.v3.api@' + marketId
-                    topics.append(channel)
-            else:
-                topics.append('spot@public.miniTickers.v3.api@UTC+8')
-                if symbols is None:
-                    messageHashes.append('spot:ticker')
-                else:
-                    for i in range(0, len(symbols)):
-                        messageHashes.append('ticker:' + symbols[i])
-            request['method'] = 'SUBSCRIPTION'
-            request['params'] = topics
+            raise NotSupported(self.id + ' watchTickers does not support spot markets')
+            # miniTicker = False
+            # miniTicker, params = self.handle_option_and_params(params, 'watchTickers', 'miniTicker')
+            # topics = []
+            # if not miniTicker:
+            #     if symbols is None:
+            #         raise ArgumentsRequired(self.id + ' watchTickers required symbols argument for the bookTicker channel')
+            #     }
+            #     marketIds = self.market_ids(symbols)
+            #     for i in range(0, len(marketIds)):
+            #         marketId = marketIds[i]
+            #         messageHashes.append('ticker:' + symbols[i])
+            #         channel = 'spot@public.bookTicker.v3.api@' + marketId
+            #         topics.append(channel)
+            #     }
+            # else:
+            #     topics.append('spot@public.miniTickers.v3.api@UTC+8')
+            #     if symbols is None:
+            #         messageHashes.append('spot:ticker')
+            #     else:
+            #         for i in range(0, len(symbols)):
+            #             messageHashes.append('ticker:' + symbols[i])
+            #         }
+            #     }
+            # }
+            # request['method'] = 'SUBSCRIPTION'
+            # request['params'] = topics
         else:
             request['method'] = 'sub.tickers'
             request['params'] = {}
@@ -345,6 +346,11 @@ class mexc(ccxt.async_support.mexc):
         client.resolve(result, topic)
 
     def parse_ws_ticker(self, ticker, market=None):
+        # protobuf ticker
+        # "bidprice": "93387.28",  # Best bid price
+        # "bidquantity": "3.73485",  # Best bid quantity
+        # "askprice": "93387.29",  # Best ask price
+        # "askquantity": "7.669875"  # Best ask quantity
         #
         # spot
         #
@@ -359,7 +365,7 @@ class mexc(ccxt.async_support.mexc):
         #
         #     {
         #         "s": "BTCUSDT",
-        #         "p": "76522",
+        #         "p": "76521",
         #         "r": "0.0012",
         #         "tr": "0.0012",
         #         "h": "77196.3",
@@ -385,10 +391,10 @@ class mexc(ccxt.async_support.mexc):
             'low': self.safe_number(ticker, 'l'),
             'close': price,
             'last': price,
-            'bid': self.safe_number(ticker, 'b'),
-            'bidVolume': self.safe_number(ticker, 'B'),
-            'ask': self.safe_number(ticker, 'a'),
-            'askVolume': self.safe_number(ticker, 'A'),
+            'bid': self.safe_number_2(ticker, 'b', 'bidPrice'),
+            'bidVolume': self.safe_number_2(ticker, 'B', 'bidQuantity'),
+            'ask': self.safe_number_2(ticker, 'a', 'askPrice'),
+            'askVolume': self.safe_number_2(ticker, 'A', 'askQuantity'),
             'vwap': None,
             'previousClose': None,
             'change': None,
@@ -406,7 +412,7 @@ class mexc(ccxt.async_support.mexc):
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
@@ -423,7 +429,7 @@ class mexc(ccxt.async_support.mexc):
         for i in range(0, len(symbols)):
             if isSpot:
                 market = self.market(symbols[i])
-                topics.append('spot@public.bookTicker.v3.api@' + market['id'])
+                topics.append('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'])
             messageHashes.append('bidask:' + symbols[i])
         url = self.urls['api']['ws']['spot']
         request: dict = {
@@ -524,10 +530,10 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
+        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
 
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -545,7 +551,7 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'candles:' + symbol + ':' + timeframe
         ohlcv = None
         if market['spot']:
-            channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId
+            channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId
             ohlcv = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.kline'
@@ -604,17 +610,45 @@ class mexc(ccxt.async_support.mexc):
         #       "symbol": "BTC_USDT",
         #       "ts": 1651230713067
         #   }
+        # protobuf
+        #  {
+        #    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        #    "symbol":"BTCUSDT",
+        #    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        #    "createTime":"1754737941062",
+        #    "publicSpotKline":{
+        #       "interval":"Min1",
+        #       "windowStart":"1754737920",
+        #       "openingPrice":"117317.31",
+        #       "closingPrice":"117325.26",
+        #       "highestPrice":"117341",
+        #       "lowestPrice":"117317.3",
+        #       "volume":"3.12599854",
+        #       "amount":"366804.43",
+        #       "windowEnd":"1754737980"
+        #    }
+        # }
         #
-        d = self.safe_value_2(message, 'd', 'data', {})
-        rawOhlcv = self.safe_value(d, 'k', d)
-        timeframeId = self.safe_string_2(rawOhlcv, 'i', 'interval')
-        timeframes = self.safe_value(self.options, 'timeframes', {})
-        timeframe = self.find_timeframe(timeframeId, timeframes)
-        marketId = self.safe_string_2(message, 's', 'symbol')
-        market = self.safe_market(marketId)
-        symbol = market['symbol']
+        parsed: dict = None
+        symbol: Str = None
+        timeframe: Str = None
+        if 'publicSpotKline' in message:
+            symbol = self.symbol(self.safe_string(message, 'symbol'))
+            data = self.safe_dict(message, 'publicSpotKline', {})
+            timeframeId = self.safe_string(data, 'interval')
+            timeframe = self.find_timeframe(timeframeId, self.options['timeframes'])
+            parsed = self.parse_ws_ohlcv(data, self.safe_market(symbol))
+        else:
+            d = self.safe_value_2(message, 'd', 'data', {})
+            rawOhlcv = self.safe_value(d, 'k', d)
+            timeframeId = self.safe_string_2(rawOhlcv, 'i', 'interval')
+            timeframes = self.safe_value(self.options, 'timeframes', {})
+            timeframe = self.find_timeframe(timeframeId, timeframes)
+            marketId = self.safe_string_2(message, 's', 'symbol')
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            parsed = self.parse_ws_ohlcv(rawOhlcv, market)
         messageHash = 'candles:' + symbol + ':' + timeframe
-        parsed = self.parse_ws_ohlcv(rawOhlcv, market)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
@@ -656,27 +690,39 @@ class mexc(ccxt.async_support.mexc):
         #       "rh": 27301.8,
         #       "rl": 27301.8
         #     }
+        # protobuf
+        #
+        #       "interval":"Min1",
+        #       "windowStart":"1754737920",
+        #       "openingPrice":"117317.31",
+        #       "closingPrice":"117325.26",
+        #       "highestPrice":"117341",
+        #       "lowestPrice":"117317.3",
+        #       "volume":"3.12599854",
+        #       "amount":"366804.43",
+        #       "windowEnd":"1754737980"
         #
         return [
-            self.safe_timestamp(ohlcv, 't'),
-            self.safe_number(ohlcv, 'o'),
-            self.safe_number(ohlcv, 'h'),
-            self.safe_number(ohlcv, 'l'),
-            self.safe_number(ohlcv, 'c'),
-            self.safe_number_2(ohlcv, 'v', 'q'),
+            self.safe_timestamp_2(ohlcv, 't', 'windowStart'),
+            self.safe_number_2(ohlcv, 'o', 'openingPrice'),
+            self.safe_number_2(ohlcv, 'h', 'highestPrice'),
+            self.safe_number_2(ohlcv, 'l', 'lowestPrice'),
+            self.safe_number_2(ohlcv, 'c', 'closingPrice'),
+            self.safe_number_2(ohlcv, 'v', 'volume'),
         ]
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
 
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param str [params.frequency]: the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -684,7 +730,9 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'orderbook:' + symbol
         orderbook = None
         if market['spot']:
-            channel = 'spot@public.increase.depth.v3.api@' + market['id']
+            frequency = None
+            frequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'frequency', '100ms')
+            channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
             orderbook = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.depth'
@@ -708,12 +756,12 @@ class mexc(ccxt.async_support.mexc):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_value(cache, 0)
-        firstDeltaNonce = self.safe_integer_2(firstDelta, 'r', 'version')
+        firstDeltaNonce = self.safe_integer_n(firstDelta, ['r', 'version', 'fromVersion'])
         if nonce < firstDeltaNonce - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
-            deltaNonce = self.safe_integer_2(delta, 'r', 'version')
+            deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
             if deltaNonce >= nonce:
                 return i
         return len(cache)
@@ -761,8 +809,31 @@ class mexc(ccxt.async_support.mexc):
         #      "symbol":"BTC_USDT",
         #      "ts":1651239652372
         #  }
+        # protofbuf
+        # {
+        #      "channel":"spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT",
+        #      "symbol":"BTCUSDT",
+        #      "sendTime":"1754741322152",
+        #      "publicAggreDepths":{
+        #          "asks":[
+        #              {
+        #                  "price":"117145.49",
+        #                  "quantity":"0"
+        #              }
+        #          ],
+        #          "bids":[
+        #              {
+        #                  "price":"117053.41",
+        #                  "quantity":"1.86837271"
+        #              }
+        #          ],
+        #          "eventType":"spot@public.aggre.depth.v3.api.pb@100ms",
+        #          "fromVersion":"43296363236",
+        #          "toVersion":"43296363255"
+        #      }
+        # }
         #
-        data = self.safe_value_2(message, 'd', 'data')
+        data = self.safe_dict_n(message, ['d', 'data', 'publicAggreDepths'])
         marketId = self.safe_string_2(message, 's', 'symbol')
         symbol = self.safe_symbol(marketId)
         messageHash = 'orderbook:' + symbol
@@ -772,6 +843,7 @@ class mexc(ccxt.async_support.mexc):
             self.orderbooks[symbol] = self.order_book()
         storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
+        shouldReturn = False
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
@@ -781,12 +853,16 @@ class mexc(ccxt.async_support.mexc):
             return
         try:
             self.handle_delta(storedOrderBook, data)
-            timestamp = self.safe_integer_2(message, 't', 'ts')
+            timestamp = self.safe_integer_n(message, ['t', 'ts', 'sendTime'])
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+            # return
+            shouldReturn = True
+        if shouldReturn:
+            return  # go requirement
         client.resolve(storedOrderBook, messageHash)
 
     def handle_bookside_delta(self, bookside, bidasks):
@@ -801,13 +877,13 @@ class mexc(ccxt.async_support.mexc):
             if isinstance(bidask, list):
                 bookside.storeArray(bidask)
             else:
-                price = self.safe_float(bidask, 'p')
-                amount = self.safe_float(bidask, 'v')
+                price = self.safe_float_2(bidask, 'p', 'price')
+                amount = self.safe_float_2(bidask, 'v', 'quantity')
                 bookside.store(price, amount)
 
     def handle_delta(self, orderbook, delta):
         existingNonce = self.safe_integer(orderbook, 'nonce')
-        deltaNonce = self.safe_integer_2(delta, 'r', 'version')
+        deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
         if deltaNonce < existingNonce:
             # even when doing < comparison, self happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             # so, we just skip old updates
@@ -823,7 +899,7 @@ class mexc(ccxt.async_support.mexc):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+        https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
 
         get the list of most recent trades for a particular symbol
@@ -831,7 +907,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -839,7 +915,7 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'trades:' + symbol
         trades = None
         if market['spot']:
-            channel = 'spot@public.deals.v3.api@' + market['id']
+            channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id']
             trades = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.deal'
@@ -852,6 +928,23 @@ class mexc(ccxt.async_support.mexc):
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
+        # protobuf
+        # {
+        # "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
+        # "publicdeals": {
+        #     "dealsList": [
+        #     {
+        #         "price": "93220.00",  # Trade price
+        #         "quantity": "0.04438243",  # Trade quantity
+        #         "tradetype": 2,  # Trade type(1: Buy, 2: Sell)
+        #         "time": 1736409765051  # Trade time
+        #     }
+        #     ],
+        #     "eventtype": "spot@public.aggre.deals.v3.api.pb@100ms"  # Event type
+        # },
+        # "symbol": "BTCUSDT",  # Trading pair
+        # "sendtime": 1736409765052  # Event time
+        # }
         #
         #    {
         #        "c": "spot@public.deals.v3.api@BTCUSDT",
@@ -871,14 +964,16 @@ class mexc(ccxt.async_support.mexc):
         # swap
         #     {
         #         "symbol": "BTC_USDT",
-        #         "data": {
-        #             "p": 27307.3,
-        #             "v": 5,
-        #             "T": 2,
-        #             "O": 3,
-        #             "M": 1,
-        #             "t": 1680055941870
-        #         },
+        #         "data": [
+        #            {
+        #                "p": 114350.4,
+        #                "v": 4,
+        #                "T": 2,
+        #                "O": 3,
+        #                "M": 2,
+        #                "t": 1760368563597
+        #            }
+        #         ],
         #         "channel": "push.deal",
         #         "ts": 1680055941870
         #     }
@@ -892,8 +987,10 @@ class mexc(ccxt.async_support.mexc):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        d = self.safe_value_2(message, 'd', 'data')
-        trades = self.safe_value(d, 'deals', [d])
+        d = self.safe_dict_n(message, ['d', 'publicAggreDeals'])
+        trades = self.safe_list_2(d, 'deals', 'dealsList', [d])
+        if d is None:
+            trades = self.safe_list(message, 'data', [])
         for j in range(0, len(trades)):
             parsedTrade = None
             if market['spot']:
@@ -906,7 +1003,7 @@ class mexc(ccxt.async_support.mexc):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
 
         watches information on multiple trades made by the user
@@ -914,7 +1011,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -927,7 +1024,7 @@ class mexc(ccxt.async_support.mexc):
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         trades = None
         if type == 'spot':
-            channel = 'spot@private.deals.v3.api'
+            channel = 'spot@private.deals.v3.api.pb'
             trades = await self.watch_spot_private(channel, messageHash, params)
         else:
             trades = await self.watch_swap_private(messageHash, params)
@@ -953,11 +1050,27 @@ class mexc(ccxt.async_support.mexc):
         #        "s": "BTCUSDT",
         #        "t": 1678670940700
         #    }
+        #    {
+        #      channel: "spot@private.deals.v3.api.pb",
+        #      symbol: "MXUSDT",
+        #      sendTime: 1736417034332,
+        #      privateDeals {
+        #        price: "3.6962",
+        #        quantity: "1",
+        #        amount: "3.6962",
+        #        tradeType: 2,
+        #        tradeId: "505979017439002624X1",
+        #        orderId: "C02__505979017439002624115",
+        #        feeAmount: "0.0003998377369698171",
+        #        feeCurrency: "MX",
+        #        time: 1736417034280
+        #      }
+        # }
         #
         messageHash = 'myTrades'
-        data = self.safe_value_2(message, 'd', 'data')
+        data = self.safe_dict_n(message, ['d', 'data', 'privateDeals'])
         futuresMarketId = self.safe_string(data, 'symbol')
-        marketId = self.safe_string(message, 's', futuresMarketId)
+        marketId = self.safe_string_2(message, 's', 'symbol', futuresMarketId)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         trade = None
@@ -977,7 +1090,7 @@ class mexc(ccxt.async_support.mexc):
 
     def parse_ws_trade(self, trade, market=None):
         #
-        # public trade
+        # public trade(protobuf)
         #    {
         #        "p": "20382.70",
         #        "v": "0.043800",
@@ -997,7 +1110,6 @@ class mexc(ccxt.async_support.mexc):
         #        "v": "5"
         #    }
         #
-        #
         #   d: {
         #       p: '1.0005',
         #       v: '5.71',
@@ -1012,22 +1124,36 @@ class mexc(ccxt.async_support.mexc):
         #       n: '0.005712855',
         #       N: 'USDT'
         #   }
-        timestamp = self.safe_integer(trade, 'T')
-        tradeId = self.safe_string(trade, 't')
+        # protobuf
+        #
+        #     {
+        #        price: "3.6962",
+        #        quantity: "1",
+        #        amount: "3.6962",
+        #        tradeType: 2,
+        #        tradeId: "505979017439002624X1",
+        #        orderId: "C02__505979017439002624115",
+        #        feeAmount: "0.0003998377369698171",
+        #        feeCurrency: "MX",
+        #        time: 1736417034280
+        #      }
+        #
+        timestamp = self.safe_integer_2(trade, 'T', 'time')
+        tradeId = self.safe_string_2(trade, 't', 'tradeId')
         if timestamp is None:
             timestamp = self.safe_integer(trade, 't')
             tradeId = None
-        priceString = self.safe_string(trade, 'p')
-        amountString = self.safe_string(trade, 'v')
-        rawSide = self.safe_string(trade, 'S')
+        priceString = self.safe_string_2(trade, 'p', 'price')
+        amountString = self.safe_string_2(trade, 'v', 'quantity')
+        rawSide = self.safe_string_2(trade, 'S', 'tradeType')
         side = 'buy' if (rawSide == '1') else 'sell'
         isMaker = self.safe_integer(trade, 'm')
-        feeAmount = self.safe_number(trade, 'n')
-        feeCurrencyId = self.safe_string(trade, 'N')
+        feeAmount = self.safe_string_2(trade, 'n', 'feeAmount')
+        feeCurrencyId = self.safe_string_2(trade, 'N', 'feeCurrency')
         return self.safe_trade({
             'info': trade,
             'id': tradeId,
-            'order': self.safe_string(trade, 'i'),
+            'order': self.safe_string_2(trade, 'i', 'orderId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': self.safe_symbol(None, market),
@@ -1036,7 +1162,7 @@ class mexc(ccxt.async_support.mexc):
             'takerOrMaker': 'maker' if (isMaker) else 'taker',
             'price': priceString,
             'amount': amountString,
-            'cost': None,
+            'cost': self.safe_string(trade, 'amount'),
             'fee': {
                 'cost': feeAmount,
                 'currency': self.safe_currency_code(feeCurrencyId),
@@ -1046,7 +1172,7 @@ class mexc(ccxt.async_support.mexc):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-orders
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
 
         watches information on multiple orders made by the user
@@ -1055,7 +1181,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str|None params['type']: the type of orders to retrieve, can be 'spot' or 'margin'
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'
@@ -1068,7 +1194,7 @@ class mexc(ccxt.async_support.mexc):
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         orders = None
         if type == 'spot':
-            channel = type + '@private.orders.v3.api'
+            channel = 'spot@private.orders.v3.api.pb'
             orders = await self.watch_spot_private(channel, messageHash, params)
         else:
             orders = await self.watch_swap_private(messageHash, params)
@@ -1141,11 +1267,18 @@ class mexc(ccxt.async_support.mexc):
         #        "s": "MXUSDT",
         #        "t":1661938138193
         #    }
+        # protobuf
+        #   {
+        #      channel: "spot@private.orders.v3.api.pb",
+        #      symbol: "MXUSDT",
+        #      sendTime: 1736417034281,
+        #      privateOrders {}
+        #   }
         #
         messageHash = 'orders'
-        data = self.safe_value_2(message, 'd', 'data')
+        data = self.safe_dict_n(message, ['d', 'data', 'privateOrders'])
         futuresMarketId = self.safe_string(data, 'symbol')
-        marketId = self.safe_string(message, 's', futuresMarketId)
+        marketId = self.safe_string_2(message, 's', 'symbol', futuresMarketId)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         parsed = None
@@ -1213,11 +1346,28 @@ class mexc(ccxt.async_support.mexc):
         #        "s":1,
         #        "i":"e03a5c7441e44ed899466a7140b71391",
         #    }
+        # protofbuf spot order
+        # {
+        #     "id":"C02__583905164440776704043",
+        #     "price":"0.001053",
+        #     "quantity":"2000",
+        #     "amount":"0",
+        #     "avgPrice":"0.001007",
+        #     "orderType":5,
+        #     "tradeType":1,
+        #     "remainAmount":"0.092",
+        #     "remainQuantity":"0",
+        #     "lastDealQuantity":"2000",
+        #     "cumulativeQuantity":"2000",
+        #     "cumulativeAmount":"2.014",
+        #     "status":2,
+        #     "createTime":"1754996075502"
+        # }
         #
-        timestamp = self.safe_integer(order, 'O')
-        side = self.safe_string(order, 'S')
-        status = self.safe_string(order, 's')
-        type = self.safe_string(order, 'o')
+        timestamp = self.safe_integer(order, 'createTime')
+        side = self.safe_string(order, 'tradeType')
+        status = self.safe_string(order, 'status')
+        type = self.safe_string(order, 'orderType')
         fee = None
         feeCurrency = self.safe_string(order, 'N')
         if feeCurrency is not None:
@@ -1226,8 +1376,8 @@ class mexc(ccxt.async_support.mexc):
                 'cost': None,
             }
         return self.safe_order({
-            'id': self.safe_string(order, 'i'),
-            'clientOrderId': self.safe_string(order, 'c'),
+            'id': self.safe_string(order, 'id'),
+            'clientOrderId': self.safe_string(order, 'clientId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -1236,14 +1386,14 @@ class mexc(ccxt.async_support.mexc):
             'type': self.parse_ws_order_type(type),
             'timeInForce': self.parse_ws_time_in_force(type),
             'side': 'buy' if (side == '1') else 'sell',
-            'price': self.safe_string(order, 'p'),
+            'price': self.safe_string(order, 'price'),
             'stopPrice': None,
-            'triggerPrice': self.safe_number(order, 'P'),
-            'average': self.safe_string(order, 'ap'),
-            'amount': self.safe_string(order, 'v'),
-            'cost': self.safe_string(order, 'a'),
-            'filled': self.safe_string(order, 'cv'),
-            'remaining': self.safe_string(order, 'V'),
+            'triggerPrice': None,
+            'average': self.safe_string(order, 'avgPrice'),
+            'amount': self.safe_string(order, 'quantity'),
+            'cost': self.safe_string(order, 'amount'),
+            'filled': self.safe_string(order, 'cumulativeQuantity'),
+            'remaining': self.safe_string(order, 'remainQuantity'),
             'fee': fee,
             'trades': None,
             'info': order,
@@ -1266,7 +1416,7 @@ class mexc(ccxt.async_support.mexc):
     def parse_ws_order_type(self, type):
         types: dict = {
             '1': 'limit',   # LIMIT_ORDER
-            '2': None,  # POST_ONLY
+            '2': 'limit',  # POST_ONLY
             '3': None,  # IMMEDIATE_OR_CANCEL
             '4': None,  # FILL_OR_KILL
             '5': 'market',  # MARKET_ORDER
@@ -1288,18 +1438,18 @@ class mexc(ccxt.async_support.mexc):
     async def watch_balance(self, params={}) -> Balances:
         """
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
+        https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
 
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'balance:' + type
         if type == 'spot':
-            channel = 'spot@private.account.v3.api'
+            channel = 'spot@private.account.v3.api.pb'
             return await self.watch_spot_private(channel, messageHash, params)
         else:
             return await self.watch_swap_private(messageHash, params)
@@ -1307,18 +1457,21 @@ class mexc(ccxt.async_support.mexc):
     def handle_balance(self, client: Client, message):
         #
         # spot
+        #
         #    {
-        #        "c": "spot@private.account.v3.api",
-        #        "d": {
-        #            "a": "USDT",
-        #            "c": 1678185928428,
-        #            "f": "302.185113007893322435",
-        #            "fd": "-4.990689704",
-        #            "l": "4.990689704",
-        #            "ld": "4.990689704",
-        #            "o": "ENTRUST_PLACE"
-        #        },
-        #        "t": 1678185928435
+        #        channel: "spot@private.account.v3.api.pb",
+        #        createTime: "1758134605364",
+        #        sendTime: "1758134605373",
+        #        privateAccount: {
+        #          vcoinName: "USDT",
+        #          coinId: "128f589271cb4951b03e71e6323eb7be",
+        #          balanceAmount: "0.006016465074677006",
+        #          balanceAmountChange: "-4.4022",
+        #          frozenAmount: "4.4022",
+        #          frozenAmountChange: "4.4022",
+        #          type: "ENTRUST_PLACE",
+        #          time: "1758134605364",
+        #       }
         #    }
         #
         #
@@ -1336,22 +1489,22 @@ class mexc(ccxt.async_support.mexc):
         #         "ts": 1680059188190
         #     }
         #
-        c = self.safe_string(message, 'c')
-        type = 'swap' if (c is None) else 'spot'
+        channel = self.safe_string(message, 'channel')
+        type = 'spot' if (channel == 'spot@private.account.v3.api.pb') else 'swap'
         messageHash = 'balance:' + type
-        data = self.safe_value_2(message, 'd', 'data')
-        futuresTimestamp = self.safe_integer(message, 'ts')
-        timestamp = self.safe_integer(data, 'c', futuresTimestamp)
+        data = self.safe_dict_n(message, ['data', 'privateAccount'])
+        futuresTimestamp = self.safe_integer_2(message, 'ts', 'createTime')
+        timestamp = self.safe_integer_2(data, 'time', futuresTimestamp)
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)
-        currencyId = self.safe_string_2(data, 'a', 'currency')
+        currencyId = self.safe_string_n(data, ['currency', 'vcoinName'])
         code = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_string_2(data, 'f', 'availableBalance')
-        account['used'] = self.safe_string_2(data, 'l', 'frozenBalance')
+        account['free'] = self.safe_string_2(data, 'balanceAmount', 'availableBalance')
+        account['used'] = self.safe_string_n(data, ['frozenBalance', 'frozenAmount'])
         self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], messageHash)
@@ -1361,7 +1514,7 @@ class mexc(ccxt.async_support.mexc):
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1369,22 +1522,17 @@ class mexc(ccxt.async_support.mexc):
         url = None
         channel = None
         if market['spot']:
-            miniTicker = False
-            miniTicker, params = self.handle_option_and_params(params, 'watchTicker', 'miniTicker')
-            if miniTicker:
-                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8'
-            else:
-                channel = 'spot@public.bookTicker.v3.api@' + market['id']
+            channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']
             url = self.urls['api']['ws']['spot']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'unsub.ticker'
             requestParams: dict = {
                 'symbol': market['id'],
             }
             url = self.urls['api']['ws']['swap']
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1394,7 +1542,7 @@ class mexc(ccxt.async_support.mexc):
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None)
@@ -1409,33 +1557,39 @@ class mexc(ccxt.async_support.mexc):
         url = self.urls['api']['ws']['spot'] if (isSpot) else self.urls['api']['ws']['swap']
         request: dict = {}
         if isSpot:
-            miniTicker = False
-            miniTicker, params = self.handle_option_and_params(params, 'watchTickers', 'miniTicker')
-            topics = []
-            if not miniTicker:
-                if symbols is None:
-                    raise ArgumentsRequired(self.id + ' watchTickers required symbols argument for the bookTicker channel')
-                marketIds = self.market_ids(symbols)
-                for i in range(0, len(marketIds)):
-                    marketId = marketIds[i]
-                    messageHashes.append('unsubscribe:ticker:' + symbols[i])
-                    channel = 'spot@public.bookTicker.v3.api@' + marketId
-                    topics.append(channel)
-            else:
-                topics.append('spot@public.miniTickers.v3.api@UTC+8')
-                if symbols is None:
-                    messageHashes.append('unsubscribe:spot:ticker')
-                else:
-                    for i in range(0, len(symbols)):
-                        messageHashes.append('unsubscribe:ticker:' + symbols[i])
-            request['method'] = 'UNSUBSCRIPTION'
-            request['params'] = topics
+            raise NotSupported(self.id + ' watchTickers does not support spot markets')
+            # miniTicker = False
+            # miniTicker, params = self.handle_option_and_params(params, 'watchTickers', 'miniTicker')
+            # topics = []
+            # if not miniTicker:
+            #     if symbols is None:
+            #         raise ArgumentsRequired(self.id + ' watchTickers required symbols argument for the bookTicker channel')
+            #     }
+            #     marketIds = self.market_ids(symbols)
+            #     for i in range(0, len(marketIds)):
+            #         marketId = marketIds[i]
+            #         messageHashes.append('unsubscribe:ticker:' + symbols[i])
+            #         channel = 'spot@public.bookTicker.v3.api@' + marketId
+            #         topics.append(channel)
+            #     }
+            # else:
+            #     topics.append('spot@public.miniTickers.v3.api@UTC+8')
+            #     if symbols is None:
+            #         messageHashes.append('unsubscribe:spot:ticker')
+            #     else:
+            #         for i in range(0, len(symbols)):
+            #             messageHashes.append('unsubscribe:ticker:' + symbols[i])
+            #         }
+            #     }
+            # }
+            # request['method'] = 'UNSUBSCRIPTION'
+            # request['params'] = topics
         else:
             request['method'] = 'unsub.tickers'
             request['params'] = {}
             messageHashes.append('unsubscribe:ticker')
         client = self.client(url)
-        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         self.handle_unsubscriptions(client, messageHashes)
         return None
 
@@ -1444,7 +1598,7 @@ class mexc(ccxt.async_support.mexc):
         unWatches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
@@ -1461,7 +1615,7 @@ class mexc(ccxt.async_support.mexc):
         for i in range(0, len(symbols)):
             if isSpot:
                 market = self.market(symbols[i])
-                topics.append('spot@public.bookTicker.v3.api@' + market['id'])
+                topics.append('spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'])
             messageHashes.append('unsubscribe:bidask:' + symbols[i])
         url = self.urls['api']['ws']['spot']
         request: dict = {
@@ -1469,11 +1623,11 @@ class mexc(ccxt.async_support.mexc):
             'params': topics,
         }
         client = self.client(url)
-        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         self.handle_unsubscriptions(client, messageHashes)
         return None
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1491,9 +1645,9 @@ class mexc(ccxt.async_support.mexc):
         url = None
         if market['spot']:
             url = self.urls['api']['ws']['spot']
-            channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId
+            channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.kline'
@@ -1501,7 +1655,7 @@ class mexc(ccxt.async_support.mexc):
                 'symbol': market['id'],
                 'interval': timeframeId,
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1511,7 +1665,8 @@ class mexc(ccxt.async_support.mexc):
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param str [params.frequency]: the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1520,16 +1675,18 @@ class mexc(ccxt.async_support.mexc):
         url = None
         if market['spot']:
             url = self.urls['api']['ws']['spot']
-            channel = 'spot@public.increase.depth.v3.api@' + market['id']
+            frequency = None
+            frequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'frequency', '100ms')
+            channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.depth'
             requestParams: dict = {
                 'symbol': market['id'],
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1540,7 +1697,7 @@ class mexc(ccxt.async_support.mexc):
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1549,16 +1706,16 @@ class mexc(ccxt.async_support.mexc):
         url = None
         if market['spot']:
             url = self.urls['api']['ws']['spot']
-            channel = 'spot@public.deals.v3.api@' + market['id']
+            channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.deal'
             requestParams: dict = {
                 'symbol': market['id'],
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1651,16 +1808,59 @@ class mexc(ccxt.async_support.mexc):
             channel = self.safe_string(parts, 1)
             methods: dict = {
                 'public.increase.depth.v3.api': self.handle_order_book_subscription,
+                'public.aggre.depth.v3.api.pb': self.handle_order_book_subscription,
             }
             method = self.safe_value(methods, channel)
             if method is not None:
                 method(client, message)
+
+    def handle_protobuf_message(self, client: Client, message):
+        # protobuf message decoded
+        #  {
+        #    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        #    "symbol":"BTCUSDT",
+        #    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        #    "createTime":"1754737941062",
+        #    "publicSpotKline":{
+        #       "interval":"Min1",
+        #       "windowStart":"1754737920",
+        #       "openingPrice":"117317.31",
+        #       "closingPrice":"117325.26",
+        #       "highestPrice":"117341",
+        #       "lowestPrice":"117317.3",
+        #       "volume":"3.12599854",
+        #       "amount":"366804.43",
+        #       "windowEnd":"1754737980"
+        #    }
+        # }
+        channel = self.safe_string(message, 'channel')
+        channelParts = channel.split('@')
+        channelId = self.safe_string(channelParts, 1)
+        if channelId == 'public.kline.v3.api.pb':
+            self.handle_ohlcv(client, message)
+        elif channelId == 'public.aggre.deals.v3.api.pb':
+            self.handle_trades(client, message)
+        elif channelId == 'public.aggre.bookTicker.v3.api.pb':
+            self.handle_ticker(client, message)
+        elif channelId == 'public.aggre.depth.v3.api.pb':
+            self.handle_order_book(client, message)
+        elif channelId == 'private.account.v3.api.pb':
+            self.handle_balance(client, message)
+        elif channelId == 'private.deals.v3.api.pb':
+            self.handle_my_trade(client, message)
+        elif channelId == 'private.orders.v3.api.pb':
+            self.handle_order(client, message)
+        return True
 
     def handle_message(self, client: Client, message):
         if isinstance(message, str):
             if message == 'Invalid listen key':
                 error = AuthenticationError(self.id + ' invalid listen key')
                 client.reject(error)
+                return
+        if self.is_binary_message(message):
+            message = self.decode_proto_msg(message)
+            self.handle_protobuf_message(client, message)
             return
         if 'msg' in message:
             self.handle_subscription_status(client, message)

@@ -11,6 +11,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
 
 
@@ -31,6 +32,11 @@ class woo(ccxt.async_support.woo):
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
                 'watchPositions': True,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchOrderBook': True,
+                'unWatchOHLCV': True,
+                'unWatchTrades': True,
             },
             'urls': {
                 'api': {
@@ -90,6 +96,30 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
+    async def unwatch_public(self, subHash: str, symbol: str, topic: str, params={}) -> Any:
+        urlUid = '/' + self.uid if (self.uid) else ''
+        url = self.urls['api']['ws']['public'] + urlUid
+        requestId = self.request_id(url)
+        unsubHash = 'unsubscribe::' + subHash
+        message: dict = {
+            'id': requestId,
+            'event': 'unsubscribe',
+            'topic': subHash,
+        }
+        subscription: dict = {
+            'id': str(requestId),
+            'unsubscribe': True,
+            'symbols': [symbol],
+            'topic': topic,
+            'subMessageHashes': [subHash],
+            'unsubMessageHashes': [unsubHash],
+        }
+        symbolsAndTimeframes = self.safe_list(params, 'symbolsAndTimeframes')
+        if symbolsAndTimeframes is not None:
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes
+            params = self.omit(params, 'symbolsAndTimeframes')
+        return await self.watch(url, unsubHash, self.extend(message, params), unsubHash, subscription)
+
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
@@ -101,7 +131,7 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either(default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         method = None
@@ -119,7 +149,7 @@ class woo(ccxt.async_support.woo):
         subscription: dict = {
             'id': str(requestId),
             'name': method,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'limit': limit,
             'params': params,
         }
@@ -127,6 +157,25 @@ class woo(ccxt.async_support.woo):
             subscription['method'] = self.handle_order_book_subscription
         orderbook = await self.watch(url, topic, self.extend(request, params), topic, subscription)
         return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://docs.woox.io/#orderbookupdate
+        https://docs.woox.io/#orderbook
+
+        :param str symbol: unified symbol of the market
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        method = None
+        method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
+        market = self.market(symbol)
+        subHash = market['id'] + '@' + method
+        topic = 'orderbook'
+        return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
     def handle_order_book(self, client: Client, message):
         #
@@ -245,7 +294,7 @@ class woo(ccxt.async_support.woo):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         name = 'ticker'
@@ -258,6 +307,21 @@ class woo(ccxt.async_support.woo):
         }
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
+
+    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        method = None
+        method, params = self.handle_option_and_params(params, 'watchTicker', 'method', 'ticker')
+        market = self.market(symbol)
+        subHash = market['id'] + '@' + method
+        topic = 'ticker'
+        return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
     def parse_ws_ticker(self, ticker, market=None):
         #
@@ -332,7 +396,7 @@ class woo(ccxt.async_support.woo):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -345,6 +409,23 @@ class woo(ccxt.async_support.woo):
         message = self.extend(request, params)
         tickers = await self.watch_public(topic, message)
         return self.filter_by_array(tickers, 'symbol', symbols)
+
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+
+        https://docs.woox.io/#24h-tickers
+
+        stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] symbols: unified symbol of the market to stop fetching the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        if symbols is not None:
+            raise NotSupported(self.id + ' unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once')
+        topic = 'ticker'
+        subHash = 'tickers'
+        return await self.unwatch_public(subHash, None, topic, params)
 
     def handle_tickers(self, client: Client, message):
         #
@@ -394,12 +475,12 @@ class woo(ccxt.async_support.woo):
         https://docs.woox.io/#bbos
 
         watches best bid & ask for symbols
-        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbols = self.market_symbols(symbols)
         name = 'bbos'
         topic = name
         request: dict = {
@@ -407,10 +488,27 @@ class woo(ccxt.async_support.woo):
             'topic': topic,
         }
         message = self.extend(request, params)
-        tickers = await self.watch_public(topic, message)
+        bidsasks = await self.watch_public(topic, message)
         if self.newUpdates:
-            return tickers
+            return bidsasks
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    async def un_watch_bids_asks(self, symbols: Strings = None, params={}) -> Any:
+        """
+
+        https://docs.woox.io/#bbos
+
+        unWatches best bid & ask for symbols
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for(not used by woo)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        if symbols is not None:
+            raise NotSupported(self.id + ' unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once')
+        subHash = 'bbos'
+        topic = 'bidsasks'
+        return await self.unwatch_public(subHash, None, topic, params)
 
     def handle_bid_ask(self, client: Client, message):
         #
@@ -457,7 +555,7 @@ class woo(ccxt.async_support.woo):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -486,6 +584,27 @@ class woo(ccxt.async_support.woo):
         if self.newUpdates:
             limit = ohlcv.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://docs.woox.io/#k-line
+
+        :param str symbol: unified symbol of the market
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
+        topic = 'ohlcv'
+        name = 'kline'
+        subHash = market['id'] + '@' + name + '_' + interval
+        params['symbolsAndTimeframes'] = [[market['symbol'], timeframe]]
+        return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -540,7 +659,7 @@ class woo(ccxt.async_support.woo):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -555,6 +674,22 @@ class woo(ccxt.async_support.woo):
         if self.newUpdates:
             limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://docs.woox.io/#trade
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        topic = 'trades'
+        subHash = market['id'] + '@trade'
+        return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
     def handle_trade(self, client: Client, message):
         #
@@ -675,7 +810,7 @@ class woo(ccxt.async_support.woo):
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             ts = str(self.nonce())
@@ -725,7 +860,7 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if trigger order
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
@@ -758,7 +893,7 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if trigger order
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
@@ -804,8 +939,50 @@ class woo(ccxt.async_support.woo):
         #         "reduceOnly": False,
         #         "maker": False
         #     }
+        #     {
+        #      "symbol": "SPOT_BTC_USDT",
+        #      "rootAlgoOrderId": 2573778,
+        #      "parentAlgoOrderId": 0,
+        #      "algoOrderId": 2573778,
+        #      "clientOrderId": 0,
+        #      "orderTag": "default",
+        #      "algoType": "STOP_LOSS",
+        #      "side": "SELL",
+        #      "quantity": 0.00011,
+        #      "triggerPrice": 98566.67,
+        #      "triggerStatus": "USELESS",
+        #      "price": 0,
+        #      "type": "MARKET",
+        #      "triggerTradePrice": 0,
+        #      "triggerTime": 0,
+        #      "tradeId": 0,
+        #      "executedPrice": 0,
+        #      "executedQuantity": 0,
+        #      "fee": 0,
+        #      "reason": "",
+        #      "feeAsset": "",
+        #      "totalExecutedQuantity": 0,
+        #      "averageExecutedPrice": 0,
+        #      "totalFee": 0,
+        #      "timestamp": 1761030467426,
+        #      "visibleQuantity": 0,
+        #      "reduceOnly": False,
+        #      "triggerPriceType": "MARKET_PRICE",
+        #      "positionSide": "BOTH",
+        #      "feeCurrency": "",
+        #      "totalRebate": 0.0,
+        #      "rebateCurrency": "",
+        #      "triggered": False,
+        #      "maker": False,
+        #      "activated": False,
+        #      "isTriggered": False,
+        #      "isMaker": False,
+        #      "isActivated": False,
+        #      "rootAlgoStatus": "NEW",
+        #      "algoStatus": "NEW"
+        # }
         #
-        orderId = self.safe_string(order, 'orderId')
+        orderId = self.safe_string_2(order, 'orderId', 'algoOrderId')
         marketId = self.safe_string(order, 'symbol')
         market = self.market(marketId)
         symbol = market['symbol']
@@ -827,10 +1004,11 @@ class woo(ccxt.async_support.woo):
         remaining = amount
         if amount >= totalExecQuantity:
             remaining -= totalExecQuantity
-        rawStatus = self.safe_string(order, 'status')
+        rawStatus = self.safe_string_2(order, 'status', 'algoStatus')
         status = self.parse_order_status(rawStatus)
         trades = None
         clientOrderId = self.safe_string(order, 'clientOrderId')
+        triggerPrice = self.safe_string(order, 'triggerPrice')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -844,8 +1022,9 @@ class woo(ccxt.async_support.woo):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'amount': amount,
             'cost': None,
             'average': avgPrice,
@@ -1029,9 +1208,10 @@ class woo(ccxt.async_support.woo):
             if contracts > 0:
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, 'positions')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, 'positions')
 
     def handle_positions(self, client, message):
         #
@@ -1084,7 +1264,7 @@ class woo(ccxt.async_support.woo):
 
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         topic = 'balance'
@@ -1171,6 +1351,27 @@ class woo(ccxt.async_support.woo):
                 client.reject(error)
             return True
 
+    def handle_un_subscription(self, client: Client, message):
+        #
+        #     {
+        #         "id": "2",
+        #         "event": "unsubscribe",
+        #         "success": True,
+        #         "ts": 1759568478343,
+        #         "data": "SPOT_BTC_USDT@orderbook"
+        #     }
+        #
+        subscribeHash = self.safe_string(message, 'data')
+        unsubscribeHash = 'unsubscribe::' + subscribeHash
+        subscription = self.safe_dict(client.subscriptions, unsubscribeHash, {})
+        subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+        unsubMessageHashes = self.safe_list(subscription, 'unsubMessageHashes', [])
+        for i in range(0, len(subMessageHashes)):
+            subHash = subMessageHashes[i]
+            unsubHash = unsubMessageHashes[i]
+            self.clean_unsubscription(client, subHash, unsubHash)
+        self.clean_cache(subscription)
+
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
@@ -1178,6 +1379,7 @@ class woo(ccxt.async_support.woo):
             'ping': self.handle_ping,
             'pong': self.handle_pong,
             'subscribe': self.handle_subscribe,
+            'unsubscribe': self.handle_un_subscription,
             'orderbook': self.handle_order_book,
             'orderbookupdate': self.handle_order_book,
             'ticker': self.handle_ticker,

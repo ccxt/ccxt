@@ -309,7 +309,8 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 		fpErrorStr := this._decimalToPrecision(fpError, ROUND, math.Max(float64(newNumPrecisionDigits), 8), DECIMAL_PLACES, NO_PADDING)
 		fpErrorResult := this.PrecisionFromString(fpErrorStr)
 		if fpErrorResult != 0 {
-			if roundingMode == ROUND {
+			switch roundingMode {
+			case ROUND:
 				if parsedX > 0 {
 					if missing >= numPrecisionDigits/2 {
 						parsedX = parsedX - missing + numPrecisionDigits
@@ -323,7 +324,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 						parsedX = parsedX - missing - numPrecisionDigits
 					}
 				}
-			} else if roundingMode == TRUNCATE {
+			case TRUNCATE:
 				parsedX = parsedX - missing
 			}
 		}

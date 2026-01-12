@@ -14,5 +14,6 @@ partial class Examples
         // FetchPositions().Wait();
         watchTradesForSymbols().Wait();
         // new Examples().UnWatchOrders().Wait();
+        // SetMarketsFromExchange().Wait();
     }
 }

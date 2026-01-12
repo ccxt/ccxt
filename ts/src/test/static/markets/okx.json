@@ -1,21 +1,33 @@
 {
     "BTC/USDT": {
         "id": "BTC-USDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0015,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.1
@@ -26,27 +38,38 @@
                 "max": 10
             },
             "amount": {
-                "min": 0.00001
+                "min": 0.00001,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
+                "min": null,
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1611907686000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "BTC",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "",
             "ctType": "",
             "ctVal": "",
             "ctValCcy": "",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "",
             "instId": "BTC-USDT",
+            "instIdCode": "3",
             "instType": "SPOT",
             "lever": "10",
             "listTime": "1611907686000",
@@ -60,33 +83,52 @@
             "maxTriggerSz": "9999999999.0000000000000000",
             "maxTwapSz": "9999999999.0000000000000000",
             "minSz": "0.00001",
+            "openType": "fix_price",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "USDT",
             "ruleType": "normal",
             "settleCcy": "",
             "state": "live",
             "stk": "",
             "tickSz": "0.1",
+            "tradeQuoteCcyList": [
+                "USDT"
+            ],
             "uly": ""
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ETH/USDT": {
         "id": "ETH-USDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0015,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.000001,
             "price": 0.01
@@ -97,27 +139,38 @@
                 "max": 10
             },
             "amount": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
+                "min": null,
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1611907686000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "ETH",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "",
             "ctType": "",
             "ctVal": "",
             "ctValCcy": "",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "",
             "instId": "ETH-USDT",
+            "instIdCode": "4",
             "instType": "SPOT",
             "lever": "10",
             "listTime": "1611907686000",
@@ -131,33 +184,52 @@
             "maxTriggerSz": "999999999999.0000000000000000",
             "maxTwapSz": "999999999999.0000000000000000",
             "minSz": "0.0001",
+            "openType": "fix_price",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "USDT",
             "ruleType": "normal",
             "settleCcy": "",
             "state": "live",
             "stk": "",
             "tickSz": "0.01",
+            "tradeQuoteCcyList": [
+                "USDT"
+            ],
             "uly": ""
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ADA/USDT": {
         "id": "ADA-USDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0015,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.0001
@@ -168,27 +240,38 @@
                 "max": 10
             },
             "amount": {
-                "min": 10
+                "min": 10,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
+                "min": null,
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1611907686000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "ADA",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "",
             "ctType": "",
             "ctVal": "",
             "ctValCcy": "",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "",
             "instId": "ADA-USDT",
+            "instIdCode": "1",
             "instType": "SPOT",
             "lever": "10",
             "listTime": "1611907686000",
@@ -202,33 +285,52 @@
             "maxTriggerSz": "99999999999999.0000000000000000",
             "maxTwapSz": "99999999999999.0000000000000000",
             "minSz": "10",
+            "openType": "fix_price",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "USDT",
             "ruleType": "normal",
             "settleCcy": "",
             "state": "live",
             "stk": "",
             "tickSz": "0.0001",
+            "tradeQuoteCcyList": [
+                "USDT"
+            ],
             "uly": ""
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "LTC/USDT": {
         "id": "LTC-USDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0015,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.000001,
             "price": 0.01
@@ -239,27 +341,38 @@
                 "max": 10
             },
             "amount": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
+                "min": null,
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1611907686000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "LTC",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "",
             "ctType": "",
             "ctVal": "",
             "ctValCcy": "",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "",
             "instId": "LTC-USDT",
+            "instIdCode": "7",
             "instType": "SPOT",
             "lever": "10",
             "listTime": "1611907686000",
@@ -273,33 +386,52 @@
             "maxTriggerSz": "999999999999.0000000000000000",
             "maxTwapSz": "999999999999.0000000000000000",
             "minSz": "0.01",
+            "openType": "fix_price",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "USDT",
             "ruleType": "normal",
             "settleCcy": "",
             "state": "live",
             "stk": "",
             "tickSz": "0.01",
+            "tradeQuoteCcyList": [
+                "USDT"
+            ],
             "uly": ""
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "XRP/USDT": {
         "id": "XRP-USDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": null,
         "baseId": "XRP",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0015,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.000001,
             "price": 0.0001
@@ -310,27 +442,38 @@
                 "max": 10
             },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
+                "min": null,
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1611907686000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "XRP",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "",
             "ctType": "",
             "ctVal": "",
             "ctValCcy": "",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "",
             "instId": "XRP-USDT",
+            "instIdCode": "42",
             "instType": "SPOT",
             "lever": "10",
             "listTime": "1611907686000",
@@ -344,33 +487,52 @@
             "maxTriggerSz": "999999999999.0000000000000000",
             "maxTwapSz": "999999999999.0000000000000000",
             "minSz": "1",
+            "openType": "fix_price",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "USDT",
             "ruleType": "normal",
             "settleCcy": "",
             "state": "live",
             "stk": "",
             "tickSz": "0.0001",
+            "tradeQuoteCcyList": [
+                "USDT"
+            ],
             "uly": ""
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "DOGE/USDT": {
         "id": "DOGE-USDT",
+        "lowercaseId": null,
         "symbol": "DOGE/USDT",
         "base": "DOGE",
         "quote": "USDT",
+        "settle": null,
         "baseId": "DOGE",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0015,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.000001,
             "price": 0.00001
@@ -381,27 +543,38 @@
                 "max": 10
             },
             "amount": {
-                "min": 10
+                "min": 10,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
+                "min": null,
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1611907686000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "DOGE",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "",
             "ctType": "",
             "ctVal": "",
             "ctValCcy": "",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "",
             "instId": "DOGE-USDT",
+            "instIdCode": "988",
             "instType": "SPOT",
             "lever": "10",
             "listTime": "1611907686000",
@@ -415,33 +588,52 @@
             "maxTriggerSz": "999999999999.0000000000000000",
             "maxTwapSz": "999999999999.0000000000000000",
             "minSz": "10",
+            "openType": "fix_price",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "USDT",
             "ruleType": "normal",
             "settleCcy": "",
             "state": "live",
             "stk": "",
             "tickSz": "0.00001",
+            "tradeQuoteCcyList": [
+                "USDT"
+            ],
             "uly": ""
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "TRX/USDT": {
         "id": "TRX-USDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": null,
         "baseId": "TRX",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": true,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0015,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.000001,
             "price": 0.00001
@@ -452,27 +644,38 @@
                 "max": 10
             },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
+                "min": null,
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1611907686000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "TRX",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "",
             "ctType": "",
             "ctVal": "",
             "ctValCcy": "",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "",
             "instId": "TRX-USDT",
+            "instIdCode": "11",
             "instType": "SPOT",
             "lever": "10",
             "listTime": "1611907686000",
@@ -486,18 +689,26 @@
             "maxTriggerSz": "999999999999.0000000000000000",
             "maxTwapSz": "999999999999.0000000000000000",
             "minSz": "1",
+            "openType": "fix_price",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "USDT",
             "ruleType": "normal",
             "settleCcy": "",
             "state": "live",
             "stk": "",
             "tickSz": "0.00001",
+            "tradeQuoteCcyList": [
+                "USDT"
+            ],
             "uly": ""
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USDT:USDT": {
         "id": "BTC-USDT-SWAP",
+        "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
         "quote": "USDT",
@@ -511,6 +722,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -519,8 +731,12 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 0.01,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 0.01,
             "price": 0.1
         },
         "limits": {
@@ -529,29 +745,42 @@
                 "max": 100
             },
             "amount": {
-                "min": 0.1
+                "min": 0.01,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1573557408000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "linear",
             "ctVal": "0.01",
             "ctValCcy": "BTC",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "BTC-USDT",
             "instId": "BTC-USDT-SWAP",
+            "instIdCode": "10459",
             "instType": "SWAP",
             "lever": "100",
             "listTime": "1573557408000",
-            "lotSz": "0.1",
+            "lotSz": "0.01",
             "maxIcebergSz": "100000000.0000000000000000",
             "maxLmtAmt": "20000000",
             "maxLmtSz": "100000000",
@@ -560,19 +789,25 @@
             "maxStopSz": "12000",
             "maxTriggerSz": "100000000.0000000000000000",
             "maxTwapSz": "100000000.0000000000000000",
-            "minSz": "0.1",
+            "minSz": "0.01",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "USDT",
             "state": "live",
             "stk": "",
             "tickSz": "0.1",
+            "tradeQuoteCcyList": [],
             "uly": "BTC-USDT"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USD:BTC": {
         "id": "BTC-USD-SWAP",
+        "lowercaseId": null,
         "symbol": "BTC/USD:BTC",
         "base": "BTC",
         "quote": "USD",
@@ -586,6 +821,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": false,
@@ -594,6 +830,10 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 100,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.1
@@ -604,25 +844,38 @@
                 "max": 100
             },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1535424203000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "inverse",
             "ctVal": "100",
             "ctValCcy": "USD",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "BTC-USD",
             "instId": "BTC-USD-SWAP",
+            "instIdCode": "10458",
             "instType": "SWAP",
             "lever": "100",
             "listTime": "1535424203000",
@@ -636,18 +889,24 @@
             "maxTriggerSz": "100000000.0000000000000000",
             "maxTwapSz": "100000000.0000000000000000",
             "minSz": "1",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "BTC",
             "state": "live",
             "stk": "",
             "tickSz": "0.1",
+            "tradeQuoteCcyList": [],
             "uly": "BTC-USD"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ETH/USDT:USDT": {
         "id": "ETH-USDT-SWAP",
+        "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
         "quote": "USDT",
@@ -661,6 +920,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -669,8 +929,12 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 0.1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 0.01,
             "price": 0.01
         },
         "limits": {
@@ -679,29 +943,42 @@
                 "max": 100
             },
             "amount": {
-                "min": 0.1
+                "min": 0.01,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1573557408000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "linear",
             "ctVal": "0.1",
             "ctValCcy": "ETH",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "ETH-USDT",
             "instId": "ETH-USDT-SWAP",
+            "instIdCode": "10461",
             "instType": "SWAP",
             "lever": "100",
             "listTime": "1573557408000",
-            "lotSz": "0.1",
+            "lotSz": "0.01",
             "maxIcebergSz": "100000000.0000000000000000",
             "maxLmtAmt": "20000000",
             "maxLmtSz": "100000000",
@@ -710,19 +987,25 @@
             "maxStopSz": "20000",
             "maxTriggerSz": "100000000.0000000000000000",
             "maxTwapSz": "100000000.0000000000000000",
-            "minSz": "0.1",
+            "minSz": "0.01",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "USDT",
             "state": "live",
             "stk": "",
             "tickSz": "0.01",
+            "tradeQuoteCcyList": [],
             "uly": "ETH-USDT"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "LTC/USDT:USDT": {
         "id": "LTC-USDT-SWAP",
+        "lowercaseId": null,
         "symbol": "LTC/USDT:USDT",
         "base": "LTC",
         "quote": "USDT",
@@ -736,6 +1019,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -744,6 +1028,10 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.01
@@ -754,25 +1042,38 @@
                 "max": 50
             },
             "amount": {
-                "min": 0.1
+                "min": 0.1,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1573557408000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "linear",
             "ctVal": "1",
             "ctValCcy": "LTC",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "LTC-USDT",
             "instId": "LTC-USDT-SWAP",
+            "instIdCode": "10463",
             "instType": "SWAP",
             "lever": "50",
             "listTime": "1573557408000",
@@ -786,18 +1087,24 @@
             "maxTriggerSz": "100000000.0000000000000000",
             "maxTwapSz": "100000000.0000000000000000",
             "minSz": "0.1",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "USDT",
             "state": "live",
             "stk": "",
             "tickSz": "0.01",
+            "tradeQuoteCcyList": [],
             "uly": "LTC-USDT"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ADA/USDT:USDT": {
         "id": "ADA-USDT-SWAP",
+        "lowercaseId": null,
         "symbol": "ADA/USDT:USDT",
         "base": "ADA",
         "quote": "USDT",
@@ -811,6 +1118,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -819,6 +1127,10 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 100,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.0001
@@ -829,25 +1141,38 @@
                 "max": 50
             },
             "amount": {
-                "min": 0.1
+                "min": 0.1,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1582888608000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "linear",
             "ctVal": "100",
             "ctValCcy": "ADA",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "ADA-USDT",
             "instId": "ADA-USDT-SWAP",
+            "instIdCode": "10483",
             "instType": "SWAP",
             "lever": "50",
             "listTime": "1582888608000",
@@ -861,18 +1186,24 @@
             "maxTriggerSz": "100000000.0000000000000000",
             "maxTwapSz": "100000000.0000000000000000",
             "minSz": "0.1",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "USDT",
             "state": "live",
             "stk": "",
             "tickSz": "0.0001",
+            "tradeQuoteCcyList": [],
             "uly": "ADA-USDT"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "XRP/USDT:USDT": {
         "id": "XRP-USDT-SWAP",
+        "lowercaseId": null,
         "symbol": "XRP/USDT:USDT",
         "base": "XRP",
         "quote": "USDT",
@@ -886,6 +1217,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -894,8 +1226,12 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 100,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 0.01,
             "price": 0.0001
         },
         "limits": {
@@ -904,29 +1240,42 @@
                 "max": 50
             },
             "amount": {
-                "min": 0.1
+                "min": 0.01,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1573557408000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "linear",
             "ctVal": "100",
             "ctValCcy": "XRP",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "XRP-USDT",
             "instId": "XRP-USDT-SWAP",
+            "instIdCode": "10471",
             "instType": "SWAP",
             "lever": "50",
             "listTime": "1573557408000",
-            "lotSz": "0.1",
+            "lotSz": "0.01",
             "maxIcebergSz": "100000000.0000000000000000",
             "maxLmtAmt": "20000000",
             "maxLmtSz": "100000000",
@@ -935,19 +1284,25 @@
             "maxStopSz": "15000",
             "maxTriggerSz": "100000000.0000000000000000",
             "maxTwapSz": "100000000.0000000000000000",
-            "minSz": "0.1",
+            "minSz": "0.01",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "USDT",
             "state": "live",
             "stk": "",
             "tickSz": "0.0001",
+            "tradeQuoteCcyList": [],
             "uly": "XRP-USDT"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "DOGE/USDT:USDT": {
         "id": "DOGE-USDT-SWAP",
+        "lowercaseId": null,
         "symbol": "DOGE/USDT:USDT",
         "base": "DOGE",
         "quote": "USDT",
@@ -961,6 +1316,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -969,8 +1325,12 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 1000,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 0.01,
             "price": 0.00001
         },
         "limits": {
@@ -979,29 +1339,42 @@
                 "max": 50
             },
             "amount": {
-                "min": 0.1
+                "min": 0.01,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1587463971000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "linear",
             "ctVal": "1000",
             "ctValCcy": "DOGE",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "DOGE-USDT",
             "instId": "DOGE-USDT-SWAP",
+            "instIdCode": "10502",
             "instType": "SWAP",
             "lever": "50",
             "listTime": "1587463971000",
-            "lotSz": "0.1",
+            "lotSz": "0.01",
             "maxIcebergSz": "100000000.0000000000000000",
             "maxLmtAmt": "20000000",
             "maxLmtSz": "100000000",
@@ -1010,19 +1383,25 @@
             "maxStopSz": "12000",
             "maxTriggerSz": "100000000.0000000000000000",
             "maxTwapSz": "100000000.0000000000000000",
-            "minSz": "0.1",
+            "minSz": "0.01",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "USDT",
             "state": "live",
             "stk": "",
             "tickSz": "0.00001",
+            "tradeQuoteCcyList": [],
             "uly": "DOGE-USDT"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "TRX/USDT:USDT": {
         "id": "TRX-USDT-SWAP",
+        "lowercaseId": null,
         "symbol": "TRX/USDT:USDT",
         "base": "TRX",
         "quote": "USDT",
@@ -1036,6 +1415,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -1044,8 +1424,12 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 1000,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 0.01,
             "price": 0.00001
         },
         "limits": {
@@ -1054,29 +1438,42 @@
                 "max": 50
             },
             "amount": {
-                "min": 0.1
+                "min": 0.01,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1573557408000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "linear",
             "ctVal": "1000",
             "ctValCcy": "TRX",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "TRX-USDT",
             "instId": "TRX-USDT-SWAP",
+            "instIdCode": "10473",
             "instType": "SWAP",
             "lever": "50",
             "listTime": "1573557408000",
-            "lotSz": "0.1",
+            "lotSz": "0.01",
             "maxIcebergSz": "1000000.0000000000000000",
             "maxLmtAmt": "20000000",
             "maxLmtSz": "1000000",
@@ -1085,19 +1482,25 @@
             "maxStopSz": "4000",
             "maxTriggerSz": "1000000.0000000000000000",
             "maxTwapSz": "1000000.0000000000000000",
-            "minSz": "0.1",
+            "minSz": "0.01",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "USDT",
             "state": "live",
             "stk": "",
             "tickSz": "0.00001",
+            "tradeQuoteCcyList": [],
             "uly": "TRX-USDT"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "SUSHI/USDT:USDT": {
         "id": "SUSHI-USDT-SWAP",
+        "lowercaseId": null,
         "symbol": "SUSHI/USDT:USDT",
         "base": "SUSHI",
         "quote": "USDT",
@@ -1111,6 +1514,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -1119,6 +1523,10 @@
         "taker": 0.0005,
         "maker": 0.0002,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.0001
@@ -1129,25 +1537,38 @@
                 "max": 50
             },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1599041571000,
         "info": {
             "alias": "",
             "auctionEndTime": "",
             "baseCcy": "",
             "category": "1",
+            "contTdSwTime": "",
             "ctMult": "1",
             "ctType": "linear",
             "ctVal": "1",
             "ctValCcy": "SUSHI",
             "expTime": "",
+            "futureSettlement": false,
             "instFamily": "SUSHI-USDT",
             "instId": "SUSHI-USDT-SWAP",
+            "instIdCode": "10536",
             "instType": "SWAP",
             "lever": "50",
             "listTime": "1599041571000",
@@ -1161,15 +1582,20 @@
             "maxTriggerSz": "100000000.0000000000000000",
             "maxTwapSz": "100000000.0000000000000000",
             "minSz": "1",
+            "openType": "",
             "optType": "",
+            "preMktSwTime": "",
             "quoteCcy": "",
             "ruleType": "normal",
             "settleCcy": "USDT",
             "state": "live",
             "stk": "",
             "tickSz": "0.0001",
+            "tradeQuoteCcyList": [],
             "uly": "SUSHI-USDT"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USD:BTC-241227-60000-P": {
         "id": "BTC-USD-241227-60000-P",

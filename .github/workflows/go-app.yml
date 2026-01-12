@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -20,10 +20,13 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - name: Setup Golang with cache
+        uses: magnetikonline/action-golang-cache@v5
         with:
-          go-version: "1.21.x"
+          go-version: ~1.24
+      - name: Install dependencies
+        run: go mod download
+        working-directory: ./go
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
@@ -37,29 +40,65 @@ jobs:
       - name: export exchanges
         run: npm run export-exchanges
       - name: Generate implicit API
-        run: npm run emitAPI -- --go
+        run: npm run emitAPI # if we emit go only, the implicit API will be problematic for new exchanges
       - name: Transpile To Go
         if: env.important_modified == 'true'
-        run: tsx build/goTranspiler.ts
+        run: tsx build/goTranspiler.ts && tsx build/goTranspiler.ts --ws
       - name: Transpile to Go (specific)
         if: env.important_modified == 'false'
-        run: |
-          cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
-          for exchange in $cleaned_rest_files; do
-            tsx build/goTranspiler.ts -- $exchange
-          done
+        # run: |
+        #   cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        #   # for exchange in $cleaned_rest_files; do
+        #   #   tsx build/goTranspiler.ts -- $exchange
+        #   # done
+        run : |
+          # cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+          # cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+          # # echo "Cleaned files: $cleaned_rest_files"
+          # # tsx utils/granular-go-build.ts $cleaned_rest_files
+          # if [ -n "$cleaned_rest_files" ]; then
+          #   echo "Cleaned files: $cleaned_rest_files"
+          #   tsx utils/granular-go-build.ts $cleaned_rest_files
+          # else
+          #   echo "No rest files to process; skipping."
+          # fi
+          # cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+          # if [ -n "$cleaned_ws_files" ]; then
+          #   echo "Cleaned files: $cleaned_ws_files"
+          #   tsx utils/granular-go-build.ts $cleaned_ws_files
+          # else
+          #   echo "No websocket files to process; skipping."
+          # fi
+          read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No files to process; skipping."
+            exit 0
+          fi
+          echo "Files to process: ${files[*]}"
+          tsx utils/granular-go-build.ts "${files[@]}"
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
-        run: cd go && go build ./v4 && cd ..
+        run: go build -C go ./v4
+      - name: Build Ws
+        run: go build -C go ./v4/pro
       - name: Build tests
-        run: cd go && go build ./tests/main.go && cd ..
+        run: go -C go build ./tests/main.go
+      - name: Format go files
+        run: go fmt .
+        working-directory: go/v4
+      - name: Format go tests
+        run: go fmt .
+        working-directory: go/tests/base
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
       - name: Run Base Tests
         if: env.important_modified == 'true'
         run: npm run test-base-rest-go
+      - name: Run Base Ws Tests
+        if: env.important_modified == 'true'
+        run: npm run test-base-ws-go
       - name: Run Id Tests
         if: env.important_modified == 'true'
         run: npm run id-tests-go
@@ -140,7 +179,7 @@ jobs:
       - name: Restore shared_env
         run: ./utils/restore_shared_env.sh
       - name: Build tests
-        run: cd  go/ && go build ./tests/main.go
+        run: go build -C go ./tests/main.go
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Export exchanges
@@ -154,14 +193,14 @@ jobs:
       # - name: Adjust permissions
       #   run: cd go && chmod +x main
       - name: Build
-        run: cd go && go build ./v4 && cd ..
+        run: go build -C go ./v4
       - name: Build tests
-        run: cd go && go build ./tests/main.go && cd ..
+        run: go build -C go ./tests/main.go
       - name: Live tests
         if: env.important_modified == 'true'
-        run: node run-tests --go --useProxy
+        run: ./run-tests-simul.sh --go
       - name: Live tests (specific)
         if: env.important_modified == 'false'
-        run: ./run-tests-simul.sh --go "${{ env.rest_files }}"
+        run: ./run-tests-simul.sh --go "${{ env.rest_files }}" "${{ env.ws_files }}"
 
 

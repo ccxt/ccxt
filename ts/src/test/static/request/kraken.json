@@ -5,6 +5,32 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "createOrders": [
+            {
+                "description": "createOrders spot",
+                "method": "createOrders",
+                "url": "https://api.kraken.com/0/private/AddOrderBatch",
+                "input": [
+                    [
+                        {
+                            "symbol": "ADA/USDC",
+                            "type": "limit",
+                            "amount": 6,
+                            "side": "sell",
+                            "price": 0.4
+                        },
+                        {
+                            "symbol": "ADA/USDC",
+                            "type": "limit",
+                            "amount": 6,
+                            "side": "sell",
+                            "price": 0.4
+                        }
+                    ]
+                ],
+                "output": "{\"nonce\":\"1762290765599\",\"orders\":[{\"type\":\"sell\",\"ordertype\":\"limit\",\"volume\":\"6\",\"price\":\"0.4\"},{\"type\":\"sell\",\"ordertype\":\"limit\",\"volume\":\"6\",\"price\":\"0.4\"}],\"pair\":\"ADAUSDC\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

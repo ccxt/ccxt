@@ -1,7 +1,7 @@
 {
     "name": "ccxt/ccxt",
     "type": "library",
-    "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for more than 100 bitcoin/altcoin exchanges",
+    "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
     "keywords": [
         "algorithmic",
         "algotrading",
@@ -224,6 +224,9 @@
             "ccxt\\async\\": "php/async/",
             "ccxt\\pro\\" : "php/pro/"
         },
+        "classmap": [
+            "php/protobuf/mexc/"
+        ],
         "files": [ "ccxt.php", "php/pro/base/functions.php" ]
     },
     "require": {

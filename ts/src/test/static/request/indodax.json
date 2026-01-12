@@ -20,7 +20,7 @@
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://indodax.com/tradingview/history_v2?to=1708417630&tf=60&symbol=BTCUSDT&from=1708399629",
+                "url": "https://indodax.com/tradingview/history_v2?to=1708417630&tf=60&symbol=btc_usdt&from=1708399629",
                 "input": [
                     "BTC/USDT",
                     "1h",

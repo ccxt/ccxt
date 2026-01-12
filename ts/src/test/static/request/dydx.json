@@ -1,0 +1,276 @@
+{
+    "exchange": "dydx",
+    "skipKeys": ["broadcast_tx_sync"],
+    "options": {
+        "dydxAccount": {
+            "address": "dydx1aba4sedmwq304u2ku9pwzjwq0lu5z2s4tslxrs",
+            "pub_key": {"key": "BlC4tr6iSS41oT2ZhccrAXwjZU1+6C7Z4oBeJB+W2YJS"},
+            "sequence": "0"
+        }
+    },
+    "disabledPHP": true,
+    "disabledCS": true,
+    "disabledGO": true,
+    "outputType": "json",
+    "walletAddress": "dydx1aba4sedmwq304u2ku9pwzjwq0lu5z2s4tslxrs",
+    "privateKey": "0x6c46cc6c20e92caa34f2c22a440a396949229c4690e44f2f290922fe4fc22cf4",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "disabled": true,
+                "url": "https://dydx-ops-rpc.kingnodes.com/broadcast_tx_sync?tx=0x0aa1010a710a202f6479647870726f746f636f6c2e636c6f622e4d7367506c6163654f72646572124d0a4b0a380a2d0a2b6479647831757061357465646d777133303475326b753970777a6a7771306c75367a32733474736c78727a15c94e771a18402009100118c0843d2080b4c4c32135ea3f0269fa7f2b0a252f6479647870726f746f636f6c2e6163636f756e74706c75732e5478457874656e73696f6e12020a00125d0a550a460a1f2f636f736d6f732e63727970746f2e736563703235366b312e5075624b657912230a210251b7b6bee2352eb4a12d5985b72b297c23654d7ee82ed9e2805e241f96d9825212040a020801189786a386a333120410c0843d1a4073a1f2dfa56a153ac01d37f8bc398bb410b6017e3c22fa8805a3ea7209fe6fb852975367cf5dd70e43907a89ef393b6720fd5dd2ab63194e94640637719b1a0b",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    90
+                ],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/time",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/perpetualMarkets",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/trades/perpetualMarket/BTC-USD?limit=1",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/candles/perpetualMarkets/BTC-USD?fromIso=2023-11-24T01%3A57%3A02.001Z&limit=1&resolution=1MIN",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1700791022001,
+                    1
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/historicalFunding/BTC-USD?limit=1",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orders/66390c15-ebad-53f8-86ad-99b3dfedbc85",
+                "input": [
+                    "66390c15-ebad-53f8-86ad-99b3dfedbc85"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orders?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&limit=1&subaccountNumber=0&ticker=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orders?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&limit=1&status=OPEN&subaccountNumber=0&ticker=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orders?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&limit=1&status=FILLED&subaccountNumber=0&ticker=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/perpetualPositions?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0&status=OPEN",
+                "input": [
+                    "BTC/USDC:USDC",
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/perpetualPositions?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0&status=OPEN",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ],
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orderbooks/perpetualMarket/BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/transfers?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/transfers?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/transfers?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/transfers?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetchDepositsWithdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/transfers?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/addresses/dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                "input": [
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/addresses/dydx1aba4sedmwq304u2ku9pwzjwq0lu5z2s4tslxrs/subaccountNumber/0",
+                "input": []
+            }
+        ]
+    }
+}

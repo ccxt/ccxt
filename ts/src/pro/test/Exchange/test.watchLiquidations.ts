@@ -1,11 +1,12 @@
+
 import assert from 'assert';
 import { Exchange } from "../../../../ccxt";
-import errors from '../../../base/errors.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
+import { NetworkError } from '../../../base/errors.js';
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 
-/*  ------------------------------------------------------------------------ */
 
-export default async (exchange: Exchange, skippedProperties: object, symbol: string) => {
+async function testWatchLiquidations (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     // log (symbol.green, 'watching trades...')
 
@@ -14,14 +15,14 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [];
 
-    if (skippedExchanges.includes (exchange.id)) {
+    if (exchange.inArray (exchange.id, skippedExchanges)) {
         console.log (exchange.id, method + '() test skipped');
-        return;
+        return false;
     }
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method + '() method');
-        return;
+        return false;
     }
 
     let response = undefined;
@@ -37,7 +38,8 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
 
             now = Date.now ();
 
-            assert (response instanceof Array);
+            const isArray = Array.isArray (response);
+            assert (isArray, "response must be an array");
 
             console.log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'liquidations');
 
@@ -48,7 +50,7 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
             }
         } catch (e) {
 
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof NetworkError)) {
                 throw e;
             }
 
@@ -57,4 +59,5 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
     }
 
     return response;
-};
+}
+export default testWatchLiquidations;

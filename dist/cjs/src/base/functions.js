@@ -105,6 +105,7 @@ exports.truncate = number.truncate;
 exports.truncate_to_string = number.truncate_to_string;
 exports.base16ToBinary = encode.base16ToBinary;
 exports.base58ToBinary = encode.base58ToBinary;
+exports.base64ToBase64Url = encode.base64ToBase64Url;
 exports.base64ToBinary = encode.base64ToBinary;
 exports.base64ToString = encode.base64ToString;
 exports.binaryConcat = encode.binaryConcat;

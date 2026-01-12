@@ -182,6 +182,23 @@
                   }
                 ],
                 "output": "{\"clientOid\":\"dab82652-e3a0-44b7-a118-b37a54233141\",\"side\":\"buy\",\"symbol\":\"XBTUSDTM\",\"type\":\"limit\",\"leverage\":1,\"valueQty\":\"25\",\"price\":\"25000\"}"
+            },
+            {
+                "description": "hedged createOrder with positionSide LONG and leverage param",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    105000,
+                    {
+                        "hedged": true,
+                        "leverage": 50
+                    }
+                ],
+                "output": "{\"clientOid\":\"f08f5172-6275-470d-b096-4eab1206d9ff\",\"side\":\"buy\",\"symbol\":\"XBTUSDTM\",\"type\":\"limit\",\"leverage\":50,\"size\":1,\"price\":\"105000\",\"positionSide\":\"LONG\"}"
             }
         ],
         "createOrders": [
@@ -517,6 +534,15 @@
         ],
         "fetchTicker": [
             {
+                "description": "fetch ticker of a market with expiry",
+                "method": "fetchTicker",
+                "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=OMNIUSDTM",
+                "input": [
+                    "OMNI/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "Swap ticker",
                 "method": "fetchTicker",
                 "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=XBTUSDTM",
@@ -803,6 +829,17 @@
                   "swap"
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"TRADE\"}"
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set the hedged mode to false (one-way mode)",
+                "method": "setPositionMode",
+                "url": "https://api-futures.kucoin.com/api/v2/position/switchPositionMode",
+                "input": [
+                    false
+                ],
+                "output": "{\"positionMode\":\"0\"}"
             }
         ]
     }

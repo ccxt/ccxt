@@ -14,15 +14,15 @@ import { unCamelCase } from '../base/functions/string.js';
 // js specific codes //
 const DIR_NAME = fileURLToPath(new URL('.', import.meta.url));
 process.on('uncaughtException', (e) => {
-    throw new Error(exceptionMessage(e));
+    throw new Error('[TEST_FAILURE] ' + exceptionMessage(e));
     // process.exit (1);
 });
 process.on('unhandledRejection', (e) => {
-    if (e.message.includes('connection closed by remote server')) {
-        // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
-        return;
-    }
-    throw new Error(exceptionMessage(e));
+    // if (e.message.includes ('connection closed by remote server')) {
+    //     // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
+    //     return;
+    // }
+    throw new Error('[TEST_FAILURE] ' + exceptionMessage(e));
     // process.exit (1);
 });
 const AuthenticationError = ccxt.AuthenticationError;

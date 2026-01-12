@@ -59,6 +59,7 @@
                     "USDT",
                     5,
                     "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC",
+                    null,
                     {
                         "network": "SOL"
                     }
@@ -1543,6 +1544,19 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel trigger swap order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders/2007048638370418688?contract=LTC_USDT",
+                "input": [
+                    "2007048638370418688",
+                    "LTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Cancel Order - spot",
                 "method": "cancelOrder",

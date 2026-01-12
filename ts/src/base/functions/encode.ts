@@ -5,7 +5,7 @@ import { base16, base58, base64, utf8 } from "../../static_dependencies/scure-ba
 import { numberToBytesBE, numberToBytesLE, concatBytes } from '../../static_dependencies/noble-curves/abstract/utils.js';
 import { serialize } from '../../static_dependencies/messagepack/msgpack.js'
 
-import qs from '../../static_dependencies/qs/index.cjs'
+import qs from '../../static_dependencies/qs/index.js'
 
 /*  ------------------------------------------------------------------------ */
 
@@ -53,6 +53,16 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
         return serialize(req);
     }
 
+    function base64ToBase64Url(base64: string, stripPadding: boolean = true): string {
+        let base64url = base64.replace(/\+/g, "-").replace(/\//g, "_");
+
+        if (stripPadding) {
+            base64url = base64url.replace(/=+$/, "");
+        }
+
+        return base64url;
+    }
+
 export {
     json
     , isJsonEncodedObject
@@ -66,6 +76,7 @@ export {
     , binaryToBase16
     , binaryConcat
     , binaryConcatArray
+    , base64ToBase64Url
     , urlencode
     , urlencodeWithArrayRepeat
     , rawencode

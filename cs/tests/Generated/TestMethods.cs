@@ -46,7 +46,19 @@ public partial class testMainClass
         this.ext = getExt();
     }
 
-    public async virtual Task<object> init(object exchangeId, object symbolArgv, object methodArgv)
+    public async virtual Task init(object exchangeId, object symbolArgv, object methodArgv)
+    {
+        try
+        {
+            await this.initInner(exchangeId, symbolArgv, methodArgv);
+        } catch(Exception e)
+        {
+            dump("[TEST_FAILURE]"); // tell run-tests.js this is failure
+            throw e;
+        }
+    }
+
+    public async virtual Task<object> initInner(object exchangeId, object symbolArgv, object methodArgv)
     {
         this.parseCliArgsAndProps();
         if (isTrue(isTrue(this.requestTests) && isTrue(this.responseTests)))
@@ -87,6 +99,7 @@ public partial class testMainClass
         Exchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
         if (isTrue(exchange.alias))
         {
+            dump(this.addPadding("[INFO] skipping alias", 25));
             exitScript(0);
         }
         await this.importFiles(exchange);
@@ -475,6 +488,7 @@ public partial class testMainClass
                     {
                         if (isTrue(this.info))
                         {
+                            // todo - turn into warning
                             dump("[INFO]", "Authentication problem for public method", exceptionMessage(e), exchange.id, methodName, argsStringified);
                         }
                         return true;
@@ -661,7 +675,7 @@ public partial class testMainClass
     {
         spot ??= true;
         object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
-        object codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
+        object codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
         object spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"};
         object swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USDC:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USDC:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
         object targetSymbols = ((bool) isTrue(spot)) ? spotSymbols : swapSymbols;
@@ -1418,7 +1432,7 @@ public partial class testMainClass
             { "uid", "uid" },
             { "token", "token" },
             { "login", "login" },
-            { "accountId", "accountId" },
+            { "accountId", "12345" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
     { "code", "USDT" },
@@ -1746,7 +1760,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive(), this.testModeTrade()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1794,6 +1808,23 @@ public partial class testMainClass
         // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
+        // linear swap conditional order
+        object swapAlgoOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new Dictionary<string, object>() {
+                { "triggerPrice", 101000 },
+            });
+            object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            object algoOrderIdDefined = (!isEqual(getValue(checkOrderRequest, "algoOrderId"), null));
+            assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
+            object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
+            object swapAlgoIdString = ((object)swapId).ToString();
+            assert(((string)clientAlgoIdSwap).StartsWith(((string)swapAlgoIdString)), add(add(add("binance - swap clientOrderId: ", clientAlgoIdSwap), " does not start with swapId"), swapAlgoIdString));
+        } catch(Exception e)
+        {
+            swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
         object createOrdersRequest = null;
         try
         {
@@ -1831,7 +1862,7 @@ public partial class testMainClass
     public async virtual Task<object> testOkx()
     {
         Exchange exchange = this.initOfflineExchange("okx");
-        object id = "e847386590ce4dBC";
+        object id = "6b9ad766b55dBCDE";
         object spotOrderRequest = null;
         try
         {
@@ -2327,36 +2358,6 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> testVertex()
-    {
-        Exchange exchange = this.initOfflineExchange("vertex");
-        exchange.walletAddress = "0xc751489d24a33172541ea451bc253d7a9e98c781";
-        exchange.privateKey = "c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b";
-        ((IDictionary<string,object>)exchange.options)["v1contracts"] = new Dictionary<string, object>() {
-            { "chain_id", "42161" },
-            { "endpoint_addr", "0xbbee07b3e8121227afcfe1e2b82772246226128e" },
-            { "book_addrs", new List<object>() {"0x0000000000000000000000000000000000000000", "0x70e5911371472e406f1291c621d1c8f207764d73", "0xf03f457a30e598d5020164a339727ef40f2b8fbc", "0x1c6281a78aa0ed88949c319cba5f0f0de2ce8353", "0xfe653438a1a4a7f56e727509c341d60a7b54fa91", "0xb6304e9a6ca241376a5fc9294daa8fca65ddcdcd", "0x01ec802ae0ab1b2cc4f028b9fe6eb954aef06ed1", "0x0000000000000000000000000000000000000000", "0x9c52d5c4df5a68955ad088a781b4ab364a861e9e", "0x0000000000000000000000000000000000000000", "0x2a3bcda1bb3ef649f3571c96c597c3d2b25edc79", "0x0000000000000000000000000000000000000000", "0x0492ff9807f82856781488015ef7aa5526c0edd6", "0x0000000000000000000000000000000000000000", "0xea884c82418ebc21cd080b8f40ecc4d06a6a6883", "0x0000000000000000000000000000000000000000", "0x5ecf68f983253a818ca8c17a56a4f2fb48d6ec6b", "0x0000000000000000000000000000000000000000", "0xba3f57a977f099905531f7c2f294aad7b56ed254", "0x0000000000000000000000000000000000000000", "0x0ac8c26d207d0c6aabb3644fea18f530c4d6fc8e", "0x0000000000000000000000000000000000000000", "0x8bd80ad7630b3864bed66cf28f548143ea43dc3b", "0x0000000000000000000000000000000000000000", "0x045391227fc4b2cdd27b95f066864225afc9314e", "0x0000000000000000000000000000000000000000", "0x7d512bef2e6cfd7e7f5f6b2f8027e3728eb7b6c3", "0x0000000000000000000000000000000000000000", "0x678a6c5003b56b5e9a81559e9a0df880407c796f", "0x0000000000000000000000000000000000000000", "0x14b5a17208fa98843cc602b3f74e31c95ded3567", "0xe442a89a07b3888ab10579fbb2824aeceff3a282", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xac28ac205275d7c2d6877bea8657cebe04fd9ae9", "0x0000000000000000000000000000000000000000", "0xed811409bfea901e75cb19ba347c08a154e860c9", "0x0000000000000000000000000000000000000000", "0x0f7afcb1612b305626cff84f84e4169ba2d0f12c", "0x0000000000000000000000000000000000000000", "0xe4b8d903db2ce2d3891ef04cfc3ac56330c1b0c3", "0x5f44362bad629846b7455ad9d36bbc3759a3ef62", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xa64e04ed4b223a71e524dc7ebb7f28e422ccfdde", "0x0000000000000000000000000000000000000000", "0x2ee573caab73c1d8cf0ca6bd3589b67de79628a4", "0x0000000000000000000000000000000000000000", "0x01bb96883a8a478d4410387d4aaf11067edc2c74", "0x0000000000000000000000000000000000000000", "0xe7ed0c559d905436a867cddf07e06921d572363c", "0x0000000000000000000000000000000000000000", "0xa94f9e3433c92a5cd1925494811a67b1943557d9", "0x0000000000000000000000000000000000000000", "0xa63de7f89ba1270b85f3dcc193ff1a1390a7c7c7", "0x0000000000000000000000000000000000000000", "0xc8b0b37dffe3a711a076dc86dd617cc203f36121", "0x0000000000000000000000000000000000000000", "0x646df48947ff785fe609969ff634e7be9d1c34cd", "0x0000000000000000000000000000000000000000", "0x42582b404b0bec4a266631a0e178840b107a0c69", "0x0000000000000000000000000000000000000000", "0x36a94bc3edb1b629d1413091e22dc65fa050f17f", "0x0000000000000000000000000000000000000000", "0xb398d00b5a336f0ad33cfb352fd7646171cec442", "0x0000000000000000000000000000000000000000", "0xb4bc3b00de98e1c0498699379f6607b1f00bd5a1", "0x0000000000000000000000000000000000000000", "0xfe8b7baf68952bac2c04f386223d2013c1b4c601", "0x0000000000000000000000000000000000000000", "0x9c8764ec71f175c97c6c2fd558eb6546fcdbea32", "0x0000000000000000000000000000000000000000", "0x94d31188982c8eccf243e555b22dc57de1dba4e1", "0x0000000000000000000000000000000000000000", "0x407c5e2fadd7555be927c028bc358daa907c797a", "0x0000000000000000000000000000000000000000", "0x7e97da2dbbbdd7fb313cf9dc0581ac7cec999c70", "0x0000000000000000000000000000000000000000", "0x7f8d2662f64dd468c423805f98a6579ad59b28fa", "0x0000000000000000000000000000000000000000", "0x3398adf63fed17cbadd6080a1fb771e6a2a55958", "0x0000000000000000000000000000000000000000", "0xba8910a1d7ab62129729047d453091a1e6356170", "0x0000000000000000000000000000000000000000", "0xdc054bce222fe725da0f17abcef38253bd8bb745", "0x0000000000000000000000000000000000000000", "0xca21693467d0a5ea9e10a5a7c5044b9b3837e694", "0x0000000000000000000000000000000000000000", "0xe0b02de2139256dbae55cf350094b882fbe629ea", "0x0000000000000000000000000000000000000000", "0x02c38368a6f53858aab5a3a8d91d73eb59edf9b9", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xfe8c4778843c3cb047ffe7c0c0154a724c05cab9", "0x0000000000000000000000000000000000000000", "0xe2e88862d9b7379e21c82fc4aec8d71bddbcdb4b", "0x0000000000000000000000000000000000000000", "0xbbaff9e73b30f9cea5c01481f12de75050947fd6", "0x0000000000000000000000000000000000000000", "0xa20f6f381fe0fec5a1035d37ebf8890726377ab9", "0x0000000000000000000000000000000000000000", "0xbad68032d012bf35d3a2a177b242e86684027ed0", "0x0000000000000000000000000000000000000000", "0x0e61ca37f0c67e8a8794e45e264970a2a23a513c", "0x0000000000000000000000000000000000000000", "0xa77b7048e378c5270b15918449ededf87c3a3db3", "0x0000000000000000000000000000000000000000", "0x15afca1e6f02b556fa6551021b3493a1e4a7f44f"} },
-        };
-        object id = 5930043274845996;
-        await exchange.loadMarkets();
-        object request = null;
-        try
-        {
-            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
-        } catch(Exception e)
-        {
-            request = jsonParse(exchange.last_request_body);
-        }
-        object order = getValue(request, "place_order");
-        object brokerId = getValue(order, "id");
-        assert(isEqual(brokerId, id), add(add(add("vertex - id: ", ((object)id).ToString()), " different from  broker_id: "), ((object)brokerId).ToString()));
-        if (!isTrue(isSync()))
-        {
-            await close(exchange);
-        }
-        return true;
-    }
-
     public async virtual Task<object> testParadex()
     {
         Exchange exchange = this.initOfflineExchange("paradex");
@@ -2533,6 +2534,29 @@ public partial class testMainClass
         }
         object brokerId = getValue(request, "order_tag");
         assert(isEqual(brokerId, id), add(add(add("modetrade - id: ", id), " different from  broker_id: "), brokerId));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testBackpack()
+    {
+        Exchange exchange = this.initOfflineExchange("backpack");
+        exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
+        exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
+        object reqHeaders = null;
+        object id = "1400";
+        try
+        {
+            await exchange.createOrder("ETH/USDC", "limit", "buy", 1, 5000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "X-Broker-Id"), id), add(add("backpack - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

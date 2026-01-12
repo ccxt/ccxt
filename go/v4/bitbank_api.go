@@ -7,114 +7,114 @@
 
 package ccxt
 
-func (this *bitbank) PublicGetPairTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPairTicker", args...)
+func (this *BitbankCore) PublicGetPairTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPairTicker", args...)
 }
 
-func (this *bitbank) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *BitbankCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *bitbank) PublicGetTickersJpy (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickersJpy", args...)
+func (this *BitbankCore) PublicGetTickersJpy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickersJpy", args...)
 }
 
-func (this *bitbank) PublicGetPairDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPairDepth", args...)
+func (this *BitbankCore) PublicGetPairDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPairDepth", args...)
 }
 
-func (this *bitbank) PublicGetPairTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPairTransactions", args...)
+func (this *BitbankCore) PublicGetPairTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPairTransactions", args...)
 }
 
-func (this *bitbank) PublicGetPairTransactionsYyyymmdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPairTransactionsYyyymmdd", args...)
+func (this *BitbankCore) PublicGetPairTransactionsYyyymmdd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPairTransactionsYyyymmdd", args...)
 }
 
-func (this *bitbank) PublicGetPairCandlestickCandletypeYyyymmdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPairCandlestickCandletypeYyyymmdd", args...)
+func (this *BitbankCore) PublicGetPairCandlestickCandletypeYyyymmdd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPairCandlestickCandletypeYyyymmdd", args...)
 }
 
-func (this *bitbank) PublicGetPairCircuitBreakInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPairCircuitBreakInfo", args...)
+func (this *BitbankCore) PublicGetPairCircuitBreakInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPairCircuitBreakInfo", args...)
 }
 
-func (this *bitbank) PrivateGetUserAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserAssets", args...)
+func (this *BitbankCore) PrivateGetUserAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserAssets", args...)
 }
 
-func (this *bitbank) PrivateGetUserSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserSpotOrder", args...)
+func (this *BitbankCore) PrivateGetUserSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserSpotOrder", args...)
 }
 
-func (this *bitbank) PrivateGetUserSpotActiveOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserSpotActiveOrders", args...)
+func (this *BitbankCore) PrivateGetUserSpotActiveOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserSpotActiveOrders", args...)
 }
 
-func (this *bitbank) PrivateGetUserMarginPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserMarginPositions", args...)
+func (this *BitbankCore) PrivateGetUserMarginPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserMarginPositions", args...)
 }
 
-func (this *bitbank) PrivateGetUserSpotTradeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserSpotTradeHistory", args...)
+func (this *BitbankCore) PrivateGetUserSpotTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserSpotTradeHistory", args...)
 }
 
-func (this *bitbank) PrivateGetUserDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserDepositHistory", args...)
+func (this *BitbankCore) PrivateGetUserDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserDepositHistory", args...)
 }
 
-func (this *bitbank) PrivateGetUserUnconfirmedDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserUnconfirmedDeposits", args...)
+func (this *BitbankCore) PrivateGetUserUnconfirmedDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserUnconfirmedDeposits", args...)
 }
 
-func (this *bitbank) PrivateGetUserDepositOriginators (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserDepositOriginators", args...)
+func (this *BitbankCore) PrivateGetUserDepositOriginators(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserDepositOriginators", args...)
 }
 
-func (this *bitbank) PrivateGetUserWithdrawalAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserWithdrawalAccount", args...)
+func (this *BitbankCore) PrivateGetUserWithdrawalAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserWithdrawalAccount", args...)
 }
 
-func (this *bitbank) PrivateGetUserWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserWithdrawalHistory", args...)
+func (this *BitbankCore) PrivateGetUserWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserWithdrawalHistory", args...)
 }
 
-func (this *bitbank) PrivateGetSpotStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotStatus", args...)
+func (this *BitbankCore) PrivateGetSpotStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotStatus", args...)
 }
 
-func (this *bitbank) PrivateGetSpotPairs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotPairs", args...)
+func (this *BitbankCore) PrivateGetSpotPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotPairs", args...)
 }
 
-func (this *bitbank) PrivatePostUserSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserSpotOrder", args...)
+func (this *BitbankCore) PrivatePostUserSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserSpotOrder", args...)
 }
 
-func (this *bitbank) PrivatePostUserSpotCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserSpotCancelOrder", args...)
+func (this *BitbankCore) PrivatePostUserSpotCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserSpotCancelOrder", args...)
 }
 
-func (this *bitbank) PrivatePostUserSpotCancelOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserSpotCancelOrders", args...)
+func (this *BitbankCore) PrivatePostUserSpotCancelOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserSpotCancelOrders", args...)
 }
 
-func (this *bitbank) PrivatePostUserSpotOrdersInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserSpotOrdersInfo", args...)
+func (this *BitbankCore) PrivatePostUserSpotOrdersInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserSpotOrdersInfo", args...)
 }
 
-func (this *bitbank) PrivatePostUserConfirmDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserConfirmDeposits", args...)
+func (this *BitbankCore) PrivatePostUserConfirmDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserConfirmDeposits", args...)
 }
 
-func (this *bitbank) PrivatePostUserConfirmDepositsAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserConfirmDepositsAll", args...)
+func (this *BitbankCore) PrivatePostUserConfirmDepositsAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserConfirmDepositsAll", args...)
 }
 
-func (this *bitbank) PrivatePostUserRequestWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserRequestWithdrawal", args...)
+func (this *BitbankCore) PrivatePostUserRequestWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserRequestWithdrawal", args...)
 }
 
-func (this *bitbank) MarketsGetSpotPairs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("marketsGetSpotPairs", args...)
+func (this *BitbankCore) MarketsGetSpotPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("marketsGetSpotPairs", args...)
 }

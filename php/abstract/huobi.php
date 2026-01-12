@@ -1067,7 +1067,7 @@ abstract class huobi extends \ccxt\htx {
         return $this->request('api/v1/contract_cancelall', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contract_private_post_api_v1_contract_switch_lever_rate($params = array()) {
-        return $this->request('api/v1/contract_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('api/v1/contract_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contract_private_post_api_v1_lightning_close_position($params = array()) {
         return $this->request('api/v1/lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1235,7 +1235,7 @@ abstract class huobi extends \ccxt\htx {
         return $this->request('swap-api/v1/swap_lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contract_private_post_swap_api_v1_swap_switch_lever_rate($params = array()) {
-        return $this->request('swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contract_private_post_swap_api_v1_swap_order_info($params = array()) {
         return $this->request('swap-api/v1/swap_order_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1448,10 +1448,10 @@ abstract class huobi extends \ccxt\htx {
         return $this->request('linear-swap-api/v1/swap_cross_cancelall', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contract_private_post_linear_swap_api_v1_swap_switch_lever_rate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('linear-swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contract_private_post_linear_swap_api_v1_swap_cross_switch_lever_rate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('linear-swap-api/v1/swap_cross_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contract_private_post_linear_swap_api_v1_swap_lightning_close_position($params = array()) {
         return $this->request('linear-swap-api/v1/swap_lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -2699,7 +2699,7 @@ abstract class huobi extends \ccxt\htx {
         return $this->request('api/v1/contract_cancelall', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contractPrivatePostApiV1ContractSwitchLeverRate($params = array()) {
-        return $this->request('api/v1/contract_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('api/v1/contract_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contractPrivatePostApiV1LightningClosePosition($params = array()) {
         return $this->request('api/v1/lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -2867,7 +2867,7 @@ abstract class huobi extends \ccxt\htx {
         return $this->request('swap-api/v1/swap_lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contractPrivatePostSwapApiV1SwapSwitchLeverRate($params = array()) {
-        return $this->request('swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contractPrivatePostSwapApiV1SwapOrderInfo($params = array()) {
         return $this->request('swap-api/v1/swap_order_info', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -3080,10 +3080,10 @@ abstract class huobi extends \ccxt\htx {
         return $this->request('linear-swap-api/v1/swap_cross_cancelall', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('linear-swap-api/v1/swap_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate($params = array()) {
-        return $this->request('linear-swap-api/v1/swap_cross_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('linear-swap-api/v1/swap_cross_switch_lever_rate', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function contractPrivatePostLinearSwapApiV1SwapLightningClosePosition($params = array()) {
         return $this->request('linear-swap-api/v1/swap_lightning_close_position', array('contract', 'private'), 'POST', $params, null, null, array("cost" => 1));

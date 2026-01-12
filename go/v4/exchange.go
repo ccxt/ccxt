@@ -3,18 +3,26 @@ package ccxt
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	j "encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	random2 "math/rand"
 	"net/http"
 	"net/url"
 	"reflect"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	pb "github.com/ccxt/ccxt/go/v4/protoc"
+	"golang.org/x/net/proxy"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type Exchange struct {
@@ -51,8 +59,10 @@ type Exchange struct {
 	Timeout                int64
 	MAX_VALUE              float64
 	RateLimit              float64
+	RollingWindowSize      float64 // set to 0.0 to use leaky bucket rate limiter
+	RateLimiterAlgorithm   string
 	TokenBucket            map[string]interface{}
-	Throttler              Throttler
+	Throttler              *Throttler
 	NewUpdates             bool
 	Alias                  bool
 	Verbose                bool
@@ -85,7 +95,7 @@ type Exchange struct {
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
 	Last_request_url         interface{}
-	LastRequestUrl           interface{}
+	LastRequestUrl           string
 	Headers                  interface{}
 	ReturnResponseHeaders    bool
 
@@ -97,7 +107,7 @@ type Exchange struct {
 	Password      string
 	Uid           string
 	AccountId     string
-	Token         string
+	Token         interface{}
 	Login         string
 	PrivateKey    string
 	WalletAddress string
@@ -134,19 +144,30 @@ type Exchange struct {
 	WsProxy  string
 	Ws_proxy string
 
+	HttpProxyAgentModule         interface{} // or interface{} if you don't have a type yet
+	HttpsProxyAgentModule        interface{}
+	SocksProxyAgentModule        interface{}
+	SocksProxyAgentModuleChecked bool
+	ProxyDictionaries            map[string]interface{}
+	ProxiesModulesLoading        chan struct{} // or something to represent a Promise/future
+
 	SubstituteCommonCurrencyCodes bool
 
-	Twofa interface{}
+	Twofa string
 
-	// WS
-	Clients    interface{}
-	Ohlcvs     interface{}
-	Trades     interface{}
-	Tickers    interface{}
-	Orders     interface{}
-	Positions  interface{}
-	MyTrades   interface{}
-	Orderbooks interface{}
+	// WS - updated to use thread-safe sync.Map (except cache objects)
+	Ohlcvs         interface{} // map[string]map[string]*ArrayCacheByTimestamp
+	Trades         interface{} // map[string]*ArrayCache
+	Tickers        *sync.Map
+	Orders         interface{} // *ArrayCache  // cache object, not a map
+	MyTrades       interface{} // *ArrayCache  // cache object, not a map
+	Orderbooks     *sync.Map
+	Liquidations   *sync.Map
+	FundingRates   interface{}
+	Bidsasks       *sync.Map
+	TriggerOrders  interface{} // *ArrayCache
+	Transactions   *sync.Map
+	MyLiquidations *sync.Map
 
 	PaddingMode int
 
@@ -157,6 +178,18 @@ type Exchange struct {
 	FetchResponse interface{}
 
 	IsSandboxModeEnabled bool
+
+	// ws
+	WsClients   map[string]interface{} // one websocket client per URL
+	WsClientsMu sync.Mutex
+	Balance     interface{}
+	Positions   interface{}
+	Clients     map[string]interface{}
+	newUpdates  bool
+	streaming   map[string]interface{}
+
+	// id lock
+	idMutex sync.Mutex
 }
 
 const (
@@ -196,14 +229,37 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 
 	// warmup itf cache
 
-	this.initializeProperties(extendedProperties)
+	limit := 10000
+	// Initialize WebSocket data structures with thread-safe sync.Map
+	this.Trades = make(map[string]*ArrayCache)
+	this.Tickers = &sync.Map{}
+	this.Orderbooks = &sync.Map{}
+	this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
+	this.Orders = NewArrayCache(limit)
+	this.TriggerOrders = NewArrayCache(limit)
+	this.MyTrades = NewArrayCache(limit)
+	this.Transactions = &sync.Map{}
+	this.Liquidations = &sync.Map{}
+	this.MyLiquidations = &sync.Map{}
+	this.Clients = make(map[string]interface{})
+	this.Balance = make(map[string]interface{})
+
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
 	// afterNs := time.Now().UnixNano()
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
+	this.Currencies = &sync.Map{}
+	this.FundingRates = make(map[string]interface{})
+	this.Bidsasks = &sync.Map{}
+	this.ProxyDictionaries = make(map[string]interface{})
+	this.AccountsById = make(map[string]interface{})
+	this.Accounts = make([]interface{}, 0)
+
+	this.initializeProperties(extendedProperties)
 	this.AfterConstruct()
 
+	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]interface{}{}).(map[string]interface{})
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
 
@@ -211,8 +267,11 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
-
-	if IsTrue(IsTrue(this.SafeBool(userConfig, "sandbox")) || IsTrue(this.SafeBool(userConfig, "testnet"))) {
+	userOptions := this.SafeDict(userConfig, "options")
+	if userOptions == nil {
+		userOptions = map[string]interface{}{}
+	}
+	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
 		this.SetSandboxMode(true)
 	}
 
@@ -319,7 +378,9 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+				ch <- panicMsg
 			}
 		}()
 		reload := GetArg(params, 0, false).(bool)
@@ -451,7 +512,7 @@ func Unique(obj interface{}) []string {
 
 func (this *Exchange) Log(args ...interface{}) {
 	// convert to str and print
-	fmt.Println(args)
+	fmt.Println(args...)
 }
 
 func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {
@@ -459,10 +520,11 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 
 	go func() {
 		defer close(ch)
-
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+				ch <- panicMsg
 			}
 		}()
 
@@ -595,7 +657,13 @@ func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
 }
 
 func (this *Exchange) ValueIsDefined(v interface{}) bool {
-	return v != nil
+	if v == nil {
+		return false
+	}
+	if str, ok := v.(string); ok {
+		return str != ""
+	}
+	return true
 }
 
 // func (this *Exchange) CreateSafeDictionary() interface{} {
@@ -607,6 +675,10 @@ func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
 }
 
 func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+	return this.callInternal(name2.(string), args...)
+}
+
+func (this *Exchange) CallDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
 	return this.callInternal(name2.(string), args...)
 }
 
@@ -637,11 +709,16 @@ func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 	}
 }
 
-type ArrayCache interface {
+type IArrayCache interface {
 	ToArray() []interface{}
 }
 
 func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ...interface{}) interface{} {
+	// If the incoming object implements IArrayCache convert it first.
+	if cache, ok := array.(IArrayCache); ok {
+		return this.ArraySlice(cache.ToArray(), first, second...)
+	}
+
 	firstInt := reflect.ValueOf(first).Convert(reflect.TypeOf(0)).Interface().(int)
 	parsedArray := reflect.ValueOf(array)
 
@@ -650,7 +727,7 @@ func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ..
 	}
 
 	length := parsedArray.Len()
-	isArrayCache := reflect.TypeOf(array).Implements(reflect.TypeOf((*ArrayCache)(nil)).Elem())
+	isArrayCache := reflect.TypeOf(array).Implements(reflect.TypeOf((*IArrayCache)(nil)).Elem())
 
 	if len(second) == 0 {
 		if firstInt < 0 {
@@ -659,19 +736,19 @@ func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ..
 				index = 0
 			}
 			if isArrayCache {
-				return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[index:]
+				return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[index:]
 			}
 			return this.sliceToInterface(parsedArray.Slice(index, length))
 		}
 		if isArrayCache {
-			return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[firstInt:]
+			return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[firstInt:]
 		}
 		return this.sliceToInterface(parsedArray.Slice(firstInt, length))
 	}
 
 	secondInt := reflect.ValueOf(second[0]).Convert(reflect.TypeOf(0)).Interface().(int)
 	if isArrayCache {
-		return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[firstInt:secondInt]
+		return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[firstInt:secondInt]
 	}
 	return this.sliceToInterface(parsedArray.Slice(firstInt, secondInt))
 }
@@ -939,7 +1016,9 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 		defer func() {
 			if r := recover(); r != nil {
 				if r != "break" {
-					ch <- "panic:" + ToString(r)
+					stack := debug.Stack()
+					panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+					ch <- panicMsg
 				}
 			}
 		}()
@@ -1039,6 +1118,9 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 }
 
 func (this *Exchange) GetMarket(symbol string) MarketInterface {
+	if this.Markets == nil {
+		panic("Markets not loaded, please call LoadMarkets() first")
+	}
 	// market := this.Markets[symbol]
 	market, ok := this.Markets.Load(symbol)
 	if !ok {
@@ -1103,6 +1185,28 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
 	}
+}
+
+func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{} {
+	include := true
+	if len(includeStack) > 0 {
+		include = includeStack[0].(bool)
+	}
+
+	var message string
+
+	if include {
+		message = fmt.Sprintf("[%T] %+v", exc, exc)
+	} else {
+		message = fmt.Sprintf("[%T] %v", exc, exc)
+	}
+
+	length := len(message)
+	if length > 100000 {
+		length = 100000
+	}
+
+	return message[:length]
 }
 
 func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
@@ -1209,7 +1313,9 @@ func (this *Exchange) GetZKContractSignatureObj(seed interface{}, params interfa
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+				ch <- panicMsg
 			}
 		}()
 
@@ -1225,13 +1331,61 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+				ch <- panicMsg
 			}
 		}()
 
 		ch <- "panic:" + "Apex currently does not support transfer asset in Go language"
 	}()
 	return ch
+}
+
+func (this *Exchange) LoadDydxProtos() <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Dydx currently does not support transfer asset in Go language"
+	}()
+	return ch
+}
+
+func (this *Exchange) ToDydxLong(numStr interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) RetrieveDydxCredentials(entropy interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSimulation(
+	message interface{},
+	memo interface{},
+	sequence interface{},
+	publicKey interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSigning(
+	message interface{},
+	memo interface{},
+	chainId interface{},
+	account interface{},
+	authenticators interface{},
+	fee interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxRaw(signDoc interface{}, signature interface{}) interface{} {
+	return nil
 }
 
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
@@ -1313,4 +1467,614 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}
 		PanicOnError(ch)
 	}()
 	return ch
+}
+
+// returns a future (implemented as a channel) that will be resolved by client.Resolve(data, messageHash)
+//
+// Signature in the generated code varies (2-5 parameters), therefore the variadic form is used and parsed internally
+//   - url (string) – WS endpoint
+//   - messageHash (string)
+//   - [message]      subscribe payload (optional)
+//   - [subscribeHash] key for "subscriptions" map (optional)
+//   - [subscription]  arbitrary value stored in subscriptions (optional)
+func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
+
+	url, _ := args[0].(string)
+	messageHash, _ := args[1].(string)
+	var message interface{}
+	var subscribeHash interface{}
+	var subscription interface{}
+
+	if len(args) >= 3 {
+		message = args[2]
+	}
+	if len(args) >= 4 {
+		subscribeHash = args[3]
+	} else {
+		subscribeHash = messageHash
+	}
+	if len(args) >= 5 {
+		subscription = args[4]
+	}
+
+	client := this.Client(url)
+	// todo: calculate the backoff using the clients cache
+	backoffDelay := 0
+	//
+	//  watchOrderBook ---- future ----+---------------+----→ user
+	//                                 |               |
+	//                                 ↓               ↑
+	//                                 |               |
+	//                              connect ......→ resolve
+	//                                 |               |
+	//                                 ↓               ↑
+	//                                 |               |
+	//                             subscribe -----→ receive
+	//
+	if subscribeHash == nil {
+		client.FuturesMu.RLock()
+		// Use read lock when checking for existing futures
+		if fut, ok := client.Futures[messageHash]; ok {
+			client.FuturesMu.RUnlock()
+			return fut.(*Future).Await()
+		}
+		client.FuturesMu.RUnlock()
+	}
+	future := client.NewFuture(messageHash)
+	// read and write subscription, this is done before connecting the client
+	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
+	client.SubscriptionsMu.Lock()
+	clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
+	if clientSubscription == nil {
+		if subscription != nil {
+			client.Subscriptions[subscribeHash.(string)] = subscription
+		} else {
+			// client.Subscriptions[subscribeHash.(string)] = make(chan interface{})
+			client.Subscriptions[subscribeHash.(string)] = true
+		}
+	}
+	client.SubscriptionsMu.Unlock()
+	// we intentionally do not use await here to avoid unhandled exceptions
+	// the policy is to make sure that 100% of promises are resolved or rejected
+	// either with a call to client.resolve or client.reject with
+	//  a proper exception class instance
+	client.ConnectMu.Lock()
+	connected, err := client.Connect(backoffDelay)
+	client.ConnectMu.Unlock()
+	if err != nil {
+		client.SubscriptionsMu.Lock()
+		delete(client.Subscriptions, subscribeHash.(string))
+		future.Reject(err)
+		client.SubscriptionsMu.Unlock()
+		return future.Await()
+	}
+	// the following is executed only if the catch-clause does not
+	// catch any connection-level exceptions from the client
+	// (connection established successfully)
+	if clientSubscription == nil {
+		go func() {
+			result := <-connected.Await()
+			if err, ok := result.(error); ok {
+				delete(client.Subscriptions, subscribeHash.(string))
+				future.Reject(err)
+				return
+			}
+			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+			cost := SafeValue(options, "cost", 1)
+			if message != nil {
+				if this.EnableRateLimit && client.Throttle != nil {
+					// add cost here |
+					//               |
+					//               V
+					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+						if err := throttleFunc(cost); err != nil {
+							client.OnError(err)
+							return
+						}
+					}
+				}
+				sendFutureChannel := <-client.Send(message)
+				if err, ok := sendFutureChannel.(error); ok {
+					client.OnError(err)
+					client.SubscriptionsMu.Lock()
+					delete(client.Subscriptions, subscribeHash.(string))
+					client.SubscriptionsMu.Unlock()
+				}
+			}
+		}()
+	}
+	return future.Await()
+}
+
+// ------------------- WS helper wrappers (parity with TS) ------------------
+
+// OrderBook returns a new mutable order-book using our Go implementation.
+func (this *Exchange) OrderBook(optionalArgs ...interface{}) *WsOrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	depth := GetArg(optionalArgs, 1, math.MaxInt32)
+	orderBook := NewWsOrderBook(snapshot, depth)
+	return orderBook
+}
+
+// IndexedOrderBook and CountedOrderBook share the same implementation for now.
+func (this *Exchange) IndexedOrderBook(optionalArgs ...interface{}) *IndexedOrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	depth := GetArg(optionalArgs, 1, 9007199254740991)
+	orderBook := NewIndexedOrderBook(snapshot, depth)
+	return orderBook
+}
+
+func (this *Exchange) CountedOrderBook(optionalArgs ...interface{}) *CountedOrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	depth := GetArg(optionalArgs, 1, 9007199254740991)
+	orderBook := NewCountedOrderBook(snapshot, depth)
+	return orderBook
+}
+
+// func (this *Exchange) setOwner(cli *WSClient) {
+// 	if this.DerivedExchange != nil {
+// 		cli.Owner = this.DerivedExchange.(*Exchange)
+// 	} else {
+// 		cli.Owner = this
+// 	}
+// }
+
+func (this *Exchange) SetProxyAgents(httpProxy interface{}, httpsProxy interface{}, socksProxy interface{}) (interface{}, error) {
+	var transport *http.Transport
+
+	// Handle HTTP proxy
+	if httpProxy != "" {
+		proxyURL, err := url.Parse(httpProxy.(string))
+		if err != nil {
+			return nil, BadRequest(this.Id + " invalid HTTP proxy URL: " + err.Error())
+		}
+		transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	} else if httpsProxy != "" {
+		// Handle HTTPS proxy
+		proxyURL, err := url.Parse(httpsProxy.(string))
+		if err != nil {
+			return nil, BadRequest(this.Id + " invalid HTTPS proxy URL: " + err.Error())
+		}
+		transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	} else if socksProxy != "" {
+		// Handle SOCKS proxy
+		proxyURL, err := url.Parse(socksProxy.(string))
+		if err != nil {
+			return nil, BadRequest(this.Id + " invalid SOCKS proxy URL: " + err.Error())
+		}
+
+		// Create SOCKS5 dialer
+		dialer, err := proxy.SOCKS5("tcp", proxyURL.Host, nil, proxy.Direct)
+		if err != nil {
+			return nil, BadRequest(this.Id + " failed to create SOCKS5 dialer: " + err.Error())
+		}
+
+		transport = &http.Transport{
+			Dial: dialer.Dial,
+		}
+	}
+
+	return transport, nil
+}
+
+func (this *Exchange) GetHttpAgentIfNeeded(url string) (interface{}, error) {
+	// if isNode { // TODO: implement this
+	if len(url) >= 5 && url[:5] == "ws://" {
+		if this.HttpProxy == nil {
+			return nil, NotSupported(this.Id + " to use proxy with non-ssl ws:// urls, at first run `await exchange.loadHttpProxyAgent()` method")
+		}
+		return this.HttpProxy, nil
+	}
+	// }
+	return nil, nil // no agent needed
+}
+
+func (this *Exchange) Ping(client interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) HandleMessage(client interface{}, message interface{}) {
+	// stub to override
+}
+
+func (this *Exchange) OnConnected(client interface{}, message interface{}) {
+	// for user hooks
+	// fmt.Println('Connected to', client.url)
+}
+
+func (this *Exchange) OnError(client interface{}, err interface{}) {
+	this.WsClientsMu.Lock()
+	if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c.(ClientInterface).GetError() != nil {
+		delete(this.Clients, client.(ClientInterface).GetUrl())
+	}
+	this.WsClientsMu.Unlock()
+	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
+}
+
+func (this *Exchange) OnClose(client interface{}, err interface{}) {
+	if client.(*Client).Error != nil {
+		// connection closed due to an error, do nothing
+	} else {
+		this.WsClientsMu.Lock()
+		delete(this.Clients, client.(*Client).Url)
+		this.WsClientsMu.Unlock()
+	}
+}
+
+// Client returns (and caches) a *WSClient for the given WS URL.
+func (this *Exchange) Client(url interface{}) *WSClient {
+	// TODO: what to do with errors
+	this.WsClientsMu.Lock()
+	defer this.WsClientsMu.Unlock()
+	if client, ok := this.Clients[url.(string)]; ok {
+		return client.(*WSClient)
+	}
+	// TODO: add options to NewWSClient
+	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
+	// proxy agents
+	proxies := this.CheckWsProxySettings()
+	var httpProxy, httpsProxy, socksProxy string
+	if proxySlice, ok := proxies.([]interface{}); ok {
+		httpProxy, _ = proxySlice[0].(string)
+		httpsProxy, _ = proxySlice[1].(string)
+		socksProxy, _ = proxySlice[2].(string)
+	}
+
+	chosenAgent, err := this.SetProxyAgents(httpProxy, httpsProxy, socksProxy)
+	if err != nil {
+		return nil //, err
+	}
+	httpProxyAgent, err := this.GetHttpAgentIfNeeded(url.(string))
+	if err != nil {
+		return nil //, err
+	}
+	var finalAgent interface{}
+	if chosenAgent != nil {
+		finalAgent = chosenAgent
+	} else if httpProxyAgent != nil {
+		finalAgent = httpProxyAgent
+	}
+
+	options := DeepExtend(
+		this.streaming,
+		map[string]interface{}{
+			"Log":      this.Log,
+			"Ping":     this.DerivedExchange.Ping,
+			"Verbose":  this.Verbose,
+			"Throttle": NewThrottler(this.TokenBucket),
+			"Options": map[string]interface{}{
+				"Agent": finalAgent,
+			},
+			"DecompressBinary": this.SafeBool(this.Options, "decompressBinary", true),
+		},
+		wsOptions,
+	)
+	var proxyUrl string = this.getWsProxy()
+	client := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, proxyUrl, options)
+
+	this.Clients[url.(string)] = client
+	return client
+}
+
+func (this *Exchange) getWsProxy() string {
+	proxies := this.CheckWsProxySettings()
+	var proxyUrl string
+	if proxySlice, ok := proxies.([]interface{}); ok {
+		httpProxy, _ := proxySlice[0].(string)
+		httpsProxy, _ := proxySlice[1].(string)
+		socksProxy, _ := proxySlice[2].(string)
+		if httpProxy != "" {
+			proxyUrl = httpProxy
+		} else if httpsProxy != "" {
+			proxyUrl = httpsProxy
+		} else if socksProxy != "" {
+			proxyUrl = socksProxy
+		}
+	}
+	return proxyUrl
+}
+
+func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
+	url, _ := args[0].(string)
+	var messageHashes []string
+
+	// Handle both []string and []interface{} for messageHashes
+	if hashes, ok := args[1].([]string); ok {
+		messageHashes = hashes
+	} else if hashesInterface, ok := args[1].([]interface{}); ok {
+		// Convert []interface{} to []string
+		messageHashes = make([]string, len(hashesInterface))
+		for i, hash := range hashesInterface {
+			if str, ok := hash.(string); ok {
+				messageHashes[i] = str
+			}
+		}
+	}
+	var message interface{}
+	var subscribeHashes interface{}
+	var subscription interface{}
+
+	if len(args) >= 3 {
+		message = args[2]
+	}
+	if len(args) >= 4 {
+		subscribeHashes = args[3]
+	} else {
+		subscribeHashes = messageHashes
+	}
+	if len(args) >= 5 {
+		subscription = args[4]
+	}
+
+	client := this.Client(url)
+	// todo: calculate the backoff using the clients cache
+	backoffDelay := 0
+	//
+	//  watchOrderBook ---- future ----+---------------+----→ user
+	//                                 |               |
+	//                                 ↓               ↑
+	//                                 |               |
+	//                              connect ......→ resolve
+	//                                 |               |
+	//                                 ↓               ↑
+	//                                 |               |
+	//                             subscribe -----→ receive
+	//
+	futures := make([]*Future, len(messageHashes))
+	for i, messageHash := range messageHashes {
+		futures[i] = client.NewFuture(messageHash)
+	}
+	future := FutureRace(futures)
+	// read and write subscription, this is done before connecting the client
+	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
+	missingSubscriptions := []string{}
+	client.SubscriptionsMu.Lock()
+	if subscribeHashes != nil {
+		// Handle both []string and []interface{} for subscribeHashes
+		var subscribeHashesList []interface{}
+		if hashes, ok := subscribeHashes.([]string); ok {
+			subscribeHashesList = make([]interface{}, len(hashes))
+			for i, hash := range hashes {
+				subscribeHashesList[i] = hash
+			}
+		} else if hashes, ok := subscribeHashes.([]interface{}); ok {
+			subscribeHashesList = hashes
+		}
+
+		for _, subscribeHash := range subscribeHashesList {
+			if hashStr, ok := subscribeHash.(string); ok {
+				if _, exists := client.Subscriptions[hashStr]; !exists {
+					missingSubscriptions = append(missingSubscriptions, hashStr)
+					if subscription != nil {
+						client.Subscriptions[hashStr] = subscription
+					} else {
+						client.Subscriptions[hashStr] = make(chan interface{})
+					}
+				}
+			}
+		}
+	}
+	client.SubscriptionsMu.Unlock()
+	// we intentionally do not use await here to avoid unhandled exceptions
+	// the policy is to make sure that 100% of promises are resolved or rejected
+	// either with a call to client.resolve or client.reject with
+	//  a proper exception class instance
+	client.ConnectMu.Lock()
+	connected, err := client.Connect(backoffDelay)
+	client.ConnectMu.Unlock()
+	if err != nil {
+		future.Reject(err)
+		for _, h := range missingSubscriptions {
+			client.SubscriptionsMu.Lock()
+			delete(client.Subscriptions, h)
+			client.SubscriptionsMu.Unlock()
+		}
+		return future.Await()
+	}
+	// the following is executed only if the catch-clause does not
+	// catch any connection-level exceptions from the client
+	// (connection established successfully)
+	if subscribeHashes == nil || len(missingSubscriptions) > 0 {
+		go func() {
+			result := <-connected.Await()
+			if err, ok := result.(error); ok {
+				for _, subscribeHash := range missingSubscriptions {
+					delete(client.Subscriptions, subscribeHash)
+				}
+				future.Reject(err)
+				return
+			}
+			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+			cost := SafeValue(options, "cost", 1)
+			if message != nil {
+				if this.EnableRateLimit && client.Throttle != nil {
+					// add cost here |
+					//               |
+					//               V
+					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+						if err := throttleFunc(cost); err != nil {
+							client.OnError(err)
+						}
+					}
+				}
+				sendFutureChannel := <-client.Send(message)
+				if err, ok := sendFutureChannel.(error); ok {
+					client.SubscriptionsMu.Lock()
+					for _, subscribeHash := range missingSubscriptions {
+						delete(client.Subscriptions, subscribeHash)
+					}
+					client.SubscriptionsMu.Unlock()
+					future.Reject(err)
+				}
+			}
+		}()
+	}
+	return future.Await()
+}
+
+// func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
+// 	future := NewFuture()
+
+// 	go func() {
+// 		response := <-(CallDynamically(method, args...).(<-chan interface{}))
+// 		if err, ok := response.(error); ok {
+// 			future.Reject(err)
+// 		} else {
+// 			future.Resolve(response)
+// 		}
+// 	}()
+// 	return future.Await()
+// }
+
+func (this *Exchange) Spawn(method interface{}, args ...interface{}) *Future {
+	future := NewFuture()
+
+	go func() {
+		response := <-(CallDynamically(method, args...).(<-chan interface{}))
+		if err, ok := response.(error); ok {
+			future.Reject(err)
+		} else {
+			future.Resolve(response)
+		}
+	}()
+	return future
+}
+
+func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...interface{}) {
+	var timeoutMs int64
+	switch v := timeout.(type) {
+	case int:
+		timeoutMs = int64(v)
+	case int64:
+		timeoutMs = v
+	default:
+		panic(fmt.Sprintf("timeout must be int or int64, got %T", timeout))
+	}
+	time.AfterFunc(time.Duration(timeoutMs)*time.Millisecond, func() {
+		this.Spawn(method, args...)
+	})
+}
+
+func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{}, symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	limit := GetArg(optionalArgs, 0, nil)
+	params := GetArg(optionalArgs, 1, map[string]interface{}{})
+	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
+	tries := 0
+	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
+		orderBookInterface := stored.(OrderBookInterface)
+		for tries < maxRetries.(int) {
+			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			cache := (*orderBookInterface.GetCache()).([]interface{})
+			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
+			if index >= 0 {
+				// Call Reset method on stored orderbook
+				orderBookInterface.Reset(orderBook)
+				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
+				orderBookInterface.SetCache(map[string]interface{}{})
+				// this.SetProperty(cache, "length", 0)
+				client.(*Client).Resolve(stored, messageHash)
+				return nil
+			}
+			tries++
+		}
+		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
+		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
+		delete(this.Clients, client.(*Client).Url)
+	} else {
+		client.(*Client).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
+		return nil
+	}
+	// TODO: don't know where this fits
+	// catch (e) {
+	// 	client.reject (e, messageHash);
+	// 	await this.loadOrderBook (client, messageHash, symbol, limit, params);
+	// }
+	return nil
+}
+
+func (this *Exchange) Close() []error {
+	this.WsClientsMu.Lock()
+	clients := make([]*WSClient, 0, len(this.Clients))
+	for _, c := range this.Clients {
+		clients = append(clients, c.(*WSClient))
+	}
+	this.Clients = make(map[string]interface{})
+	this.WsClientsMu.Unlock()
+	errs := make([]error, 0)
+	for _, c := range clients {
+		if future := c.Close(); future != nil {
+			if errVal, ok := (<-future.Await()).(error); ok {
+				errs = append(errs, errVal)
+			}
+
+			userClosedError := ExchangeClosedByUser()
+			c.OnError(userClosedError)
+		}
+	}
+	return errs
+}
+
+// ---------------- Connection lifecycle helpers ----------------
+
+func CallDynamically(fn interface{}, args ...interface{}) interface{} {
+	v := reflect.ValueOf(fn)
+	in := make([]reflect.Value, len(args))
+	for i, a := range args {
+		r := reflect.ValueOf(a)
+		if !r.IsValid() {
+			r = reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem())
+		}
+		in[i] = r
+	}
+	out := v.Call(in)
+	if len(out) > 0 {
+		return out[0].Interface()
+	}
+	return nil
+}
+
+func (this *Exchange) Crc32(str interface{}, signed2 bool) int64 {
+	// signed := false
+	// if len(signed2) > 0 {
+	// 	if b, ok := signed2[0].(bool); ok {
+	// 		signed = b
+	// 	}
+	// }
+	return Crc32(str.(string), signed2)
+}
+
+func (this *Exchange) IsBinaryMessage(message interface{}) bool {
+	if _, ok := message.([]byte); ok {
+		return true
+	}
+	return false
+}
+
+func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
+	var msg pb.PushDataV3ApiWrapper
+	if err := proto.Unmarshal(message.([]byte), &msg); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal proto message: %v", err))
+	}
+	jsonBytes, _ := protojson.Marshal(&msg)
+	var v interface{}
+	_ = json.Unmarshal(jsonBytes, &v)
+	return v
+}
+
+func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
+	return ""
+}
+
+func (this *Exchange) LockId() bool {
+	this.idMutex.Lock()
+	return true
+}
+
+func (this *Exchange) UnlockId() bool {
+	this.idMutex.Unlock()
+	return true
 }

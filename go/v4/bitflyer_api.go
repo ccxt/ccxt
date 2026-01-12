@@ -7,142 +7,142 @@
 
 package ccxt
 
-func (this *bitflyer) PublicGetGetmarketsUsa (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetmarketsUsa", args...)
+func (this *BitflyerCore) PublicGetGetmarketsUsa(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetmarketsUsa", args...)
 }
 
-func (this *bitflyer) PublicGetGetmarketsEu (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetmarketsEu", args...)
+func (this *BitflyerCore) PublicGetGetmarketsEu(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetmarketsEu", args...)
 }
 
-func (this *bitflyer) PublicGetGetmarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetmarkets", args...)
+func (this *BitflyerCore) PublicGetGetmarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetmarkets", args...)
 }
 
-func (this *bitflyer) PublicGetGetboard (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetboard", args...)
+func (this *BitflyerCore) PublicGetGetboard(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetboard", args...)
 }
 
-func (this *bitflyer) PublicGetGetticker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetticker", args...)
+func (this *BitflyerCore) PublicGetGetticker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetticker", args...)
 }
 
-func (this *bitflyer) PublicGetGetexecutions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetexecutions", args...)
+func (this *BitflyerCore) PublicGetGetexecutions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetexecutions", args...)
 }
 
-func (this *bitflyer) PublicGetGethealth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGethealth", args...)
+func (this *BitflyerCore) PublicGetGethealth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGethealth", args...)
 }
 
-func (this *bitflyer) PublicGetGetboardstate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetboardstate", args...)
+func (this *BitflyerCore) PublicGetGetboardstate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetboardstate", args...)
 }
 
-func (this *bitflyer) PublicGetGetchats (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetchats", args...)
+func (this *BitflyerCore) PublicGetGetchats(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetchats", args...)
 }
 
-func (this *bitflyer) PublicGetGetfundingrate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetfundingrate", args...)
+func (this *BitflyerCore) PublicGetGetfundingrate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetfundingrate", args...)
 }
 
-func (this *bitflyer) PrivateGetGetpermissions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetpermissions", args...)
+func (this *BitflyerCore) PrivateGetGetpermissions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetpermissions", args...)
 }
 
-func (this *bitflyer) PrivateGetGetbalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetbalance", args...)
+func (this *BitflyerCore) PrivateGetGetbalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetbalance", args...)
 }
 
-func (this *bitflyer) PrivateGetGetbalancehistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetbalancehistory", args...)
+func (this *BitflyerCore) PrivateGetGetbalancehistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetbalancehistory", args...)
 }
 
-func (this *bitflyer) PrivateGetGetcollateral (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetcollateral", args...)
+func (this *BitflyerCore) PrivateGetGetcollateral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetcollateral", args...)
 }
 
-func (this *bitflyer) PrivateGetGetcollateralhistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetcollateralhistory", args...)
+func (this *BitflyerCore) PrivateGetGetcollateralhistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetcollateralhistory", args...)
 }
 
-func (this *bitflyer) PrivateGetGetcollateralaccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetcollateralaccounts", args...)
+func (this *BitflyerCore) PrivateGetGetcollateralaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetcollateralaccounts", args...)
 }
 
-func (this *bitflyer) PrivateGetGetaddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetaddresses", args...)
+func (this *BitflyerCore) PrivateGetGetaddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetaddresses", args...)
 }
 
-func (this *bitflyer) PrivateGetGetcoinins (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetcoinins", args...)
+func (this *BitflyerCore) PrivateGetGetcoinins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetcoinins", args...)
 }
 
-func (this *bitflyer) PrivateGetGetcoinouts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetcoinouts", args...)
+func (this *BitflyerCore) PrivateGetGetcoinouts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetcoinouts", args...)
 }
 
-func (this *bitflyer) PrivateGetGetbankaccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetbankaccounts", args...)
+func (this *BitflyerCore) PrivateGetGetbankaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetbankaccounts", args...)
 }
 
-func (this *bitflyer) PrivateGetGetdeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetdeposits", args...)
+func (this *BitflyerCore) PrivateGetGetdeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetdeposits", args...)
 }
 
-func (this *bitflyer) PrivateGetGetwithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetwithdrawals", args...)
+func (this *BitflyerCore) PrivateGetGetwithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetwithdrawals", args...)
 }
 
-func (this *bitflyer) PrivateGetGetchildorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetchildorders", args...)
+func (this *BitflyerCore) PrivateGetGetchildorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetchildorders", args...)
 }
 
-func (this *bitflyer) PrivateGetGetparentorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetparentorders", args...)
+func (this *BitflyerCore) PrivateGetGetparentorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetparentorders", args...)
 }
 
-func (this *bitflyer) PrivateGetGetparentorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetparentorder", args...)
+func (this *BitflyerCore) PrivateGetGetparentorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetparentorder", args...)
 }
 
-func (this *bitflyer) PrivateGetGetexecutions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetexecutions", args...)
+func (this *BitflyerCore) PrivateGetGetexecutions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetexecutions", args...)
 }
 
-func (this *bitflyer) PrivateGetGetpositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetpositions", args...)
+func (this *BitflyerCore) PrivateGetGetpositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetpositions", args...)
 }
 
-func (this *bitflyer) PrivateGetGettradingcommission (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGettradingcommission", args...)
+func (this *BitflyerCore) PrivateGetGettradingcommission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGettradingcommission", args...)
 }
 
-func (this *bitflyer) PrivatePostSendcoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSendcoin", args...)
+func (this *BitflyerCore) PrivatePostSendcoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSendcoin", args...)
 }
 
-func (this *bitflyer) PrivatePostWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdraw", args...)
+func (this *BitflyerCore) PrivatePostWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdraw", args...)
 }
 
-func (this *bitflyer) PrivatePostSendchildorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSendchildorder", args...)
+func (this *BitflyerCore) PrivatePostSendchildorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSendchildorder", args...)
 }
 
-func (this *bitflyer) PrivatePostCancelchildorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelchildorder", args...)
+func (this *BitflyerCore) PrivatePostCancelchildorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelchildorder", args...)
 }
 
-func (this *bitflyer) PrivatePostSendparentorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSendparentorder", args...)
+func (this *BitflyerCore) PrivatePostSendparentorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSendparentorder", args...)
 }
 
-func (this *bitflyer) PrivatePostCancelparentorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelparentorder", args...)
+func (this *BitflyerCore) PrivatePostCancelparentorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelparentorder", args...)
 }
 
-func (this *bitflyer) PrivatePostCancelallchildorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelallchildorders", args...)
+func (this *BitflyerCore) PrivatePostCancelallchildorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelallchildorders", args...)
 }
