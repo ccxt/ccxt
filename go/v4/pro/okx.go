@@ -315,7 +315,7 @@ func  (this *OkxCore) UnWatchTradesForSymbols(symbols interface{}, optionalArgs 
             var messageHashes interface{} = []interface{}{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol interface{} = ccxt.GetValue(symbols, i)
-                ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add("unsubscribe:", channel), symbol))
+                ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), symbol))
                 var marketId interface{} = this.MarketId(symbol)
                 var topic interface{} = map[string]interface{} {
                     "channel": channel,

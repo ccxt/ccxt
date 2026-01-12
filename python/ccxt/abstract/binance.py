@@ -618,6 +618,7 @@ class ImplicitAPI:
     eapiprivate_get_block_order_execute = eapiPrivateGetBlockOrderExecute = Entry('block/order/execute', 'eapiPrivate', 'GET', {'cost': 5})
     eapiprivate_get_block_user_trades = eapiPrivateGetBlockUserTrades = Entry('block/user-trades', 'eapiPrivate', 'GET', {'cost': 5})
     eapiprivate_get_blocktrades = eapiPrivateGetBlockTrades = Entry('blockTrades', 'eapiPrivate', 'GET', {'cost': 5})
+    eapiprivate_get_comission = eapiPrivateGetComission = Entry('comission', 'eapiPrivate', 'GET', {'cost': 5})
     eapiprivate_post_order = eapiPrivatePostOrder = Entry('order', 'eapiPrivate', 'POST', {'cost': 1})
     eapiprivate_post_batchorders = eapiPrivatePostBatchOrders = Entry('batchOrders', 'eapiPrivate', 'POST', {'cost': 5})
     eapiprivate_post_listenkey = eapiPrivatePostListenKey = Entry('listenKey', 'eapiPrivate', 'POST', {'cost': 1})

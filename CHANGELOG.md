@@ -1,3 +1,24 @@
+<a id="v4.5.32"></a>
+# [v4.5.32](https://github.com/ccxt/ccxt/releases/tag/v4.5.32) - 2026-01-08
+
+## What's Changed
+* feat(eth-keys): getEthWalletAddressFromPrivateKey by [@ttodua](https://github.com/ttodua) in [#27624](https://github.com/ccxt/ccxt/pull/27624)
+* fix(cryptomus): fetchCurrencies false by [@ttodua](https://github.com/ttodua) in [#27634](https://github.com/ccxt/ccxt/pull/27634)
+* fix(bigone): ticker values by [@ttodua](https://github.com/ttodua) in [#27633](https://github.com/ccxt/ccxt/pull/27633)
+* chore(dydx): skip bidask compare by [@ttodua](https://github.com/ttodua) in [#27637](https://github.com/ccxt/ccxt/pull/27637)
+* chore: try to cache go modules by [@carlosmiei](https://github.com/carlosmiei) in [#27638](https://github.com/ccxt/ccxt/pull/27638)
+* chore(backpack): skip1 by [@ttodua](https://github.com/ttodua) in [#27631](https://github.com/ccxt/ccxt/pull/27631)
+* feat(binance): add eapiPrivateGetComission by [@carlosmiei](https://github.com/carlosmiei) in [#27641](https://github.com/ccxt/ccxt/pull/27641)
+* feat(bingx): fetchMarketLeverageTiers added by [@yzh-pelle](https://github.com/yzh-pelle) in [#27640](https://github.com/ccxt/ccxt/pull/27640)
+* fix(okx): omit sz when closeFraction is provided by [@carlosmiei](https://github.com/carlosmiei) in [#27643](https://github.com/ccxt/ccxt/pull/27643)
+* feat(aster): new exchange by [@sc0Vu](https://github.com/sc0Vu) in [#26579](https://github.com/ccxt/ccxt/pull/26579)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.31...v4.5.32
+
+[Changes][v4.5.32]
+
+
 <a id="v4.5.31"></a>
 # [v4.5.31](https://github.com/ccxt/ccxt/releases/tag/v4.5.31) - 2026-01-06
 
@@ -12159,6 +12180,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.32]: https://github.com/ccxt/ccxt/compare/v4.5.31...v4.5.32
 [v4.5.31]: https://github.com/ccxt/ccxt/compare/v4.5.30...v4.5.31
 [v4.5.30]: https://github.com/ccxt/ccxt/compare/v4.5.29...v4.5.30
 [v4.5.29]: https://github.com/ccxt/ccxt/compare/v4.5.28...v4.5.29

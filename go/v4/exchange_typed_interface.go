@@ -232,6 +232,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "ascendex":
 		itf := NewAscendex(options)
 		return itf
+	case "aster":
+		itf := NewAster(options)
+		return itf
 	case "backpack":
 		itf := NewBackpack(options)
 		return itf

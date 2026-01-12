@@ -4610,6 +4610,25 @@ func WithFetchOpenOrderParams(params map[string]interface{}) FetchOpenOrderOptio
 	}
 }
 
+type FetchAccountPositionsOptionsStruct struct {
+	Symbols *[]string
+	Params  *map[string]interface{}
+}
+
+type FetchAccountPositionsOptions func(opts *FetchAccountPositionsOptionsStruct)
+
+func WithFetchAccountPositionsSymbols(symbols []string) FetchAccountPositionsOptions {
+	return func(opts *FetchAccountPositionsOptionsStruct) {
+		opts.Symbols = &symbols
+	}
+}
+
+func WithFetchAccountPositionsParams(params map[string]interface{}) FetchAccountPositionsOptions {
+	return func(opts *FetchAccountPositionsOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type EditSpotOrderOptionsStruct struct {
 	Price  *float64
 	Params *map[string]interface{}
@@ -4696,25 +4715,6 @@ func WithFetchOptionPositionsSymbols(symbols []string) FetchOptionPositionsOptio
 
 func WithFetchOptionPositionsParams(params map[string]interface{}) FetchOptionPositionsOptions {
 	return func(opts *FetchOptionPositionsOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchAccountPositionsOptionsStruct struct {
-	Symbols *[]string
-	Params  *map[string]interface{}
-}
-
-type FetchAccountPositionsOptions func(opts *FetchAccountPositionsOptionsStruct)
-
-func WithFetchAccountPositionsSymbols(symbols []string) FetchAccountPositionsOptions {
-	return func(opts *FetchAccountPositionsOptionsStruct) {
-		opts.Symbols = &symbols
-	}
-}
-
-func WithFetchAccountPositionsParams(params map[string]interface{}) FetchAccountPositionsOptions {
-	return func(opts *FetchAccountPositionsOptionsStruct) {
 		opts.Params = &params
 	}
 }

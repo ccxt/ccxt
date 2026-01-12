@@ -625,6 +625,7 @@ interface binance {
     eapiPrivateGetBlockOrderExecute (params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBlockUserTrades (params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBlockTrades (params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetComission (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType>;

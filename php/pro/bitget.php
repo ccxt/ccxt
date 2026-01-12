@@ -2934,16 +2934,16 @@ class bitget extends \ccxt\async\bitget {
         for ($i = 0; $i < count($argsList); $i++) {
             $arg = $argsList[$i];
             $channel = $this->safe_string_2($arg, 'channel', 'topic');
-            if ($channel === 'books') {
+            if (mb_strpos($channel, 'books') !== false) {
                 // for now only unWatchOrderBook is supporteod
                 $this->handle_order_book_un_subscription($client, $message);
-            } elseif (($channel === 'trade') || ($channel === 'publicTrade')) {
+            } elseif ((mb_strpos($channel, 'trade') !== false) || (mb_strpos($channel, 'publicTrade') !== false)) {
                 $this->handle_trades_un_subscription($client, $message);
-            } elseif ($channel === 'ticker') {
+            } elseif (mb_strpos($channel, 'ticker') !== false) {
                 $this->handle_ticker_un_subscription($client, $message);
-            } elseif (str_starts_with($channel, 'candle')) {
+            } elseif (mb_strpos($channel, 'candle') !== false) {
                 $this->handle_ohlcv_un_subscription($client, $message);
-            } elseif (str_starts_with($channel, 'kline')) {
+            } elseif (mb_strpos($channel, 'kline') !== false) {
                 $this->handle_ohlcv_un_subscription($client, $message);
             }
         }

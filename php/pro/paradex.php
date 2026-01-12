@@ -18,7 +18,7 @@ class paradex extends \ccxt\async\paradex {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchOrderBook' => true,
-                'watchOrders' => false,
+                'watchOrders' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
                 'watchBalance' => false,
@@ -40,6 +40,53 @@ class paradex extends \ccxt\async\paradex {
             'options' => array(),
             'streaming' => array(),
         ));
+    }
+
+    public function request_id() {
+        $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
+        $this->options['requestId'] = $requestId;
+        return $requestId;
+    }
+
+    public function authenticate($params = array ()) {
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->reusableFuture ('authenticated');
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $token = Async\await($this->authenticateRest ());
+                $request = array(
+                    'jsonrpc' => '2.0',
+                    'id' => $this->request_id(),
+                    'method' => 'auth',
+                    'params' => array(
+                        'bearer' => $token,
+                    ),
+                );
+                $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+            }
+            return Async\await($future);
+        }) ();
+    }
+
+    public function handle_authentication_message(Client $client, $message) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 1,
+        //         "result" => array( "node_id" => "73cf456f7cb78d59" )
+        //     }
+        //
+        $result = $this->safe_dict($message, 'result');
+        if ($result !== null) {
+            // $client->resolve (true, messageHash);
+            $future = $this->safe_value($client->futures, 'authenticated');
+            if ($future !== null) {
+                $future->resolve (true);
+            }
+        }
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -272,6 +319,92 @@ class paradex extends \ccxt\async\paradex {
         }) ();
     }
 
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $orders made by the user
+             *
+             * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+             *
+             * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $messageHash = 'orders';
+            $channel = 'orders.';
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $channel .= $market['id'];
+                $messageHash .= ':' . $symbol;
+            } else {
+                $channel .= 'ALL';
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'jsonrpc' => '2.0',
+                'method' => 'subscribe',
+                'params' => array(
+                    'channel' => $channel,
+                ),
+            );
+            $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_order(Client $client, $message) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "method" => "subscription",
+        //         "params" => {
+        //             "channel" => "orders.ALL",
+        //             "data" => {
+        //                 "account" => "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //                 "avg_fill_price" => "26000",
+        //                 "client_id" => "x1234",
+        //                 "cancel_reason" => "",
+        //                 "created_at" => 1681493746016,
+        //                 "flags" => ["REDUCE_ONLY"],
+        //                 "id" => "123456",
+        //                 "instruction" => "GTC",
+        //                 "last_updated_at" => 1681493746016,
+        //                 "market" => "BTC-USD-PERP",
+        //                 "price" => "26000",
+        //                 "remaining_size" => "0",
+        //                 "side" => "BUY",
+        //                 "size" => "0.05",
+        //                 "status" => "NEW",
+        //                 "type" => "LIMIT"
+        //             }
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $parsed = $this->parse_order($data);
+        $symbol = $this->safe_string($parsed, 'symbol');
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
+        $this->orders.append ($parsed);
+        $messageHash = 'orders';
+        $client->resolve ($this->orders, $messageHash);
+        if ($symbol !== null) {
+            $symbolMessageHash = $messageHash . ':' . $symbol;
+            $client->resolve ($this->orders, $symbolMessageHash);
+        }
+    }
+
     public function handle_ticker(Client $client, $message) {
         //
         //     {
@@ -348,6 +481,16 @@ class paradex extends \ccxt\async\paradex {
             return;
         }
         //
+        // auth response
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 1,
+        //         "result" => array( "node_id" => "73cf456f7cb78d59" )
+        //     }
+        //
+        // subscription $message
+        //
         //     {
         //         "jsonrpc" => "2.0",
         //         "method" => "subscription",
@@ -365,6 +508,11 @@ class paradex extends \ccxt\async\paradex {
         //         }
         //     }
         //
+        $result = $this->safe_value($message, 'result');
+        if ($result !== null) {
+            $this->handle_authentication_message($client, $message);
+            return;
+        }
         $data = $this->safe_dict($message, 'params');
         if ($data !== null) {
             $channel = $this->safe_string($data, 'channel');
@@ -374,7 +522,7 @@ class paradex extends \ccxt\async\paradex {
                 'trades' => array($this, 'handle_trade'),
                 'order_book' => array($this, 'handle_order_book'),
                 'markets_summary' => array($this, 'handle_ticker'),
-                // ...
+                'orders' => array($this, 'handle_order'),
             );
             $method = $this->safe_value($methods, $name);
             if ($method !== null) {

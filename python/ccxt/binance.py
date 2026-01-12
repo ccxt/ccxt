@@ -1024,6 +1024,7 @@ class binance(Exchange, ImplicitAPI):
                         'block/order/execute': 5,
                         'block/user-trades': 5,
                         'blockTrades': 5,
+                        'comission': 5,
                     },
                     'post': {
                         'order': 1,

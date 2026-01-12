@@ -15,6 +15,7 @@
 	- [apex](exchanges/apex.md)
 	- [arkham](exchanges/arkham.md)
 	- [ascendex](exchanges/ascendex.md)
+	- [aster](exchanges/aster.md)
 	- [backpack](exchanges/backpack.md)
 	- [bigone](exchanges/bigone.md)
 	- [binance](exchanges/binance.md)
