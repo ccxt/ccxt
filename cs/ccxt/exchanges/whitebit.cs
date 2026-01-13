@@ -2629,7 +2629,7 @@ public partial class whitebit : Exchange
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        return this.parseTransactions(this.safeList(response, "records", new List<object>() {}), currency, since, limit);
     }
 
     /**
