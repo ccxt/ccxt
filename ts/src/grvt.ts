@@ -595,6 +595,7 @@ export default class grvt extends Exchange {
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'instrument': this.marketId (symbol),
         };
@@ -631,7 +632,8 @@ export default class grvt extends Exchange {
         //        }
         //    }
         //
-        return this.parseTicker (response);
+        const result = this.safeDict (response, 'result', {});
+        return this.parseTicker (result, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -780,7 +782,8 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        return this.parseTrades (response, market, since, limit);
+        const result = this.safeList (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
