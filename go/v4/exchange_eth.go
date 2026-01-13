@@ -697,6 +697,14 @@ func (this *Exchange) LighterSignTransfer(signer interface{}, request interface{
 
 func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[string]interface{}) interface{} {
 	nonce := int64(SafeInt(request["nonce"]))
+	var memoArr [32]byte
+	bs := []byte(request["memo"].(string))
+	if len(bs) != 32 {
+		panic(fmt.Errorf("memo expected to be 32 bytes long"))
+	}
+	for i := 0; i < 32; i++ {
+		memoArr[i] = bs[i]
+	}
 	tx := &types.TransferTxReq{
 		ToAccountIndex: int64(SafeInt(request["to_account_index"])),
 		AssetIndex:     int16(SafeInt(request["asset_index"])),
@@ -704,7 +712,7 @@ func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[s
 		ToRouteType:    uint8(SafeInt(request["to_route_type"])),
 		Amount:         int64(SafeInt(request["amount"])),
 		USDCFee:        int64(SafeInt(request["usdc_fee"])),
-		Memo:           request["memo"].([32]byte),
+		Memo:           memoArr,
 	}
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
@@ -760,18 +768,14 @@ func (this *Exchange) LighterCreateAuthToken(signer interface{}, request interfa
 }
 
 func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]interface{}) interface{} {
-	deadline := time.UnixMilli(int64(SafeInt(request["deadline"])))
-	fmt.Println(deadline)
+	deadline := time.Unix(int64(SafeInt(request["deadline"])), 0)
 
 	auth, err := signer.GetAuthToken(deadline)
 	if err != nil {
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
-	res = append(res, auth)
-	res = append(res, nil)
-	return res
+	return auth
 }
 
 func (this *Exchange) LighterSignUpdateMargin(signer interface{}, request interface{}) interface{} {

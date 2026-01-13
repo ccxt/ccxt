@@ -40,7 +40,6 @@ export default class lighter extends lighterRest {
                 'unWatchTrades': true,
                 'unWatchMarkPrice': true,
                 'unWatchMarkPrices': true,
-                'unWatchLiquidations': true,
             },
             'urls': {
                 'api': {
@@ -711,26 +710,6 @@ export default class lighter extends lighterRest {
         };
         const messageHash = this.getMessageHash ('liquidations', symbol);
         return await this.subscribePublic (messageHash, this.extend (request, params));
-    }
-
-    /**
-     * @method
-     * @name lighter#unWatchLiquidations
-     * @description unWatch the public liquidations of a trading pair
-     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-     */
-    async unWatchLiquidations (symbol: string, params = {}): Promise<any> {
-        // TODO: check UnWatchLiquidationsOptions in go
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'channel': 'trade/' + market['id'],
-        };
-        const messageHash = this.getMessageHash ('unsubscribe', symbol);
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
     }
 
     handleErrorMessage (client, message) {
