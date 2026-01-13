@@ -1737,11 +1737,15 @@ export default class grvt extends Exchange {
             'reduce_only': false,
             // 'order_id': null,
             // 'state': null,
-            'builder': this.safeString (this.options, 'builder'),
-            'builder_fee': this.safeString (this.options, 'builderRate'),
         };
+        let eipType = 'EIP712_ORDER_TYPE';
+        if (this.safeBool (this.options, 'builderFee', true)) {
+            eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
+            request['builder'] = this.safeString (this.options, 'builder');
+            request['builder_fee'] = this.safeString (this.options, 'builderRate');
+        }
         // @ts-ignore
-        request = this.createSignedRequest (request, 'EIP712_ORDER_WITH_BUILDER_TYPE');
+        request = this.createSignedRequest (request, eipType);
         const fullRequest = {
             'order': request,
         };
@@ -1814,7 +1818,7 @@ export default class grvt extends Exchange {
         return parseInt (x);
     }
 
-    eipMessageForOrder (order) {
+    eipMessageForOrder (order, structureType: Str = undefined) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
@@ -1842,18 +1846,21 @@ export default class grvt extends Exchange {
                 'isBuyingContract': leg['is_buying_asset'],
             });
         }
-        return {
+        const returnValue = {
             'subAccountID': order['sub_account_id'],
             'isMarket': order['is_market'],
             'timeInForce': 1, // good_till_time
             'postOnly': order['post_only'],
             'reduceOnly': order['reduce_only'],
             'legs': legs,
-            'builder': order['builder'],
-            'builderFee': this.parseToInt (parseFloat (order['builder_fee']) * this.feeAmountMultiplier ()),
             'nonce': order['signature']['nonce'],
             'expiration': order['signature']['expiration'],
         };
+        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
+            returnValue['builder'] = order['builder'];
+            returnValue['builderFee'] = this.parseToInt (parseFloat (order['builder_fee']) * this.feeAmountMultiplier ());
+        }
+        return returnValue;
     }
 
     eipMessageForBuilderApproval (dataObj) {
@@ -2868,8 +2875,8 @@ export default class grvt extends Exchange {
             messageData = this.eipMessageForTransfer (request, currencyObj);
         } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             messageData = this.eipMessageForWithdrawal (request, currencyObj);
-        } else if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
-            messageData = this.eipMessageForOrder (request);
+        } else if (structureType === 'EIP712_ORDER_TYPE' || structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
+            messageData = this.eipMessageForOrder (request, structureType);
         } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
             messageData = this.eipMessageForBuilderApproval (request);
         }
