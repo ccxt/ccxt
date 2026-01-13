@@ -2978,7 +2978,7 @@ class whitebit extends Exchange {
             //
             //     array()
             //
-            return $this->extend(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
+            return $this->extend($this->parse_transaction($response, $currency), array( 'id' => $uniqueId ));
         }) ();
     }
 
