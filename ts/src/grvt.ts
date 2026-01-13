@@ -2810,7 +2810,7 @@ export default class grvt extends Exchange {
         if (!buildFee) {
             return false; // skip if builder fee is not enabled
         }
-        const approvedBuilderFee = this.safeBool (this.options, 'builderFeeAlreadyApproved', false);
+        const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
         if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
@@ -2850,7 +2850,7 @@ export default class grvt extends Exchange {
                 //     }
                 // }
                 //
-                this.options['builderFeeAlreadyApproved'] = true;
+                this.options['approvedBuilderFee'] = true;
             } catch (e) {
                 this.options['builderFee'] = false; // disable builder fee if an error occurs
             }

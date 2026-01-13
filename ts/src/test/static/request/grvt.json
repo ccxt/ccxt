@@ -1,6 +1,22 @@
 {
     "exchange": "grvt",
     "outputType": "json",
+    "options": {
+        "AuthAccountId": "kbAc342752835723",
+        "AuthCookieValue": "sample123",
+        "subAccountId": "2147050003876484",
+        "signInExpiration": 1990000000000,
+        "approvedBuilderFee": true
+    },
+    "apiKey": "sample123",
+    "secret": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "skipKeys": [
+        "r",
+        "s",
+        "v",
+        "nonce",
+        "expiration"
+    ],
     "methods": {
         "fetchPositions": [
             {
@@ -216,71 +232,6 @@
                     2
                 ],
                 "output": "{\"instrument\":\"BTC_USDT_Perp\",\"limit\":2}"
-            }
-        ],
-        "createOrder": [
-            {
-                "description": "createOrder perp buy limit with triggerPrice & triggerDirection asc",
-                "method": "createOrder",
-                "url": "https://trades.grvt.io/full/v1/create_order",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    "0.002",
-                    70000,
-                    {
-                        "triggerPrice": 71000,
-                        "triggerDirection": "ascending"
-                    }
-                ],
-                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"70000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xbf465e6083a43b170791ea29393f601381c560be\",\"r\":\"0x12dae3140cbf265574a470abd16c3c81789e970a4892afb8ff566f46389925d1\",\"s\":\"0x6bab79b75c4bd78e2ce8dd29f5bf2f3f04a0da31d541b0b097354fb28a2fe308\",\"v\":28,\"expiration\":\"1768237207626000000\",\"nonce\":1768237177,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1768237177\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"triggerPrice\":71000,\"triggerDirection\":\"ascending\"}"
-            },
-            {
-                "description": "createOrder perp buy limit with triggerPrice & triggerDirection desc",
-                "method": "createOrder",
-                "url": "https://trades.grvt.io/full/v1/create_order",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    "0.002",
-                    70000,
-                    {
-                        "triggerPrice": 69000,
-                        "triggerDirection": "descending"
-                    }
-                ],
-                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"70000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xbf465e6083a43b170791ea29393f601381c560be\",\"r\":\"0xc97422bf7d4f05d3f896889f34bad0cdadbe2a1f7fc0d0a6d6ca9a5550446e79\",\"s\":\"0x754136470096983f3081c37ed4e7c0ed715b4deb8df915fa992c881a729b375d\",\"v\":27,\"expiration\":\"1768236896003000000\",\"nonce\":1768236866,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1768236866\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"triggerPrice\":69000,\"triggerDirection\":\"descending\"}"
-            },
-            {
-                "description": "createOrder perp buy limit with triggerPrice",
-                "method": "createOrder",
-                "url": "https://trades.grvt.io/full/v1/create_order",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    "0.001",
-                    70000,
-                    {
-                        "triggerPrice": 71000
-                    }
-                ],
-                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.001\",\"limit_price\":\"70000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xbf465e6083a43b170791ea29393f601381c560be\",\"r\":\"0xb64610e62a71557e013b62591d4844925829dd7ad74dded5f4516ff573ec3eee\",\"s\":\"0x777059929231198c80ac5c5ca4f8c91be1d51729eb649eb6c6ec9e55f2a10871\",\"v\":27,\"expiration\":\"1766239839141000000\",\"nonce\":1766239809},\"metadata\":{\"client_order_id\":\"1766239809\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"triggerPrice\":71000}"
-            },
-            {
-                "description": "createOrder perp buy limit",
-                "method": "createOrder",
-                "url": "https://trades.grvt.io/full/v1/create_order",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    "0.001",
-                    70000
-                ],
-                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.001\",\"limit_price\":\"70000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xbf465e6083a43b170791ea29393f601381c560be\",\"r\":\"0xa28bdc8e86586d97bf75f3df56f77638d3b548814b8ab9cfa9e4a0e3f5be6b46\",\"s\":\"0x2c9b39910043f18561b8a83215f377216e19dbe1c0d9e38d492158933ffbd5f4\",\"v\":28,\"expiration\":\"1766239837805000000\",\"nonce\":1766239807},\"metadata\":{\"client_order_id\":\"1766239807\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false}}"
             }
         ],
         "fetchBalance": [
