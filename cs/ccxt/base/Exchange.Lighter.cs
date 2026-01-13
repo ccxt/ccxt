@@ -21,6 +21,13 @@ public partial class Exchange
         return lighterSigner;
     }
 
+    private object formatSignedTx (Lighter.LighterSigner.SignedTx signedTx) {
+        object res = new List<object>() {};
+        ((IList<object>)res).Add(signedTx.TxType);
+        ((IList<object>)res).Add(signedTx.TxInfo);
+        return res;
+    }
+
     public object lighterSignCreateGroupedOrders(object signer, object grouping_type, object orders, object nonce, object api_key_index, object account_index) {
         // arr_type = CreateOrderTxReq * len(orders)
         // orders_arr = []
@@ -38,8 +45,8 @@ public partial class Exchange
         //         OrderExpiry=order['order_expiry'],
         //     ))
         // orders_carr = arr_type(*orders_arr)
-        // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateGroupedOrders(
-        //     grouping_type, orders_carr, len(orders), nonce, api_key_index, account_index
+        // Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateGroupedOrders(
+        //     grouping_type, orders_carr, nonce, api_key_index, account_index
         // ))
         // print(tx_type, tx_info, tx_hash, error)
         // return [tx_type, tx_info]
@@ -62,10 +69,7 @@ public partial class Exchange
             Convert.ToInt32(getValue(request, "api_key_index")),
             Convert.ToInt64(getValue(request, "account_index"))
         );
-        object res = new List<object>() {};
-        ((IList<object>)res).Add(signedTx.TxType);
-        ((IList<object>)res).Add(signedTx.TxInfo);
-        return res;
+        return this.formatSignedTx(signedTx);
     }
 
     public object lighterSignCancelOrder(object signer, object request) {
