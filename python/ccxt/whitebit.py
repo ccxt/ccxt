@@ -2752,7 +2752,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         #     []
         #
-        return self.extend({'id': uniqueId}, self.parse_transaction(response, currency))
+        return self.extend(self.parse_transaction(response, currency), {'id': uniqueId})
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
