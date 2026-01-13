@@ -705,7 +705,10 @@ export default class grvt extends Exchange {
         const request = {
             'instrument': this.marketId (symbol),
         };
-        if (limit !== undefined && limit <= 500) {
+        if (limit === undefined) {
+            limit = 100;
+        }
+        if (limit <= 500) {
             request['depth'] = this.findNearestCeiling ([ 10, 50, 100, 500 ], limit);
         }
         const response = await this.publicMarketPostFullV1Book (this.extend (request, params));
@@ -2371,7 +2374,8 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        return this.parseOrders (response, market, since, limit);
+        const result = this.safeList (response, 'result', []);
+        return this.parseOrders (result, market, since, limit);
     }
 
     /**
