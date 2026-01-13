@@ -3007,9 +3007,9 @@ public partial class whitebit : Exchange
         //
         //     []
         //
-        return this.extend(new Dictionary<string, object>() {
+        return this.extend(this.parseTransaction(response, currency), new Dictionary<string, object>() {
             { "id", uniqueId },
-        }, this.parseTransaction(response, currency));
+        });
     }
 
     public override object parseTransaction(object transaction, object currency = null)
