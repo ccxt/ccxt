@@ -2431,7 +2431,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         {...}                                 # More withdrawal transactions
         #     ]
         #
-        return self.parse_transactions(response, currency, since, limit)
+        return self.parse_transactions(self.safe_list(response, 'records', []), currency, since, limit)
 
     def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
