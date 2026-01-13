@@ -385,7 +385,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    async signIn (params = {}): Promise<{}> {
+    async signIn (params = {}) {
         await this.sleep (10); // temporary workaround for allowing promise-all to prioritize loadMarkets
         this.checkRequiredCredentials ();
         const now = this.milliseconds ();
