@@ -2617,7 +2617,7 @@ class whitebit extends Exchange {
             //         array( ... )                                 // More withdrawal transactions
             //     )
             //
-            return $this->parse_transactions($response, $currency, $since, $limit);
+            return $this->parse_transactions($this->safe_list($response, 'records', array()), $currency, $since, $limit);
         }) ();
     }
 
