@@ -1039,7 +1039,7 @@ export default class grvt extends Exchange {
         return this.parseFundingRateHistories (result, market);
     }
 
-    parseFundingRateHistory (rawItem: Dict, market: Market = undefined) {
+    parseFundingRateHistory (rawItem, market: Market = undefined): FundingRateHistory {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
@@ -1827,13 +1827,14 @@ export default class grvt extends Exchange {
             const leg = orderLegs[i];
             const market = this.market (leg['instrument']);
             const bigInt10 = this.convertToBigIntCustom ('10');
-            const size_multiplier = bigInt10 ** this.convertToBigIntCustom (this.precisionFromString (this.safeString (market['precision'], 'base')).toString ());
+            const precisionValue = this.precisionFromString (this.safeString (market['precision'], 'base'));
+            const sizeMultiplier = bigInt10 ** this.convertToBigIntCustom (precisionValue.toString ());
             const size = leg['size'];
             const sizeParts = size.split ('.');
             const sizeDec = this.safeString (sizeParts, 1, '');
             const sizeDecLength = sizeDec.length;
             const sizeDecLengthStr = sizeDecLength.toString ();
-            const size_int = this.convertToBigIntCustom (size.replace ('.', '')) * size_multiplier / (bigInt10 ** this.convertToBigIntCustom (sizeDecLengthStr));
+            const size_int = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (bigInt10 ** this.convertToBigIntCustom (sizeDecLengthStr));
             const price = leg['limit_price'];
             const limitParts = price.split ('.');
             const limitDec = this.safeString (limitParts, 1, '');
