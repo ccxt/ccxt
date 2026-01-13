@@ -1,6 +1,16 @@
 {
     "exchange": "grvt",
     "outputType": "json",
+    "options": {
+        "AuthAccountId": "kbAc342752835723",
+        "AuthCookieValue": "sample123",
+        "subAccountId": "2147050003876484",
+        "signInExpiration": 1990000000000,
+        "approvedBuilderFee": true
+    },
+    "apiKey": "sample123",
+    "secret": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "skipKeys": [ "r", "s", "v", "nonce", "expiration" ],
     "methods": {
         "fetchMarkets": [
             {
