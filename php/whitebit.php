@@ -2549,7 +2549,7 @@ class whitebit extends Exchange {
         //         array( ... )                                 // More withdrawal transactions
         //     )
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        return $this->parse_transactions($this->safe_list($response, 'records', array()), $currency, $since, $limit);
     }
 
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2896,7 +2896,7 @@ class whitebit extends Exchange {
         //
         //     array()
         //
-        return $this->extend(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
+        return $this->extend($this->parse_transaction($response, $currency), array( 'id' => $uniqueId ));
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
