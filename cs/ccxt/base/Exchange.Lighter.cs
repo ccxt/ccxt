@@ -28,29 +28,27 @@ public partial class Exchange
         return res;
     }
 
-    public object lighterSignCreateGroupedOrders(object signer, object grouping_type, object orders, object nonce, object api_key_index, object account_index) {
-        // arr_type = CreateOrderTxReq * len(orders)
-        // orders_arr = []
-        // for order in orders:
-        //     orders_arr.append(CreateOrderTxReq(
-        //         MarketIndex=int(order['market_index']),
-        //         ClientOrderIndex=order['client_order_index'],
-        //         BaseAmount=order['base_amount'],
-        //         Price=order['avg_execution_price'],
-        //         IsAsk=order['is_ask'],
-        //         Type=order['order_type'],
-        //         TimeInForce=order['time_in_force'],
-        //         ReduceOnly=order['reduce_only'],
-        //         TriggerPrice=order['trigger_price'],
-        //         OrderExpiry=order['order_expiry'],
-        //     ))
-        // orders_carr = arr_type(*orders_arr)
-        // Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateGroupedOrders(
-        //     grouping_type, orders_carr, nonce, api_key_index, account_index
-        // ))
-        // print(tx_type, tx_info, tx_hash, error)
-        // return [tx_type, tx_info]
-        return null;
+    public object lighterSignCreateGroupedOrders(object signer, object groupingType, object orders, object nonce, object apiKeyIndex, object accountIndex) {
+        List<Lighter.LighterSigner.CreateOrderTxReq> ordersArr = new List<Lighter.LighterSigner.CreateOrderTxReq>() {};
+        var ordersList = (IList<object>) orders;
+        foreach (var order in ordersList) {
+            ordersArr.Add(new Lighter.LighterSigner.CreateOrderTxReq{
+                MarketIndex      = Convert.ToByte(getValue(order, "market_index")),
+                ClientOrderIndex = Convert.ToInt64(getValue(order, "client_order_index")),
+                BaseAmount       = Convert.ToInt64(getValue(order, "base_amount")),
+                Price            = Convert.ToUInt32(getValue(order, "avg_execution_price")),
+                IsAsk            = Convert.ToByte(getValue(order, "is_ask")),
+                Type             = Convert.ToByte(getValue(order, "order_type")),
+                TimeInForce      = Convert.ToByte(getValue(order, "time_in_force")),
+                ReduceOnly       = Convert.ToByte(getValue(order, "reduce_only")),
+                TriggerPrice     = Convert.ToUInt32(getValue(order, "trigger_price")),
+                OrderExpiry      = Convert.ToInt64(getValue(order, "order_expiry"))
+            });
+        }
+        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateGroupedOrders(
+            Convert.ToByte(groupingType), ordersArr, Convert.ToInt64(nonce), Convert.ToInt32(apiKeyIndex), Convert.ToInt64(accountIndex)
+        );
+        return formatSignedTx(signedTx);
     }
 
     public object lighterSignCreateOrder(object signer, object request) {
