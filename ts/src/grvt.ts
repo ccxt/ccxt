@@ -291,6 +291,7 @@ export default class grvt extends Exchange {
                     '7501': BadRequest, // "Builder Fee can't be negative."
                     '7502': OperationRejected, // "Builder Account does not exist."
                     '7503': OperationRejected, // "Builder is already authorized for this account with the given fee."
+                    '7504': OperationRejected, // "Builder is not authorized for the specified user.","status":400
                 },
                 'broad': {},
             },
