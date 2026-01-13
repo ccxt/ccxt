@@ -178,10 +178,12 @@ export default class grvt extends Exchange {
                 'networksById': {
                     '1': 'ERC20',
                 },
+                'builderFee': true,
+                'builder': '0x21d2a053495994b1132a38cd1171acec40c6741e',
+                'builderRate': 0.01,
             },
             'precisionMode': TICK_SIZE,
             'quoteJsonNumbers': false, // needed for some endpoints (todo: specify in implementations)
-            'builderFee': true,
             'exceptions': {
                 'exact': {
                     '1000': AuthenticationError, // "You need to authenticate prior to using this functionality"
@@ -297,7 +299,7 @@ export default class grvt extends Exchange {
 
     eipDefinitions () {
         return {
-            'EIP712_ORDER_MESSAGE_TYPE': {
+            'EIP712_ORDER_TYPE': {
                 'Order': [
                     { 'name': 'subAccountID', 'type': 'uint64' },
                     { 'name': 'isMarket', 'type': 'bool' },
@@ -315,7 +317,27 @@ export default class grvt extends Exchange {
                     { 'name': 'isBuyingContract', 'type': 'bool' },
                 ],
             },
-            'EIP712_TRANSFER_MESSAGE_TYPE': {
+            'EIP712_ORDER_WITH_BUILDER_TYPE': {
+                'OrderWithBuilderFee': [
+                    { 'name': 'subAccountID', 'type': 'uint64' },
+                    { 'name': 'isMarket', 'type': 'bool' },
+                    { 'name': 'timeInForce', 'type': 'uint8' },
+                    { 'name': 'postOnly', 'type': 'bool' },
+                    { 'name': 'reduceOnly', 'type': 'bool' },
+                    { 'name': 'legs', 'type': 'OrderLeg[]' },
+                    { 'name': 'builder', 'type': 'address' },
+                    { 'name': 'builderFee', 'type': 'uint32' },
+                    { 'name': 'nonce', 'type': 'uint32' },
+                    { 'name': 'expiration', 'type': 'int64' },
+                ],
+                'OrderLeg': [
+                    { 'name': 'assetID', 'type': 'uint256' },
+                    { 'name': 'contractSize', 'type': 'uint64' },
+                    { 'name': 'limitPrice', 'type': 'uint64' },
+                    { 'name': 'isBuyingContract', 'type': 'bool' },
+                ],
+            },
+            'EIP712_TRANSFER_TYPE': {
                 'Transfer': [
                     { 'name': 'fromAccount', 'type': 'address' },
                     { 'name': 'fromSubAccount', 'type': 'uint64' },
@@ -327,7 +349,7 @@ export default class grvt extends Exchange {
                     { 'name': 'expiration', 'type': 'int64' },
                 ],
             },
-            'EIP712_WITHDRAWAL_MESSAGE_TYPE': {
+            'EIP712_WITHDRAWAL_TYPE': {
                 'Withdrawal': [
                     { 'name': 'fromAccount', 'type': 'address' },
                     { 'name': 'toEthAddress', 'type': 'address' },
@@ -363,9 +385,10 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     async signIn (params = {}): Promise<{}> {
-        // expires in 24 hours as CS suggested
+        await this.sleep (1); // temporary workaround for allowing promise-all to prioritize loadMarkets
         this.checkRequiredCredentials ();
         const now = this.milliseconds ();
+        // expires in 24 hours as CS suggested
         const expires = this.safeInteger (this.options, 'signInExpiration', 0);
         // if previous sign-in not expired (give 10 seconds margin)
         if (expires !== undefined && expires > now + 10000) {
@@ -1537,7 +1560,7 @@ export default class grvt extends Exchange {
             'transfer_type': 'STANDARD',
             'transfer_metadata': null,
         };
-        request = this.createSignedRequest (request, currency, 'EIP712_TRANSFER_MESSAGE_TYPE');
+        request = this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency);
         const response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
         //
         // {
@@ -1642,7 +1665,7 @@ export default class grvt extends Exchange {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
         request['signature']['chainId'] = networkId;
-        request = this.createSignedRequest (request, currency, 'EIP712_WITHDRAWAL_MESSAGE_TYPE');
+        request = this.createSignedRequest (request, 'EIP712_WITHDRAWAL_TYPE', currency);
         const response = await this.privateTradingPostFullV1Withdrawal (this.extend (request, query));
         //
         // {
@@ -1714,9 +1737,11 @@ export default class grvt extends Exchange {
             'reduce_only': false,
             // 'order_id': null,
             // 'state': null,
+            'builder': this.safeString (this.options, 'builder'),
+            'builder_fee': this.safeString (this.options, 'builderRate'),
         };
         // @ts-ignore
-        request = this.createSignedRequest (request, {}, 'EIP712_ORDER_MESSAGE_TYPE');
+        request = this.createSignedRequest (request, 'EIP712_ORDER_WITH_BUILDER_TYPE');
         const fullRequest = {
             'order': request,
         };
@@ -1789,7 +1814,7 @@ export default class grvt extends Exchange {
         return parseInt (x);
     }
 
-    eipMessageForOrder (order, params = {}) {
+    eipMessageForOrder (order) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
@@ -1824,13 +1849,15 @@ export default class grvt extends Exchange {
             'postOnly': order['post_only'],
             'reduceOnly': order['reduce_only'],
             'legs': legs,
+            'builder': order['builder'],
+            'builderFee': this.parseToInt (parseFloat (order['builder_fee']) * this.feeAmountMultiplier ()),
             'nonce': order['signature']['nonce'],
             'expiration': order['signature']['expiration'],
         };
     }
 
-    eipMessageForBuilderApproval (dataObj, currency: Currency = undefined) {
-        const amountMultiplier = this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
+    eipMessageForBuilderApproval (dataObj) {
+        const amountMultiplier = this.feeAmountMultiplier ();
         return {
             'mainAccountID': dataObj['main_account_id'],
             'builderAccountID': dataObj['builder_account_id'],
@@ -1866,6 +1893,10 @@ export default class grvt extends Exchange {
             'nonce': transfer['signature']['nonce'],
             'expiration': transfer['signature']['expiration'],
         };
+    }
+
+    feeAmountMultiplier () {
+        return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
     /**
@@ -2775,7 +2806,7 @@ export default class grvt extends Exchange {
         if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
-        const currentBuilders = await this.privateTradingPostFullV1GetAuthorizedBuilders ();
+        const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders (), this.loadAggregatedAccountSummary () ]);
         //
         // {
         //     "results": [{
@@ -2785,7 +2816,7 @@ export default class grvt extends Exchange {
         //     }]
         // }
         //
-        await this.loadAggregatedAccountSummary ();
+        const currentBuilders = results[0];
         const result = this.safeList (currentBuilders, 'results', []);
         const length = result.length;
         let run = false;
@@ -2794,15 +2825,15 @@ export default class grvt extends Exchange {
         }
         if (run) {
             try {
-                const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
+                const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId'); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
                 let request: Dict = {
                     'main_account_id': defaultFromAccountId,
-                    'builder_account_id': this.safeString (this.options, 'builder', '0x21d2a053495994b1132a38cd1171acec40c6741e'),
-                    'max_futures_fee_rate': this.safeString (this.options, 'feeRate', '0.001'),
-                    'max_spot_fee_rate': this.safeString (this.options, 'feeRate', '0.0001'),
+                    'builder_account_id': this.safeString (this.options, 'builder'),
+                    'max_futures_fee_rate': this.safeString (this.options, 'builderRate'),
+                    'max_spot_fee_rate': this.safeString (this.options, 'builderRate'),
                     'signature': this.defaultSignature (),
                 };
-                request = this.createSignedRequest (request, {}, 'EIP712_BUILDER_APPROVAL_TYPE');
+                request = this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE');
                 await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
                 //
                 // {
@@ -2831,16 +2862,16 @@ export default class grvt extends Exchange {
         };
     }
 
-    createSignedRequest (request: any, inputMessageData: any, structureType: string): Dict {
+    createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
         let messageData = undefined;
-        if (structureType === 'EIP712_TRANSFER_MESSAGE_TYPE') {
-            messageData = this.eipMessageForTransfer (request, inputMessageData);
-        } else if (structureType === 'EIP712_WITHDRAWAL_MESSAGE_TYPE') {
-            messageData = this.eipMessageForWithdrawal (request, inputMessageData);
-        } else if (structureType === 'EIP712_ORDER_MESSAGE_TYPE') {
-            messageData = this.eipMessageForOrder (request, inputMessageData);
+        if (structureType === 'EIP712_TRANSFER_TYPE') {
+            messageData = this.eipMessageForTransfer (request, currencyObj);
+        } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
+            messageData = this.eipMessageForWithdrawal (request, currencyObj);
+        } else if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
+            messageData = this.eipMessageForOrder (request);
         } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
-            messageData = this.eipMessageForBuilderApproval (request, inputMessageData);
+            messageData = this.eipMessageForBuilderApproval (request);
         }
         const domainData = this.eipDomainData ();
         const definitions = this.eipDefinitions ();
@@ -2851,7 +2882,7 @@ export default class grvt extends Exchange {
         request['signature']['r'] = this.formatSignatureRS (signature['r']);
         request['signature']['s'] = this.formatSignatureRS (signature['s']);
         request['signature']['v'] = this.sum (27, signature['v']);
-        request['signature']['signer'] = this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero);
+        request['signature']['signer'] = (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero) : signerAddress;
         return request;
     }
 
