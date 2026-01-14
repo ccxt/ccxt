@@ -839,7 +839,7 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), limit));
+            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), ((object)limit).ToString()));
             ((IList<object>)messageHashes).Add(add("orderbook:", getValue(market, "symbol")));
         }
         object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), new List<object>() {type});

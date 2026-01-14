@@ -1512,7 +1512,7 @@ public partial class krakenfutures : Exchange
         {
             market = this.market(symbol);
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetOrdersStatus", new object[] { parameters }));
+        object response = await this.privateGetOrdersStatus(parameters);
         object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
