@@ -275,14 +275,16 @@ class testMainClass {
         }
         let skipMessage = undefined;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
-        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
-            skipMessage = '[INFO] IGNORED_TEST';
-        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest) {
-            skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
-        } else if (typeof skippedPropertiesForMethod === 'string') {
+        if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
-        } else if (!(methodName in this.testFiles)) {
-            skipMessage = '[INFO] UNIMPLEMENTED_TEST';
+        } else if (!isLoadMarkets) {
+            if (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests)) {
+                skipMessage = '[INFO] IGNORED_TEST';
+            } else if (!supportedByExchange && !isProxyTest && !isFeatureTest) {
+                skipMessage = '[INFO] UNSUPPORTED_TEST';
+            } else if (!(methodName in this.testFiles)) {
+                skipMessage = '[INFO] UNIMPLEMENTED_TEST';
+            }
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isLoadMarkets) {
