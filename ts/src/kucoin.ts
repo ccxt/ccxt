@@ -1253,6 +1253,8 @@ export default class kucoin extends Exchange {
         [ fetchTickersFees, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
+        let fetchContractMarkets = true;
+        [ fetchContractMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchContractMarkets', fetchContractMarkets);
         if (uta) {
             return await this.fetchUtaMarkets (params);
         }
@@ -1320,7 +1322,6 @@ export default class kucoin extends Exchange {
             //
         }
         if (fetchTickersFees) {
-            promises.push (this.publicGetMarketAllTickers (params));
             //
             //     {
             //         "code": "200000",
@@ -1346,9 +1347,8 @@ export default class kucoin extends Exchange {
             //                     "makerCoefficient": "1" // Maker Fee Coefficient
             //                 }
             //
+            promises.push (this.publicGetMarketAllTickers (params));
         }
-        let fetchContractMarkets = true;
-        [ fetchContractMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchContractMarkets', fetchContractMarkets);
         if (fetchContractMarkets) {
             promises.push (this.fetchContractMarkets (params));
         }
@@ -2589,7 +2589,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kucoin.com/#get-24hr-stats
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker
      * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2606,14 +2607,10 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'uta', false);
         let response = undefined;
         let result = undefined;
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params, type);
         if (uta) {
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-            if (type === 'spot') {
-                request['tradeType'] = 'SPOT';
-            } else {
-                request['tradeType'] = 'FUTURES';
-            }
+            request['tradeType'] = this.typeToTradeType (type);
             response = await this.utaGetMarketTicker (this.extend (request, params));
             //
             //     {
@@ -2644,6 +2641,28 @@ export default class kucoin extends Exchange {
             const data = this.safeDict (response, 'data', {});
             const resultList = this.safeList (data, 'list', []);
             result = this.safeDict (resultList, 0, {});
+        } else if (type === 'swap') {
+            response = await this.futuresPublicGetTicker (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "sequence": 1638444978558,
+            //            "symbol": "ETHUSDTM",
+            //            "side": "sell",
+            //            "size": 4,
+            //            "price": "4229.35",
+            //            "bestBidSize": 2160,
+            //            "bestBidPrice": "4229.0",
+            //            "bestAskPrice": "4229.05",
+            //            "tradeId": "61aaa8b777a0c43055fe4851",
+            //            "ts": 1638574296209786785,
+            //            "bestAskSize": 36,
+            //        }
+            //    }
+            //
+            const data = this.safeDict (response, 'data', {});
+            return this.parseTicker (data, market);
         } else {
             response = await this.publicGetMarketStats (this.extend (request, params));
             //
@@ -2671,7 +2690,7 @@ export default class kucoin extends Exchange {
             //
             result = this.safeDict (response, 'data', {});
         }
-        return this.parseTicker (result, market);
+        return this.parseOriginalTicker (result, market);
     }
 
     /**
