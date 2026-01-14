@@ -277,7 +277,9 @@ class testMainClass {
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
-        } else if (!isLoadMarkets) {
+        } else if (isLoadMarkets && this.wsTests) {
+            skipMessage = '[INFO] SKIPPING_LOADMARKETS_FOR_WS';
+        } else {
             if (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests)) {
                 skipMessage = '[INFO] IGNORED_TEST';
             } else if (!supportedByExchange && !isProxyTest && !isFeatureTest) {
@@ -286,7 +288,7 @@ class testMainClass {
                 skipMessage = '[INFO] UNIMPLEMENTED_TEST';
             }
         }
-        // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
+        // we should loadMarkets at first (however, the tests can be skipped later)
         if (isLoadMarkets) {
             await exchange.loadMarkets (true);
         }
