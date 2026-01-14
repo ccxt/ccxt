@@ -488,7 +488,70 @@ func (this *Exchange) LighterSignCreateGroupedOrders(signer interface{}, request
 }
 
 func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
-	return []any{nil, nil}
+	ordersRaw, ok := request["orders"]
+	if !ok {
+		panic("Missing 'orders' in request")
+	}
+
+	orders, ok := ordersRaw.([]interface{})
+	if !ok {
+		panic(fmt.Sprintf("'orders' must be an array, got %T", ordersRaw))
+	}
+
+	length := len(orders)
+	ordersArr := make([]*types.CreateOrderTxReq, length)
+
+	for i, item := range orders {
+		orderMap, ok := item.(map[string]interface{})
+		if !ok {
+			panic(fmt.Sprintf("Order %d is not a map[string]interface{}", i))
+		}
+
+		orderExpiry := int64(SafeInt(orderMap["order_expiry"]))
+		if orderExpiry == -1 {
+			orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
+		}
+
+		ordersArr[i] = &types.CreateOrderTxReq{
+			MarketIndex:      int16(SafeInt(orderMap["market_index"])),
+			ClientOrderIndex: int64(SafeInt(orderMap["client_order_index"])),
+			BaseAmount:       int64(SafeInt(orderMap["base_amount"])),
+			Price:            uint32(SafeInt(orderMap["avg_execution_price"])),
+			IsAsk:            uint8(SafeInt(orderMap["is_ask"])),
+			Type:             uint8(SafeInt(orderMap["order_type"])),
+			TimeInForce:      uint8(SafeInt(orderMap["time_in_force"])),
+			ReduceOnly:       uint8(SafeInt(orderMap["reduce_only"])),
+			TriggerPrice:     uint32(SafeInt(orderMap["trigger_price"])),
+			OrderExpiry:      orderExpiry,
+		}
+	}
+
+	tx := &types.CreateGroupedOrdersTxReq{
+		GroupingType: uint8(SafeInt(request["grouping_type"])),
+		Orders:       ordersArr,
+	}
+
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCreateGroupedOrdersTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	fmt.Println(txInfo.GetTxType(), txInfoStr, res, GetValue(res, 0), GetValue(res, 1))
+
+	return res
 }
 
 func (this *Exchange) LighterSignCreateOrder(signer interface{}, request interface{}) interface{} {
@@ -496,34 +559,24 @@ func (this *Exchange) LighterSignCreateOrder(signer interface{}, request interfa
 }
 
 func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
-	marketIndex := int16(SafeInt(request["market_index"]))
-	clientOrderIndex := int64(SafeInt(request["client_order_index"]))
-	baseAmount := int64(SafeInt(request["base_amount"]))
-	price := uint32(SafeInt(request["avg_execution_price"]))
-	isAsk := uint8(SafeInt(request["is_ask"]))
-	orderType := uint8(SafeInt(request["order_type"]))
-	timeInForce := uint8(SafeInt(request["time_in_force"]))
-	reduceOnly := uint8(SafeInt(request["reduce_only"]))
-	triggerPrice := uint32(SafeInt(request["trigger_price"]))
 	orderExpiry := int64(SafeInt(request["order_expiry"]))
-	nonce := int64(SafeInt(request["nonce"]))
-
 	if orderExpiry == -1 {
 		orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
 	}
 
 	tx := &types.CreateOrderTxReq{
-		MarketIndex:      marketIndex,
-		ClientOrderIndex: clientOrderIndex,
-		BaseAmount:       baseAmount,
-		Price:            price,
-		IsAsk:            isAsk,
-		Type:             orderType,
-		TimeInForce:      timeInForce,
-		ReduceOnly:       reduceOnly,
-		TriggerPrice:     triggerPrice,
+		MarketIndex:      int16(SafeInt(request["market_index"])),
+		ClientOrderIndex: int64(SafeInt(request["client_order_index"])),
+		BaseAmount:       int64(SafeInt(request["base_amount"])),
+		Price:            uint32(SafeInt(request["avg_execution_price"])),
+		IsAsk:            uint8(SafeInt(request["is_ask"])),
+		Type:             uint8(SafeInt(request["order_type"])),
+		TimeInForce:      uint8(SafeInt(request["time_in_force"])),
+		ReduceOnly:       uint8(SafeInt(request["reduce_only"])),
+		TriggerPrice:     uint32(SafeInt(request["trigger_price"])),
 		OrderExpiry:      orderExpiry,
 	}
+	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
 	}
@@ -551,11 +604,11 @@ func (this *Exchange) LighterSignCancelOrder(signer interface{}, request interfa
 }
 
 func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
-	nonce := int64(SafeInt(request["nonce"]))
 	tx := &types.CancelOrderTxReq{
 		MarketIndex: int16(SafeInt(request["market_index"])),
 		Index:       int64(SafeInt(request["order_index"])),
 	}
+	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
 	}
@@ -580,12 +633,12 @@ func (this *Exchange) LighterSignWithdraw(signer interface{}, request interface{
 }
 
 func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[string]interface{}) interface{} {
-	nonce := int64(SafeInt(request["nonce"]))
 	tx := &types.WithdrawTxReq{
 		AssetIndex: int16(SafeInt(request["asset_index"])),
 		RouteType:  uint8(SafeInt(request["route_type"])),
 		Amount:     uint64(SafeInt(request["amount"])),
 	}
+	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
 	}
@@ -635,11 +688,11 @@ func (this *Exchange) LighterSignCancelAllOrders(signer interface{}, request int
 }
 
 func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
-	nonce := int64(SafeInt(request["nonce"]))
 	tx := &types.CancelAllOrdersTxReq{
 		TimeInForce: uint8(SafeInt(request["time_in_force"])),
 		Time:        int64(SafeInt(request["time"])),
 	}
+	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
 	}
@@ -664,7 +717,6 @@ func (this *Exchange) LighterSignModifyOrder(signer interface{}, request interfa
 }
 
 func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
-	nonce := int64(SafeInt(request["nonce"]))
 	tx := &types.ModifyOrderTxReq{
 		MarketIndex:  int16(SafeInt(request["market_index"])),
 		Index:        int64(SafeInt(request["index"])),
@@ -672,6 +724,7 @@ func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request ma
 		Price:        uint32(SafeInt(request["price"])),
 		TriggerPrice: uint32(SafeInt(request["trigger_price"])),
 	}
+	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
 	}
@@ -696,7 +749,6 @@ func (this *Exchange) LighterSignTransfer(signer interface{}, request interface{
 }
 
 func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[string]interface{}) interface{} {
-	nonce := int64(SafeInt(request["nonce"]))
 	var memoArr [32]byte
 	bs := []byte(request["memo"].(string))
 	if len(bs) != 32 {
@@ -714,6 +766,7 @@ func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[s
 		USDCFee:        int64(SafeInt(request["usdc_fee"])),
 		Memo:           memoArr,
 	}
+	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
 	}
@@ -738,12 +791,12 @@ func (this *Exchange) LighterSignUpdateLeverage(signer interface{}, request inte
 }
 
 func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request map[string]interface{}) interface{} {
-	nonce := int64(SafeInt(request["nonce"]))
 	tx := &types.UpdateLeverageTxReq{
 		MarketIndex:           int16(SafeInt(request["market_index"])),
 		InitialMarginFraction: uint16(SafeInt(request["initial_margin_fraction"])),
 		MarginMode:            uint8(SafeInt(request["margin_mode"])),
 	}
+	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
 	}
@@ -783,12 +836,12 @@ func (this *Exchange) LighterSignUpdateMargin(signer interface{}, request interf
 }
 
 func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request map[string]interface{}) interface{} {
-	nonce := int64(SafeInt(request["nonce"]))
 	tx := &types.UpdateMarginTxReq{
 		MarketIndex: int16(SafeInt(request["market_index"])),
 		USDCAmount:  int64(SafeInt(request["usdc_amount"])),
 		Direction:   uint8(SafeInt(request["direction"])),
 	}
+	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
 	}
