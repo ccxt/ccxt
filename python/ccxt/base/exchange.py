@@ -2182,7 +2182,8 @@ class Exchange(object):
         )
         return lighterSigner
 
-    def lighter_sign_create_grouped_orders(self, signer, grouping_type, orders, nonce, api_key_index, account_index):
+    def lighter_sign_create_grouped_orders(self, signer, request):
+        orders = request['orders']
         arr_type = CreateOrderTxReq * len(orders)
         orders_arr = []
         for order in orders:
@@ -2200,7 +2201,7 @@ class Exchange(object):
             ))
         orders_carr = arr_type(*orders_arr)
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateGroupedOrders(
-            grouping_type, orders_carr, len(orders), nonce, api_key_index, account_index
+            request['grouping_type'], orders_carr, len(orders), request['nonce'], request['api_key_index'], request['account_index']
         ))
         print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]

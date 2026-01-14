@@ -1425,7 +1425,8 @@ class Exchange {
         return $lighterSigner;
     }
 
-    public function lighter_sign_create_grouped_orders($signer, $grouping_type, $orders, $nonce, $api_key_index, $account_index) {
+    public function lighter_sign_create_grouped_orders($signer, $request) {
+        $orders = $request['orders'];
         $orders_arr = array();
         foreach ($orders as $order) {
             $orders_arr[] = array(
@@ -1442,11 +1443,11 @@ class Exchange {
             );
         }
         $result = $signer->signCreateGroupedOrders(
-            $grouping_type,
+            $request['grouping_type'],
             $orders_arr,
-            $nonce,
-            $api_key_index,
-            $account_index
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
         );
         return [ $result['txType'], $result['txInfo'] ];
     }

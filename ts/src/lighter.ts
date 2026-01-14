@@ -622,7 +622,14 @@ export default class lighter extends Exchange {
         if (totalOrderRequests < 2) {
             [ txType, txInfo ] = this.lighterSignCreateOrder (signer, order);
         } else {
-            [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, groupingType, orderRequests, order['nonce'], apiKeyIndex, accountIndex);
+            const signingPayload = {
+                'grouping_type': groupingType,
+                'orders': orderRequests,
+                'nonce': order['nonce'],
+                'api_key_index': apiKeyIndex,
+                'account_index': accountIndex,
+            };
+            [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
         }
         const request = {
             'tx_type': txType,
@@ -1870,12 +1877,14 @@ export default class lighter extends Exchange {
         const type = this.safeString (order, 'type');
         const triggerPrice = this.parseNumber (this.omitZero (this.safeString (order, 'trigger_price')));
         let stopLossPrice = undefined;
-        if (type.indexOf ('stop-loss') >= 0) {
-            stopLossPrice = triggerPrice;
-        }
         let takeProfitPrice = undefined;
-        if (type.indexOf ('take-profit') >= 0) {
-            takeProfitPrice = triggerPrice;
+        if (type !== undefined) {
+            if (type.indexOf ('stop-loss') >= 0) {
+                stopLossPrice = triggerPrice;
+            }
+            if (type.indexOf ('take-profit') >= 0) {
+                takeProfitPrice = triggerPrice;
+            }
         }
         const tif = this.safeString (order, 'time_in_force');
         const status = this.safeString (order, 'status');

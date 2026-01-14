@@ -28,9 +28,9 @@ public partial class Exchange
         return res;
     }
 
-    public object lighterSignCreateGroupedOrders(object signer, object groupingType, object orders, object nonce, object apiKeyIndex, object accountIndex) {
+    public object lighterSignCreateGroupedOrders(object signer, object request) {
         List<Lighter.LighterSigner.CreateOrderTxReq> ordersArr = new List<Lighter.LighterSigner.CreateOrderTxReq>() {};
-        var ordersList = (IList<object>) orders;
+        var ordersList = (IList<object>) getValue(request, "orders");
         foreach (var order in ordersList) {
             ordersArr.Add(new Lighter.LighterSigner.CreateOrderTxReq{
                 MarketIndex      = Convert.ToByte(getValue(order, "market_index")),
@@ -46,7 +46,7 @@ public partial class Exchange
             });
         }
         Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateGroupedOrders(
-            Convert.ToByte(groupingType), ordersArr, Convert.ToInt64(nonce), Convert.ToInt32(apiKeyIndex), Convert.ToInt64(accountIndex)
+            Convert.ToByte(getValue(request, "grouping_type")), ordersArr, Convert.ToInt64(getValue(request, "nonce")), Convert.ToInt32(getValue(request, "api_key_index")), Convert.ToInt64(getValue(request, "account_index"))
         );
         return formatSignedTx(signedTx);
     }

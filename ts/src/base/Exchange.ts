@@ -1900,57 +1900,57 @@ export default class Exchange {
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignCreateGroupedOrders (signer, grouping_type, orders, nonce, api_key_index, account_index): [any, any] {
+    lighterSignCreateGroupedOrders (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignCreateGroupedOrders not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignCreateOrder (signer, request): [any, any] {
+    lighterSignCreateOrder (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignCreateOrder not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignCancelOrder (signer, request): [any, any] {
+    lighterSignCancelOrder (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignCancelOrder not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignWithdraw (signer, request): [any, any] {
+    lighterSignWithdraw (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignWithdraw not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignCreateSubAccount (signer, request): [any, any] {
+    lighterSignCreateSubAccount (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignCreateSubAccount not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignCancelAllOrders (signer, request): [any, any] {
+    lighterSignCancelAllOrders (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignCancelAllOrders not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignModifyOrder (signer, request): [any, any] {
+    lighterSignModifyOrder (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignModifyOrder not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignTransfer (signer, request): [any, any] {
+    lighterSignTransfer (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignTransfer not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignUpdateLeverage (signer, request): [any, any] {
+    lighterSignUpdateLeverage (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignUpdateLeverage not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterCreateAuthToken (signer, request): [any, any] {
+    lighterCreateAuthToken (signer, request): string {
         throw new NotSupported (this.id + ' lighterCreateAuthToken not supported yet');
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignUpdateMargin (signer, request): [any, any] {
+    lighterSignUpdateMargin (signer, request): any[] {
         throw new NotSupported (this.id + ' lighterSignUpdateMargin not supported yet');
     }
 

@@ -483,11 +483,11 @@ func (this *Exchange) loadLighterLibrary(path string, chainId uint32, privateKey
 	return txClient
 }
 
-func (this *Exchange) LighterSignCreateGroupedOrders(signer interface{}, grouping_type interface{}, orders interface{}, nonce interface{}, api_key_index interface{}, account_index interface{}) interface{} {
-	return this.lighterSignCreateGroupedOrders(signer.(*client.TxClient), grouping_type.(int64), orders.([]interface{}), nonce.(int64), api_key_index.(int64), account_index.(int64))
+func (this *Exchange) LighterSignCreateGroupedOrders(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateGroupedOrders(signer.(*client.TxClient), request.(map[string]interface{}))
 }
 
-func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, grouping_type int64, orders []interface{}, nonce int64, api_key_index int64, account_index int64) interface{} {
+func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
 	return []any{nil, nil}
 }
 
