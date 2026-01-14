@@ -346,6 +346,7 @@ export default class kucoin extends Exchange {
                         'contracts/active': 4.5, // 3PW
                         'contracts/{symbol}': 4.5, // 3PW
                         'ticker': 3, // 2PW
+                        'allTickers': 7.5, // 5PW
                         'level2/snapshot': 4.5, // 3PW
                         'level2/depth20': 7.5, // 5PW
                         'level2/depth100': 15, // 10PW
@@ -1135,7 +1136,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.kucoin.com/#server-time
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -1143,7 +1145,7 @@ export default class kucoin extends Exchange {
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
-        if (type === 'future' || type === 'swap') {
+        if (type !== 'spot') {
             //
             //    {
             //        "code": "200000",
@@ -1168,10 +1170,11 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.kucoin.com/#service-status
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status
      * @see https://www.kucoin.com/docs-new/rest/ua/get-service-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] spot, swap or future
+     * @param {string} [params.type] spot or swap
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
@@ -1200,7 +1203,7 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
-        } else if (type === 'future' || type === 'swap') {
+        } else if (type !== 'spot') {
             response = await this.futuresPublicGetStatus (params);
             //
             //    {
@@ -1238,8 +1241,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchMarkets
      * @description retrieves data on all markets for kucoin
-     * @see https://docs.kucoin.com/#get-symbols-list-deprecated
-     * @see https://docs.kucoin.com/#get-all-tickers
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-symbol
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
@@ -1822,7 +1826,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.kucoin.com/#get-currencies
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1930,7 +1934,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.kucoin.com/#list-accounts
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
@@ -2013,7 +2017,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchDepositWithdrawFee
      * @description fetch the fee for deposits and withdrawals
-     * @see https://docs.kucoin.com/#get-withdrawal-quotas
+     * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
@@ -2144,7 +2148,7 @@ export default class kucoin extends Exchange {
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseOriginalTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "BTC-USDT",   // symbol
@@ -2255,43 +2259,163 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "LTCUSDTM",
+        //         "granularity": 1000,
+        //         "timePoint": 1727967339000,
+        //         "value": 62.37, mark price
+        //         "indexPrice": 62.37
+        //      }
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "sequence":  1629930362547,
+        //             "symbol": "ETHUSDTM",
+        //             "side": "buy",
+        //             "size":  130,
+        //             "price": "4724.7",
+        //             "bestBidSize":  5,
+        //             "bestBidPrice": "4724.6",
+        //             "bestAskPrice": "4724.65",
+        //             "tradeId": "618d2a5a77a0c4431d2335f4",
+        //             "ts":  1636641371963227600,
+        //             "bestAskSize":  1789
+        //          }
+        //     }
+        //
+        // from fetchTickers
+        //
+        // {
+        //     symbol: "XBTUSDTM",
+        //     rootSymbol: "USDT",
+        //     type: "FFWCSX",
+        //     firstOpenDate: 1585555200000,
+        //     expireDate: null,
+        //     settleDate: null,
+        //     baseCurrency: "XBT",
+        //     quoteCurrency: "USDT",
+        //     settleCurrency: "USDT",
+        //     maxOrderQty: 1000000,
+        //     maxPrice: 1000000,
+        //     lotSize: 1,
+        //     tickSize: 0.1,
+        //     indexPriceTickSize: 0.01,
+        //     multiplier: 0.001,
+        //     initialMargin: 0.008,
+        //     maintainMargin: 0.004,
+        //     maxRiskLimit: 100000,
+        //     minRiskLimit: 100000,
+        //     riskStep: 50000,
+        //     makerFeeRate: 0.0002,
+        //     takerFeeRate: 0.0006,
+        //     takerFixFee: 0,
+        //     makerFixFee: 0,
+        //     settlementFee: null,
+        //     isDeleverage: true,
+        //     isQuanto: true,
+        //     isInverse: false,
+        //     markMethod: "FairPrice",
+        //     fairMethod: "FundingRate",
+        //     fundingBaseSymbol: ".XBTINT8H",
+        //     fundingQuoteSymbol: ".USDTINT8H",
+        //     fundingRateSymbol: ".XBTUSDTMFPI8H",
+        //     indexSymbol: ".KXBTUSDT",
+        //     settlementSymbol: "",
+        //     status: "Open",
+        //     fundingFeeRate: 0.000297,
+        //     predictedFundingFeeRate: 0.000327,
+        //     fundingRateGranularity: 28800000,
+        //     openInterest: "8033200",
+        //     turnoverOf24h: 659795309.2524643,
+        //     volumeOf24h: 9998.54,
+        //     markPrice: 67193.51,
+        //     indexPrice: 67184.81,
+        //     lastTradePrice: 67191.8,
+        //     nextFundingRateTime: 20022985,
+        //     maxLeverage: 125,
+        //     premiumsSymbol1M: ".XBTUSDTMPI",
+        //     premiumsSymbol8H: ".XBTUSDTMPI8H",
+        //     fundingBaseSymbol1M: ".XBTINT",
+        //     fundingQuoteSymbol1M: ".USDTINT",
+        //     lowPrice: 64041.6,
+        //     highPrice: 67737.3,
+        //     priceChgPct: 0.0447,
+        //     priceChg: 2878.7
+        // }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market, '-');
+        const last = this.safeString2 (ticker, 'price', 'lastTradePrice');
+        const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bestBidPrice'),
+            'bidVolume': this.safeString (ticker, 'bestBidSize'),
+            'ask': this.safeString (ticker, 'bestAskPrice'),
+            'askVolume': this.safeString (ticker, 'bestAskSize'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'priceChg'),
+            'percentage': this.safeString (ticker, 'priceChgPct'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volumeOf24h'),
+            'quoteVolume': this.safeString (ticker, 'turnoverOf24h'),
+            'markPrice': this.safeString2 (ticker, 'markPrice', 'value'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'info': ticker,
+        }, market);
+    }
+
+    typeToTradeType (type: Str): Str {
+        const tradeTypes: Dict = {
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+        };
+        return this.safeString (tradeTypes, type, type);
+    }
+
     /**
      * @method
      * @name kucoin#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.kucoin.com/#get-all-tickers
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers
      * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {string[]|undefined} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
+     * @param {string} [params.type] spot or swap (default is spot)
+     * @param {string} [params.method] *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const request: Dict = {};
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', false);
+        const tradeType = this.safeString (params, 'tradeType');
+        let firstMarket = undefined;
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString (symbols, 0);
+            firstMarket = this.market (firstSymbol);
+        }
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', firstMarket, params, type);
         let response = undefined;
-        if (uta) {
-            if (symbols !== undefined) {
-                const symbol = this.safeString (symbols, 0);
-                const market = this.market (symbol);
-                let type = undefined;
-                [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-                if (type === 'spot') {
-                    request['tradeType'] = 'SPOT';
-                } else {
-                    request['tradeType'] = 'FUTURES';
-                }
-            } else {
-                const tradeType = this.safeStringUpper (params, 'tradeType');
-                if (tradeType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchTickers() requires a tradeType parameter for uta, either SPOT or FUTURES');
-                }
-                request['tradeType'] = tradeType;
-                params = this.omit (params, 'tradeType');
+        if ((tradeType !== undefined) || uta) {
+            if (tradeType === undefined) {
+                request['tradeType'] = this.typeToTradeType (type);
             }
             response = await this.utaGetMarketTicker (this.extend (request, params));
             //
@@ -2320,6 +2444,8 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
+        } else if (type === 'swap') {
+            return await this.fetchContractTickers (symbols, params);
         } else {
             response = await this.publicGetMarketAllTickers (params);
             //
@@ -2357,13 +2483,89 @@ export default class kucoin extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             tickers[i]['time'] = time;
-            const ticker = this.parseTicker (tickers[i]);
+            const ticker = this.parseOriginalTicker (tickers[i]);
             const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
+    }
+
+    async fetchContractTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive');
+        let response: Dict = undefined;
+        if (method === 'futuresPublicGetAllTickers') {
+            response = await this.futuresPublicGetAllTickers (params);
+        } else {
+            response = await this.futuresPublicGetContractsActive (params);
+        }
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "ETHUSDTM",
+        //            "rootSymbol": "USDT",
+        //            "type": "FFWCSX",
+        //            "firstOpenDate": 1591086000000,
+        //            "expireDate": null,
+        //            "settleDate": null,
+        //            "baseCurrency": "ETH",
+        //            "quoteCurrency": "USDT",
+        //            "settleCurrency": "USDT",
+        //            "maxOrderQty": 1000000,
+        //            "maxPrice": 1000000.0000000000,
+        //            "lotSize": 1,
+        //            "tickSize": 0.05,
+        //            "indexPriceTickSize": 0.01,
+        //            "multiplier": 0.01,
+        //            "initialMargin": 0.01,
+        //            "maintainMargin": 0.005,
+        //            "maxRiskLimit": 1000000,
+        //            "minRiskLimit": 1000000,
+        //            "riskStep": 500000,
+        //            "makerFeeRate": 0.00020,
+        //            "takerFeeRate": 0.00060,
+        //            "takerFixFee": 0.0000000000,
+        //            "makerFixFee": 0.0000000000,
+        //            "settlementFee": null,
+        //            "isDeleverage": true,
+        //            "isQuanto": true,
+        //            "isInverse": false,
+        //            "markMethod": "FairPrice",
+        //            "fairMethod": "FundingRate",
+        //            "fundingBaseSymbol": ".ETHINT8H",
+        //            "fundingQuoteSymbol": ".USDTINT8H",
+        //            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        //            "indexSymbol": ".KETHUSDT",
+        //            "settlementSymbol": "",
+        //            "status": "Open",
+        //            "fundingFeeRate": 0.000535,
+        //            "predictedFundingFeeRate": 0.002197,
+        //            "openInterest": "8724443",
+        //            "turnoverOf24h": 341156641.03354263,
+        //            "volumeOf24h": 74833.54000000,
+        //            "markPrice": 4534.07,
+        //            "indexPrice":4531.92,
+        //            "lastTradePrice": 4545.4500000000,
+        //            "nextFundingRateTime": 25481884,
+        //            "maxLeverage": 100,
+        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
+        //            "premiumsSymbol1M": ".ETHUSDTMPI",
+        //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        //            "fundingBaseSymbol1M": ".ETHINT",
+        //            "fundingQuoteSymbol1M": ".USDTINT",
+        //            "lowPrice": 4456.90,
+        //            "highPrice":  4674.25,
+        //            "priceChgPct": 0.0046,
+        //            "priceChg": 21.15
+        //        }
+        //    }
+        //
+        const data = this.safeList (response, 'data');
+        const tickers = this.parseTickers (data, symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     /**
