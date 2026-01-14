@@ -92,6 +92,9 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1415"
+            },
             "watchTrades": {
                 "timestampSort": "confirmed that exchange's engine has an issue: https://github.com/ccxt/ccxt/actions/runs/17983223256/job/51155199567?pr=25258#step:11:1120"
             },
