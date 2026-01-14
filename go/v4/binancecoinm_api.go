@@ -2679,6 +2679,14 @@ func (this *BinancecoinmCore) PrivatePostOrderListOtoco(args ...interface{}) <-c
 	return this.callEndpointAsync("privatePostOrderListOtoco", args...)
 }
 
+func (this *BinancecoinmCore) PrivatePostOrderListOpo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOpo", args...)
+}
+
+func (this *BinancecoinmCore) PrivatePostOrderListOpoco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOpoco", args...)
+}
+
 func (this *BinancecoinmCore) PrivatePostSorOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSorOrder", args...)
 }
