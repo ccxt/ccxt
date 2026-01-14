@@ -4852,9 +4852,16 @@ class Exchange {
         this.last_request_url = request['url'];
         for (let i = 0; i < retries + 1; i++) {
             try {
-                return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
+                this.log('[cexc_log]: Attempt ' + (i + 1) + ' to fetch ' + request['url']);
+                this.log('[cexc_log]: Request method: ' + request['method']);
+                this.log('[cexc_log]: Request headers: ' + JSON.stringify(request['headers']));
+                this.log('[cexc_log]: Request body: ' + request['body']);
+                const response = await this.fetch(request['url'], request['method'], request['headers'], request['body']);
+                this.log('[cexc_log]: Response: ' + JSON.stringify(response));
+                return response;
             }
             catch (e) {
+                this.log('[cexc_log]: Caught error on attempt ' + (i + 1) + ' ' + e.toString());
                 if (e instanceof errors.OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {

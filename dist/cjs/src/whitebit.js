@@ -2886,7 +2886,7 @@ class whitebit extends whitebit$1["default"] {
         //
         //     []
         //
-        return this.extend(this.parseTransaction(response, currency), { 'id': uniqueId });
+        return this.extend({ 'id': uniqueId }, this.parseTransaction(response, currency));
     }
     parseTransaction(transaction, currency = undefined) {
         //

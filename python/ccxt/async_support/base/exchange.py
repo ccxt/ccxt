@@ -975,8 +975,15 @@ class Exchange(BaseExchange):
         self.last_request_url = request['url']
         for i in range(0, retries + 1):
             try:
-                return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                self.log('[cexc_log]: Attempt ' + (i + 1) + ' to fetch ' + request['url'])
+                self.log('[cexc_log]: Request method: ' + request['method'])
+                self.log('[cexc_log]: Request headers: ' + json.dumps(request['headers']))
+                self.log('[cexc_log]: Request body: ' + request['body'])
+                response = await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                self.log('[cexc_log]: Response: ' + json.dumps(response))
+                return response
             except Exception as e:
+                self.log('[cexc_log]: Caught error on attempt ' + (i + 1) + ' ' + str(e))
                 if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:

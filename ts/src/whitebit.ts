@@ -2559,7 +2559,7 @@ export default class whitebit extends Exchange {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return this.parseTransactions (this.safeList (response, 'records', []), currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     /**
@@ -2906,7 +2906,7 @@ export default class whitebit extends Exchange {
         //
         //     []
         //
-        return this.extend (this.parseTransaction (response, currency), { 'id': uniqueId });
+        return this.extend ({ 'id': uniqueId }, this.parseTransaction (response, currency));
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

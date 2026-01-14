@@ -85,6 +85,7 @@ from ccxt.pro.bullish import bullish                                      # noqa
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.bydfi import bydfi                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
+from ccxt.pro.cexc import cexc                                            # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
 from ccxt.pro.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
 from ccxt.pro.coinbaseexchange import coinbaseexchange                    # noqa: F401
@@ -165,6 +166,7 @@ exchanges = [
     'bybit',
     'bydfi',
     'cex',
+    'cexc',
     'coinbase',
     'coinbaseadvanced',
     'coinbaseexchange',
