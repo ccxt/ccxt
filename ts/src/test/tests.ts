@@ -62,7 +62,6 @@ class testMainClass {
     onlySpecificTests: string[] = [];
     skippedSettingsForExchange = {};
     skippedMethods = {};
-    checkedPublicTests = {};
     testFiles: any = {};
     publicTests = {};
     ext: string = "";
@@ -239,7 +238,6 @@ class testMainClass {
             exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
         }
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
-        this.checkedPublicTests = {};
     }
 
     addPadding (message: string, size) {
@@ -270,9 +268,6 @@ class testMainClass {
         const isProxyTest = (methodName === this.proxyTestFileName);
         const isFeatureTest = (methodName === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
-            return true;
-        }
         let skipMessage = undefined;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (typeof skippedPropertiesForMethod === 'string') {
@@ -310,10 +305,6 @@ class testMainClass {
         }
         if (this.info) {
             dump (this.addPadding ('[INFO] TESTING DONE', 25), name, methodName);
-        }
-        // add to the list of successed tests
-        if (isPublic) {
-            this.checkedPublicTests[methodName] = true;
         }
         return true;
     }
