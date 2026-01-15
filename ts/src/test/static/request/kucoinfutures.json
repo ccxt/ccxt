@@ -841,6 +841,16 @@
                 ],
                 "output": "{\"positionMode\":\"0\"}"
             }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api-futures.kucoin.com/api/v1/positions",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

@@ -3756,12 +3756,7 @@ export default class delta extends Exchange {
     async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const request: Dict = {};
-        // if (symbols !== undefined) {
-        //     const marketIds = this.marketIds (symbols);
-        //     request['product_ids'] = marketIds;
-        // }
-        const response = await this.privateGetPositionsMargined (this.extend (request, params));
+        const response = await this.privateGetPositionsMargined (params);
         //
         //     {
         //         "result":
