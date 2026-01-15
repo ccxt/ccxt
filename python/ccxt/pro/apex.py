@@ -26,6 +26,7 @@ class apex(ccxt.async_support.apex):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
@@ -33,6 +34,7 @@ class apex(ccxt.async_support.apex):
                 'watchMyTrades': True,
                 'watchBalance': False,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
             },
             'urls': {
                 'logo': 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',
