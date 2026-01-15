@@ -107,16 +107,14 @@ public partial class Exchange
     }
 
     public object lighterSignCancelAllOrders(object signer, object request) {
-        // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelAllOrders(
-        //     getValue(request, "time_in_force"),
-        //     getValue(request, "time"),
-        //     getValue(request, "nonce"),
-        //     getValue(request, "api_key_index"),
-        //     getValue(request, "account_index"),
-        // ))
-        // print(tx_type, tx_info, tx_hash, error)
-        // return [tx_type, tx_info]
-        return null;
+        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCancelAllOrders(
+            Convert.ToInt32(getValue(request, "time_in_force")),
+            Convert.ToInt64(getValue(request, "time")),
+            Convert.ToInt64(getValue(request, "nonce")),
+            Convert.ToInt32(getValue(request, "api_key_index")),
+            Convert.ToInt64(getValue(request, "account_index"))
+        );
+        return this.formatSignedLighterTx(signedTx);
     }
 
     public object lighterSignModifyOrder(object signer, object request) {
