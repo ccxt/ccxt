@@ -901,6 +901,8 @@ class bybit extends bybit$1["default"] {
                     '170229': errors.InvalidOrder,
                     '170234': errors.ExchangeError,
                     '170241': errors.ManualInteractionNeeded,
+                    '170371': errors.InvalidOrder,
+                    '170372': errors.InvalidOrder,
                     '175000': errors.InvalidOrder,
                     '175001': errors.InvalidOrder,
                     '175002': errors.InvalidOrder,
@@ -6720,7 +6722,15 @@ class bybit extends bybit$1["default"] {
         market = this.safeMarket(contract, market, undefined, 'contract');
         const size = Precise["default"].stringAbs(this.safeString2(position, 'size', 'qty'));
         let side = this.safeString(position, 'side');
-        if (side !== undefined) {
+        const positionIdx = this.safeString(position, 'positionIdx');
+        let hedged = undefined;
+        if (positionIdx !== undefined) {
+            hedged = (positionIdx !== '0');
+        }
+        if ((hedged !== undefined) && hedged) {
+            side = (positionIdx === '1') ? 'long' : 'short';
+        }
+        else if (side !== undefined) {
             if (side === 'Buy') {
                 side = isHistory ? 'short' : 'long';
             }
@@ -6791,8 +6801,6 @@ class bybit extends bybit$1["default"] {
         }
         const maintenanceMarginPercentage = Precise["default"].stringDiv(maintenanceMarginString, notional);
         const marginRatio = Precise["default"].stringDiv(maintenanceMarginString, collateralString, 4);
-        const positionIdx = this.safeString(position, 'positionIdx');
-        const hedged = (positionIdx !== undefined) && (positionIdx !== '0');
         return this.safePosition({
             'info': position,
             'id': undefined,

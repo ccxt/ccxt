@@ -1607,6 +1607,7 @@ public partial class bitget : Exchange
                 { "defaultTimeInForce", "GTC" },
                 { "fiatCurrencies", new List<object>() {"EUR", "VND", "PLN", "CZK", "HUF", "DKK", "AUD", "CAD", "NOK", "SEK", "CHF", "MXN", "COP", "ARS", "GBP", "BRL", "UAH", "ZAR"} },
             } },
+            { "rollingWindowSize", 1000 },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "sandbox", true },
@@ -2405,7 +2406,7 @@ public partial class bitget : Exchange
                         { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(market, "minOrderAmount") },
                         { "max", null },
                     } },
                 } },
@@ -6133,7 +6134,10 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (isTrue(!isTrue(isTakeProfitOrder) && !isTrue(isStopLossOrder)))
             {
-                ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
+                if (isTrue(!isEqual(amount, null)))
+                {
+                    ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
+                }
                 if (isTrue(isTrue((!isEqual(price, null))) && !isTrue(isTrailingPercentOrder)))
                 {
                     ((IDictionary<string,object>)request)["newPrice"] = this.priceToPrecision(symbol, price);
@@ -7384,7 +7388,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

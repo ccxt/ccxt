@@ -986,9 +986,11 @@ func  (this *ApexCore) LoadPositionsSnapshot(client interface{}, messageHash int
                 }
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(cache, "positions")
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(cache, "positions")
+            }
                 return nil
             }()
             return ch
@@ -1090,9 +1092,9 @@ func  (this *ApexCore) Authenticate(url interface{}, optionalArgs ...interface{}
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes87015 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes87015)
-                ch <- retRes87015
+                retRes87215 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes87215)
+                ch <- retRes87215
                 return nil
         
             }()
@@ -1263,7 +1265,7 @@ func  (this *ApexCore) Pong(client interface{}, message interface{}) <- chan int
                                 }
                                 ret_ = func(this *ApexCore) interface{} {
                                     // catch block:
-                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.Json(e)))
+                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.ExceptionMessage(e)))
                     client.(ccxt.ClientInterface).Reset(error)
                                     return nil
                                 }(this)
@@ -1271,11 +1273,11 @@ func  (this *ApexCore) Pong(client interface{}, message interface{}) <- chan int
                         }()
             		    // try block:
                         
-                    retRes100812 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+                    retRes101012 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
                         "args": []interface{}{ccxt.ToString(timeStamp)},
                         "op": "pong",
                     }))
-                    ccxt.PanicOnError(retRes100812)
+                    ccxt.PanicOnError(retRes101012)
             		    return nil
             	    }(this)
                 
@@ -1295,7 +1297,7 @@ func  (this *ApexCore) HandlePong(client interface{}, message interface{}) inter
     //
     //   { pong: 1653296711335 }
     //
-    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong"))
+    client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
     return message
 }
 func  (this *ApexCore) HandlePing(client interface{}, message interface{})  {

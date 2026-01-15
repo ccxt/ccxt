@@ -916,6 +916,8 @@ class bybit(Exchange, ImplicitAPI):
                     '170229': InvalidOrder,  # The sell quantity per order exceeds the estimated maximum sell quantity.
                     '170234': ExchangeError,  # System Error
                     '170241': ManualInteractionNeeded,  # To proceed with trading, users must read through and confirm that they fully understand the project's risk disclosure document.
+                    '170371': InvalidOrder,  # {"retCode":170371,"retMsg":"Order price cannot be lower than 0.0025, the price limitation.","result":{},"retExtInfo":{},"time":1766500057720}
+                    '170372': InvalidOrder,  # {"retCode":170372,"retMsg":"Order price cannot be higher than 24.2175, the price limitation","result":{},"retExtInfo":{},"time":1766500129105}
                     '175000': InvalidOrder,  # The serialNum is already in use.
                     '175001': InvalidOrder,  # Daily purchase limit has been exceeded. Please try again later.
                     '175002': InvalidOrder,  # There's a large number of purchase orders. Please try again later.
@@ -6378,7 +6380,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
         market = self.safe_market(contract, market, None, 'contract')
         size = Precise.string_abs(self.safe_string_2(position, 'size', 'qty'))
         side = self.safe_string(position, 'side')
-        if side is not None:
+        positionIdx = self.safe_string(position, 'positionIdx')
+        hedged = None
+        if positionIdx is not None:
+            hedged = (positionIdx != '0')
+        if (hedged is not None) and hedged:
+            side = 'long' if (positionIdx == '1') else 'short'
+        elif side is not None:
             if side == 'Buy':
                 side = 'short' if isHistory else 'long'
             elif side == 'Sell':
@@ -6435,8 +6443,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
-        positionIdx = self.safe_string(position, 'positionIdx')
-        hedged = (positionIdx is not None) and (positionIdx != '0')
         return self.safe_position({
             'info': position,
             'id': None,

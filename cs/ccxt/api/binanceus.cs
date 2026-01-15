@@ -3351,6 +3351,11 @@ public partial class binanceus : binance
         return await this.callAsync ("eapiPrivateGetBlockTrades",parameters);
     }
 
+    public async Task<object> eapiPrivateGetComission (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetComission",parameters);
+    }
+
     public async Task<object> eapiPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePostOrder",parameters);
@@ -3604,6 +3609,16 @@ public partial class binanceus : binance
     public async Task<object> privatePostOrderListOtoco (object parameters = null)
     {
         return await this.callAsync ("privatePostOrderListOtoco",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOpo (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOpo",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOpoco (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOpoco",parameters);
     }
 
     public async Task<object> privatePostSorOrder (object parameters = null)

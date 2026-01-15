@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.28'
+__version__ = '4.5.33'
 
 # ----------------------------------------------------------------------------
 
@@ -61,6 +61,7 @@ from ccxt.pro.alpaca import alpaca                                        # noqa
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.arkham import arkham                                        # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
+from ccxt.pro.aster import aster                                          # noqa: F401
 from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
@@ -82,6 +83,7 @@ from ccxt.pro.blockchaincom import blockchaincom                          # noqa
 from ccxt.pro.blofin import blofin                                        # noqa: F401
 from ccxt.pro.bullish import bullish                                      # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
+from ccxt.pro.bydfi import bydfi                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
 from ccxt.pro.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
@@ -139,6 +141,7 @@ exchanges = [
     'apex',
     'arkham',
     'ascendex',
+    'aster',
     'backpack',
     'bequant',
     'binance',
@@ -160,6 +163,7 @@ exchanges = [
     'blofin',
     'bullish',
     'bybit',
+    'bydfi',
     'cex',
     'coinbase',
     'coinbaseadvanced',

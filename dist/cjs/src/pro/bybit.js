@@ -1521,9 +1521,11 @@ class bybit extends bybit$1["default"] {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, 'position');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, 'position');
+        }
     }
     handlePositions(client, message) {
         //
@@ -2478,7 +2480,7 @@ class bybit extends bybit$1["default"] {
         //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //   }
         //
-        client.lastPong = this.safeInteger(message, 'pong');
+        client.lastPong = this.safeInteger(message, 'pong', this.milliseconds());
         return message;
     }
     handleAuthenticate(client, message) {

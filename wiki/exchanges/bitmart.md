@@ -58,14 +58,23 @@
 * [watchBalance](#watchbalance)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
+* [unWatchTicker](#unwatchticker)
+* [unWatchTickers](#unwatchtickers)
 * [watchBidsAsks](#watchbidsasks)
 * [watchOrders](#watchorders)
+* [unWatchOrders](#unwatchorders)
 * [watchPositions](#watchpositions)
+* [unWatchPositions](#unwatchpositions)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
+* [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -1367,7 +1376,11 @@ get the list of most recent trades for a list of symbols
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://developer-pro.bitmart.com/en/spot/#public-trade-channel  
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1379,6 +1392,56 @@ get the list of most recent trades for a list of symbols
 
 ```javascript
 bitmart.watchTradesForSymbols (symbols[, since, limit, params])
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unWatches from the stream channel
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchTrades (symbol[, params])
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+unsubscribes from the trades channel
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-trade-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchTradesForSymbols (symbols[, params])
 ```
 
 
@@ -1429,6 +1492,56 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 bitmart.watchTickers (symbols[, params])
+```
+
+
+<a name="unWatchTicker" id="unwatchticker"></a>
+
+### unWatchTicker{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchTicker (symbol[, params])
+```
+
+
+<a name="unWatchTickers" id="unwatchtickers"></a>
+
+### unWatchTickers{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchTickers (symbols[, params])
 ```
 
 
@@ -1484,6 +1597,31 @@ bitmart.watchOrders (symbol[, since, limit, params])
 ```
 
 
+<a name="unWatchOrders" id="unwatchorders"></a>
+
+### unWatchOrders{docsify-ignore}
+unWatches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#private-order-progress
+- https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchOrders (symbol[, params])
+```
+
+
 <a name="watchPositions" id="watchpositions"></a>
 
 ### watchPositions{docsify-ignore}
@@ -1504,6 +1642,27 @@ watch all open positions
 
 ```javascript
 bitmart.watchPositions (symbols[, since, limit, params])
+```
+
+
+<a name="unWatchPositions" id="unwatchpositions"></a>
+
+### unWatchPositions{docsify-ignore}
+unWatches all open positions
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - status of the unwatch request
+
+**See**: https://developer-pro.bitmart.com/en/futures/#private-position-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchPositions ([symbols, params])
 ```
 
 
@@ -1535,6 +1694,32 @@ bitmart.watchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-kline-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchOHLCV (symbol, timeframe[, params])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -1563,6 +1748,32 @@ bitmart.watchOrderBook (symbol[, limit, params])
 ```
 
 
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
+- https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+- https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified array of symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.unWatchOrderBook (symbol[, params])
+```
+
+
 <a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
 
 ### watchOrderBookForSymbols{docsify-ignore}
@@ -1583,5 +1794,27 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 bitmart.watchOrderBookForSymbols (symbols[, limit, params])
+```
+
+
+<a name="unWatchOrderBookForSymbols" id="unwatchorderbookforsymbols"></a>
+
+### unWatchOrderBookForSymbols{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.depth | <code>string</code> | No | the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50 |
+
+
+```javascript
+bitmart.unWatchOrderBookForSymbols (symbols[, params])
 ```
 

@@ -1024,6 +1024,7 @@ class binance(Exchange, ImplicitAPI):
                         'block/order/execute': 5,
                         'block/user-trades': 5,
                         'blockTrades': 5,
+                        'comission': 5,
                     },
                     'post': {
                         'order': 1,
@@ -1099,6 +1100,8 @@ class binance(Exchange, ImplicitAPI):
                         'orderList/oco': 0.2,
                         'orderList/oto': 0.2,
                         'orderList/otoco': 0.2,
+                        'orderList/opo': 0.2,
+                        'orderList/opoco': 0.2,
                         'sor/order': 0.2,
                         'sor/order/test': 0.2,
                         'order': 0.2,
@@ -2654,6 +2657,7 @@ class binance(Exchange, ImplicitAPI):
                     'PERCENT_PRICE_BY_SIDE': InvalidOrder,  # {"code":-1013,"msg":"Filter failure: PERCENT_PRICE_BY_SIDE"}
                 },
             },
+            'rollingWindowSize': 60000.0,
         })
 
     def is_inverse(self, type: str, subType: Str = None) -> bool:

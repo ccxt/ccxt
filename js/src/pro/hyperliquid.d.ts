@@ -147,6 +147,17 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
+     * @name hyperliquid#unWatchMyTrades
+     * @description unWatches information on multiple trades made by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     handleWsTickers(client: Client, message: any): boolean;
     parseWsTicker(rawTicker: any, market?: Market): Ticker;
     handleMyTrades(client: Client, message: any): void;
@@ -213,12 +224,25 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name hyperliquid#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;
     handleOHLCVUnsubscription(client: Client, subscription: Dict): void;
+    handleOrderUnsubscription(client: Client, subscription: Dict): void;
+    handleMyTradesUnsubscription(client: Client, subscription: Dict): void;
     handleSubscriptionResponse(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {

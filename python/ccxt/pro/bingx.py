@@ -1074,9 +1074,10 @@ class bingx(ccxt.async_support.bingx):
         response = await self.fetch_balance({'type': type, 'subType': subType})
         self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve()
-        client.resolve(self.balance[type], type + ':balance')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve()
+            client.resolve(self.balance[type], type + ':balance')
 
     def handle_error_message(self, client, message):
         #
@@ -1152,7 +1153,7 @@ class bingx(ccxt.async_support.bingx):
                     'time': time,
                 })
         except Exception as e:
-            error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
+            error = NetworkError(self.id + ' pong failed with error ' + self.exception_message(e))
             client.reset(error)
 
     def handle_order(self, client, message):

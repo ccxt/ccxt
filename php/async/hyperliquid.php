@@ -592,16 +592,23 @@ class hyperliquid extends Exchange {
             $fetchDexesList = array();
             $options = $this->safe_dict($this->options, 'fetchMarkets', array());
             $hip3 = $this->safe_dict($options, 'hip3', array());
-            $dexesProvided = $this->safe_list($hip3, 'dexes'); // $users provide their own list of dexes to load
+            $dexesProvided = $this->safe_list($hip3, 'dexes', array()); // $users provide their own list of dexes to load
             $maxLimit = $this->safe_integer($hip3, 'limit', 10);
-            if ($dexesProvided !== null) {
-                $userProvidedDexesLength = count($dexesProvided);
+            $userProvidedDexesLength = count($dexesProvided);
+            if ($userProvidedDexesLength > 0) {
                 if ($userProvidedDexesLength > 0) {
                     $fetchDexesList = $dexesProvided;
                 }
             } else {
+                $fetchDexesLength = count($fetchDexes);
                 for ($i = 1; $i < $maxLimit; $i++) {
+                    if ($i >= $fetchDexesLength) {
+                        break;
+                    }
                     $dex = $this->safe_dict($fetchDexes, $i, array());
+                    if ($dex === null) {
+                        continue;
+                    }
                     $dexName = $this->safe_string($dex, 'name');
                     $fetchDexesList[] = $dexName;
                 }
@@ -1080,6 +1087,14 @@ class hyperliquid extends Exchange {
         ));
     }
 
+    public function update_spot_currency_code(string $code): string {
+        if ($code === null) {
+            return $code;
+        }
+        $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+        return $this->safe_string($spotCurrencyMapping, $code, $code);
+    }
+
     public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1148,7 +1163,8 @@ class hyperliquid extends Exchange {
                 $spotBalances = array( 'info' => $response );
                 for ($i = 0; $i < count($balances); $i++) {
                     $balance = $balances[$i];
-                    $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+                    $unifiedCode = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+                    $code = $isSpot ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
                     $account = $this->account();
                     $total = $this->safe_string($balance, 'total');
                     $used = $this->safe_string($balance, 'hold');
@@ -1622,7 +1638,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function action_hash($action, $vaultAddress, $nonce) {
+    public function action_hash($action, $vaultAddress, $nonce, $expiresAfter = null) {
         $dataBinary = $this->packb($action);
         $dataHex = bin2hex($dataBinary);
         $data = $dataHex;
@@ -1633,11 +1649,15 @@ class hyperliquid extends Exchange {
             $data .= '01';
             $data .= $vaultAddress;
         }
+        if ($expiresAfter !== null) {
+            $data .= '00';
+            $data .= '00000' . $this->int_to_base16($expiresAfter);
+        }
         return $this->hash($this->base16_to_binary($data), 'keccak', 'binary');
     }
 
-    public function sign_l1_action($action, $nonce, $vaultAdress = null): array {
-        $hash = $this->action_hash($action, $vaultAdress, $nonce);
+    public function sign_l1_action($action, $nonce, $vaultAdress = null, $expiresAfter = null): array {
+        $hash = $this->action_hash($action, $vaultAdress, $nonce, $expiresAfter);
         $isTestnet = $this->safe_bool($this->options, 'sandboxMode', false);
         $phantomAgent = $this->construct_phantom_agent($hash, $isTestnet);
         // $data = array(
@@ -2083,11 +2103,12 @@ class hyperliquid extends Exchange {
             $orderParams['slippage'] = $slippage;
             $stopLoss = $this->safe_value($orderParams, 'stopLoss');
             $takeProfit = $this->safe_value($orderParams, 'takeProfit');
-            $isTrigger = ($stopLoss || $takeProfit);
+            $hasStopLoss = ($stopLoss !== null);
+            $hasTakeProfit = ($takeProfit !== null);
             $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
             $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
             $orderReq[] = $mainOrderObj;
-            if ($isTrigger) {
+            if ($hasStopLoss || $hasTakeProfit) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
@@ -2103,14 +2124,14 @@ class hyperliquid extends Exchange {
                 } else {
                     $triggerOrderSide = 'buy';
                 }
-                if ($takeProfit !== null) {
+                if ($hasTakeProfit) {
                     $orderObj = $this->create_order_request($symbol, $takeProfitOrderType, $triggerOrderSide, $amount, $takeProfitOrderLimitPrice, $this->extend($orderParams, array(
                         'takeProfitPrice' => $takeProfitOrderTriggerPrice,
                         'reduceOnly' => true,
                     )));
                     $orderReq[] = $orderObj;
                 }
-                if ($stopLoss !== null) {
+                if ($hasStopLoss) {
                     $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, $amount, $stopLossOrderLimitPrice, $this->extend($orderParams, array(
                         'stopLossPrice' => $stopLossOrderTriggerPrice,
                         'reduceOnly' => true,
@@ -4431,6 +4452,36 @@ class hyperliquid extends Exchange {
                 'weight' => $weight,
             );
             $signature = $this->sign_l1_action($action, $nonce);
+            $request['action'] = $action;
+            $request['signature'] = $signature;
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
+            return $response;
+        }) ();
+    }
+
+    public function create_sub_account(string $name, $params = array ()) {
+        return Async\async(function () use ($name, $params) {
+            /**
+             * creates a sub-account under the main account
+             * @param {string} $name the $name of the sub-account
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->expiresAfter] time in ms after which the sub-account will expire
+             * @return {array} a $response object
+             */
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+            );
+            $action = array(
+                'type' => 'createSubAccount',
+                'name' => $name,
+            );
+            $expiresAfter = $this->safe_integer($params, 'expiresAfter');
+            if ($expiresAfter !== null) {
+                $params = $this->omit($params, 'expiresAfter');
+                $request['expiresAfter'] = $expiresAfter;
+            }
+            $signature = $this->sign_l1_action($action, $nonce, null, $expiresAfter);
             $request['action'] = $action;
             $request['signature'] = $signature;
             $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));

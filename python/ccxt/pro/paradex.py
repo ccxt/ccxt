@@ -4,8 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Bool, Int, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -19,7 +19,7 @@ class paradex(ccxt.async_support.paradex):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchOrderBook': True,
-                'watchOrders': False,
+                'watchOrders': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
                 'watchBalance': False,
@@ -42,11 +42,50 @@ class paradex(ccxt.async_support.paradex):
             'streaming': {},
         })
 
+    def request_id(self):
+        requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
+        self.options['requestId'] = requestId
+        return requestId
+
+    async def authenticate(self, params={}):
+        url = self.urls['api']['ws']
+        client = self.client(url)
+        messageHash = 'authenticated'
+        future = client.reusableFuture('authenticated')
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
+            token = await self.authenticateRest()
+            request: dict = {
+                'jsonrpc': '2.0',
+                'id': self.request_id(),
+                'method': 'auth',
+                'params': {
+                    'bearer': token,
+                },
+            }
+            self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return await future
+
+    def handle_authentication_message(self, client: Client, message):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 1,
+        #         "result": {"node_id": "73cf456f7cb78d59"}
+        #     }
+        #
+        result = self.safe_dict(message, 'result')
+        if result is not None:
+            # client.resolve(True, messageHash)
+            future = self.safe_value(client.futures, 'authenticated')
+            if future is not None:
+                future.resolve(True)
+
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.api.testnet.paradex.trade/#sub-trades-market_symbol-operation
+        https://docs.paradex.trade/ws/web-socket-channels/trades/trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -110,7 +149,7 @@ class paradex(ccxt.async_support.paradex):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.api.testnet.paradex.trade/#sub-order_book-market_symbol-snapshot-15-refresh_rate-operation
+        https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -194,7 +233,7 @@ class paradex(ccxt.async_support.paradex):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -218,7 +257,7 @@ class paradex(ccxt.async_support.paradex):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
-        https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -248,6 +287,84 @@ class paradex(ccxt.async_support.paradex):
             result[newTickers['symbol']] = newTickers
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
+
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        watches information on multiple orders made by the user
+
+        https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+
+        :param str [symbol]: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        messageHash = 'orders'
+        channel = 'orders.'
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            channel += market['id']
+            messageHash += ':' + symbol
+        else:
+            channel += 'ALL'
+        url = self.urls['api']['ws']
+        request: dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        }
+        orders = await self.watch(url, messageHash, self.deep_extend(request, params), channel)
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def handle_order(self, client: Client, message):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "orders.ALL",
+        #             "data": {
+        #                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        #                 "avg_fill_price": "26000",
+        #                 "client_id": "x1234",
+        #                 "cancel_reason": "",
+        #                 "created_at": 1681493746016,
+        #                 "flags": ["REDUCE_ONLY"],
+        #                 "id": "123456",
+        #                 "instruction": "GTC",
+        #                 "last_updated_at": 1681493746016,
+        #                 "market": "BTC-USD-PERP",
+        #                 "price": "26000",
+        #                 "remaining_size": "0",
+        #                 "side": "BUY",
+        #                 "size": "0.05",
+        #                 "status": "NEW",
+        #                 "type": "LIMIT"
+        #             }
+        #         }
+        #     }
+        #
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        parsed = self.parse_order(data)
+        symbol = self.safe_string(parsed, 'symbol')
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        self.orders.append(parsed)
+        messageHash = 'orders'
+        client.resolve(self.orders, messageHash)
+        if symbol is not None:
+            symbolMessageHash = messageHash + ':' + symbol
+            client.resolve(self.orders, symbolMessageHash)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -319,6 +436,16 @@ class paradex(ccxt.async_support.paradex):
         if not self.handle_error_message(client, message):
             return
         #
+        # auth response
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 1,
+        #         "result": {"node_id": "73cf456f7cb78d59"}
+        #     }
+        #
+        # subscription message
+        #
         #     {
         #         "jsonrpc": "2.0",
         #         "method": "subscription",
@@ -336,6 +463,10 @@ class paradex(ccxt.async_support.paradex):
         #         }
         #     }
         #
+        result = self.safe_value(message, 'result')
+        if result is not None:
+            self.handle_authentication_message(client, message)
+            return
         data = self.safe_dict(message, 'params')
         if data is not None:
             channel = self.safe_string(data, 'channel')
@@ -345,7 +476,7 @@ class paradex(ccxt.async_support.paradex):
                 'trades': self.handle_trade,
                 'order_book': self.handle_order_book,
                 'markets_summary': self.handle_ticker,
-                # ...
+                'orders': self.handle_order,
             }
             method = self.safe_value(methods, name)
             if method is not None:

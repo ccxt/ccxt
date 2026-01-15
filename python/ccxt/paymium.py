@@ -177,7 +177,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
+        https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -190,7 +190,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get
+        https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -257,7 +257,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get
+        https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -317,7 +317,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get
+        https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -337,7 +337,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         create a currency deposit address
 
-        https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post
+        https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address
 
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -359,7 +359,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
 
-        https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get
+        https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -384,7 +384,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         fetch deposit addresses for multiple currencies and chain types
 
-        https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
+        https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses
 
         :param str[]|None codes: list of unified currency codes, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -427,7 +427,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post
+        https://paymium.github.io/api-documentation/#tag/Order/operation/create-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -457,8 +457,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D/delete
-        https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D~1cancel/delete
+        https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
 
         :param str id: order id
         :param str symbol: not used by paymium cancelOrder()
@@ -477,7 +476,7 @@ class paymium(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
 
-        https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post
+        https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer
 
         :param str code: unified currency code
         :param float amount: amount to transfer

@@ -1170,9 +1170,11 @@ class bingx extends \ccxt\async\bingx {
             $response = Async\await($this->fetch_balance(array( 'type' => $type, 'subType' => $subType )));
             $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ();
-            $client->resolve ($this->balance[$type], $type . ':balance');
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ();
+                $client->resolve ($this->balance[$type], $type . ':balance');
+            }
         }) ();
     }
 
@@ -1266,7 +1268,7 @@ class bingx extends \ccxt\async\bingx {
                     )));
                 }
             } catch (Exception $e) {
-                $error = new NetworkError ($this->id . ' pong failed with $error ' . $this->json($e));
+                $error = new NetworkError ($this->id . ' pong failed with $error ' . $this->exception_message($e));
                 $client->reset ($error);
             }
         }) ();

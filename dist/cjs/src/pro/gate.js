@@ -1204,9 +1204,11 @@ class gate extends gate$1["default"] {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, type + ':position');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, type + ':position');
+        }
     }
     handlePositions(client, message) {
         //
@@ -1738,44 +1740,6 @@ class gate extends gate$1["default"] {
                     this.cleanUnsubscription(client, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);
-            }
-        }
-    }
-    cleanCache(subscription) {
-        const topic = this.safeString(subscription, 'topic', '');
-        const symbols = this.safeList(subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (topic === 'ohlcv') {
-            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
-            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
-                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
-                const symbol = this.safeString(symbolAndTimeFrame, 0);
-                const timeframe = this.safeString(symbolAndTimeFrame, 1);
-                delete this.ohlcvs[symbol][timeframe];
-            }
-        }
-        else if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic.endsWith('trades')) {
-                    delete this.trades[symbol];
-                }
-                else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
-                }
-                else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
-                }
-            }
-        }
-        else {
-            if (topic.endsWith('trades')) {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                const keys = Object.keys(this.trades);
-                for (let i = 0; i < keys.length; i++) {
-                    delete this.trades[keys[i]];
-                }
             }
         }
     }

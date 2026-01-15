@@ -749,9 +749,11 @@ export default class apex extends apexRest {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, 'positions');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, 'positions');
+        }
     }
     handlePositions(client, lists) {
         //
@@ -984,7 +986,7 @@ export default class apex extends apexRest {
             await client.send({ 'args': [timeStamp.toString()], 'op': 'pong' });
         }
         catch (e) {
-            const error = new NetworkError(this.id + ' handlePing failed with error ' + this.json(e));
+            const error = new NetworkError(this.id + ' handlePing failed with error ' + this.exceptionMessage(e));
             client.reset(error);
         }
     }
@@ -999,7 +1001,7 @@ export default class apex extends apexRest {
         //
         //   { pong: 1653296711335 }
         //
-        client.lastPong = this.safeInteger(message, 'pong');
+        client.lastPong = this.safeInteger(message, 'pong', this.milliseconds());
         return message;
     }
     handlePing(client, message) {

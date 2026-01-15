@@ -26,7 +26,7 @@ public partial class krakenfutures : Exchange
                 { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
-                { "createMarketOrder", false },
+                { "createMarketOrder", true },
                 { "createOrder", true },
                 { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
@@ -63,9 +63,9 @@ public partial class krakenfutures : Exchange
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
-                { "fetchOrder", false },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
-                { "fetchOrders", false },
+                { "fetchOrders", true },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTickers", true },
@@ -101,7 +101,7 @@ public partial class krakenfutures : Exchange
                     { "get", new List<object>() {"feeschedules", "instruments", "orderbook", "tickers", "history", "historicalfundingrates"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history"} },
+                    { "get", new List<object>() {"feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history", "orders/status"} },
                     { "post", new List<object>() {"sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal", "assignmentprogram/add", "assignmentprogram/delete"} },
                     { "put", new List<object>() {"leveragepreferences", "pnlpreferences"} },
                 } },
@@ -254,7 +254,7 @@ public partial class krakenfutures : Exchange
                         { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 5000 },
+                        { "limit", 2000 },
                     } },
                 } },
                 { "spot", null },
@@ -679,12 +679,12 @@ public partial class krakenfutures : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 5000);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 2000);
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "price_type", this.safeString(parameters, "price", "trade") },
-            { "interval", getValue(this.timeframes, timeframe) },
+            { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
         parameters = this.omit(parameters, "price");
         if (isTrue(!isEqual(since, null)))
@@ -693,15 +693,15 @@ public partial class krakenfutures : Exchange
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
             if (isTrue(isEqual(limit, null)))
             {
-                limit = 5000;
+                limit = 2000;
             }
-            limit = mathMin(limit, 5000);
+            limit = mathMin(limit, 2000);
             object toTimestamp = this.sum(getValue(request, "from"), subtract(multiply(limit, duration), 1));
             object currentTimestamp = this.seconds();
             ((IDictionary<string,object>)request)["to"] = mathMin(toTimestamp, currentTimestamp);
         } else if (isTrue(!isEqual(limit, null)))
         {
-            limit = mathMin(limit, 5000);
+            limit = mathMin(limit, 2000);
             object duration = this.parseTimeframe(timeframe);
             ((IDictionary<string,object>)request)["to"] = this.seconds();
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(subtract(getValue(request, "to"), (multiply(duration, limit))));
@@ -1494,6 +1494,57 @@ public partial class krakenfutures : Exchange
 
     /**
      * @method
+     * @name krakenfutures#fetchOrders
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @description Gets all orders for an account from the exchange api
+     * @param {string} symbol Unified market symbol
+     * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+     * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+     * @param {object} [params] Exchange specific parameters
+     * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object response = await this.privateGetOrdersStatus(parameters);
+        object orders = this.safeList(response, "orders", new List<object>() {});
+        return this.parseOrders(orders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @param {string} id the order id
+     * @param {string} symbol unified market symbol that the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "orderIds", new List<object>() {id} },
+        };
+        object orders = await this.fetchOrders(null, null, null, this.extend(request, parameters));
+        object order = this.safeDict(orders, 0);
+        if (isTrue(isEqual(order, null)))
+        {
+            throw new OrderNotFound ((string)add(add(this.id, " fetchOrder could not find order id "), id)) ;
+        }
+        return order;
+    }
+
+    /**
+     * @method
      * @name krakenfutures#fetchClosedOrders
      * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
@@ -1554,7 +1605,7 @@ public partial class krakenfutures : Exchange
      * @param {object} [params] Exchange specific parameters
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

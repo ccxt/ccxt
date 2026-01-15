@@ -10,7 +10,7 @@ public partial class paradex
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class paradex
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#get-system-state"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/system/get-state"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class paradex
     /// retrieves data on all markets for bitget
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#list-available-markets"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-markets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,7 +70,7 @@ public partial class paradex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/klines"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -116,7 +116,7 @@ public partial class paradex
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#list-available-markets-summary"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-markets-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -136,7 +136,7 @@ public partial class paradex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#list-available-markets-summary"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-markets-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -156,7 +156,7 @@ public partial class paradex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#get-market-orderbook"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -183,7 +183,7 @@ public partial class paradex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#trade-tape"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/trades/trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -229,7 +229,7 @@ public partial class paradex
     /// retrieves the open interest of a contract trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#list-available-markets-summary"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-markets-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -249,7 +249,7 @@ public partial class paradex
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#create-order"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -324,8 +324,8 @@ public partial class paradex
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#cancel-order"/>  <br/>
-    /// See <see href="https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/cancel"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/cancel-by-client-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -351,7 +351,7 @@ public partial class paradex
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#cancel-all-open-orders"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/cancel-all"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -371,8 +371,8 @@ public partial class paradex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#get-order"/>  <br/>
-    /// See <see href="https://docs.api.prod.paradex.trade/#get-order-by-client-id"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/get"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/get-by-client-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -398,7 +398,7 @@ public partial class paradex
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#get-orders"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/get-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -444,7 +444,7 @@ public partial class paradex
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#paradex-rest-api-orders"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/get-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -478,7 +478,7 @@ public partial class paradex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#list-balances"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/account/get-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -498,7 +498,7 @@ public partial class paradex
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#list-fills"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/account/list-fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -544,7 +544,7 @@ public partial class paradex
     /// fetch data on an open position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#list-open-positions"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/account/get-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -564,7 +564,7 @@ public partial class paradex
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#list-open-positions"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/account/get-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -584,7 +584,7 @@ public partial class paradex
     /// retrieves the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#list-liquidations"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/liquidations/get-liquidations"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -631,7 +631,7 @@ public partial class paradex
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/transfers/get"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -677,7 +677,7 @@ public partial class paradex
     /// fetches the margin mode of a specific symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#get-account-margin-configuration"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/account/get-account-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -697,7 +697,7 @@ public partial class paradex
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#set-margin-configuration"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/account/upsert-account-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -723,7 +723,7 @@ public partial class paradex
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#get-account-margin-configuration"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/account/get-account-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -743,7 +743,7 @@ public partial class paradex
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#set-margin-configuration"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/account/upsert-account-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -775,7 +775,7 @@ public partial class paradex
     /// fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#list-available-markets-summary"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-markets-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -795,7 +795,7 @@ public partial class paradex
     /// fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.api.testnet.paradex.trade/#list-available-markets-summary"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/markets/get-markets-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

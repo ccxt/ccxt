@@ -1684,6 +1684,7 @@ class bitget(Exchange, ImplicitAPI):
                 # fiat currencies on deposit page
                 'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
             },
+            'rollingWindowSize': 1000.0,
             'features': {
                 'spot': {
                     'sandbox': True,
@@ -2392,7 +2393,7 @@ class bitget(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'minOrderAmount'),
                         'max': None,
                     },
                 },
@@ -5523,7 +5524,8 @@ class bitget(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
             request['productType'] = productType
             if not isTakeProfitOrder and not isStopLossOrder:
-                request['newSize'] = self.amount_to_precision(symbol, amount)
+                if amount is not None:
+                    request['newSize'] = self.amount_to_precision(symbol, amount)
                 if (price is not None) and not isTrailingPercentOrder:
                     request['newPrice'] = self.price_to_precision(symbol, price)
             if isTrailingPercentOrder:

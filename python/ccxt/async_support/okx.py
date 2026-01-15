@@ -2949,6 +2949,9 @@ class okx(Exchange, ImplicitAPI):
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
+        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
+        stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
+        conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         request: dict = {
             'instId': market['id'],
             # 'ccy': currency['id'],  # only applicable to cross MARGIN orders in single-currency margin
@@ -2959,7 +2962,7 @@ class okx(Exchange, ImplicitAPI):
             'ordType': type,
             # 'ordType': type,  # privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             # 'ordType': type,  # privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': self.amount_to_precision(symbol, amount),
+            # 'sz': self.amount_to_precision(symbol, amount),
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
             # 'reduceOnly': False,
             #
@@ -2975,14 +2978,19 @@ class okx(Exchange, ImplicitAPI):
             # 'slTriggerPxType': 'last',  # Conditional default is last, mark or index(conditional orders)
             # 'slOrdPx': 10,  # Order price for Stop-Loss orders, if -1 will be executed at market price(conditional orders)
         }
+        isConditionalOrOCO = conditional or (type == 'oco')
+        closeFraction = self.safe_string(params, 'closeFraction')
+        shouldOmitSize = isConditionalOrOCO and closeFraction is not None
+        if not shouldOmitSize:
+            request['sz'] = self.amount_to_precision(symbol, amount)
         spot = market['spot']
         contract = market['contract']
         triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
-        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
+        # takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
         tpOrdPx = self.safe_value(params, 'tpOrdPx', price)
         tpTriggerPxType = self.safe_string(params, 'tpTriggerPxType', 'last')
-        stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
+        # stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
         slOrdPx = self.safe_value(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
@@ -2995,7 +3003,7 @@ class okx(Exchange, ImplicitAPI):
         trailingPrice = self.safe_string_2(params, 'trailingPrice', 'callbackSpread')
         isTrailingPriceOrder = trailingPrice is not None
         trigger = (triggerPrice is not None) or (type == 'trigger')
-        isReduceOnly = self.safe_value(params, 'reduceOnly', False)
+        isReduceOnly = self.safe_value(params, 'reduceOnly', False) or (closeFraction is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
         margin = False
@@ -3038,7 +3046,7 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
-        conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
+        # conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         marketIOC = (isMarketOrder and ioc) or (type == 'optimal_limit_ioc')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)

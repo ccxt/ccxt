@@ -831,6 +831,8 @@ public partial class bybit : Exchange
                     { "170229", typeof(InvalidOrder) },
                     { "170234", typeof(ExchangeError) },
                     { "170241", typeof(ManualInteractionNeeded) },
+                    { "170371", typeof(InvalidOrder) },
+                    { "170372", typeof(InvalidOrder) },
                     { "175000", typeof(InvalidOrder) },
                     { "175001", typeof(InvalidOrder) },
                     { "175002", typeof(InvalidOrder) },
@@ -5811,7 +5813,7 @@ public partial class bybit : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -7150,7 +7152,16 @@ public partial class bybit : Exchange
         market = this.safeMarket(contract, market, null, "contract");
         object size = Precise.stringAbs(this.safeString2(position, "size", "qty"));
         object side = this.safeString(position, "side");
-        if (isTrue(!isEqual(side, null)))
+        object positionIdx = this.safeString(position, "positionIdx");
+        object hedged = null;
+        if (isTrue(!isEqual(positionIdx, null)))
+        {
+            hedged = (!isEqual(positionIdx, "0"));
+        }
+        if (isTrue(isTrue((!isEqual(hedged, null))) && isTrue(hedged)))
+        {
+            side = ((bool) isTrue((isEqual(positionIdx, "1")))) ? "long" : "short";
+        } else if (isTrue(!isEqual(side, null)))
         {
             if (isTrue(isEqual(side, "Buy")))
             {
@@ -7231,8 +7242,6 @@ public partial class bybit : Exchange
         }
         object maintenanceMarginPercentage = Precise.stringDiv(maintenanceMarginString, notional);
         object marginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
-        object positionIdx = this.safeString(position, "positionIdx");
-        object hedged = isTrue((!isEqual(positionIdx, null))) && isTrue((!isEqual(positionIdx, "0")));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },

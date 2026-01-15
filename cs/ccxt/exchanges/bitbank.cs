@@ -12,6 +12,7 @@ public partial class bitbank : Exchange
             { "name", "bitbank" },
             { "countries", new List<object>() {"JP"} },
             { "version", "v1" },
+            { "rateLimit", 100 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -131,14 +132,46 @@ public partial class bitbank : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"{pair}/ticker", "tickers", "tickers_jpy", "{pair}/depth", "{pair}/transactions", "{pair}/transactions/{yyyymmdd}", "{pair}/candlestick/{candletype}/{yyyymmdd}", "{pair}/circuit_break_info"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "{pair}/ticker", 1 },
+                        { "tickers", 1 },
+                        { "tickers_jpy", 1 },
+                        { "{pair}/depth", 1 },
+                        { "{pair}/transactions", 1 },
+                        { "{pair}/transactions/{yyyymmdd}", 1 },
+                        { "{pair}/candlestick/{candletype}/{yyyymmdd}", 1 },
+                        { "{pair}/circuit_break_info", 1 },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"user/assets", "user/spot/order", "user/spot/active_orders", "user/margin/positions", "user/spot/trade_history", "user/deposit_history", "user/unconfirmed_deposits", "user/deposit_originators", "user/withdrawal_account", "user/withdrawal_history", "spot/status", "spot/pairs"} },
-                    { "post", new List<object>() {"user/spot/order", "user/spot/cancel_order", "user/spot/cancel_orders", "user/spot/orders_info", "user/confirm_deposits", "user/confirm_deposits_all", "user/request_withdrawal"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "user/assets", 1 },
+                        { "user/spot/order", 1 },
+                        { "user/spot/active_orders", 1 },
+                        { "user/margin/positions", 1 },
+                        { "user/spot/trade_history", 1 },
+                        { "user/deposit_history", 1 },
+                        { "user/unconfirmed_deposits", 1 },
+                        { "user/deposit_originators", 1 },
+                        { "user/withdrawal_account", 1 },
+                        { "user/withdrawal_history", 1 },
+                        { "spot/status", 1 },
+                        { "spot/pairs", 1 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "user/spot/order", 1.66 },
+                        { "user/spot/cancel_order", 1.66 },
+                        { "user/spot/cancel_orders", 1.66 },
+                        { "user/spot/orders_info", 1.66 },
+                        { "user/confirm_deposits", 1.66 },
+                        { "user/confirm_deposits_all", 1.66 },
+                        { "user/request_withdrawal", 1.66 },
+                    } },
                 } },
                 { "markets", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"spot/pairs"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "spot/pairs", 1 },
+                    } },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
