@@ -2402,7 +2402,7 @@ class bitget extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'minOrderAmount'),
                         'max' => null,
                     ),
                 ),
