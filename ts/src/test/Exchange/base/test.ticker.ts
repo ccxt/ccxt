@@ -49,7 +49,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         }
     }
     if ('skipNonActiveMarkets' in skippedProperties) {
-        if (market !== undefined && market['active'] !== true) {
+        if (market === undefined || !market['active']) {
             return;
         }
     }
