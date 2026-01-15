@@ -281,6 +281,7 @@ cancels an open order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#cancelorder)
 * [alpaca](/exchanges/alpaca.md#cancelorder)
 * [apex](/exchanges/apex.md#cancelorder)
 * [arkham](/exchanges/arkham.md#cancelorder)
@@ -308,7 +309,6 @@ cancels an open order
 * [bitvavo](/exchanges/bitvavo.md#cancelorder)
 * [blockchaincom](/exchanges/blockchaincom.md#cancelorder)
 * [blofin](/exchanges/blofin.md#cancelorder)
-* [btcalpha](/exchanges/btcalpha.md#cancelorder)
 * [btcbox](/exchanges/btcbox.md#cancelorder)
 * [btcmarkets](/exchanges/btcmarkets.md#cancelorder)
 * [btcturk](/exchanges/btcturk.md#cancelorder)
@@ -854,15 +854,14 @@ create a trade order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market', 'limit' or 'stop_limit' |
+| type | <code>string</code> | Yes | 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
-| params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#createorder)
 * [alpaca](/exchanges/alpaca.md#createorder)
 * [apex](/exchanges/apex.md#createorder)
 * [arkham](/exchanges/arkham.md#createorder)
@@ -890,7 +889,6 @@ create a trade order
 * [bitvavo](/exchanges/bitvavo.md#createorder)
 * [blockchaincom](/exchanges/blockchaincom.md#createorder)
 * [blofin](/exchanges/blofin.md#createorder)
-* [btcalpha](/exchanges/btcalpha.md#createorder)
 * [btcbox](/exchanges/btcbox.md#createorder)
 * [btcmarkets](/exchanges/btcmarkets.md#createorder)
 * [btcturk](/exchanges/btcturk.md#createorder)
@@ -1548,6 +1546,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchbalance)
 * [alpaca](/exchanges/alpaca.md#fetchbalance)
 * [apex](/exchanges/apex.md#fetchbalance)
 * [arkham](/exchanges/arkham.md#fetchbalance)
@@ -1575,7 +1574,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [bitvavo](/exchanges/bitvavo.md#fetchbalance)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchbalance)
 * [blofin](/exchanges/blofin.md#fetchbalance)
-* [btcalpha](/exchanges/btcalpha.md#fetchbalance)
 * [btcbox](/exchanges/btcbox.md#fetchbalance)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchbalance)
 * [btcturk](/exchanges/btcturk.md#fetchbalance)
@@ -1900,9 +1898,9 @@ fetches information on multiple closed orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchclosedorders)
 * [alpaca](/exchanges/alpaca.md#fetchclosedorders)
 * [arkham](/exchanges/arkham.md#fetchclosedorders)
 * [ascendex](/exchanges/ascendex.md#fetchclosedorders)
@@ -1920,7 +1918,6 @@ fetches information on multiple closed orders made by the user
 * [bittrade](/exchanges/bittrade.md#fetchclosedorders)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchclosedorders)
 * [blofin](/exchanges/blofin.md#fetchclosedorders)
-* [btcalpha](/exchanges/btcalpha.md#fetchclosedorders)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchclosedorders)
 * [bullish](/exchanges/bullish.md#fetchclosedorders)
 * [bybit](/exchanges/bybit.md#fetchclosedorders)
@@ -2536,12 +2533,13 @@ fetch all deposits made to an account
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code |
+| code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
-| limit | <code>int</code> | No | the maximum number of deposit structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchdeposits)
 * [alpaca](/exchanges/alpaca.md#fetchdeposits)
 * [arkham](/exchanges/arkham.md#fetchdeposits)
 * [ascendex](/exchanges/ascendex.md#fetchdeposits)
@@ -2560,7 +2558,6 @@ fetch all deposits made to an account
 * [bitvavo](/exchanges/bitvavo.md#fetchdeposits)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchdeposits)
 * [blofin](/exchanges/blofin.md#fetchdeposits)
-* [btcalpha](/exchanges/btcalpha.md#fetchdeposits)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchdeposits)
 * [bybit](/exchanges/bybit.md#fetchdeposits)
 * [bydfi](/exchanges/bydfi.md#fetchdeposits)
@@ -3471,7 +3468,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ## fetchMarkets
-retrieves data on all markets for alpaca
+retrieves data on all markets for alp
 
 **Kind**: instance   
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -3479,9 +3476,10 @@ retrieves data on all markets for alpaca
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchmarkets)
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
 * [apex](/exchanges/apex.md#fetchmarkets)
 * [arkham](/exchanges/arkham.md#fetchmarkets)
@@ -3508,7 +3506,6 @@ retrieves data on all markets for alpaca
 * [bitvavo](/exchanges/bitvavo.md#fetchmarkets)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchmarkets)
 * [blofin](/exchanges/blofin.md#fetchmarkets)
-* [btcalpha](/exchanges/btcalpha.md#fetchmarkets)
 * [btcbox](/exchanges/btcbox.md#fetchmarkets)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchmarkets)
 * [btcturk](/exchanges/btcturk.md#fetchmarkets)
@@ -3688,14 +3685,13 @@ fetch all trades made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
+| symbol | <code>string</code> | Yes | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
-| params.page_token | <code>string</code> | No | page_token - used for paging |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchmytrades)
 * [alpaca](/exchanges/alpaca.md#fetchmytrades)
 * [apex](/exchanges/apex.md#fetchmytrades)
 * [arkham](/exchanges/arkham.md#fetchmytrades)
@@ -3721,7 +3717,6 @@ fetch all trades made by the user
 * [bitvavo](/exchanges/bitvavo.md#fetchmytrades)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchmytrades)
 * [blofin](/exchanges/blofin.md#fetchmytrades)
-* [btcalpha](/exchanges/btcalpha.md#fetchmytrades)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchmytrades)
 * [btcturk](/exchanges/btcturk.md#fetchmytrades)
 * [bullish](/exchanges/bullish.md#fetchmytrades)
@@ -3829,11 +3824,10 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the alpha api endpoint |
-| params.loc | <code>string</code> | No | crypto location, default: us |
-| params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchohlcv)
 * [alpaca](/exchanges/alpaca.md#fetchohlcv)
 * [apex](/exchanges/apex.md#fetchohlcv)
 * [arkham](/exchanges/arkham.md#fetchohlcv)
@@ -3857,7 +3851,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [bittrade](/exchanges/bittrade.md#fetchohlcv)
 * [bitvavo](/exchanges/bitvavo.md#fetchohlcv)
 * [blofin](/exchanges/blofin.md#fetchohlcv)
-* [btcalpha](/exchanges/btcalpha.md#fetchohlcv)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchohlcv)
 * [btcturk](/exchanges/btcturk.md#fetchohlcv)
 * [bullish](/exchanges/bullish.md#fetchohlcv)
@@ -4074,13 +4067,13 @@ fetch all unfilled currently open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchopenorders)
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
 * [apex](/exchanges/apex.md#fetchopenorders)
 * [arkham](/exchanges/arkham.md#fetchopenorders)
@@ -4108,7 +4101,6 @@ fetch all unfilled currently open orders
 * [bitvavo](/exchanges/bitvavo.md#fetchopenorders)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchopenorders)
 * [blofin](/exchanges/blofin.md#fetchopenorders)
-* [btcalpha](/exchanges/btcalpha.md#fetchopenorders)
 * [btcbox](/exchanges/btcbox.md#fetchopenorders)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchopenorders)
 * [btcturk](/exchanges/btcturk.md#fetchopenorders)
@@ -4284,10 +4276,11 @@ fetches information on an order made by the user
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| symbol | <code>string</code> | Yes | not used by alp fetchOrder |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchorder)
 * [alpaca](/exchanges/alpaca.md#fetchorder)
 * [apex](/exchanges/apex.md#fetchorder)
 * [arkmm](/exchanges/arkmm.md#fetchorder)
@@ -4313,7 +4306,6 @@ fetches information on an order made by the user
 * [bittrade](/exchanges/bittrade.md#fetchorder)
 * [bitvavo](/exchanges/bitvavo.md#fetchorder)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchorder)
-* [btcalpha](/exchanges/btcalpha.md#fetchorder)
 * [btcbox](/exchanges/btcbox.md#fetchorder)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchorder)
 * [bullish](/exchanges/bullish.md#fetchorder)
@@ -4384,7 +4376,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -4392,9 +4384,9 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.loc | <code>string</code> | No | crypto location, default: us |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchorderbook)
 * [alpaca](/exchanges/alpaca.md#fetchorderbook)
 * [apex](/exchanges/apex.md#fetchorderbook)
 * [arkham](/exchanges/arkham.md#fetchorderbook)
@@ -4422,7 +4414,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [bitvavo](/exchanges/bitvavo.md#fetchorderbook)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchorderbook)
 * [blofin](/exchanges/blofin.md#fetchorderbook)
-* [btcalpha](/exchanges/btcalpha.md#fetchorderbook)
 * [btcbox](/exchanges/btcbox.md#fetchorderbook)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchorderbook)
 * [btcturk](/exchanges/btcturk.md#fetchorderbook)
@@ -4653,9 +4644,9 @@ fetches information on multiple orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchorders)
 * [alpaca](/exchanges/alpaca.md#fetchorders)
 * [apex](/exchanges/apex.md#fetchorders)
 * [aster](/exchanges/aster.md#fetchorders)
@@ -4670,7 +4661,6 @@ fetches information on multiple orders made by the user
 * [bittrade](/exchanges/bittrade.md#fetchorders)
 * [bitvavo](/exchanges/bitvavo.md#fetchorders)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchorders)
-* [btcalpha](/exchanges/btcalpha.md#fetchorders)
 * [btcbox](/exchanges/btcbox.md#fetchorders)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchorders)
 * [btcturk](/exchanges/btcturk.md#fetchorders)
@@ -5251,9 +5241,9 @@ fetches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.loc | <code>string</code> | No | crypto location, default: us |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchticker)
 * [alpaca](/exchanges/alpaca.md#fetchticker)
 * [apex](/exchanges/apex.md#fetchticker)
 * [arkham](/exchanges/arkham.md#fetchticker)
@@ -5280,7 +5270,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [bitvavo](/exchanges/bitvavo.md#fetchticker)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchticker)
 * [blofin](/exchanges/blofin.md#fetchticker)
-* [btcalpha](/exchanges/btcalpha.md#fetchticker)
 * [btcbox](/exchanges/btcbox.md#fetchticker)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchticker)
 * [btcturk](/exchanges/btcturk.md#fetchticker)
@@ -5381,11 +5370,11 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch tickers for |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.loc | <code>string</code> | No | crypto location, default: us |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchtickers)
 * [alpaca](/exchanges/alpaca.md#fetchtickers)
 * [apex](/exchanges/apex.md#fetchtickers)
 * [ascendex](/exchanges/ascendex.md#fetchtickers)
@@ -5408,7 +5397,6 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [bitvavo](/exchanges/bitvavo.md#fetchtickers)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchtickers)
 * [blofin](/exchanges/blofin.md#fetchtickers)
-* [btcalpha](/exchanges/btcalpha.md#fetchtickers)
 * [btcbox](/exchanges/btcbox.md#fetchtickers)
 * [btcturk](/exchanges/btcturk.md#fetchtickers)
 * [bybit](/exchanges/bybit.md#fetchtickers)
@@ -5559,10 +5547,9 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.loc | <code>string</code> | No | crypto location, default: us |
-| params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocTrades |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchtrades)
 * [alpaca](/exchanges/alpaca.md#fetchtrades)
 * [apex](/exchanges/apex.md#fetchtrades)
 * [arkham](/exchanges/arkham.md#fetchtrades)
@@ -5589,7 +5576,6 @@ get the list of most recent trades for a particular symbol
 * [bittrade](/exchanges/bittrade.md#fetchtrades)
 * [bitvavo](/exchanges/bitvavo.md#fetchtrades)
 * [blofin](/exchanges/blofin.md#fetchtrades)
-* [btcalpha](/exchanges/btcalpha.md#fetchtrades)
 * [btcbox](/exchanges/btcbox.md#fetchtrades)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchtrades)
 * [btcturk](/exchanges/btcturk.md#fetchtrades)
@@ -6045,12 +6031,13 @@ fetch all withdrawals made from an account
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code |
+| code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
-| limit | <code>int</code> | No | the maximum number of withdrawal structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [alp](/exchanges/alp.md#fetchwithdrawals)
 * [alpaca](/exchanges/alpaca.md#fetchwithdrawals)
 * [ascendex](/exchanges/ascendex.md#fetchwithdrawals)
 * [backpack](/exchanges/backpack.md#fetchwithdrawals)
@@ -6068,7 +6055,6 @@ fetch all withdrawals made from an account
 * [bitvavo](/exchanges/bitvavo.md#fetchwithdrawals)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchwithdrawals)
 * [blofin](/exchanges/blofin.md#fetchwithdrawals)
-* [btcalpha](/exchanges/btcalpha.md#fetchwithdrawals)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchwithdrawals)
 * [bybit](/exchanges/bybit.md#fetchwithdrawals)
 * [bydfi](/exchanges/bydfi.md#fetchwithdrawals)

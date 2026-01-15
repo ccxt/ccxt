@@ -3231,20 +3231,20 @@ public partial class bitget : ccxt.bitget
         {
             object arg = getValue(argsList, i);
             object channel = this.safeString2(arg, "channel", "topic");
-            if (isTrue(isEqual(channel, "books")))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "books"), 0)))
             {
                 // for now only unWatchOrderBook is supporteod
                 this.handleOrderBookUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(isTrue((isEqual(channel, "trade"))) || isTrue((isEqual(channel, "publicTrade")))))
+            } else if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(channel, "trade"), 0))) || isTrue((isGreaterThanOrEqual(getIndexOf(channel, "publicTrade"), 0)))))
             {
                 this.handleTradesUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(isEqual(channel, "ticker")))
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "ticker"), 0)))
             {
                 this.handleTickerUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(((string)channel).StartsWith(((string)"candle"))))
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "candle"), 0)))
             {
                 this.handleOHLCVUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(((string)channel).StartsWith(((string)"kline"))))
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "kline"), 0)))
             {
                 this.handleOHLCVUnSubscription(client as WebSocketClient, message);
             }

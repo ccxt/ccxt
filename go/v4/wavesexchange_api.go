@@ -7,602 +7,602 @@
 
 package ccxt
 
-func (this *WavesexchangeCore) MatcherGetMatcher(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcher", args...)
+func (this *WavesexchangeCore) MatcherGetMatcher (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcher", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherSettings", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherSettings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherSettings", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherSettingsRates(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherSettingsRates", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherSettingsRates (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherSettingsRates", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherBalanceReservedPublicKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherBalanceReservedPublicKey", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherBalanceReservedPublicKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherBalanceReservedPublicKey", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherDebugAllSnashotOffsets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherDebugAllSnashotOffsets", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherDebugAllSnashotOffsets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherDebugAllSnashotOffsets", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherDebugCurrentOffset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherDebugCurrentOffset", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherDebugCurrentOffset (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherDebugCurrentOffset", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherDebugLastOffset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherDebugLastOffset", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherDebugLastOffset (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherDebugLastOffset", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherDebugOldestSnapshotOffset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherDebugOldestSnapshotOffset", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherDebugOldestSnapshotOffset (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherDebugOldestSnapshotOffset", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherDebugConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherDebugConfig", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherDebugConfig (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherDebugConfig", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherDebugAddressAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherDebugAddressAddress", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherDebugAddressAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherDebugAddressAddress", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherDebugStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherDebugStatus", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherDebugStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherDebugStatus", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherDebugAddressAddressCheck(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherDebugAddressAddressCheck", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherDebugAddressAddressCheck (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherDebugAddressAddressCheck", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbook", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbook", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteId", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdOrderId", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdOrderId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdInfo", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdInfo", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdStatus", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdStatus", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdTradableBalanceAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdTradableBalanceAddress", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbookBaseIdQuoteIdTradableBalanceAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdTradableBalanceAddress", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbookPublicKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbookPublicKey", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbookPublicKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbookPublicKey", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrderbookPublicKeyOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrderbookPublicKeyOrderId", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrderbookPublicKeyOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrderbookPublicKeyOrderId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrdersAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrdersAddress", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrdersAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrdersAddress", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherOrdersAddressOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherOrdersAddressOrderId", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherOrdersAddressOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherOrdersAddressOrderId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetMatcherTransactionsOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetMatcherTransactionsOrderId", args...)
+func (this *WavesexchangeCore) MatcherGetMatcherTransactionsOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetMatcherTransactionsOrderId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherGetApiV1OrderbookBaseIdQuoteId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherGetApiV1OrderbookBaseIdQuoteId", args...)
+func (this *WavesexchangeCore) MatcherGetApiV1OrderbookBaseIdQuoteId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherGetApiV1OrderbookBaseIdQuoteId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrderbook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrderbook", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrderbook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrderbook", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrderbookMarket(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrderbookMarket", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrderbookMarket (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrderbookMarket", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrderbookCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrderbookCancel", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrderbookCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrderbookCancel", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrderbookBaseIdQuoteIdCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCancel", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrderbookBaseIdQuoteIdCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCancel", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrderbookBaseIdQuoteIdDelete(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdDelete", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrderbookBaseIdQuoteIdDelete (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdDelete", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrderbookBaseIdQuoteIdCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCancelAll", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrderbookBaseIdQuoteIdCancelAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCancelAll", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherDebugSaveSnapshots(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherDebugSaveSnapshots", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherDebugSaveSnapshots (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherDebugSaveSnapshots", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrdersAddressCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrdersAddressCancel", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrdersAddressCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrdersAddressCancel", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrdersCancelOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrdersCancelOrderId", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrdersCancelOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrdersCancelOrderId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPostMatcherOrdersSerialize(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPostMatcherOrdersSerialize", args...)
+func (this *WavesexchangeCore) MatcherPostMatcherOrdersSerialize (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPostMatcherOrdersSerialize", args...)
 }
 
-func (this *WavesexchangeCore) MatcherDeleteMatcherOrderbookBaseIdQuoteId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherDeleteMatcherOrderbookBaseIdQuoteId", args...)
+func (this *WavesexchangeCore) MatcherDeleteMatcherOrderbookBaseIdQuoteId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherDeleteMatcherOrderbookBaseIdQuoteId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherDeleteMatcherSettingsRatesAssetId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherDeleteMatcherSettingsRatesAssetId", args...)
+func (this *WavesexchangeCore) MatcherDeleteMatcherSettingsRatesAssetId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherDeleteMatcherSettingsRatesAssetId", args...)
 }
 
-func (this *WavesexchangeCore) MatcherPutMatcherSettingsRatesAssetId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("matcherPutMatcherSettingsRatesAssetId", args...)
+func (this *WavesexchangeCore) MatcherPutMatcherSettingsRatesAssetId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("matcherPutMatcherSettingsRatesAssetId", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddresses(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddresses", args...)
+func (this *WavesexchangeCore) NodeGetAddresses (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddresses", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesBalanceAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesBalanceAddress", args...)
+func (this *WavesexchangeCore) NodeGetAddressesBalanceAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesBalanceAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesBalanceAddressConfirmations(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesBalanceAddressConfirmations", args...)
+func (this *WavesexchangeCore) NodeGetAddressesBalanceAddressConfirmations (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesBalanceAddressConfirmations", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesBalanceDetailsAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesBalanceDetailsAddress", args...)
+func (this *WavesexchangeCore) NodeGetAddressesBalanceDetailsAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesBalanceDetailsAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesDataAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesDataAddress", args...)
+func (this *WavesexchangeCore) NodeGetAddressesDataAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesDataAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesDataAddressKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesDataAddressKey", args...)
+func (this *WavesexchangeCore) NodeGetAddressesDataAddressKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesDataAddressKey", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesEffectiveBalanceAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesEffectiveBalanceAddress", args...)
+func (this *WavesexchangeCore) NodeGetAddressesEffectiveBalanceAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesEffectiveBalanceAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesEffectiveBalanceAddressConfirmations(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesEffectiveBalanceAddressConfirmations", args...)
+func (this *WavesexchangeCore) NodeGetAddressesEffectiveBalanceAddressConfirmations (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesEffectiveBalanceAddressConfirmations", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesPublicKeyPublicKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesPublicKeyPublicKey", args...)
+func (this *WavesexchangeCore) NodeGetAddressesPublicKeyPublicKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesPublicKeyPublicKey", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesScriptInfoAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesScriptInfoAddress", args...)
+func (this *WavesexchangeCore) NodeGetAddressesScriptInfoAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesScriptInfoAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesScriptInfoAddressMeta(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesScriptInfoAddressMeta", args...)
+func (this *WavesexchangeCore) NodeGetAddressesScriptInfoAddressMeta (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesScriptInfoAddressMeta", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesSeedAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesSeedAddress", args...)
+func (this *WavesexchangeCore) NodeGetAddressesSeedAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesSeedAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesSeqFromTo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesSeqFromTo", args...)
+func (this *WavesexchangeCore) NodeGetAddressesSeqFromTo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesSeqFromTo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAddressesValidateAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAddressesValidateAddress", args...)
+func (this *WavesexchangeCore) NodeGetAddressesValidateAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAddressesValidateAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAliasByAddressAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAliasByAddressAddress", args...)
+func (this *WavesexchangeCore) NodeGetAliasByAddressAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAliasByAddressAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAliasByAliasAlias(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAliasByAliasAlias", args...)
+func (this *WavesexchangeCore) NodeGetAliasByAliasAlias (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAliasByAliasAlias", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAssetsAssetIdDistributionHeightLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAssetsAssetIdDistributionHeightLimit", args...)
+func (this *WavesexchangeCore) NodeGetAssetsAssetIdDistributionHeightLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAssetsAssetIdDistributionHeightLimit", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAssetsBalanceAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAssetsBalanceAddress", args...)
+func (this *WavesexchangeCore) NodeGetAssetsBalanceAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAssetsBalanceAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAssetsBalanceAddressAssetId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAssetsBalanceAddressAssetId", args...)
+func (this *WavesexchangeCore) NodeGetAssetsBalanceAddressAssetId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAssetsBalanceAddressAssetId", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAssetsDetailsAssetId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAssetsDetailsAssetId", args...)
+func (this *WavesexchangeCore) NodeGetAssetsDetailsAssetId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAssetsDetailsAssetId", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetAssetsNftAddressLimitLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetAssetsNftAddressLimitLimit", args...)
+func (this *WavesexchangeCore) NodeGetAssetsNftAddressLimitLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetAssetsNftAddressLimitLimit", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlockchainRewards(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlockchainRewards", args...)
+func (this *WavesexchangeCore) NodeGetBlockchainRewards (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlockchainRewards", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlockchainRewardsHeight(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlockchainRewardsHeight", args...)
+func (this *WavesexchangeCore) NodeGetBlockchainRewardsHeight (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlockchainRewardsHeight", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksAddressAddressFromTo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksAddressAddressFromTo", args...)
+func (this *WavesexchangeCore) NodeGetBlocksAddressAddressFromTo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksAddressAddressFromTo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksAtHeight(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksAtHeight", args...)
+func (this *WavesexchangeCore) NodeGetBlocksAtHeight (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksAtHeight", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksDelaySignatureBlockNum(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksDelaySignatureBlockNum", args...)
+func (this *WavesexchangeCore) NodeGetBlocksDelaySignatureBlockNum (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksDelaySignatureBlockNum", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksFirst(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksFirst", args...)
+func (this *WavesexchangeCore) NodeGetBlocksFirst (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksFirst", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksHeadersLast(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksHeadersLast", args...)
+func (this *WavesexchangeCore) NodeGetBlocksHeadersLast (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksHeadersLast", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksHeadersSeqFromTo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksHeadersSeqFromTo", args...)
+func (this *WavesexchangeCore) NodeGetBlocksHeadersSeqFromTo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksHeadersSeqFromTo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksHeight(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksHeight", args...)
+func (this *WavesexchangeCore) NodeGetBlocksHeight (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksHeight", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksHeightSignature(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksHeightSignature", args...)
+func (this *WavesexchangeCore) NodeGetBlocksHeightSignature (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksHeightSignature", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksLast(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksLast", args...)
+func (this *WavesexchangeCore) NodeGetBlocksLast (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksLast", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksSeqFromTo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksSeqFromTo", args...)
+func (this *WavesexchangeCore) NodeGetBlocksSeqFromTo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksSeqFromTo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetBlocksSignatureSignature(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetBlocksSignatureSignature", args...)
+func (this *WavesexchangeCore) NodeGetBlocksSignatureSignature (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetBlocksSignatureSignature", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetConsensusAlgo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetConsensusAlgo", args...)
+func (this *WavesexchangeCore) NodeGetConsensusAlgo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetConsensusAlgo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetConsensusBasetarget(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetConsensusBasetarget", args...)
+func (this *WavesexchangeCore) NodeGetConsensusBasetarget (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetConsensusBasetarget", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetConsensusBasetargetBlockId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetConsensusBasetargetBlockId", args...)
+func (this *WavesexchangeCore) NodeGetConsensusBasetargetBlockId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetConsensusBasetargetBlockId", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetConsensusGeneratingbalanceAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetConsensusGeneratingbalanceAddress", args...)
+func (this *WavesexchangeCore) NodeGetConsensusGeneratingbalanceAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetConsensusGeneratingbalanceAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetConsensusGenerationsignature(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetConsensusGenerationsignature", args...)
+func (this *WavesexchangeCore) NodeGetConsensusGenerationsignature (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetConsensusGenerationsignature", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetConsensusGenerationsignatureBlockId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetConsensusGenerationsignatureBlockId", args...)
+func (this *WavesexchangeCore) NodeGetConsensusGenerationsignatureBlockId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetConsensusGenerationsignatureBlockId", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugBalancesHistoryAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugBalancesHistoryAddress", args...)
+func (this *WavesexchangeCore) NodeGetDebugBalancesHistoryAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugBalancesHistoryAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugBlocksHowMany(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugBlocksHowMany", args...)
+func (this *WavesexchangeCore) NodeGetDebugBlocksHowMany (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugBlocksHowMany", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugConfigInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugConfigInfo", args...)
+func (this *WavesexchangeCore) NodeGetDebugConfigInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugConfigInfo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugHistoryInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugHistoryInfo", args...)
+func (this *WavesexchangeCore) NodeGetDebugHistoryInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugHistoryInfo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugInfo", args...)
+func (this *WavesexchangeCore) NodeGetDebugInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugInfo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugMinerInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugMinerInfo", args...)
+func (this *WavesexchangeCore) NodeGetDebugMinerInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugMinerInfo", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugPortfoliosAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugPortfoliosAddress", args...)
+func (this *WavesexchangeCore) NodeGetDebugPortfoliosAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugPortfoliosAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugState(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugState", args...)
+func (this *WavesexchangeCore) NodeGetDebugState (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugState", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugStateChangesAddressAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugStateChangesAddressAddress", args...)
+func (this *WavesexchangeCore) NodeGetDebugStateChangesAddressAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugStateChangesAddressAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugStateChangesInfoId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugStateChangesInfoId", args...)
+func (this *WavesexchangeCore) NodeGetDebugStateChangesInfoId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugStateChangesInfoId", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetDebugStateWavesHeight(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetDebugStateWavesHeight", args...)
+func (this *WavesexchangeCore) NodeGetDebugStateWavesHeight (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetDebugStateWavesHeight", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetLeasingActiveAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetLeasingActiveAddress", args...)
+func (this *WavesexchangeCore) NodeGetLeasingActiveAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetLeasingActiveAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetNodeState(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetNodeState", args...)
+func (this *WavesexchangeCore) NodeGetNodeState (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetNodeState", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetNodeVersion(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetNodeVersion", args...)
+func (this *WavesexchangeCore) NodeGetNodeVersion (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetNodeVersion", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetPeersAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetPeersAll", args...)
+func (this *WavesexchangeCore) NodeGetPeersAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetPeersAll", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetPeersBlacklisted(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetPeersBlacklisted", args...)
+func (this *WavesexchangeCore) NodeGetPeersBlacklisted (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetPeersBlacklisted", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetPeersConnected(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetPeersConnected", args...)
+func (this *WavesexchangeCore) NodeGetPeersConnected (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetPeersConnected", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetPeersSuspended(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetPeersSuspended", args...)
+func (this *WavesexchangeCore) NodeGetPeersSuspended (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetPeersSuspended", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetTransactionsAddressAddressLimitLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetTransactionsAddressAddressLimitLimit", args...)
+func (this *WavesexchangeCore) NodeGetTransactionsAddressAddressLimitLimit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetTransactionsAddressAddressLimitLimit", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetTransactionsInfoId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetTransactionsInfoId", args...)
+func (this *WavesexchangeCore) NodeGetTransactionsInfoId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetTransactionsInfoId", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetTransactionsStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetTransactionsStatus", args...)
+func (this *WavesexchangeCore) NodeGetTransactionsStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetTransactionsStatus", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetTransactionsUnconfirmed(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetTransactionsUnconfirmed", args...)
+func (this *WavesexchangeCore) NodeGetTransactionsUnconfirmed (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetTransactionsUnconfirmed", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetTransactionsUnconfirmedInfoId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetTransactionsUnconfirmedInfoId", args...)
+func (this *WavesexchangeCore) NodeGetTransactionsUnconfirmedInfoId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetTransactionsUnconfirmedInfoId", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetTransactionsUnconfirmedSize(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetTransactionsUnconfirmedSize", args...)
+func (this *WavesexchangeCore) NodeGetTransactionsUnconfirmedSize (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetTransactionsUnconfirmedSize", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetUtilsSeed(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetUtilsSeed", args...)
+func (this *WavesexchangeCore) NodeGetUtilsSeed (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetUtilsSeed", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetUtilsSeedLength(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetUtilsSeedLength", args...)
+func (this *WavesexchangeCore) NodeGetUtilsSeedLength (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetUtilsSeedLength", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetUtilsTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetUtilsTime", args...)
+func (this *WavesexchangeCore) NodeGetUtilsTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetUtilsTime", args...)
 }
 
-func (this *WavesexchangeCore) NodeGetWalletSeed(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeGetWalletSeed", args...)
+func (this *WavesexchangeCore) NodeGetWalletSeed (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeGetWalletSeed", args...)
 }
 
-func (this *WavesexchangeCore) NodePostAddresses(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostAddresses", args...)
+func (this *WavesexchangeCore) NodePostAddresses (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostAddresses", args...)
 }
 
-func (this *WavesexchangeCore) NodePostAddressesDataAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostAddressesDataAddress", args...)
+func (this *WavesexchangeCore) NodePostAddressesDataAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostAddressesDataAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodePostAddressesSignAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostAddressesSignAddress", args...)
+func (this *WavesexchangeCore) NodePostAddressesSignAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostAddressesSignAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodePostAddressesSignTextAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostAddressesSignTextAddress", args...)
+func (this *WavesexchangeCore) NodePostAddressesSignTextAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostAddressesSignTextAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodePostAddressesVerifyAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostAddressesVerifyAddress", args...)
+func (this *WavesexchangeCore) NodePostAddressesVerifyAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostAddressesVerifyAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodePostAddressesVerifyTextAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostAddressesVerifyTextAddress", args...)
+func (this *WavesexchangeCore) NodePostAddressesVerifyTextAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostAddressesVerifyTextAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodePostDebugBlacklist(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostDebugBlacklist", args...)
+func (this *WavesexchangeCore) NodePostDebugBlacklist (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostDebugBlacklist", args...)
 }
 
-func (this *WavesexchangeCore) NodePostDebugPrint(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostDebugPrint", args...)
+func (this *WavesexchangeCore) NodePostDebugPrint (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostDebugPrint", args...)
 }
 
-func (this *WavesexchangeCore) NodePostDebugRollback(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostDebugRollback", args...)
+func (this *WavesexchangeCore) NodePostDebugRollback (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostDebugRollback", args...)
 }
 
-func (this *WavesexchangeCore) NodePostDebugValidate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostDebugValidate", args...)
+func (this *WavesexchangeCore) NodePostDebugValidate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostDebugValidate", args...)
 }
 
-func (this *WavesexchangeCore) NodePostNodeStop(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostNodeStop", args...)
+func (this *WavesexchangeCore) NodePostNodeStop (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostNodeStop", args...)
 }
 
-func (this *WavesexchangeCore) NodePostPeersClearblacklist(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostPeersClearblacklist", args...)
+func (this *WavesexchangeCore) NodePostPeersClearblacklist (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostPeersClearblacklist", args...)
 }
 
-func (this *WavesexchangeCore) NodePostPeersConnect(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostPeersConnect", args...)
+func (this *WavesexchangeCore) NodePostPeersConnect (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostPeersConnect", args...)
 }
 
-func (this *WavesexchangeCore) NodePostTransactionsBroadcast(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostTransactionsBroadcast", args...)
+func (this *WavesexchangeCore) NodePostTransactionsBroadcast (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostTransactionsBroadcast", args...)
 }
 
-func (this *WavesexchangeCore) NodePostTransactionsCalculateFee(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostTransactionsCalculateFee", args...)
+func (this *WavesexchangeCore) NodePostTransactionsCalculateFee (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostTransactionsCalculateFee", args...)
 }
 
-func (this *WavesexchangeCore) NodePostTranasctionsSign(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostTranasctionsSign", args...)
+func (this *WavesexchangeCore) NodePostTranasctionsSign (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostTranasctionsSign", args...)
 }
 
-func (this *WavesexchangeCore) NodePostTransactionsSignSignerAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostTransactionsSignSignerAddress", args...)
+func (this *WavesexchangeCore) NodePostTransactionsSignSignerAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostTransactionsSignSignerAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodePostTranasctionsStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostTranasctionsStatus", args...)
+func (this *WavesexchangeCore) NodePostTranasctionsStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostTranasctionsStatus", args...)
 }
 
-func (this *WavesexchangeCore) NodePostUtilsHashFast(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostUtilsHashFast", args...)
+func (this *WavesexchangeCore) NodePostUtilsHashFast (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostUtilsHashFast", args...)
 }
 
-func (this *WavesexchangeCore) NodePostUtilsHashSecure(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostUtilsHashSecure", args...)
+func (this *WavesexchangeCore) NodePostUtilsHashSecure (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostUtilsHashSecure", args...)
 }
 
-func (this *WavesexchangeCore) NodePostUtilsScriptCompileCode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostUtilsScriptCompileCode", args...)
+func (this *WavesexchangeCore) NodePostUtilsScriptCompileCode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostUtilsScriptCompileCode", args...)
 }
 
-func (this *WavesexchangeCore) NodePostUtilsScriptCompileWithImports(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostUtilsScriptCompileWithImports", args...)
+func (this *WavesexchangeCore) NodePostUtilsScriptCompileWithImports (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostUtilsScriptCompileWithImports", args...)
 }
 
-func (this *WavesexchangeCore) NodePostUtilsScriptDecompile(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostUtilsScriptDecompile", args...)
+func (this *WavesexchangeCore) NodePostUtilsScriptDecompile (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostUtilsScriptDecompile", args...)
 }
 
-func (this *WavesexchangeCore) NodePostUtilsScriptEstimate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostUtilsScriptEstimate", args...)
+func (this *WavesexchangeCore) NodePostUtilsScriptEstimate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostUtilsScriptEstimate", args...)
 }
 
-func (this *WavesexchangeCore) NodePostUtilsSignPrivateKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostUtilsSignPrivateKey", args...)
+func (this *WavesexchangeCore) NodePostUtilsSignPrivateKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostUtilsSignPrivateKey", args...)
 }
 
-func (this *WavesexchangeCore) NodePostUtilsTransactionsSerialize(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodePostUtilsTransactionsSerialize", args...)
+func (this *WavesexchangeCore) NodePostUtilsTransactionsSerialize (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodePostUtilsTransactionsSerialize", args...)
 }
 
-func (this *WavesexchangeCore) NodeDeleteAddressesAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeDeleteAddressesAddress", args...)
+func (this *WavesexchangeCore) NodeDeleteAddressesAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeDeleteAddressesAddress", args...)
 }
 
-func (this *WavesexchangeCore) NodeDeleteDebugRollbackToSignature(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("nodeDeleteDebugRollbackToSignature", args...)
+func (this *WavesexchangeCore) NodeDeleteDebugRollbackToSignature (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("nodeDeleteDebugRollbackToSignature", args...)
 }
 
-func (this *WavesexchangeCore) PublicGetAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetAssets", args...)
+func (this *WavesexchangeCore) PublicGetAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *WavesexchangeCore) PublicGetPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPairs", args...)
+func (this *WavesexchangeCore) PublicGetPairs (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetPairs", args...)
 }
 
-func (this *WavesexchangeCore) PublicGetCandlesBaseIdQuoteId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCandlesBaseIdQuoteId", args...)
+func (this *WavesexchangeCore) PublicGetCandlesBaseIdQuoteId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCandlesBaseIdQuoteId", args...)
 }
 
-func (this *WavesexchangeCore) PublicGetTransactionsExchange(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTransactionsExchange", args...)
+func (this *WavesexchangeCore) PublicGetTransactionsExchange (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTransactionsExchange", args...)
 }
 
-func (this *WavesexchangeCore) PrivateGetDepositAddressesCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDepositAddressesCurrency", args...)
+func (this *WavesexchangeCore) PrivateGetDepositAddressesCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetDepositAddressesCurrency", args...)
 }
 
-func (this *WavesexchangeCore) PrivateGetDepositAddressesCurrencyPlatform(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDepositAddressesCurrencyPlatform", args...)
+func (this *WavesexchangeCore) PrivateGetDepositAddressesCurrencyPlatform (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetDepositAddressesCurrencyPlatform", args...)
 }
 
-func (this *WavesexchangeCore) PrivateGetPlatforms(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetPlatforms", args...)
+func (this *WavesexchangeCore) PrivateGetPlatforms (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetPlatforms", args...)
 }
 
-func (this *WavesexchangeCore) PrivateGetDepositCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDepositCurrencies", args...)
+func (this *WavesexchangeCore) PrivateGetDepositCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetDepositCurrencies", args...)
 }
 
-func (this *WavesexchangeCore) PrivateGetWithdrawCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetWithdrawCurrencies", args...)
+func (this *WavesexchangeCore) PrivateGetWithdrawCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetWithdrawCurrencies", args...)
 }
 
-func (this *WavesexchangeCore) PrivateGetWithdrawAddressesCurrencyAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetWithdrawAddressesCurrencyAddress", args...)
+func (this *WavesexchangeCore) PrivateGetWithdrawAddressesCurrencyAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetWithdrawAddressesCurrencyAddress", args...)
 }
 
-func (this *WavesexchangeCore) PrivatePostOauth2Token(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOauth2Token", args...)
+func (this *WavesexchangeCore) PrivatePostOauth2Token (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOauth2Token", args...)
 }
 
-func (this *WavesexchangeCore) ForwardGetMatcherOrdersAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("forwardGetMatcherOrdersAddress", args...)
+func (this *WavesexchangeCore) ForwardGetMatcherOrdersAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("forwardGetMatcherOrdersAddress", args...)
 }
 
-func (this *WavesexchangeCore) ForwardGetMatcherOrdersAddressOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("forwardGetMatcherOrdersAddressOrderId", args...)
+func (this *WavesexchangeCore) ForwardGetMatcherOrdersAddressOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("forwardGetMatcherOrdersAddressOrderId", args...)
 }
 
-func (this *WavesexchangeCore) ForwardPostMatcherOrdersWavesAddressCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("forwardPostMatcherOrdersWavesAddressCancel", args...)
+func (this *WavesexchangeCore) ForwardPostMatcherOrdersWavesAddressCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("forwardPostMatcherOrdersWavesAddressCancel", args...)
 }
 
-func (this *WavesexchangeCore) MarketGetTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("marketGetTickers", args...)
+func (this *WavesexchangeCore) MarketGetTickers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("marketGetTickers", args...)
 }

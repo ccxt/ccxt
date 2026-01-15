@@ -107,6 +107,6 @@ setup(
 
     include_package_data=True,
     package_data={
-        "ccxt": ["static_dependencies/mnemonic/wordlist/**/*"],
+        "ccxt": ["static_dependencies/mnemonic/wordlist/**/*", "static_dependencies/dydx_v4_client/**/*"],
     },
 )
