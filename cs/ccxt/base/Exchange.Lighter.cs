@@ -130,21 +130,19 @@ public partial class Exchange
     }
 
     public object lighterSignTransfer(object signer, object request) {
-        // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignTransfer(
-        //     getValue(request, "to_account_index"),
-        //     getValue(request, "asset_index"),
-        //     getValue(request, "from_route_type"),
-        //     getValue(request, "to_route_type"),
-        //     getValue(request, "amount"),
-        //     getValue(request, "usdc_fee"),
-        //     getValue(request, "memo"),
-        //     getValue(request, "nonce"),
-        //     getValue(request, "api_key_index"),
-        //     getValue(request, "account_index"),
-        // ))
-        // print(tx_type, tx_info, tx_hash, error)
-        // return [tx_type, tx_info]
-        return null;
+        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignTransfer(
+            Convert.ToInt32(getValue(request, "to_account_index")),
+            Convert.ToInt16(getValue(request, "asset_index")),
+            Convert.ToByte(getValue(request, "from_route_type")),
+            Convert.ToByte(getValue(request, "to_route_type")),
+            Convert.ToInt64(getValue(request, "amount")),
+            Convert.ToInt64(getValue(request, "usdc_fee")),
+            getValue(request, "memo").ToString(),
+            Convert.ToInt64(getValue(request, "nonce")),
+            Convert.ToInt32(getValue(request, "api_key_index")),
+            Convert.ToInt64(getValue(request, "account_index"))
+        );
+        return this.formatSignedLighterTx(signedTx);
     }
 
     public object lighterSignUpdateLeverage(object signer, object request) {
