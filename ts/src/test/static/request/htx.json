@@ -1605,6 +1605,41 @@
                 ],
                 "output": "{\"contract_code\":\"ADA-USDT\",\"direction\":\"buy\"}"
               }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap cross fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A15%3A22&Signature=UkzXGNGkdFHkVIteJl1A7As0fUNWZO1aoRk72b3tuII%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "linear swap isolated fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A20%3A10&Signature=HJChVCwYdewtpyNA4umdQOx3VMxd5VZ6OCDSAf35MzQ%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "linear future fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A46%3A04&Signature=UNr71QNQEq3F5INgkbrXAw%2FqGsOoaVQ3j0L2tskX%2Bv0%3D",
+                "input": [
+                    "BTC/USDT:USDT-260123"
+                ],
+                "output": "{}"
+            }
         ]
     }
 }
