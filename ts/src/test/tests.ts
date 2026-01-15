@@ -264,7 +264,6 @@ class testMainClass {
         }
         const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
-        const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
         const isFeatureTest = (methodName === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
