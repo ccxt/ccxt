@@ -23,6 +23,7 @@ class apex extends \ccxt\async\apex {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
@@ -30,6 +31,7 @@ class apex extends \ccxt\async\apex {
                 'watchMyTrades' => true,
                 'watchBalance' => false,
                 'watchOHLCV' => true,
+                'watchOHLCVForSymbols' => true,
             ),
             'urls' => array(
                 'logo' => 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',
