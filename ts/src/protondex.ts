@@ -1049,7 +1049,7 @@ export default class protondex extends Exchange {
         let market = undefined;
         const request = {
             'account': params['account'],
-            'ordinal_order_ids': [ id ],
+            'ordinal_order_ids': id,
         };
         if (symbol !== null) {
             market = this.market (symbol);
