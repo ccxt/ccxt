@@ -1509,14 +1509,14 @@
             "description": "linear future fetch position adl rank",
             "method": "fetchPositionADLRank",
             "input": [
-              "BTC/USDT:USDT-260123"
+              "BTC/USDT:USDT-240329"
             ],
             "httpResponse": {
               "status": "ok",
               "data": [
                 {
                   "symbol": "BTC",
-                  "contract_code": "BTC-USDT-260123",
+                  "contract_code": "BTC-USDT-240329",
                   "volume": "1.000000000000000000",
                   "available": "1.000000000000000000",
                   "frozen": "0E-18",
@@ -1560,7 +1560,7 @@
             "parsedResponse": {
               "info": {
                 "symbol": "BTC",
-                "contract_code": "BTC-USDT-260123",
+                "contract_code": "BTC-USDT-240329",
                 "volume": "1.000000000000000000",
                 "available": "1.000000000000000000",
                 "frozen": "0E-18",
@@ -1598,7 +1598,7 @@
                 "sl_trigger_type": null,
                 "adjust_value": null
               },
-              "symbol": "BTC/USDT:USDT-260123",
+              "symbol": "BTC/USDT:USDT-240329",
               "rank": 2,
               "rating": null,
               "percentage": null,
