@@ -1227,7 +1227,7 @@ export default class backpack extends Exchange {
         //         "price": "117427.6",
         //         "quantity": "0.00016",
         //         "quoteQuantity": "18.788416",
-        //         "timestamp": 1753123916818
+        //         "timestamp": 1753123916819
         //     }
         //
         // fetchMyTrades
