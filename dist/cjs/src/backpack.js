@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class backpack
@@ -1221,7 +1221,7 @@ class backpack extends backpack$1["default"] {
         //
         // fetchTrades
         //     {
-        //         "id": 8721564,
+        //         "id": 8721563,
         //         "isBuyerMaker": false,
         //         "price": "117427.6",
         //         "quantity": "0.00016",
