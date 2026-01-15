@@ -122,19 +122,17 @@ public partial class Exchange
     }
 
     public object lighterSignModifyOrder(object signer, object request) {
-        // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignModifyOrder(
-        //     getValue(request, "market_index"),
-        //     getValue(request, "index"),
-        //     getValue(request, "base_amount"),
-        //     getValue(request, "price"),
-        //     getValue(request, "trigger_price"),
-        //     getValue(request, "nonce"),
-        //     getValue(request, "api_key_index"),
-        //     getValue(request, "account_index"),
-        // ))
-        // print(tx_type, tx_info, tx_hash, error)
-        // return [tx_type, tx_info]
-        return null;
+        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignModifyOrder(
+            Convert.ToInt32(getValue(request, "market_index")),
+            Convert.ToInt64(getValue(request, "index")),
+            Convert.ToInt64(getValue(request, "base_amount")),
+            Convert.ToInt32(getValue(request, "price")),
+            Convert.ToInt32(getValue(request, "trigger_price")),
+            Convert.ToInt64(getValue(request, "nonce")),
+            Convert.ToInt32(getValue(request, "api_key_index")),
+            Convert.ToInt64(getValue(request, "account_index"))
+        );
+        return this.formatSignedLighterTx(signedTx);
     }
 
     public object lighterSignTransfer(object signer, object request) {
