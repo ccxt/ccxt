@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 require('../scure-base/index.js');
 
-// import { ETransactionVersion } from './types/api';
+// ----------------------------------------------------------------------------
 /**
  * Cairo Felt support storing max 31 character
  */
