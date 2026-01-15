@@ -1802,6 +1802,9 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo",
                 "average": "sometimes zero"
+            },
+            "fetchOHLCV": {
+                "compareOHLCV": "broken https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1505"
             }
 	    }
     },
