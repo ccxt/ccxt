@@ -710,7 +710,7 @@ class aster(ccxt.async_support.aster):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@depth' + limit)
+            subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@depth' + str(limit))
             messageHashes.append('orderbook:' + market['symbol'])
         orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, params), [type])
         return orderbook.limit()

@@ -7439,6 +7439,7 @@ public partial class gate : Exchange
         {
             this.checkRequiredCredentials();
             object queryString = "";
+            object rawQueryString = "";
             object requiresURLEncoding = false;
             if (isTrue(isTrue((isTrue((isEqual(type, "futures"))) || isTrue((isEqual(type, "delivery"))))) && isTrue(isEqual(method, "POST"))))
             {
@@ -7450,6 +7451,8 @@ public partial class gate : Exchange
             {
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
                 {
+                    // https://github.com/ccxt/ccxt/issues/27663
+                    rawQueryString = this.rawencode(query);
                     queryString = this.urlencode(query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "currencies="), 0)) && isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "%2C"), 0))))
@@ -7479,7 +7482,7 @@ public partial class gate : Exchange
             object timestamp = this.parseToInt(divide(nonce, 1000));
             object timestampString = ((object)timestamp).ToString();
             object signaturePath = add(add("/api/", this.version), entirePath);
-            object payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, queryString, bodySignature, timestampString};
+            object payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
             // eslint-disable-next-line quotes
             object payload = String.Join("\n", ((IList<object>)payloadArray).ToArray());
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);

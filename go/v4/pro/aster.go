@@ -1026,7 +1026,7 @@ func  (this *AsterCore) WatchOrderBookForSymbols(symbols interface{}, optionalAr
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol interface{} = ccxt.GetValue(symbols, i)
                 var market interface{} = this.Market(symbol)
-                ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), limit))
+                ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), ccxt.ToString(limit)))
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
             }
         

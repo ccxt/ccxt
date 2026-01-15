@@ -7,9 +7,9 @@
 
 namespace ccxt;
 
-public partial class btcalpha : Exchange
+public partial class alp : Exchange
 {
-    public btcalpha (object args = null): base(args) {}
+    public alp (object args = null): base(args) {}
 
     public async Task<object> publicGetCurrencies (object parameters = null)
     {
