@@ -3716,11 +3716,12 @@ export default class aster extends Exchange {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
+            const timestamp = this.milliseconds ();
             // Nonce is in microseconds
-            const nonce = this.milliseconds () * 1000;
+            const nonce = timestamp * 1000;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             let extendedParams = this.extend ({
-                'timestamp': nonce,
+                'timestamp': timestamp,
             }, params);
             if (defaultRecvWindow !== undefined) {
                 extendedParams['recvWindow'] = defaultRecvWindow;
