@@ -341,6 +341,7 @@ class Exchange {
     public $quoteCurrencies = null;
 
     public static $exchanges = array(
+        'alp',
         'alpaca',
         'apex',
         'arkham',
@@ -372,7 +373,6 @@ class Exchange {
         'bitvavo',
         'blockchaincom',
         'blofin',
-        'btcalpha',
         'btcbox',
         'btcmarkets',
         'btcturk',
