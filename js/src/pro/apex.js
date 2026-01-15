@@ -18,6 +18,7 @@ export default class apex extends apexRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
@@ -25,6 +26,7 @@ export default class apex extends apexRest {
                 'watchMyTrades': true,
                 'watchBalance': false,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
             },
             'urls': {
                 'logo': 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',

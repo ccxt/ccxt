@@ -17,6 +17,7 @@ class apex extends apex$1["default"] {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
@@ -24,6 +25,7 @@ class apex extends apex$1["default"] {
                 'watchMyTrades': true,
                 'watchBalance': false,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
             },
             'urls': {
                 'logo': 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',
