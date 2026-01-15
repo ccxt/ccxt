@@ -2406,7 +2406,7 @@ public partial class bitget : Exchange
                         { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(market, "minOrderAmount") },
                         { "max", null },
                     } },
                 } },
