@@ -146,17 +146,15 @@ public partial class Exchange
     }
 
     public object lighterSignUpdateLeverage(object signer, object request) {
-        // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignUpdateLeverage(
-        //     getValue(request, "market_index"),
-        //     getValue(request, "initial_margin_fraction"),
-        //     getValue(request, "margin_mode"),
-        //     getValue(request, "nonce"),
-        //     getValue(request, "api_key_index"),
-        //     getValue(request, "account_index"),
-        // ))
-        // print(tx_type, tx_info, tx_hash, error)
-        // return [tx_type, tx_info]
-        return null;
+        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignUpdateLeverage(
+            Convert.ToInt32(getValue(request, "market_index")),
+            Convert.ToInt32(getValue(request, "initial_margin_fraction")),
+            Convert.ToInt32(getValue(request, "margin_mode")),
+            Convert.ToInt64(getValue(request, "nonce")),
+            Convert.ToInt32(getValue(request, "api_key_index")),
+            Convert.ToInt64(getValue(request, "account_index"))
+        );
+        return this.formatSignedLighterTx(signedTx);
     }
 
     public object lighterCreateAuthToken(object signer, object request) {
