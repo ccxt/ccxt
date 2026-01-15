@@ -6134,7 +6134,10 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (isTrue(!isTrue(isTakeProfitOrder) && !isTrue(isStopLossOrder)))
             {
-                ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
+                if (isTrue(!isEqual(amount, null)))
+                {
+                    ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
+                }
                 if (isTrue(isTrue((!isEqual(price, null))) && !isTrue(isTrailingPercentOrder)))
                 {
                     ((IDictionary<string,object>)request)["newPrice"] = this.priceToPrecision(symbol, price);

@@ -1714,4 +1714,24 @@ public partial class bingx
         var res = await this.fetchTradingFee(symbol, parameters);
         return new TradingFeeInterface(res);
     }
+    /// <summary>
+    /// retrieve information on the maximum leverage, for different trade sizes for a single market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}.</returns>
+    public async Task<List<LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarketLeverageTiers(symbol, parameters);
+        return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
+    }
 }

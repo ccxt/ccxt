@@ -3077,20 +3077,29 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
+        object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
+        object conditional = isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))) || isTrue((isEqual(type, "conditional")));
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
             { "side", side },
             { "ordType", type },
-            { "sz", this.amountToPrecision(symbol, amount) },
         };
+        object isConditionalOrOCO = isTrue(conditional) || isTrue((isEqual(type, "oco")));
+        object closeFraction = this.safeString(parameters, "closeFraction");
+        object shouldOmitSize = isTrue(isConditionalOrOCO) && isTrue(!isEqual(closeFraction, null));
+        if (!isTrue(shouldOmitSize))
+        {
+            ((IDictionary<string,object>)request)["sz"] = this.amountToPrecision(symbol, amount);
+        }
         object spot = getValue(market, "spot");
         object contract = getValue(market, "contract");
         object triggerPrice = this.safeValueN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerPx"});
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
-        object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
+        // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         object tpOrdPx = this.safeValue(parameters, "tpOrdPx", price);
         object tpTriggerPxType = this.safeString(parameters, "tpTriggerPxType", "last");
-        object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
+        // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
         object slOrdPx = this.safeValue(parameters, "slOrdPx", price);
         object slTriggerPxType = this.safeString(parameters, "slTriggerPxType", "last");
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
@@ -3103,7 +3112,7 @@ public partial class okx : Exchange
         object trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
         object isTrailingPriceOrder = !isEqual(trailingPrice, null);
         object trigger = isTrue((!isEqual(triggerPrice, null))) || isTrue((isEqual(type, "trigger")));
-        object isReduceOnly = this.safeValue(parameters, "reduceOnly", false);
+        object isReduceOnly = isTrue(this.safeValue(parameters, "reduceOnly", false)) || isTrue((!isEqual(closeFraction, null)));
         object defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         object marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not ommited so as to be extended into the request
         object margin = false;
@@ -3172,7 +3181,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, new List<object>() {"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"});
         object ioc = isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc")));
         object fok = isTrue((isEqual(timeInForce, "FOK"))) || isTrue((isEqual(type, "fok")));
-        object conditional = isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))) || isTrue((isEqual(type, "conditional")));
+        // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         object marketIOC = isTrue((isTrue(isMarketOrder) && isTrue(ioc))) || isTrue((isEqual(type, "optimal_limit_ioc")));
         object defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         object tgtCcy = this.safeString(parameters, "tgtCcy", defaultTgtCcy);

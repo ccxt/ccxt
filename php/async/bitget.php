@@ -5799,7 +5799,9 @@ class bitget extends Exchange {
                 $request['symbol'] = $market['id'];
                 $request['productType'] = $productType;
                 if (!$isTakeProfitOrder && !$isStopLossOrder) {
-                    $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+                    if ($amount !== null) {
+                        $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+                    }
                     if (($price !== null) && !$isTrailingPercentOrder) {
                         $request['newPrice'] = $this->price_to_precision($symbol, $price);
                     }

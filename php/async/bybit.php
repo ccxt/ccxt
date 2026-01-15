@@ -6813,7 +6813,14 @@ class bybit extends Exchange {
         $market = $this->safe_market($contract, $market, null, 'contract');
         $size = Precise::string_abs($this->safe_string_2($position, 'size', 'qty'));
         $side = $this->safe_string($position, 'side');
-        if ($side !== null) {
+        $positionIdx = $this->safe_string($position, 'positionIdx');
+        $hedged = null;
+        if ($positionIdx !== null) {
+            $hedged = ($positionIdx !== '0');
+        }
+        if (($hedged !== null) && $hedged) {
+            $side = ($positionIdx === '1') ? 'long' : 'short';
+        } elseif ($side !== null) {
             if ($side === 'Buy') {
                 $side = $isHistory ? 'short' : 'long';
             } elseif ($side === 'Sell') {
@@ -6880,8 +6887,6 @@ class bybit extends Exchange {
         }
         $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notional);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateralString, 4);
-        $positionIdx = $this->safe_string($position, 'positionIdx');
-        $hedged = ($positionIdx !== null) && ($positionIdx !== '0');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,

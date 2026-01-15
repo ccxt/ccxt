@@ -2411,7 +2411,7 @@ export default class bitget extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'minOrderAmount'),
                         'max': undefined,
                     },
                 },
@@ -5751,7 +5751,9 @@ export default class bitget extends Exchange {
             request['symbol'] = market['id'];
             request['productType'] = productType;
             if (!isTakeProfitOrder && !isStopLossOrder) {
-                request['newSize'] = this.amountToPrecision (symbol, amount);
+                if (amount !== undefined) {
+                    request['newSize'] = this.amountToPrecision (symbol, amount);
+                }
                 if ((price !== undefined) && !isTrailingPercentOrder) {
                     request['newPrice'] = this.priceToPrecision (symbol, price);
                 }

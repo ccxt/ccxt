@@ -3333,16 +3333,16 @@ func  (this *BitgetCore) HandleUnSubscriptionStatus(client interface{}, message 
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(argsList)); i++ {
         var arg interface{} = ccxt.GetValue(argsList, i)
         var channel interface{} = this.SafeString2(arg, "channel", "topic")
-        if ccxt.IsTrue(ccxt.IsEqual(channel, "books")) {
+        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "books"), 0)) {
             // for now only unWatchOrderBook is supporteod
             this.HandleOrderBookUnSubscription(client, message)
-        } else if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(channel, "trade"))) || ccxt.IsTrue((ccxt.IsEqual(channel, "publicTrade")))) {
+        } else if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "trade"), 0))) || ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "publicTrade"), 0)))) {
             this.HandleTradesUnSubscription(client, message)
-        } else if ccxt.IsTrue(ccxt.IsEqual(channel, "ticker")) {
+        } else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "ticker"), 0)) {
             this.HandleTickerUnSubscription(client, message)
-        } else if ccxt.IsTrue(ccxt.StartsWith(channel, "candle")) {
+        } else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "candle"), 0)) {
             this.HandleOHLCVUnSubscription(client, message)
-        } else if ccxt.IsTrue(ccxt.StartsWith(channel, "kline")) {
+        } else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "kline"), 0)) {
             this.HandleOHLCVUnSubscription(client, message)
         }
     }

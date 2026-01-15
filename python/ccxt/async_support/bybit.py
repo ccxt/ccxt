@@ -6381,7 +6381,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
         market = self.safe_market(contract, market, None, 'contract')
         size = Precise.string_abs(self.safe_string_2(position, 'size', 'qty'))
         side = self.safe_string(position, 'side')
-        if side is not None:
+        positionIdx = self.safe_string(position, 'positionIdx')
+        hedged = None
+        if positionIdx is not None:
+            hedged = (positionIdx != '0')
+        if (hedged is not None) and hedged:
+            side = 'long' if (positionIdx == '1') else 'short'
+        elif side is not None:
             if side == 'Buy':
                 side = 'short' if isHistory else 'long'
             elif side == 'Sell':
@@ -6438,8 +6444,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
-        positionIdx = self.safe_string(position, 'positionIdx')
-        hedged = (positionIdx is not None) and (positionIdx != '0')
         return self.safe_position({
             'info': position,
             'id': None,

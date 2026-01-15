@@ -857,7 +857,7 @@ export default class bigone extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeString2(ticker, 'daily_change', 'last24hPriceChange'),
+            'change': this.safeString(ticker, 'daily_change'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'volume', 'volume24h'),

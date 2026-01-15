@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.31'
+__version__ = '4.5.33'
 
 # -----------------------------------------------------------------------------
 
@@ -2072,7 +2072,7 @@ class Exchange(object):
 
     def encode_dydx_tx_for_simulation(self, message, memo, sequence, publicKey):
         if not encode_as_any:
-            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
+            raise NotSupported(self.id + ' requires protobuf and pycryptodome to encode messages, please install it with `pip install "protobuf==5.29.5"` and `pycryptodome==3.18.0`')
         messages = [
             encode_as_any(
                 message,
