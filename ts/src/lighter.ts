@@ -456,9 +456,15 @@ export default class lighter extends Exchange {
         let apiKeyIndex = undefined;
         let accountIndex = undefined;
         let orderExpiry = undefined;
-        [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce');
         [ apiKeyIndex, params ] = this.handleOptionAndParams (params, 'createOrder', 'apiKeyIndex', 255);
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires an apiKeyIndex parameter');
+        }
         [ accountIndex, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountIndex', 0);
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires an accountIndex parameter');
+        }
+        [ nonce, params ] = this.handleOptionAndParams (params, 'createOrder', 'nonce');
         [ orderExpiry, params ] = this.handleOptionAndParams (params, 'createOrder', 'orderExpiry', 0);
         request['nonce'] = nonce;
         request['api_key_index'] = apiKeyIndex;
@@ -954,6 +960,9 @@ export default class lighter extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1105,6 +1114,9 @@ export default class lighter extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTicker() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1218,6 +1230,9 @@ export default class lighter extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until');
@@ -1357,9 +1372,14 @@ export default class lighter extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
         let accountIndex = undefined;
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires an accountIndex parameter');
+        }
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
         const request: Dict = {
             'by': this.safeString (params, 'by', 'index'),
             'value': accountIndex,
@@ -1413,19 +1433,22 @@ export default class lighter extends Exchange {
         const accounts = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
-            const perpUSDC = this.safeString (account, 'collateral');
-            const perpBalance = this.safeDict (result, 'USDC(PERP)', this.account ());
-            perpBalance['total'] = Precise.stringAdd (perpBalance['total'], perpUSDC);
-            result['USDC(PERP)'] = perpBalance;
-            const assets = this.safeList (account, 'assets', []);
-            for (let j = 0; j < assets.length; j++) {
-                const asset = assets[j];
-                const codeId = this.safeString (asset, 'symbol');
-                const code = this.safeCurrencyCode (codeId);
-                const balance = this.safeDict (result, code, this.account ());
-                balance['total'] = Precise.stringAdd (balance['total'], this.safeString (asset, 'balance'));
-                balance['used'] = Precise.stringAdd (balance['used'], this.safeString (asset, 'locked_balance'));
-                result[code] = balance;
+            if (type === 'spot') {
+                const assets = this.safeList (account, 'assets', []);
+                for (let j = 0; j < assets.length; j++) {
+                    const asset = assets[j];
+                    const codeId = this.safeString (asset, 'symbol');
+                    const code = this.safeCurrencyCode (codeId);
+                    const balance = this.safeDict (result, code, this.account ());
+                    balance['total'] = Precise.stringAdd (balance['total'], this.safeString (asset, 'balance'));
+                    balance['used'] = Precise.stringAdd (balance['used'], this.safeString (asset, 'locked_balance'));
+                    result[code] = balance;
+                }
+            } else {
+                const perpUSDC = this.safeString (account, 'collateral');
+                const perpBalance = this.safeDict (result, 'USDC(PERP)', this.account ());
+                perpBalance['total'] = Precise.stringAdd (perpBalance['total'], perpUSDC);
+                result['USDC'] = perpBalance;
             }
         }
         return this.safeBalance (result);
@@ -1459,9 +1482,12 @@ export default class lighter extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
         let accountIndex = undefined;
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchPositions', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires an accountIndex parameter');
+        }
+        await this.loadMarkets ();
         const request: Dict = {
             'by': this.safeString (params, 'by', 'index'),
             'value': accountIndex,
@@ -1560,10 +1586,13 @@ export default class lighter extends Exchange {
         if (marginModeId !== undefined) {
             marginMode = (marginModeId === 0) ? 'cross' : 'isolated';
         }
-        const imf = this.safeNumber (position, 'initial_margin_fraction');
+        const imfStr = this.safeString (position, 'initial_margin_fraction');
         let leverage = undefined;
-        if (imf !== undefined && imf > 0) {
-            leverage = 100 / imf;
+        if (imfStr !== undefined) {
+            const imf = this.parseToInt (imfStr);
+            if (imf > 0) {
+                leverage = 100 / imf;
+            }
         }
         return this.safePosition ({
             'info': position,
@@ -1603,9 +1632,12 @@ export default class lighter extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        await this.loadMarkets ();
         let accountIndex = undefined;
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchAccounts', 'accountIndex', 'account_index');
+        if (accountIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchAccounts() requires an accountIndex parameter');
+        }
+        await this.loadMarkets ();
         const request: Dict = {
             'by': this.safeString (params, 'by', 'index'),
             'value': accountIndex,
@@ -1699,6 +1731,9 @@ export default class lighter extends Exchange {
         if (accountIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an accountIndex parameter');
         }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1769,6 +1804,9 @@ export default class lighter extends Exchange {
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'fetchClosedOrders', 'accountIndex', 'account_index');
         if (accountIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an accountIndex parameter');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2539,6 +2577,9 @@ export default class lighter extends Exchange {
         if (apiKeyIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' modifyLeverageAndMarginMode() requires an apiKeyIndex parameter');
         }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' modifyLeverageAndMarginMode() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
@@ -2580,6 +2621,9 @@ export default class lighter extends Exchange {
         [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an apiKeyIndex parameter');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const clientOrderId = this.safeString2 (params, 'client_order_index', 'clientOrderId');
         params = this.omit (params, [ 'client_order_index', 'clientOrderId' ]);
@@ -2748,6 +2792,9 @@ export default class lighter extends Exchange {
         }
         if (!this.inArray (direction, [ 0, 1 ])) {
             throw new ArgumentsRequired (this.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMargin() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
