@@ -21,7 +21,7 @@ public partial class Exchange
         return lighterSigner;
     }
 
-    private object formatSignedTx (Lighter.LighterSigner.SignedTx signedTx) {
+    private object formatSignedLighterTx (Lighter.LighterSigner.SignedTx signedTx) {
         object res = new List<object>() {};
         ((IList<object>)res).Add(signedTx.TxType);
         ((IList<object>)res).Add(signedTx.TxInfo);
@@ -48,7 +48,7 @@ public partial class Exchange
         Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateGroupedOrders(
             Convert.ToByte(getValue(request, "grouping_type")), ordersArr, Convert.ToInt64(getValue(request, "nonce")), Convert.ToInt32(getValue(request, "api_key_index")), Convert.ToInt64(getValue(request, "account_index"))
         );
-        return formatSignedTx(signedTx);
+        return this.formatSignedLighterTx(signedTx);
     }
 
     public object lighterSignCreateOrder(object signer, object request) {
@@ -67,7 +67,7 @@ public partial class Exchange
             Convert.ToInt32(getValue(request, "api_key_index")),
             Convert.ToInt64(getValue(request, "account_index"))
         );
-        return this.formatSignedTx(signedTx);
+        return this.formatSignedLighterTx(signedTx);
     }
 
     public object lighterSignCancelOrder(object signer, object request) {
@@ -170,13 +170,12 @@ public partial class Exchange
     }
 
     public object lighterCreateAuthToken(object signer, object request) {
-        // auth, error = decode_auth(signer.CreateAuthToken(
-        //     getValue(request, "deadline"),
-        //     getValue(request, "api_key_index"),
-        //     getValue(request, "account_index"),
-        // ))
-        // return auth
-        return null;
+        string authToken = ((LighterSigner) signer).CreateAuthToken(
+            Convert.ToInt64(getValue(request, "deadline")),
+            Convert.ToInt32(getValue(request, "api_key_index")),
+            Convert.ToInt64(getValue(request, "account_index"))
+        );
+        return authToken;
     }
 
     public object lighterSignUpdateMargin(object signer, object request) {
