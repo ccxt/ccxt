@@ -326,12 +326,11 @@ export default class lighter extends Exchange {
                 'maker': 0,
             },
             'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
+                'apiKey': false,
+                'secret': false,
                 'walletAddress': false,
-                'privateKey': false,
+                'privateKey': true,
                 'password': false,
-                'apiKeyIndex': true,
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {},
@@ -348,7 +347,7 @@ export default class lighter extends Exchange {
             return signer;
         }
         let libraryPath = undefined;
-        [ libraryPath, params ] = this.handleOptionAndParams (params, '', 'libraryPath');
+        [ libraryPath, params ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
         if (libraryPath === undefined) {
             throw new ArgumentsRequired (this.id + ' required libraryPath in options');
         }
@@ -374,7 +373,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignCreateSubAccount (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -395,7 +394,7 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const rs = {
             'deadline': this.seconds () + 60,
             'api_key_index': apiKeyIndex,
@@ -616,7 +615,7 @@ export default class lighter extends Exchange {
                 order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
             }
         }
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         let txType = undefined;
         let txInfo = undefined;
         if (totalOrderRequests < 2) {
@@ -700,7 +699,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignModifyOrder (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2018,24 +2017,14 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignTransfer (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
         };
         const response = await this.publicPostSendTx (request);
-        return {
-            'info': response,
-            'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': undefined,
-        };
+        return this.parseTransfer (response);
     }
 
     /**
@@ -2340,7 +2329,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignWithdraw (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2561,7 +2550,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignUpdateLeverage (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2610,7 +2599,7 @@ export default class lighter extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires order id or client order id');
         }
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2649,7 +2638,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2689,7 +2678,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2771,7 +2760,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
+        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignUpdateMargin (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
