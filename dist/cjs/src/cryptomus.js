@@ -79,7 +79,7 @@ class cryptomus extends cryptomus$1["default"] {
                 'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,

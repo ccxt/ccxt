@@ -2011,7 +2011,7 @@ class exmo(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled orders made by the user
 

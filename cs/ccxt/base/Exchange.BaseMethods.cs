@@ -352,6 +352,7 @@ public partial class Exchange
                     { "max", null },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         };
     }
 
@@ -1512,12 +1513,16 @@ public partial class Exchange
         {
             refillRate = divide(1, this.rateLimit);
         }
+        object useLeaky = isTrue((isEqual(this.rollingWindowSize, 0))) || isTrue((isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
+        object algorithm = ((bool) isTrue(useLeaky)) ? "leakyBucket" : "rollingWindow";
         object defaultBucket = new Dictionary<string, object>() {
             { "delay", 0.001 },
             { "capacity", 1 },
             { "cost", 1 },
-            { "maxCapacity", this.safeInteger(this.options, "maxRequestsQueue", 1000) },
             { "refillRate", refillRate },
+            { "algorithm", algorithm },
+            { "windowSize", this.rollingWindowSize },
+            { "rateLimit", this.rateLimit },
         };
         object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);
@@ -5741,6 +5746,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchClosedOrders() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchCanceledOrders() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -6447,6 +6458,12 @@ public partial class Exchange
             { "stopPrice", triggerPrice },
         });
         return await this.createOrderWs(symbol, "market", side, amount, null, query);
+    }
+
+    public async virtual Task<object> createSubAccount(object name, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createSubAccount() is not supported yet")) ;
     }
 
     public virtual object safeCurrencyCode(object currencyId, object currency = null)
@@ -8099,6 +8116,11 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchPositionHistory () is not supported yet")) ;
         }
+    }
+
+    public async virtual Task loadMarketsAndSignIn()
+    {
+        await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
     }
 
     public async virtual Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)

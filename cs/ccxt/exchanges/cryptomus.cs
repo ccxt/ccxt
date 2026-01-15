@@ -70,7 +70,7 @@ public partial class cryptomus : Exchange
                 { "fetchConvertTradeHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchCurrencies", true },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },

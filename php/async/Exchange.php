@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.28';
+$version = '4.5.33';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.28';
+    const VERSION = '4.5.33';
 
     public $browser;
     public $marketsLoading = null;
@@ -715,6 +715,7 @@ class Exchange extends \ccxt\Exchange {
                 'price' => array( 'min' => null, 'max' => null ),
                 'cost' => array( 'min' => null, 'max' => null ),
             ),
+            'rollingWindowSize' => 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         );
     }
 
@@ -1609,12 +1610,16 @@ class Exchange extends \ccxt\Exchange {
         if ($this->rateLimit > 0) {
             $refillRate = 1 / $this->rateLimit;
         }
+        $useLeaky = ($this->rollingWindowSize === 0.0) || ($this->rateLimiterAlgorithm === 'leakyBucket');
+        $algorithm = $useLeaky ? 'leakyBucket' : 'rollingWindow';
         $defaultBucket = array(
             'delay' => 0.001,
             'capacity' => 1,
             'cost' => 1,
-            'maxCapacity' => $this->safe_integer($this->options, 'maxRequestsQueue', 1000),
             'refillRate' => $refillRate,
+            'algorithm' => $algorithm,
+            'windowSize' => $this->rollingWindowSize,
+            'rateLimit' => $this->rateLimit,
         );
         $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
         $this->tokenBucket = $this->extend($defaultBucket, $existingBucket);
@@ -5045,6 +5050,10 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchCanceledOrders() is not supported yet');
+    }
+
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
     }
@@ -5612,6 +5621,10 @@ class Exchange extends \ccxt\Exchange {
             $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, 'market', $side, $amount, null, $query));
         }) ();
+    }
+
+    public function create_sub_account(string $name, $params = array ()) {
+        throw new NotSupported($this->id . ' createSubAccount() is not supported yet');
     }
 
     public function safe_currency_code(?string $currencyId, ?array $currency = null) {
@@ -6935,6 +6948,12 @@ class Exchange extends \ccxt\Exchange {
             } else {
                 throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
             }
+        }) ();
+    }
+
+    public function load_markets_and_sign_in() {
+        return Async\async(function ()  {
+            Async\await(Promise\all(array( $this->load_markets(), $this->sign_in() )));
         }) ();
     }
 

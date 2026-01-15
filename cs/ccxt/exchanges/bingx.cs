@@ -75,6 +75,7 @@ public partial class bingx : Exchange
                 { "fetchLiquidations", false },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", true },
+                { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMarkPrice", true },
@@ -4551,7 +4552,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.standard] whether to fetch standard contract orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -5153,7 +5154,7 @@ public partial class bingx : Exchange
             { "3", "rejected" },
             { "4", "pending" },
             { "5", "rejected" },
-            { "6", "pending" },
+            { "6", "ok" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -6202,6 +6203,85 @@ public partial class bingx : Exchange
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name bingx#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.swapV1PrivateGetMaintMarginRatio(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1767789967284,
+        //         "data": [
+        //             {
+        //                 "tier": "Tier 1",
+        //                 "symbol": "ETH-USDT",
+        //                 "minPositionVal": "0",
+        //                 "maxPositionVal": "900000",
+        //                 "maintMarginRatio": "0.003300",
+        //                 "maintAmount": "0.000000"
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseMarketLeverageTiers(data, market);
+    }
+
+    public override object parseMarketLeverageTiers(object info, object market = null)
+    {
+        //
+        //     [
+        //         {
+        //             "tier": "Tier 1",
+        //             "symbol": "ETH-USDT",
+        //             "minPositionVal": "0",
+        //             "maxPositionVal": "900000",
+        //             "maintMarginRatio": "0.003300",
+        //             "maintAmount": "0.000000"
+        //         }
+        //     ]
+        //
+        object tiers = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        {
+            object tier = this.safeDict(info, i);
+            object tierString = this.safeString(tier, "tier");
+            object tierParts = ((string)tierString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            object marketId = this.safeString(tier, "symbol");
+            market = this.safeMarket(marketId, market, null, "swap");
+            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+                { "tier", this.safeNumber(tierParts, 1) },
+                { "symbol", this.safeSymbol(marketId, market) },
+                { "currency", this.safeString(market, "settle") },
+                { "minNotional", this.safeNumber(tier, "minPositionVal") },
+                { "maxNotional", this.safeNumber(tier, "maxPositionVal") },
+                { "maintenanceMarginRate", this.safeNumber(tier, "maintMarginRatio") },
+                { "maxLeverage", null },
+                { "info", tier },
+            });
+        }
+        return tiers;
     }
 
     public override object sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)

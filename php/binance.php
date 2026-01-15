@@ -995,6 +995,7 @@ class binance extends Exchange {
                         'block/order/execute' => 5,
                         'block/user-trades' => 5,
                         'blockTrades' => 5,
+                        'comission' => 5,
                     ),
                     'post' => array(
                         'order' => 1,
@@ -1070,6 +1071,8 @@ class binance extends Exchange {
                         'orderList/oco' => 0.2,
                         'orderList/oto' => 0.2,
                         'orderList/otoco' => 0.2,
+                        'orderList/opo' => 0.2,
+                        'orderList/opoco' => 0.2,
                         'sor/order' => 0.2,
                         'sor/order/test' => 0.2,
                         'order' => 0.2,
@@ -2625,6 +2628,7 @@ class binance extends Exchange {
                     'PERCENT_PRICE_BY_SIDE' => '\\ccxt\\InvalidOrder', // array("code":-1013,"msg":"Filter failure => PERCENT_PRICE_BY_SIDE")
                 ),
             ),
+            'rollingWindowSize' => 60000.0,
         ));
     }
 

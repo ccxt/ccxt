@@ -176,7 +176,7 @@ class paymium extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
+         * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -190,7 +190,7 @@ class paymium extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1depth/get
+         * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-$market-depth
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -259,7 +259,7 @@ class paymium extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1ticker/get
+         * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-$ticker
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -321,7 +321,7 @@ class paymium extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1trades/get
+         * @see https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -342,7 +342,7 @@ class paymium extends Exchange {
         /**
          * create a currency deposit address
          *
-         * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/post
+         * @see https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address
          *
          * @param {string} $code unified currency $code of the currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -365,7 +365,7 @@ class paymium extends Exchange {
         /**
          * fetch the deposit address for a currency associated with this account
          *
-         * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses~1%7Baddress%7D/get
+         * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address
          *
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -391,7 +391,7 @@ class paymium extends Exchange {
         /**
          * fetch deposit addresses for multiple currencies and chain types
          *
-         * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/get
+         * @see https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses
          *
          * @param {string[]|null} $codes list of unified currency $codes, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -436,7 +436,7 @@ class paymium extends Exchange {
         /**
          * create a trade order
          *
-         * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders/post
+         * @see https://paymium.github.io/api-documentation/#tag/Order/operation/create-order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -468,8 +468,7 @@ class paymium extends Exchange {
         /**
          * cancels an open order
          *
-         * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders~1%7Buuid%7D/delete
-         * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders~1%7Buuid%7D~1cancel/delete
+         * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol not used by paymium cancelOrder ()
@@ -489,7 +488,7 @@ class paymium extends Exchange {
         /**
          * transfer $currency internally between wallets on the same account
          *
-         * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/{1user}1email_transfers/post
+         * @see https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer

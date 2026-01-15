@@ -1038,6 +1038,7 @@ public partial class binance : Exchange
                         { "block/order/execute", 5 },
                         { "block/user-trades", 5 },
                         { "blockTrades", 5 },
+                        { "comission", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "order", 1 },
@@ -1129,6 +1130,8 @@ public partial class binance : Exchange
                         { "orderList/oco", 0.2 },
                         { "orderList/oto", 0.2 },
                         { "orderList/otoco", 0.2 },
+                        { "orderList/opo", 0.2 },
+                        { "orderList/opoco", 0.2 },
                         { "sor/order", 0.2 },
                         { "sor/order/test", 0.2 },
                         { "order", 0.2 },
@@ -2543,6 +2546,7 @@ public partial class binance : Exchange
                     { "PERCENT_PRICE_BY_SIDE", typeof(InvalidOrder) },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         });
     }
 
@@ -8014,7 +8018,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))

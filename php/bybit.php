@@ -895,6 +895,8 @@ class bybit extends Exchange {
                     '170229' => '\\ccxt\\InvalidOrder', // The sell quantity per order exceeds the estimated maximum sell quantity.
                     '170234' => '\\ccxt\\ExchangeError', // System Error
                     '170241' => '\\ccxt\\ManualInteractionNeeded', // To proceed with trading, users must read through and confirm that they fully understand the project's risk disclosure document.
+                    '170371' => '\\ccxt\\InvalidOrder', // array("retCode":170371,"retMsg":"Order price cannot be lower than 0.0025, the price limitation.","result":array(),"retExtInfo":array(),"time":1766500057720)
+                    '170372' => '\\ccxt\\InvalidOrder', // array("retCode":170372,"retMsg":"Order price cannot be higher than 24.2175, the price limitation","result":array(),"retExtInfo":array(),"time":1766500129105)
                     '175000' => '\\ccxt\\InvalidOrder', // The serialNum is already in use.
                     '175001' => '\\ccxt\\InvalidOrder', // Daily purchase limit has been exceeded. Please try again later.
                     '175002' => '\\ccxt\\InvalidOrder', // There's a large number of purchase orders. Please try again later.
@@ -6705,7 +6707,14 @@ class bybit extends Exchange {
         $market = $this->safe_market($contract, $market, null, 'contract');
         $size = Precise::string_abs($this->safe_string_2($position, 'size', 'qty'));
         $side = $this->safe_string($position, 'side');
-        if ($side !== null) {
+        $positionIdx = $this->safe_string($position, 'positionIdx');
+        $hedged = null;
+        if ($positionIdx !== null) {
+            $hedged = ($positionIdx !== '0');
+        }
+        if (($hedged !== null) && $hedged) {
+            $side = ($positionIdx === '1') ? 'long' : 'short';
+        } elseif ($side !== null) {
             if ($side === 'Buy') {
                 $side = $isHistory ? 'short' : 'long';
             } elseif ($side === 'Sell') {
@@ -6772,8 +6781,6 @@ class bybit extends Exchange {
         }
         $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notional);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateralString, 4);
-        $positionIdx = $this->safe_string($position, 'positionIdx');
-        $hedged = ($positionIdx !== null) && ($positionIdx !== '0');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,

@@ -49,7 +49,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
@@ -86,9 +86,9 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchOrder': False,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTickers': True,
@@ -146,6 +146,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'pnlpreferences',
                         'assignmentprogram/current',
                         'assignmentprogram/history',
+                        'orders/status',
                     ],
                     'post': [
                         'sendorder',
@@ -341,7 +342,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'symbolRequired': False,
                     },
                     'fetchOHLCV': {
-                        'limit': 5000,
+                        'limit': 2000,
                     },
                 },
                 'spot': None,
@@ -729,24 +730,24 @@ class krakenfutures(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 2000)
         request: dict = {
             'symbol': market['id'],
             'price_type': self.safe_string(params, 'price', 'trade'),
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         params = self.omit(params, 'price')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = self.parse_to_int(since / 1000)
             if limit is None:
-                limit = 5000
-            limit = min(limit, 5000)
+                limit = 2000
+            limit = min(limit, 2000)
             toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
             request['to'] = min(toTimestamp, currentTimestamp)
         elif limit is not None:
-            limit = min(limit, 5000)
+            limit = min(limit, 2000)
             duration = self.parse_timeframe(timeframe)
             request['to'] = self.seconds()
             request['from'] = self.parse_to_int(request['to'] - (duration * limit))
@@ -1413,6 +1414,47 @@ class krakenfutures(Exchange, ImplicitAPI):
         response = await self.privateGetOpenorders(params)
         orders = self.safe_list(response, 'openOrders', [])
         return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+
+        https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+
+        Gets all orders for an account from the exchange api
+        :param str symbol: Unified market symbol
+        :param int [since]: Timestamp(ms) of earliest order.(Not used by kraken api but filtered internally by CCXT)
+        :param int [limit]: How many orders to return.(Not used by kraken api but filtered internally by CCXT)
+        :param dict [params]: Exchange specific parameters
+        :returns: An array of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = await self.privateGetOrdersStatus(params)
+        orders = self.safe_list(response, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+        """
+        fetches information on an order made by the user
+
+        https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+
+        :param str id: the order id
+        :param str symbol: unified market symbol that the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        await self.load_markets()
+        request: dict = {
+            'orderIds': [id],
+        }
+        orders = await self.fetch_orders(None, None, None, self.extend(request, params))
+        order = self.safe_dict(orders, 0)
+        if order is None:
+            raise OrderNotFound(self.id + ' fetchOrder could not find order id ' + id)
+        return order
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

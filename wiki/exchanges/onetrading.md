@@ -39,7 +39,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://docs.onetrading.com/#time  
+**See**: https://docs.onetrading.com/rest/public/time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -59,7 +59,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://docs.onetrading.com/#currencies  
+**See**: https://docs.onetrading.com/rest/public/currencies  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -79,7 +79,7 @@ retrieves data on all markets for onetrading
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://docs.onetrading.com/#instruments  
+**See**: https://docs.onetrading.com/rest/public/instruments  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -101,8 +101,8 @@ fetch the trading fees for multiple markets
 
 **See**
 
-- https://docs.onetrading.com/#fee-groups
-- https://docs.onetrading.com/#fees
+- https://docs.onetrading.com/rest/public/fee-groups
+- https://docs.onetrading.com/rest/trading/fees
 
 
 | Param | Type | Required | Description |
@@ -124,7 +124,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.onetrading.com/#market-ticker-for-instrument  
+**See**: https://docs.onetrading.com/rest/public/market-ticker-instrument  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -145,7 +145,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.onetrading.com/#market-ticker  
+**See**: https://docs.onetrading.com/rest/public/market-ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -166,7 +166,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://docs.onetrading.com/#order-book  
+**See**: https://docs.onetrading.com/rest/public/orderbook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -188,7 +188,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.onetrading.com/#candlesticks  
+**See**: https://docs.onetrading.com/rest/public/candlesticks  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -212,7 +212,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.onetrading.com/#balances  
+**See**: https://docs.onetrading.com/rest/trading/balances  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -232,7 +232,7 @@ create a trade order
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.onetrading.com/#create-order  
+**See**: https://docs.onetrading.com/rest/trading/create-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -258,7 +258,11 @@ cancels an open order
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.onetrading.com/#close-order-by-order-id  
+**See**
+
+- https://docs.onetrading.com/rest/trading/cancel-order-order-id
+- https://docs.onetrading.com/rest/trading/cancel-order-client-id
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -280,7 +284,7 @@ cancel all open orders
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.onetrading.com/#close-all-orders  
+**See**: https://docs.onetrading.com/rest/trading/cancel-all-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -301,7 +305,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.onetrading.com/#close-all-orders  
+**See**: https://docs.onetrading.com/rest/trading/cancel-all-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -323,7 +327,7 @@ fetches information on an order made by the user
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.onetrading.com/#get-order  
+**See**: https://docs.onetrading.com/rest/trading/get-order-order-id  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -345,7 +349,7 @@ fetch all unfilled currently open orders
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.onetrading.com/#get-orders  
+**See**: https://docs.onetrading.com/rest/trading/get-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -368,7 +372,7 @@ fetches information on multiple closed orders made by the user
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.onetrading.com/#get-orders  
+**See**: https://docs.onetrading.com/rest/trading/get-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -391,7 +395,7 @@ fetch all the trades made from a single order
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://docs.onetrading.com/#trades-for-order  
+**See**: https://docs.onetrading.com/rest/trading/get-trades-for-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -415,7 +419,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://docs.onetrading.com/#all-trades  
+**See**: https://docs.onetrading.com/rest/trading/get-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

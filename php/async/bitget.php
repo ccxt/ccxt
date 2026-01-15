@@ -1670,6 +1670,7 @@ class bitget extends Exchange {
                 // fiat currencies on deposit page
                 'fiatCurrencies' => array( 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ),
             ),
+            'rollingWindowSize' => 1000.0,
             'features' => array(
                 'spot' => array(
                     'sandbox' => true,
@@ -2419,7 +2420,7 @@ class bitget extends Exchange {
                             'max' => null,
                         ),
                         'cost' => array(
-                            'min' => null,
+                            'min' => $this->safe_number($market, 'minOrderAmount'),
                             'max' => null,
                         ),
                     ),
@@ -5798,7 +5799,9 @@ class bitget extends Exchange {
                 $request['symbol'] = $market['id'];
                 $request['productType'] = $productType;
                 if (!$isTakeProfitOrder && !$isStopLossOrder) {
-                    $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+                    if ($amount !== null) {
+                        $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+                    }
                     if (($price !== null) && !$isTrailingPercentOrder) {
                         $request['newPrice'] = $this->price_to_precision($symbol, $price);
                     }

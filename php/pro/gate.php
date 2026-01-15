@@ -1271,9 +1271,11 @@ class gate extends \ccxt\async\gate {
                 }
             }
             // don't remove the $future from the .futures $cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($cache, $type . ':position');
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($cache, $type . ':position');
+            }
         }) ();
     }
 
@@ -1815,41 +1817,6 @@ class gate extends \ccxt\async\gate {
                     $this->clean_unsubscription($client, $subHash, $unsubHash);
                 }
                 $this->clean_cache($subscription);
-            }
-        }
-    }
-
-    public function clean_cache(array $subscription) {
-        $topic = $this->safe_string($subscription, 'topic', '');
-        $symbols = $this->safe_list($subscription, 'symbols', array());
-        $symbolsLength = count($symbols);
-        if ($topic === 'ohlcv') {
-            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
-            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
-                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
-                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
-                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                unset($this->ohlcvs[$symbol][$timeframe]);
-            }
-        } elseif ($symbolsLength > 0) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                if (str_ends_with($topic, 'trades')) {
-                    unset($this->trades[$symbol]);
-                } elseif ($topic === 'orderbook') {
-                    unset($this->orderbooks[$symbol]);
-                } elseif ($topic === 'ticker') {
-                    unset($this->tickers[$symbol]);
-                }
-            }
-        } else {
-            if (str_ends_with($topic, 'trades')) {
-                // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object
-                $keys = is_array($this->trades) ? array_keys($this->trades) : array();
-                for ($i = 0; $i < count($keys); $i++) {
-                    unset($this->trades[$keys[$i]]);
-                }
             }
         }
     }

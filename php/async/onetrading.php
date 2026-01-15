@@ -405,7 +405,7 @@ class onetrading extends Exchange {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
              *
-             * @see https://docs.onetrading.com/#time
+             * @see https://docs.onetrading.com/rest/public/time
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -426,7 +426,7 @@ class onetrading extends Exchange {
             /**
              * fetches all available currencies on an exchange
              *
-             * @see https://docs.onetrading.com/#currencies
+             * @see https://docs.onetrading.com/rest/public/currencies
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
@@ -474,7 +474,7 @@ class onetrading extends Exchange {
             /**
              * retrieves data on all markets for onetrading
              *
-             * @see https://docs.onetrading.com/#instruments
+             * @see https://docs.onetrading.com/rest/public/instruments
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
@@ -607,8 +607,8 @@ class onetrading extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              *
-             * @see https://docs.onetrading.com/#fee-groups
-             * @see https://docs.onetrading.com/#fees
+             * @see https://docs.onetrading.com/rest/public/fee-groups
+             * @see https://docs.onetrading.com/rest/trading/fees
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] fetchPrivateTradingFees or fetchPublicTradingFees
@@ -848,7 +848,7 @@ class onetrading extends Exchange {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://docs.onetrading.com/#$market-ticker-for-instrument
+             * @see https://docs.onetrading.com/rest/public/market-ticker-instrument
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -887,7 +887,7 @@ class onetrading extends Exchange {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              *
-             * @see https://docs.onetrading.com/#market-$ticker
+             * @see https://docs.onetrading.com/rest/public/market-$ticker
              *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -931,7 +931,7 @@ class onetrading extends Exchange {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://docs.onetrading.com/#order-book
+             * @see https://docs.onetrading.com/rest/public/orderbook
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1061,7 +1061,7 @@ class onetrading extends Exchange {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://docs.onetrading.com/#candlesticks
+             * @see https://docs.onetrading.com/rest/public/candlesticks
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1209,7 +1209,7 @@ class onetrading extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://docs.onetrading.com/#balances
+             * @see https://docs.onetrading.com/rest/trading/balances
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -1382,7 +1382,7 @@ class onetrading extends Exchange {
             /**
              * create a trade order
              *
-             * @see https://docs.onetrading.com/#create-order
+             * @see https://docs.onetrading.com/rest/trading/create-order
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'limit'
@@ -1459,7 +1459,8 @@ class onetrading extends Exchange {
             /**
              * cancels an open order
              *
-             * @see https://docs.onetrading.com/#close-order-by-order-$id
+             * @see https://docs.onetrading.com/rest/trading/cancel-order-order-$id
+             * @see https://docs.onetrading.com/rest/trading/cancel-order-client-$id
              *
              * @param {string} $id order $id
              * @param {string} $symbol not used by bitmex cancelOrder ()
@@ -1495,7 +1496,7 @@ class onetrading extends Exchange {
             /**
              * cancel all open orders
              *
-             * @see https://docs.onetrading.com/#close-all-orders
+             * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
              *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1522,7 +1523,7 @@ class onetrading extends Exchange {
             /**
              * cancel multiple orders
              *
-             * @see https://docs.onetrading.com/#close-all-orders
+             * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
              *
              * @param {string[]} $ids $order $ids
              * @param {string} $symbol unified market $symbol, default is null
@@ -1549,7 +1550,7 @@ class onetrading extends Exchange {
             /**
              * fetches information on an order made by the user
              *
-             * @see https://docs.onetrading.com/#get-order
+             * @see https://docs.onetrading.com/rest/trading/get-order-order-$id
              *
              * @param {string} $id the order $id
              * @param {string} $symbol not used by onetrading fetchOrder
@@ -1611,7 +1612,7 @@ class onetrading extends Exchange {
             /**
              * fetch all unfilled currently open orders
              *
-             * @see https://docs.onetrading.com/#get-orders
+             * @see https://docs.onetrading.com/rest/trading/get-orders
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms $to fetch open orders for
@@ -1735,7 +1736,7 @@ class onetrading extends Exchange {
             /**
              * fetches information on multiple closed orders made by the user
              *
-             * @see https://docs.onetrading.com/#get-orders
+             * @see https://docs.onetrading.com/rest/trading/get-orders
              *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1755,7 +1756,7 @@ class onetrading extends Exchange {
             /**
              * fetch all the trades made from a single order
              *
-             * @see https://docs.onetrading.com/#trades-for-order
+             * @see https://docs.onetrading.com/rest/trading/get-trades-for-order
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
@@ -1818,7 +1819,7 @@ class onetrading extends Exchange {
             /**
              * fetch all trades made by the user
              *
-             * @see https://docs.onetrading.com/#all-trades
+             * @see https://docs.onetrading.com/rest/trading/get-trades
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms $to fetch trades for

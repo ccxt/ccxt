@@ -2033,7 +2033,7 @@ class htx extends htx$1["default"] {
             }
         }
         catch (e) {
-            const error = new errors.NetworkError(this.id + ' pong failed ' + this.json(e));
+            const error = new errors.NetworkError(this.id + ' pong failed ' + this.exceptionMessage(e));
             client.reset(error);
         }
     }

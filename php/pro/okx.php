@@ -270,7 +270,7 @@ class okx extends \ccxt\async\okx {
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
-                $messageHashes[] = 'unsubscribe:' . $channel . $symbol;
+                $messageHashes[] = 'unsubscribe:' . $channel . ':' . $symbol;
                 $marketId = $this->market_id($symbol);
                 $topic = array(
                     'channel' => $channel,

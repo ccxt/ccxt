@@ -89,6 +89,7 @@ class bingx extends Exchange {
                 'fetchLiquidations' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => true,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMarkPrice' => true,
@@ -5509,7 +5510,7 @@ class bingx extends Exchange {
             '3' => 'rejected',
             '4' => 'pending',
             '5' => 'rejected',
-            '6' => 'pending',
+            '6' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -6765,6 +6766,82 @@ class bingx extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * retrieve information on the maximum leverage, for different trade sizes for a single $market
+             *
+             * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->swapV1PrivateGetMaintMarginRatio ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "timestamp" => 1767789967284,
+            //         "data" => array(
+            //             {
+            //                 "tier" => "Tier 1",
+            //                 "symbol" => "ETH-USDT",
+            //                 "minPositionVal" => "0",
+            //                 "maxPositionVal" => "900000",
+            //                 "maintMarginRatio" => "0.003300",
+            //                 "maintAmount" => "0.000000"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_market_leverage_tiers($data, $market);
+        }) ();
+    }
+
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+        //
+        //     array(
+        //         {
+        //             "tier" => "Tier 1",
+        //             "symbol" => "ETH-USDT",
+        //             "minPositionVal" => "0",
+        //             "maxPositionVal" => "900000",
+        //             "maintMarginRatio" => "0.003300",
+        //             "maintAmount" => "0.000000"
+        //         }
+        //     )
+        //
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $this->safe_dict($info, $i);
+            $tierString = $this->safe_string($tier, 'tier');
+            $tierParts = explode(' ', $tierString);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $market = $this->safe_market($marketId, $market, null, 'swap');
+            $tiers[] = array(
+                'tier' => $this->safe_number($tierParts, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'currency' => $this->safe_string($market, 'settle'),
+                'minNotional' => $this->safe_number($tier, 'minPositionVal'),
+                'maxNotional' => $this->safe_number($tier, 'maxPositionVal'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintMarginRatio'),
+                'maxLeverage' => null,
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

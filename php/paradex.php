@@ -376,7 +376,7 @@ class paradex extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+         * @see https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -394,7 +394,7 @@ class paradex extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-system-state
+         * @see https://docs.paradex.trade/api/prod/system/get-state
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
@@ -419,7 +419,7 @@ class paradex extends Exchange {
         /**
          * retrieves $data on all markets for bitget
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -620,7 +620,7 @@ class paradex extends Exchange {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          *
-         * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-$symbol
+         * @see https://docs.paradex.trade/api/prod/markets/klines
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -704,7 +704,7 @@ class paradex extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -745,7 +745,7 @@ class paradex extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -839,7 +839,7 @@ class paradex extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-$market-$orderbook
+         * @see https://docs.paradex.trade/api/prod/markets/get-$orderbook
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -882,7 +882,7 @@ class paradex extends Exchange {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
-         * @see https://docs.api.testnet.paradex.trade/#trade-tape
+         * @see https://docs.paradex.trade/api/prod/trades/trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1003,7 +1003,7 @@ class paradex extends Exchange {
         /**
          * retrieves the open $interest of a contract trading pair
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
@@ -1375,7 +1375,7 @@ class paradex extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://docs.api.prod.paradex.trade/#create-$order
+         * @see https://docs.paradex.trade/api/prod/orders/new
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1535,8 +1535,8 @@ class paradex extends Exchange {
         /**
          * cancels an open order
          *
-         * @see https://docs.api.prod.paradex.trade/#cancel-order
-         * @see https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-$id
+         * @see https://docs.paradex.trade/api/prod/orders/cancel
+         * @see https://docs.paradex.trade/api/prod/orders/cancel-by-client-$id
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
@@ -1566,7 +1566,7 @@ class paradex extends Exchange {
         /**
          * cancel all open orders in a $market
          *
-         * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+         * @see https://docs.paradex.trade/api/prod/orders/cancel-all
          *
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1592,8 +1592,8 @@ class paradex extends Exchange {
         /**
          * fetches information on an order made by the user
          *
-         * @see https://docs.api.prod.paradex.trade/#get-order
-         * @see https://docs.api.prod.paradex.trade/#get-order-by-client-$id
+         * @see https://docs.paradex.trade/api/prod/orders/get
+         * @see https://docs.paradex.trade/api/prod/orders/get-by-client-$id
          *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
@@ -1647,7 +1647,7 @@ class paradex extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://docs.api.prod.paradex.trade/#get-$orders
+         * @see https://docs.paradex.trade/api/prod/orders/get-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1728,7 +1728,7 @@ class paradex extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-$orders
+         * @see https://docs.paradex.trade/api/prod/orders/get-open-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1785,7 +1785,7 @@ class paradex extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.api.prod.paradex.trade/#list-balances
+         * @see https://docs.paradex.trade/api/prod/account/get-balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -1825,7 +1825,7 @@ class paradex extends Exchange {
         /**
          * fetch all $trades made by the user
          *
-         * @see https://docs.api.prod.paradex.trade/#list-fills
+         * @see https://docs.paradex.trade/api/prod/account/list-fills
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1862,7 +1862,7 @@ class paradex extends Exchange {
         //         "prev" => null,
         //         "results" => array(
         //             {
-        //                 "id" => "1718947571560201703986670001",
+        //                 "id" => "1718947571560201703986670002",
         //                 "side" => "BUY",
         //                 "liquidity" => "TAKER",
         //                 "market" => "BTC-USD-PERP",
@@ -1890,7 +1890,7 @@ class paradex extends Exchange {
         /**
          * fetch data on an open position
          *
-         * @see https://docs.api.prod.paradex.trade/#list-open-$positions
+         * @see https://docs.paradex.trade/api/prod/account/get-$positions
          *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1907,7 +1907,7 @@ class paradex extends Exchange {
         /**
          * fetch all open positions
          *
-         * @see https://docs.api.prod.paradex.trade/#list-open-positions
+         * @see https://docs.paradex.trade/api/prod/account/get-positions
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2008,7 +2008,7 @@ class paradex extends Exchange {
         /**
          * retrieves the public liquidations of a trading pair
          *
-         * @see https://docs.api.prod.paradex.trade/#list-liquidations
+         * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
@@ -2067,7 +2067,7 @@ class paradex extends Exchange {
         /**
          * fetch all $deposits made to an account
          *
-         * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+         * @see https://docs.paradex.trade/api/prod/transfers/get
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch $deposits for
@@ -2129,7 +2129,7 @@ class paradex extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+         * @see https://docs.paradex.trade/api/prod/transfers/get
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2254,7 +2254,7 @@ class paradex extends Exchange {
         /**
          * fetches the margin mode of a specific $symbol
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+         * @see https://docs.paradex.trade/api/prod/account/get-account-margin
          *
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2298,7 +2298,7 @@ class paradex extends Exchange {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
-         * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+         * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
          *
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
@@ -2324,7 +2324,7 @@ class paradex extends Exchange {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+         * @see https://docs.paradex.trade/api/prod/account/get-account-margin
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2378,7 +2378,7 @@ class paradex extends Exchange {
         /**
          * set the level of $leverage for a $market
          *
-         * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+         * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
          *
          * @param {float} $leverage the rate of $leverage
          * @param {string} [$symbol] unified $market $symbol (is mandatory for swap markets)
@@ -2404,7 +2404,7 @@ class paradex extends Exchange {
         /**
          * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $greeks for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2459,7 +2459,7 @@ class paradex extends Exchange {
         /**
          * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
-         * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

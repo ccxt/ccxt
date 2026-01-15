@@ -1038,7 +1038,7 @@ export default class gate extends Exchange {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
-                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PARAM_VALUE': InvalidOrder, // {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
                     'INVALID_PROTOCOL': BadRequest,
                     'INVALID_ARGUMENT': BadRequest,
                     'INVALID_REQUEST_BODY': BadRequest,
@@ -1134,6 +1134,7 @@ export default class gate extends Exchange {
                     'POSITION_HOLDING': BadRequest,
                     'USER_LOAN_EXCEEDED': BadRequest, // {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
                     'NO_CHANGE': InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
+                    'PRICE_THRESHOLD_EXCEEDED': InvalidOrder, // {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
                 'broad': {},
             },
@@ -4957,6 +4958,24 @@ export default class gate extends Exchange {
         //
         //  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
+        // cancel trigger order returns timestamps in ms
+        //   id: '2007047737421336576',
+        //   id_string: '2007047737421336576',
+        //   trigger_time: '0',
+        //   trade_id: '0',
+        //   trade_id_string: '',
+        //   status: 'finished',
+        //   finish_as: 'cancelled',
+        //   reason: '',
+        //   create_time: '1767352444402496'
+        //   finish_time: '1767352509535790',
+        //   is_stop_order: false,
+        //   stop_trigger: { rule: '0', trigger_price: '', order_price: '' },
+        //   me_order_id: '0',
+        //   me_order_id_string: '',
+        //   order_type: '',
+        //   in_dual_mode: false,
+        //   parent_id: '0',
         const succeeded = this.safeBool (order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
@@ -4999,13 +5018,31 @@ export default class gate extends Exchange {
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
         }
         const rawStatus = this.safeStringN (order, [ 'finish_as', 'status', 'open' ]);
-        let timestamp = this.safeInteger (order, 'create_time_ms');
-        if (timestamp === undefined) {
-            timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
+        let timestampStr = this.safeString (order, 'create_time_ms');
+        if (timestampStr === undefined) {
+            timestampStr = this.safeString2 (order, 'create_time', 'ctime');
+            if (timestampStr !== undefined) {
+                if (timestampStr.length === 10 || timestampStr.indexOf ('.') >= 0) {
+                    // ts in seconds, multiply to ms
+                    timestampStr = Precise.stringMul (timestampStr, '1000');
+                } else if (timestampStr.length === 16) {
+                    // ts in microseconds, divide to ms
+                    timestampStr = Precise.stringDiv (timestampStr, '1000');
+                }
+            }
         }
-        let lastTradeTimestamp = this.safeInteger (order, 'update_time_ms');
-        if (lastTradeTimestamp === undefined) {
-            lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
+        let lastTradeTimestampStr = this.safeString (order, 'update_time_ms');
+        if (lastTradeTimestampStr === undefined) {
+            lastTradeTimestampStr = this.safeString2 (order, 'update_time', 'finish_time');
+            if (lastTradeTimestampStr !== undefined) {
+                if (lastTradeTimestampStr.length === 10 || lastTradeTimestampStr.indexOf ('.') >= 0) {
+                    // ts in seconds, multiply to ms
+                    lastTradeTimestampStr = Precise.stringMul (lastTradeTimestampStr, '1000');
+                } else if (lastTradeTimestampStr.length === 16) {
+                    // ts in microseconds, divide to ms
+                    lastTradeTimestampStr = Precise.stringDiv (lastTradeTimestampStr, '1000');
+                }
+            }
         }
         let marketType = 'contract';
         if (('currency_pair' in order) || ('market' in order)) {
@@ -5051,6 +5088,14 @@ export default class gate extends Exchange {
                 cost = amount;
                 amount = Precise.stringDiv (amount, averageString);
             }
+        }
+        let timestamp = undefined;
+        let lastTradeTimestamp = undefined;
+        if (timestampStr !== undefined) {
+            timestamp = this.parseToInt (timestampStr);
+        }
+        if (lastTradeTimestampStr !== undefined) {
+            lastTradeTimestamp = this.parseToInt (lastTradeTimestampStr);
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -6833,6 +6878,7 @@ export default class gate extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let queryString = '';
+            let rawQueryString = '';
             let requiresURLEncoding = false;
             if (((type === 'futures') || (type === 'delivery')) && method === 'POST') {
                 const pathParts = path.split ('/');
@@ -6841,6 +6887,8 @@ export default class gate extends Exchange {
             }
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys (query).length) {
+                    // https://github.com/ccxt/ccxt/issues/27663
+                    rawQueryString = this.rawencode (query);
                     queryString = this.urlencode (query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf ('currencies=') >= 0 && queryString.indexOf ('%2C') >= 0) {
@@ -6866,7 +6914,7 @@ export default class gate extends Exchange {
             const timestamp = this.parseToInt (nonce / 1000);
             const timestampString = timestamp.toString ();
             const signaturePath = '/api/' + this.version + entirePath;
-            const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
+            const payloadArray = [ method.toUpperCase (), signaturePath, rawQueryString, bodySignature, timestampString ];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join ("\n");
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha512);

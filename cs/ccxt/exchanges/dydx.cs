@@ -491,9 +491,9 @@ public partial class dydx : Exchange
         object marketId = this.safeString(market, "ticker");
         object parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object baseName = this.safeString(parts, 0);
-        object bs = this.safeCurrencyCode(baseName);
+        object baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
+        object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object baseId = this.safeString(market, "baseId");
         object settleId = "USDC";
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
@@ -525,11 +525,11 @@ public partial class dydx : Exchange
             { "option", false },
             { "active", active },
             { "contract", contract },
+            { "contractSize", this.parseNumber("1") },
             { "linear", true },
             { "inverse", false },
             { "taker", null },
             { "maker", null },
-            { "contractSize", null },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },

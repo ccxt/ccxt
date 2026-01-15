@@ -145,7 +145,7 @@ public partial class htx : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg" },
                 { "hostnames", new Dictionary<string, object>() {
-                    { "contract", "api.hbdm.com" },
+                    { "contract", "api.hbdm.vn" },
                     { "spot", "api.huobi.pro" },
                     { "status", new Dictionary<string, object>() {
                         { "spot", "status.huobigroup.com" },

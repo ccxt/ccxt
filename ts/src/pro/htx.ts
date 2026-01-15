@@ -2035,7 +2035,7 @@ export default class htx extends htxRest {
                 await client.send ({ 'op': 'pong', 'ts': pingTs });
             }
         } catch (e) {
-            const error = new NetworkError (this.id + ' pong failed ' + this.json (e));
+            const error = new NetworkError (this.id + ' pong failed ' + this.exceptionMessage (e));
             client.reset (error);
         }
     }

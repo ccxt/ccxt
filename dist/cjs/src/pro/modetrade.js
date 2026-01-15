@@ -1023,9 +1023,11 @@ class modetrade extends modetrade$1["default"] {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, 'positions');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, 'positions');
+        }
     }
     handlePositions(client, message) {
         //

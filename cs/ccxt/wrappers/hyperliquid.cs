@@ -1544,4 +1544,9 @@ public partial class hyperliquid
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
     }
+    public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSubAccount(name, parameters);
+        return ((Dictionary<string, object>)res);
+    }
 }

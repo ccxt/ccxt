@@ -1664,6 +1664,7 @@ export default class bitget extends Exchange {
                 // fiat currencies on deposit page
                 'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
             },
+            'rollingWindowSize': 1000.0,
             'features': {
                 'spot': {
                     'sandbox': true,
@@ -2423,7 +2424,7 @@ export default class bitget extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber(market, 'minOrderAmount'),
                         'max': undefined,
                     },
                 },
@@ -5828,7 +5829,9 @@ export default class bitget extends Exchange {
             request['symbol'] = market['id'];
             request['productType'] = productType;
             if (!isTakeProfitOrder && !isStopLossOrder) {
-                request['newSize'] = this.amountToPrecision(symbol, amount);
+                if (amount !== undefined) {
+                    request['newSize'] = this.amountToPrecision(symbol, amount);
+                }
                 if ((price !== undefined) && !isTrailingPercentOrder) {
                     request['newPrice'] = this.priceToPrecision(symbol, price);
                 }

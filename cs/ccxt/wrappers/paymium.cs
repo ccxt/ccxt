@@ -10,7 +10,7 @@ public partial class paymium
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class paymium
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -57,7 +57,7 @@ public partial class paymium
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -77,7 +77,7 @@ public partial class paymium
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -111,7 +111,7 @@ public partial class paymium
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -131,7 +131,7 @@ public partial class paymium
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -151,7 +151,7 @@ public partial class paymium
     /// fetch deposit addresses for multiple currencies and chain types
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -171,7 +171,7 @@ public partial class paymium
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/operation/create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -198,8 +198,7 @@ public partial class paymium
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D/delete"/>  <br/>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D~1cancel/delete"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -219,7 +218,7 @@ public partial class paymium
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
