@@ -82,17 +82,15 @@ public partial class Exchange
     }
 
     public object lighterSignWithdraw(object signer, object request) {
-        // tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignWithdraw(
-        //     getValue(request, "asset_index"),
-        //     getValue(request, "route_type"),
-        //     getValue(request, "amount"),
-        //     getValue(request, "nonce"),
-        //     getValue(request, "api_key_index"),
-        //     getValue(request, "account_index"),
-        // ))
-        // print(tx_type, tx_info, tx_hash, error)
-        // return [tx_type, tx_info]
-        return null;
+        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignWithdraw(
+            Convert.ToInt32(getValue(request, "asset_index")),
+            Convert.ToInt32(getValue(request, "route_type")),
+            Convert.ToUInt64(getValue(request, "amount")),
+            Convert.ToInt64(getValue(request, "nonce")),
+            Convert.ToInt32(getValue(request, "api_key_index")),
+            Convert.ToInt64(getValue(request, "account_index"))
+        );
+        return this.formatSignedLighterTx(signedTx);
     }
 
     public object lighterSignCreateSubAccount(object signer, object request) {
