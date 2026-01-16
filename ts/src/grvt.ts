@@ -399,10 +399,12 @@ export default class grvt extends Exchange {
             'api_key': this.apiKey,
         };
         const response = await this.privateEdgePostAuthApiKeyLogin (this.extend (request, params));
-        const status = this.safeString (response, 'status');
-        if (status !== 'success') {
-            throw new AuthenticationError (this.id + ' signIn() failed: ' + this.json (response));
-        }
+        //
+        //    {
+        //        "location": "",
+        //        "status": "success"
+        //    }
+        //
         this.options['signInExpiration'] = now + 86400000; // 24 hours
         return response;
     }
@@ -975,7 +977,7 @@ export default class grvt extends Exchange {
         //            }
         //
         return [
-            this.safeIntegerProduct (ohlcv, 'open_time', 0.001),
+            this.safeIntegerProduct (ohlcv, 'open_time', 0.000001),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -2966,7 +2968,6 @@ export default class grvt extends Exchange {
             if (this.options['AuthCookieValue'] === undefined || this.options['AuthAccountId'] === undefined) {
                 throw new AuthenticationError (this.id + ' signIn() failed to receive auth-cookie or account-id');
             }
-            // todo: add expire
         } else {
             const errorCode = this.safeString (response, 'code');
             if (errorCode !== undefined) {
@@ -2978,6 +2979,13 @@ export default class grvt extends Exchange {
                 if (message !== undefined) {
                     const feedback = this.id + ' ' + body;
                     this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                    throw new ExchangeError (feedback);
+                } else {
+                    const status = this.safeString (response, 'status');
+                    if (status !== undefined && status !== 'success') {
+                        const feedback = this.id + ' ' + body;
+                        throw new ExchangeError (feedback);
+                    }
                 }
             }
         }
