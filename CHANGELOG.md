@@ -1,3 +1,39 @@
+<a id="v4.5.33"></a>
+# [v4.5.33](https://github.com/ccxt/ccxt/releases/tag/v4.5.33) - 2026-01-14
+
+## What's Changed
+* fix(aster): dex flag by [@carlosmiei](https://github.com/carlosmiei) in [#27647](https://github.com/ccxt/ccxt/pull/27647)
+* fix(flag): missing flag by [@carlosmiei](https://github.com/carlosmiei) in [#27648](https://github.com/ccxt/ccxt/pull/27648)
+* fix(go): Fix tags of ccxt.pro for golang -  merge PRO into base module (single module) by [@pcriadoperez](https://github.com/pcriadoperez) in [#27646](https://github.com/ccxt/ccxt/pull/27646)
+* fix(backpack): ws trades sort by [@ttodua](https://github.com/ttodua) in [#27636](https://github.com/ccxt/ccxt/pull/27636)
+* feat(paradex): add watchOrders by [@carlosmiei](https://github.com/carlosmiei) in [#27650](https://github.com/ccxt/ccxt/pull/27650)
+* refactor(static-updater): move to ts by [@ttodua](https://github.com/ttodua) in [#27649](https://github.com/ccxt/ccxt/pull/27649)
+* fix(htx): use .vn hostname to fix ssl issue by [@carlosmiei](https://github.com/carlosmiei) in [#27652](https://github.com/ccxt/ccxt/pull/27652)
+* fix(bitget): fix unwatchOrderBook by [@pcriadoperez](https://github.com/pcriadoperez) in [#27655](https://github.com/ccxt/ccxt/pull/27655)
+* fix(okx): fix unwatchTrades, fix [#27645](https://github.com/ccxt/ccxt/issues/27645) by [@pcriadoperez](https://github.com/pcriadoperez) in [#27654](https://github.com/ccxt/ccxt/pull/27654)
+* feat(go): add Close() to interface by [@carlosmiei](https://github.com/carlosmiei) in [#27659](https://github.com/ccxt/ccxt/pull/27659)
+* fix(whitebit): fix withdraw response handling by [@Galllarate](https://github.com/Galllarate) in [#27657](https://github.com/ccxt/ccxt/pull/27657)
+* fix(whitebit): fix fetchWithdrawals response by patching uniqueId to id by [@Galllarate](https://github.com/Galllarate) in [#27658](https://github.com/ccxt/ccxt/pull/27658)
+* fix(krakenfutures): ohlcv limit and add fetchOrders/fetchOrder by [@carlosmiei](https://github.com/carlosmiei) in [#27662](https://github.com/ccxt/ccxt/pull/27662)
+* fix(bybit): parsePosition `side` for hedged mode fixed by [@yzh-pelle](https://github.com/yzh-pelle) in [#27664](https://github.com/ccxt/ccxt/pull/27664)
+* feat(binance): add apis by [@mshavliuk](https://github.com/mshavliuk) in [#27669](https://github.com/ccxt/ccxt/pull/27669)
+* build(deps): bump github.com/ethereum/go-ethereum from 1.16.5 to 1.16.8 in /go/v4 by [@dependabot](https://github.com/dependabot)[bot] in [#27668](https://github.com/ccxt/ccxt/pull/27668)
+* build(deps): bump github.com/ethereum/go-ethereum from 1.14.13 to 1.16.8 in /go/tests/types by [@dependabot](https://github.com/dependabot)[bot] in [#27667](https://github.com/ccxt/ccxt/pull/27667)
+* build(deps): bump github.com/ethereum/go-ethereum from 1.16.5 to 1.16.8 in /go/cli by [@dependabot](https://github.com/dependabot)[bot] in [#27666](https://github.com/ccxt/ccxt/pull/27666)
+* fix(aster): watchOrderBook crash by [@carlosmiei](https://github.com/carlosmiei) in [#27672](https://github.com/ccxt/ccxt/pull/27672)
+* fix(gate): non ascii symbols by [@carlosmiei](https://github.com/carlosmiei) in [#27673](https://github.com/ccxt/ccxt/pull/27673)
+* fix(bitget): editOrder check if amount is defined by [@carlosmiei](https://github.com/carlosmiei) in [#27674](https://github.com/ccxt/ccxt/pull/27674)
+* chore: include dydx_v4_client folder by [@carlosmiei](https://github.com/carlosmiei) in [#27675](https://github.com/ccxt/ccxt/pull/27675)
+
+## New Contributors
+* [@Galllarate](https://github.com/Galllarate) made their first contribution in [#27657](https://github.com/ccxt/ccxt/pull/27657)
+* [@mshavliuk](https://github.com/mshavliuk) made their first contribution in [#27669](https://github.com/ccxt/ccxt/pull/27669)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.32...v4.5.33
+
+[Changes][v4.5.33]
+
+
 <a id="v4.5.32"></a>
 # [v4.5.32](https://github.com/ccxt/ccxt/releases/tag/v4.5.32) - 2026-01-08
 
@@ -12180,6 +12216,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.33]: https://github.com/ccxt/ccxt/compare/v4.5.32...v4.5.33
 [v4.5.32]: https://github.com/ccxt/ccxt/compare/v4.5.31...v4.5.32
 [v4.5.31]: https://github.com/ccxt/ccxt/compare/v4.5.30...v4.5.31
 [v4.5.30]: https://github.com/ccxt/ccxt/compare/v4.5.29...v4.5.30

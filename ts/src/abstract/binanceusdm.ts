@@ -677,6 +677,8 @@ interface binance {
     privatePostOrderListOco (params?: {}): Promise<implicitReturnType>;
     privatePostOrderListOto (params?: {}): Promise<implicitReturnType>;
     privatePostOrderListOtoco (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOpo (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOpoco (params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;

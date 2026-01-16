@@ -1084,6 +1084,8 @@ class binance extends Exchange {
                         'orderList/oco' => 0.2,
                         'orderList/oto' => 0.2,
                         'orderList/otoco' => 0.2,
+                        'orderList/opo' => 0.2,
+                        'orderList/opoco' => 0.2,
                         'sor/order' => 0.2,
                         'sor/order/test' => 0.2,
                         'order' => 0.2,

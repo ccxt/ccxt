@@ -249,7 +249,7 @@ class okx(ccxt.async_support.okx):
         messageHashes = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHashes.append('unsubscribe:' + channel + symbol)
+            messageHashes.append('unsubscribe:' + channel + ':' + symbol)
             marketId = self.market_id(symbol)
             topic: dict = {
                 'channel': channel,

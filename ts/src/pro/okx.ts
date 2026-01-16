@@ -257,7 +257,7 @@ export default class okx extends okxRest {
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            messageHashes.push ('unsubscribe:' + channel + symbol);
+            messageHashes.push ('unsubscribe:' + channel + ':' + symbol);
             const marketId = this.marketId (symbol);
             const topic: Dict = {
                 'channel': channel,

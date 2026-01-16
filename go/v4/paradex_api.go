@@ -7,238 +7,238 @@
 
 package ccxt
 
-func (this *ParadexCore) PublicGetBboMarket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetBboMarket", args...)
+func (this *ParadexCore) PublicGetBboMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBboMarket", args...)
 }
 
-func (this *ParadexCore) PublicGetFundingData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFundingData", args...)
+func (this *ParadexCore) PublicGetFundingData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFundingData", args...)
 }
 
-func (this *ParadexCore) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *ParadexCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *ParadexCore) PublicGetMarketsKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketsKlines", args...)
+func (this *ParadexCore) PublicGetMarketsKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketsKlines", args...)
 }
 
-func (this *ParadexCore) PublicGetMarketsSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketsSummary", args...)
+func (this *ParadexCore) PublicGetMarketsSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketsSummary", args...)
 }
 
-func (this *ParadexCore) PublicGetOrderbookMarket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderbookMarket", args...)
+func (this *ParadexCore) PublicGetOrderbookMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbookMarket", args...)
 }
 
-func (this *ParadexCore) PublicGetInsurance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInsurance", args...)
+func (this *ParadexCore) PublicGetInsurance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetInsurance", args...)
 }
 
-func (this *ParadexCore) PublicGetReferralsConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetReferralsConfig", args...)
+func (this *ParadexCore) PublicGetReferralsConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetReferralsConfig", args...)
 }
 
-func (this *ParadexCore) PublicGetSystemConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSystemConfig", args...)
+func (this *ParadexCore) PublicGetSystemConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSystemConfig", args...)
 }
 
-func (this *ParadexCore) PublicGetSystemState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSystemState", args...)
+func (this *ParadexCore) PublicGetSystemState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSystemState", args...)
 }
 
-func (this *ParadexCore) PublicGetSystemTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSystemTime", args...)
+func (this *ParadexCore) PublicGetSystemTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSystemTime", args...)
 }
 
-func (this *ParadexCore) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *ParadexCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *ParadexCore) PublicGetVaults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetVaults", args...)
+func (this *ParadexCore) PublicGetVaults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetVaults", args...)
 }
 
-func (this *ParadexCore) PublicGetVaultsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetVaultsBalance", args...)
+func (this *ParadexCore) PublicGetVaultsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetVaultsBalance", args...)
 }
 
-func (this *ParadexCore) PublicGetVaultsConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetVaultsConfig", args...)
+func (this *ParadexCore) PublicGetVaultsConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetVaultsConfig", args...)
 }
 
-func (this *ParadexCore) PublicGetVaultsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetVaultsHistory", args...)
+func (this *ParadexCore) PublicGetVaultsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetVaultsHistory", args...)
 }
 
-func (this *ParadexCore) PublicGetVaultsPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetVaultsPositions", args...)
+func (this *ParadexCore) PublicGetVaultsPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetVaultsPositions", args...)
 }
 
-func (this *ParadexCore) PublicGetVaultsSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetVaultsSummary", args...)
+func (this *ParadexCore) PublicGetVaultsSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetVaultsSummary", args...)
 }
 
-func (this *ParadexCore) PublicGetVaultsTransfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetVaultsTransfers", args...)
+func (this *ParadexCore) PublicGetVaultsTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetVaultsTransfers", args...)
 }
 
-func (this *ParadexCore) PrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccount", args...)
+func (this *ParadexCore) PrivateGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-func (this *ParadexCore) PrivateGetAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountInfo", args...)
+func (this *ParadexCore) PrivateGetAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountInfo", args...)
 }
 
-func (this *ParadexCore) PrivateGetAccountHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountHistory", args...)
+func (this *ParadexCore) PrivateGetAccountHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountHistory", args...)
 }
 
-func (this *ParadexCore) PrivateGetAccountMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountMargin", args...)
+func (this *ParadexCore) PrivateGetAccountMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMargin", args...)
 }
 
-func (this *ParadexCore) PrivateGetAccountProfile (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountProfile", args...)
+func (this *ParadexCore) PrivateGetAccountProfile(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountProfile", args...)
 }
 
-func (this *ParadexCore) PrivateGetAccountSubaccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSubaccounts", args...)
+func (this *ParadexCore) PrivateGetAccountSubaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSubaccounts", args...)
 }
 
-func (this *ParadexCore) PrivateGetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBalance", args...)
+func (this *ParadexCore) PrivateGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *ParadexCore) PrivateGetFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFills", args...)
+func (this *ParadexCore) PrivateGetFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *ParadexCore) PrivateGetFundingPayments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFundingPayments", args...)
+func (this *ParadexCore) PrivateGetFundingPayments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFundingPayments", args...)
 }
 
-func (this *ParadexCore) PrivateGetPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPositions", args...)
+func (this *ParadexCore) PrivateGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPositions", args...)
 }
 
-func (this *ParadexCore) PrivateGetTradebusts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradebusts", args...)
+func (this *ParadexCore) PrivateGetTradebusts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradebusts", args...)
 }
 
-func (this *ParadexCore) PrivateGetTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransactions", args...)
+func (this *ParadexCore) PrivateGetTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransactions", args...)
 }
 
-func (this *ParadexCore) PrivateGetLiquidations (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetLiquidations", args...)
+func (this *ParadexCore) PrivateGetLiquidations(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLiquidations", args...)
 }
 
-func (this *ParadexCore) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *ParadexCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *ParadexCore) PrivateGetOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersHistory", args...)
+func (this *ParadexCore) PrivateGetOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
-func (this *ParadexCore) PrivateGetOrdersByClientIdClientId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersByClientIdClientId", args...)
+func (this *ParadexCore) PrivateGetOrdersByClientIdClientId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersByClientIdClientId", args...)
 }
 
-func (this *ParadexCore) PrivateGetOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersOrderId", args...)
+func (this *ParadexCore) PrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
-func (this *ParadexCore) PrivateGetPointsDataMarketProgram (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPointsDataMarketProgram", args...)
+func (this *ParadexCore) PrivateGetPointsDataMarketProgram(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPointsDataMarketProgram", args...)
 }
 
-func (this *ParadexCore) PrivateGetReferralsQrCode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetReferralsQrCode", args...)
+func (this *ParadexCore) PrivateGetReferralsQrCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetReferralsQrCode", args...)
 }
 
-func (this *ParadexCore) PrivateGetReferralsSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetReferralsSummary", args...)
+func (this *ParadexCore) PrivateGetReferralsSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetReferralsSummary", args...)
 }
 
-func (this *ParadexCore) PrivateGetTransfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransfers", args...)
+func (this *ParadexCore) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *ParadexCore) PrivateGetAlgoOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAlgoOrders", args...)
+func (this *ParadexCore) PrivateGetAlgoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAlgoOrders", args...)
 }
 
-func (this *ParadexCore) PrivateGetAlgoOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAlgoOrdersHistory", args...)
+func (this *ParadexCore) PrivateGetAlgoOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAlgoOrdersHistory", args...)
 }
 
-func (this *ParadexCore) PrivateGetAlgoOrdersAlgoId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAlgoOrdersAlgoId", args...)
+func (this *ParadexCore) PrivateGetAlgoOrdersAlgoId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAlgoOrdersAlgoId", args...)
 }
 
-func (this *ParadexCore) PrivateGetVaultsAccountSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetVaultsAccountSummary", args...)
+func (this *ParadexCore) PrivateGetVaultsAccountSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetVaultsAccountSummary", args...)
 }
 
-func (this *ParadexCore) PrivatePostAccountMarginMarket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountMarginMarket", args...)
+func (this *ParadexCore) PrivatePostAccountMarginMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountMarginMarket", args...)
 }
 
-func (this *ParadexCore) PrivatePostAccountProfileMaxSlippage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountProfileMaxSlippage", args...)
+func (this *ParadexCore) PrivatePostAccountProfileMaxSlippage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountProfileMaxSlippage", args...)
 }
 
-func (this *ParadexCore) PrivatePostAccountProfileReferralCode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountProfileReferralCode", args...)
+func (this *ParadexCore) PrivatePostAccountProfileReferralCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountProfileReferralCode", args...)
 }
 
-func (this *ParadexCore) PrivatePostAccountProfileUsername (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountProfileUsername", args...)
+func (this *ParadexCore) PrivatePostAccountProfileUsername(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountProfileUsername", args...)
 }
 
-func (this *ParadexCore) PrivatePostAuth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAuth", args...)
+func (this *ParadexCore) PrivatePostAuth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuth", args...)
 }
 
-func (this *ParadexCore) PrivatePostOnboarding (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOnboarding", args...)
+func (this *ParadexCore) PrivatePostOnboarding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOnboarding", args...)
 }
 
-func (this *ParadexCore) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *ParadexCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *ParadexCore) PrivatePostOrdersBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersBatch", args...)
+func (this *ParadexCore) PrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *ParadexCore) PrivatePostAlgoOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAlgoOrders", args...)
+func (this *ParadexCore) PrivatePostAlgoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAlgoOrders", args...)
 }
 
-func (this *ParadexCore) PrivatePostVaults (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostVaults", args...)
+func (this *ParadexCore) PrivatePostVaults(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVaults", args...)
 }
 
-func (this *ParadexCore) PrivatePutOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutOrdersOrderId", args...)
+func (this *ParadexCore) PrivatePutOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrdersOrderId", args...)
 }
 
-func (this *ParadexCore) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *ParadexCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *ParadexCore) PrivateDeleteOrdersByClientIdClientId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersByClientIdClientId", args...)
+func (this *ParadexCore) PrivateDeleteOrdersByClientIdClientId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersByClientIdClientId", args...)
 }
 
-func (this *ParadexCore) PrivateDeleteOrdersOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
+func (this *ParadexCore) PrivateDeleteOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
 }
 
-func (this *ParadexCore) PrivateDeleteAlgoOrdersAlgoId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteAlgoOrdersAlgoId", args...)
+func (this *ParadexCore) PrivateDeleteAlgoOrdersAlgoId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteAlgoOrdersAlgoId", args...)
 }

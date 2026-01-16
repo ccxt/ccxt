@@ -733,7 +733,7 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            subscriptionArgs.push(this.safeStringLower(market, 'id') + '@depth' + limit);
+            subscriptionArgs.push(this.safeStringLower(market, 'id') + '@depth' + limit.toString());
             messageHashes.push('orderbook:' + market['symbol']);
         }
         const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, params), [type]);
