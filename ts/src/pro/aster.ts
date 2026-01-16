@@ -41,12 +41,31 @@ export default class aster extends asterRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://sstream.asterdex.com/stream',
-                        'swap': 'wss://fstream.asterdex.com/stream',
+                        'public': {
+                            'spot': 'wss://sstream.asterdex.com/stream',
+                            'swap': 'wss://fstream.asterdex.com/stream',
+                        },
+                        'private': {
+                            'spot': 'wss://sstream.asterdex.com/ws',
+                            'swap': 'wss://fstream.asterdex.com/ws',
+                        },
                     },
                 },
             },
-            'options': {},
+            'options': {
+                'listenKey': {
+                    'spot': undefined,
+                    'swap': undefined,
+                },
+                'lastAuthenticatedTime': {
+                    'spot': 0,
+                    'swap': 0,
+                },
+                'listenKeyRefreshRate': {
+                    'spot': 3600000, // 60 minutes
+                    'swap': 3600000,
+                },
+            },
             'streaming': {},
             'exceptions': {},
         });
@@ -119,7 +138,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -163,7 +182,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -234,7 +253,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -280,7 +299,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -409,7 +428,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -450,7 +469,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -566,7 +585,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -610,7 +629,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -745,7 +764,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -788,7 +807,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -917,7 +936,7 @@ export default class aster extends asterRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (marketSymbols[0]);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -965,7 +984,7 @@ export default class aster extends asterRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (marketSymbols[0]);
         const type = this.safeString (firstMarket, 'type', 'swap');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -1050,6 +1069,59 @@ export default class aster extends asterRest {
             this.safeNumber (ohlcv, 'c'),
             this.safeNumber (ohlcv, 'v'),
         ];
+    }
+
+    async authenticate (params = {}) {
+        const time = this.milliseconds ();
+        const type = this.safeString (params, 'type', 'spot');
+        const lastAuthenticatedTimeOptions = this.safeDict (this.options, 'lastAuthenticatedTime', {});
+        const lastAuthenticatedTime = this.safeInteger (lastAuthenticatedTimeOptions, type, 0);
+        const listenKeyRefreshRateOptions = this.safeDict (this.options, 'listenKeyRefreshRate', {});
+        const listenKeyRefreshRate = this.safeInteger (listenKeyRefreshRateOptions, type, 3600000); // 1 hour
+        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+            const response = await this.sapiPrivatePostV1ListenKey ();
+            this.options['listenKey'][type] = this.safeString (response, 'listenKey');
+            this.options['lastAuthenticatedTime'][type] = time;
+            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+        }
+    }
+
+    async keepAliveListenKey (params = {}) {
+        const type = this.safeString (params, 'type', 'spot');
+        const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
+        const listenKey = this.safeString (listenKeyOptions, type);
+        if (listenKey === undefined) {
+            return;
+        }
+        try {
+            await this.sapiPrivatePutV1ListenKey (); // extend the expiry
+        } catch (error) {
+            const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+            const client = this.client (url);
+            const messageHashes = Object.keys (client.futures);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                client.reject (error, messageHash);
+            }
+            this.options['listenKey'][type] = undefined;
+            this.options['lastAuthenticatedTime'][type] = 0;
+            return;
+        }
+        // whether or not to schedule another listenKey keepAlive request
+        const listenKeyRefreshOptions = this.safeDict (this.options, 'listenKeyRefresh', {});
+        const listenKeyRefreshRate = this.safeInteger (listenKeyRefreshOptions, 'listenKeyRefreshRate', 3600000);
+        this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+    }
+
+    async watchPrivate (type = 'spot', params = {}) {
+        params = this.extend ({ 'type': type }, params);
+        await this.authenticate (params);
+        const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
+        const listenKey = this.safeString (listenKeyOptions, type);
+        const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+        const subHash = 'private::' + type;
+        const messageHashes = [ subHash ];
+        return await this.watchMultiple (url, messageHashes, undefined, [ subHash ]);
     }
 
     handleMessage (client: Client, message) {
