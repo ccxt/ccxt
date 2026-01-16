@@ -1116,6 +1116,11 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiGetPortfolioEarnAssetBalance",parameters);
     }
 
+    public async Task<object> sapiGetPortfolioDeltaMode (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetPortfolioDeltaMode",parameters);
+    }
+
     public async Task<object> sapiGetStakingProductList (object parameters = null)
     {
         return await this.callAsync ("sapiGetStakingProductList",parameters);
@@ -1984,6 +1989,11 @@ public partial class binanceus : binance
     public async Task<object> sapiPostPortfolioEarnAssetTransfer (object parameters = null)
     {
         return await this.callAsync ("sapiPostPortfolioEarnAssetTransfer",parameters);
+    }
+
+    public async Task<object> sapiPostPortfolioDeltaMode (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostPortfolioDeltaMode",parameters);
     }
 
     public async Task<object> sapiPostLendingAutoInvestPlanAdd (object parameters = null)
