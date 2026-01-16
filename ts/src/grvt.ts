@@ -161,7 +161,7 @@ export default class grvt extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'subAccountId': undefined, // needs to be set manually by user
+                'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
                     'ARBONE': '42161',
@@ -1065,9 +1065,9 @@ export default class grvt extends Exchange {
 
     getSubAccountId (params) {
         let subAccountId = undefined;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, undefined, 'subAccountId');
+        [ subAccountId, params ] = this.handleOptionAndParams (params, undefined, 'accountId');
         if (subAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' you should set params["subAccountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
+            throw new ArgumentsRequired (this.id + ' you should set params["accountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
         }
         return subAccountId.toString ();
     }
@@ -1181,9 +1181,7 @@ export default class grvt extends Exchange {
         await this.loadMarketsAndSignIn ();
         let request: Dict = {};
         let currency = undefined;
-        if (code === undefined) {
-            request['currency'] = null;
-        } else {
+        if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = [ currency['code'] ];
         }
@@ -1707,7 +1705,7 @@ export default class grvt extends Exchange {
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
-            'size': amount.toString (),
+            'size': this.amountToPrecision (symbol, amount),
             'limit_price': this.numberToString (price),
         };
         if (side === 'sell') {
