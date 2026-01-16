@@ -19,8 +19,6 @@ public partial class Exchange
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
-        public IDictionary<string, ConcurrentQueue<object>> messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
-        public bool useMessageQueue = false;
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -54,7 +52,9 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool useMessageQueue = false)
+        public bool decompressBinary = true;
+
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -65,7 +65,7 @@ public partial class Exchange
             this.onClose = onClose;
             this.onError = onError;
             this.keepAlive = keepA;
-            this.useMessageQueue = useMessageQueue;
+            this.decompressBinary = decompressBinary;
 
             if (proxy != null)
             {
@@ -81,19 +81,14 @@ public partial class Exchange
             if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
             {
                 future.reject(rejection);
-                (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).AddOrUpdate(messageHash, new ConcurrentQueue<object>(), (key, value) => new ConcurrentQueue<object>());
-                return future;
-            }
-            if (this.useMessageQueue)
-            {
-                var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
-                if (queue.TryDequeue(out object result))
-                {
-                    future.resolve(result);
-                    (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future removedFuture);
-                }
+                this.rejections.Remove(messageHash);
             }
             return future;
+        }
+
+        public Future reusableFuture(object messageHash)
+        {
+            return this.future(messageHash);  // only used in go
         }
 
         public void resolve(object content, object messageHash2)
@@ -103,27 +98,9 @@ public partial class Exchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            if (this.useMessageQueue)
+            if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
             {
-                var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
-                queue.Enqueue(content);
-                while (queue.Count > 10) {
-                    queue.TryDequeue(out object _);
-                }
-                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
-                {
-                    if (queue.TryDequeue(out object result))
-                    {
-                        future.resolve(result);
-                    }
-                }
-            }
-            else
-            {
-                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
-                {
-                    future.resolve(content);
-                }
+                future.resolve(content);
             }
         }
 
@@ -155,7 +132,6 @@ public partial class Exchange
         public void reset(object message2)
         {
             // stub implement this later
-            this.messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
             this.reject(error);
         }
 
@@ -193,59 +169,72 @@ public partial class Exchange
 
         public async void PingLoop()
         {
-            if (keepAlive != null)
-            {
-                await Task.Delay(Convert.ToInt32(keepAlive));
-            }
-            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            if (this.verbose)
-            {
-                Console.WriteLine($"PingLoop: {Exchange.Iso8601(now)}");
-            }
-
-            while (this.keepAlive != null && this.isConnected)
+            try
             {
 
-                if (this.lastPong == null)
+                if (this.keepAlive != null)
                 {
-                    this.lastPong = now;
+                    await Task.Delay(Convert.ToInt32(this.keepAlive));
+                }
+                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (this.verbose)
+                {
+                    Console.WriteLine($"PingLoop: {Exchange.Iso8601(now)}");
                 }
 
-                var lastPongConverted = Convert.ToInt64(this.lastPong);
-                var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
-                if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
+                while (this.keepAlive != null && this.isConnected)
                 {
-                    this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
-                }
-                else
-                {
-                    if (this.ping != null)
+
+                    if (this.lastPong == null)
                     {
-                        var pingResult = this.ping(this);
-                        if (pingResult != null)
-                        {
-                            // if (this.verbose)
-                            // {
-                            //     Console.WriteLine("Sending ping: " + pingResult);
-                            // }
-                            if (pingResult is string)
-                            {
-                                await this.send((string)pingResult);
-                            }
-                            else
-                            {
-                                await this.send(pingResult);
+                        this.lastPong = now;
+                    }
 
-                            }
-                        }
+                    var lastPongConverted = Convert.ToInt64(this.lastPong);
+                    var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
+                    if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
+                    {
+                        this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
+                        break;
                     }
                     else
                     {
-                        // this.webSocket.SendPing(); should we send ping here?
+                        if (this.ping != null)
+                        {
+                            var pingResult = this.ping(this);
+                            if (pingResult != null)
+                            {
+                                // if (this.verbose)
+                                // {
+                                //     Console.WriteLine("Sending ping: " + pingResult);
+                                // }
+                                if (pingResult is string)
+                                {
+                                    await this.send((string)pingResult);
+                                }
+                                else
+                                {
+                                    await this.send(pingResult);
 
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // this.webSocket.SendPing(); should we send ping here?
+
+                        }
                     }
+                    await Task.Delay(Convert.ToInt32(convertedKeepAlive));
                 }
-                await Task.Delay(Convert.ToInt32(convertedKeepAlive));
+            }
+            catch (Exception ex)
+            {
+                if (this.verbose)
+                {
+                    Console.WriteLine($"PingLoop error: {ex.Message}");
+                }
+                this.onError(this, ex);
             }
         }
 
@@ -351,19 +340,28 @@ public partial class Exchange
         //    }
         // }
 
-        private void TryHandleMessage (string message)
+        private void TryHandleMessage(string message)
         {
             object deserializedMessages = message;
-            try
+            if (isValidJson(message))
             {
-                deserializedMessages = JsonHelper.Deserialize(message);
-            }
-            catch (Exception e)
-            {
+                try
+                {
+                    deserializedMessages = JsonHelper.Deserialize(message);
+                }
+                catch (Exception e)
+                {
+                }
             }
             this.handleMessage(this, deserializedMessages);
         }
-    
+
+        // private void TryHandleBinaryMessage(string message)
+        // {
+
+        //     this.handleMessage(this, deserializedMessages);
+        // }
+
         private async Task Receiving(ClientWebSocket webSocket)
         {
             var buffer = new byte[10485760]; // 10MB, check best size later
@@ -395,8 +393,32 @@ public partial class Exchange
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
 
+                        var msgBinary = buffer.Take(result.Count).ToArray();
                         // Handle binary message
                         // assume gunzip for now
+
+                        if (this.verbose)
+                        {
+                            Console.WriteLine($"On binary message: {result}");
+                        }
+
+                        if (!this.decompressBinary)
+                        {
+                            this.handleMessage(this, msgBinary);
+                            continue;
+                        }
+
+                        if (this.LooksLikeRawDeflate(msgBinary))
+                        {
+                            string decompressedString = System.Text.Encoding.UTF8.GetString(msgBinary);
+                            if (this.verbose)
+                            {
+                                Console.WriteLine($"On raw binary message decompressed {decompressedString}");
+                            }
+                            this.TryHandleMessage(decompressedString);
+                            continue;
+
+                        }
 
                         using (MemoryStream compressedStream = new MemoryStream(buffer, 0, result.Count))
                         using (GZipStream decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
@@ -409,7 +431,7 @@ public partial class Exchange
 
                             if (this.verbose)
                             {
-                                Console.WriteLine($"On binary message {decompressedString}");
+                                Console.WriteLine($"On binary message decompressed {decompressedString}");
                             }
                             this.TryHandleMessage(decompressedString);
                         }
@@ -437,6 +459,15 @@ public partial class Exchange
                 this.isConnected = false;
                 this.onError(this, ex);
             }
+        }
+
+
+        private bool LooksLikeRawDeflate(ReadOnlySpan<byte> b)
+        {
+            if (b.Length < 1) return false;
+            byte first = b[0];
+            int btype = (first >> 1) & 0b11;
+            return btype == 0b01 || btype == 0b10;
         }
 
         public async Task Close()

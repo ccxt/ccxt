@@ -7,258 +7,66 @@
 
 package ccxt
 
-func (this *cryptomus) PublicGetV2UserApiExchangeMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV2UserApiExchangeMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PublicGetV2UserApiExchangeMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV2UserApiExchangeMarkets", args...)
 }
 
-func (this *cryptomus) PublicGetV2UserApiExchangeMarketPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV2UserApiExchangeMarketPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV2UserApiExchangeMarketPrice", args...)
 }
 
-func (this *cryptomus) PublicGetV1ExchangeMarketAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV1ExchangeMarketAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PublicGetV1ExchangeMarketAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1ExchangeMarketAssets", args...)
 }
 
-func (this *cryptomus) PublicGetV1ExchangeMarketOrderBookCurrencyPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV1ExchangeMarketOrderBookCurrencyPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1ExchangeMarketOrderBookCurrencyPair", args...)
 }
 
-func (this *cryptomus) PublicGetV1ExchangeMarketTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV1ExchangeMarketTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PublicGetV1ExchangeMarketTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1ExchangeMarketTickers", args...)
 }
 
-func (this *cryptomus) PublicGetV1ExchangeMarketTradesCurrencyPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV1ExchangeMarketTradesCurrencyPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PublicGetV1ExchangeMarketTradesCurrencyPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1ExchangeMarketTradesCurrencyPair", args...)
 }
 
-func (this *cryptomus) PrivateGetV2UserApiExchangeOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV2UserApiExchangeOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2UserApiExchangeOrders", args...)
 }
 
-func (this *cryptomus) PrivateGetV2UserApiExchangeOrdersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV2UserApiExchangeOrdersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2UserApiExchangeOrdersHistory", args...)
 }
 
-func (this *cryptomus) PrivateGetV2UserApiExchangeAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV2UserApiExchangeAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountBalance", args...)
 }
 
-func (this *cryptomus) PrivateGetV2UserApiExchangeAccountTariffs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV2UserApiExchangeAccountTariffs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountTariffs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountTariffs", args...)
 }
 
-func (this *cryptomus) PrivateGetV2UserApiPaymentServices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV2UserApiPaymentServices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivateGetV2UserApiPaymentServices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2UserApiPaymentServices", args...)
 }
 
-func (this *cryptomus) PrivateGetV2UserApiPayoutServices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV2UserApiPayoutServices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivateGetV2UserApiPayoutServices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2UserApiPayoutServices", args...)
 }
 
-func (this *cryptomus) PrivateGetV2UserApiTransactionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV2UserApiTransactionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivateGetV2UserApiTransactionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2UserApiTransactionList", args...)
 }
 
-func (this *cryptomus) PrivatePostV2UserApiExchangeOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV2UserApiExchangeOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV2UserApiExchangeOrders", args...)
 }
 
-func (this *cryptomus) PrivatePostV2UserApiExchangeOrdersMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV2UserApiExchangeOrdersMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrdersMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV2UserApiExchangeOrdersMarket", args...)
 }
 
-func (this *cryptomus) PrivateDeleteV2UserApiExchangeOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteV2UserApiExchangeOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CryptomusCore) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteV2UserApiExchangeOrdersOrderId", args...)
 }

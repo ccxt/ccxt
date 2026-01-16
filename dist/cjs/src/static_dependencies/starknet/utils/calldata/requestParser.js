@@ -50,7 +50,7 @@ function parseBaseTypes(type, val) {
  * @returns Tupled[]
  */
 function parseTuple(element, typeStr) {
-    const memberTypes = tuple(typeStr);
+    const memberTypes = tuple["default"](typeStr);
     const elements = Object.values(element);
     if (elements.length !== memberTypes.length) {
         throw Error(`ParseTuple: provided and expected abi tuple size do not match.

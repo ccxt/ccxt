@@ -34,11 +34,15 @@ class cryptomus(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': False,
                 'cancelAllOrdersAfter': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'cancelWithdraw': False,
+                'closeAllPositions': False,
                 'closePosition': False,
                 'createConvertTrade': False,
                 'createDepositAddress': False,
@@ -48,6 +52,8 @@ class cryptomus(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
                 'createStopLossOrder': False,
@@ -59,6 +65,12 @@ class cryptomus(Exchange, ImplicitAPI):
                 'createTriggerOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
@@ -67,27 +79,48 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchConvertQuote': False,
                 'fetchConvertTrade': False,
                 'fetchConvertTradeHistory': False,
-                'fetchCurrencies': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,  # temporarily, until they fix the endpoint
                 'fetchDepositAddress': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': False,
                 'fetchOHLCV': False,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
@@ -98,7 +131,9 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchPositions': False,
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchStatus': False,
                 'fetchTicker': False,
                 'fetchTickers': True,
@@ -108,11 +143,16 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'repayMargin': False,
                 'sandbox': False,
                 'setLeverage': False,
                 'setMargin': False,
+                'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
@@ -367,66 +407,44 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         coins = self.safe_list(response, 'result')
+        groupedById = self.group_by(coins, 'currency_code')
+        keys = list(groupedById.keys())
         result: dict = {}
-        for i in range(0, len(coins)):
-            networkEntry = coins[i]
-            currencyId = self.safe_string(networkEntry, 'currency_code')
-            code = self.safe_currency_code(currencyId)
-            if not (code in result):
-                result[code] = {
-                    'id': currencyId,
-                    'code': code,
-                    'precision': None,
-                    'type': None,
-                    'name': None,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
+        for i in range(0, len(keys)):
+            id = keys[i]
+            code = self.safe_currency_code(id)
+            networks = {}
+            networkEntries = groupedById[id]
+            for j in range(0, len(networkEntries)):
+                networkEntry = networkEntries[j]
+                networkId = self.safe_string(networkEntry, 'network_code')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
-                            'min': None,
-                            'max': None,
+                            'min': self.safe_number(networkEntry, 'min_withdraw'),
+                            'max': self.safe_number(networkEntry, 'max_withdraw'),
                         },
                         'deposit': {
-                            'min': None,
-                            'max': None,
+                            'min': self.safe_number(networkEntry, 'min_deposit'),
+                            'max': self.safe_number(networkEntry, 'max_deposit'),
                         },
                     },
-                    'networks': {},
-                    'info': {},
+                    'active': None,
+                    'deposit': self.safe_bool(networkEntry, 'can_withdraw'),
+                    'withdraw': self.safe_bool(networkEntry, 'can_deposit'),
+                    'fee': None,
+                    'precision': None,
+                    'info': networkEntry,
                 }
-            networkId = self.safe_string(networkEntry, 'network_code')
-            networkCode = self.network_id_to_code(networkId)
-            result[code]['networks'][networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(networkEntry, 'min_withdraw'),
-                        'max': self.safe_number(networkEntry, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': self.safe_number(networkEntry, 'min_deposit'),
-                        'max': self.safe_number(networkEntry, 'max_deposit'),
-                    },
-                },
-                'active': None,
-                'deposit': self.safe_bool(networkEntry, 'can_withdraw'),
-                'withdraw': self.safe_bool(networkEntry, 'can_deposit'),
-                'fee': None,
-                'precision': None,
-                'info': networkEntry,
-            }
-            # add entry in info
-            info = self.safe_list(result[code], 'info', [])
-            info.append(networkEntry)
-            result[code]['info'] = info
-        # only after all entries are formed in currencies, restructure each entry
-        allKeys = list(result.keys())
-        for i in range(0, len(allKeys)):
-            code = allKeys[i]
-            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
+            result[code] = self.safe_currency_structure({
+                'id': id,
+                'code': code,
+                'networks': networks,
+                'info': networkEntries,
+            })
         return result
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -437,7 +455,7 @@ class cryptomus(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -461,7 +479,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #
         #     {
         #         "currency_pair": "XMR_USDT",
-        #         "last_price": "158.04829771",
+        #         "last_price": "158.04829772",
         #         "base_volume": "0.35185785",
         #         "quote_volume": "55.523761128544"
         #     }
@@ -503,7 +521,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.level]: 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -547,7 +565,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(maximum value is 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -610,7 +628,7 @@ class cryptomus(Exchange, ImplicitAPI):
         https://doc.cryptomus.com/personal/converts/balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -665,7 +683,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *market buy only* the quote quantity that can be used alternative for the amount
         :param str [params.clientOrderId]: a unique identifier for the order(optional)
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -723,7 +741,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in(not used in cryptomus)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -734,7 +752,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        return response
+        return self.safe_order({'info': response})
 
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -751,7 +769,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.client_order_id]: client order id
         :param str [params.limit]: A special parameter that sets the maximum number of records the request will return
         :param str [params.offset]: A special parameter that sets the number of records from the beginning of the list
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -823,7 +841,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.client_order_id]: client order id
         :param str [params.limit]: A special parameter that sets the maximum number of records the request will return
         :param str [params.offset]: A special parameter that sets the number of records from the beginning of the list
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -981,7 +999,7 @@ class cryptomus(Exchange, ImplicitAPI):
         https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         response = self.privateGetV2UserApiExchangeAccountTariffs(params)
         #

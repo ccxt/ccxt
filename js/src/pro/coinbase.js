@@ -34,6 +34,11 @@ export default class coinbase extends coinbaseRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchTrades': true,
+                'unWatchOrders': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -95,6 +100,63 @@ export default class coinbase extends coinbaseRest {
     /**
      * @ignore
      * @method
+     * @description unSubscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} topic unified topic
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string} [symbol] unified market symbol
+     * @returns {object} subscription to a websocket channel
+     */
+    async unSubscribe(topic, name, isPrivate, symbol = undefined) {
+        await this.loadMarkets();
+        if (this.safeBool(this.options, 'unSubscriptionPending', false)) {
+            throw new ExchangeError(this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
+        }
+        this.options['unSubscriptionPending'] = true;
+        let market = undefined;
+        let watchMessageHash = name;
+        let unWatchMessageHash = 'unsubscribe:' + name;
+        let productIds = [];
+        if (Array.isArray(symbol)) {
+            const symbols = this.marketSymbols(symbol);
+            const marketIds = this.marketIds(symbols);
+            productIds = marketIds;
+            watchMessageHash = watchMessageHash + '::' + symbol.join(',');
+            unWatchMessageHash = unWatchMessageHash + '::' + symbol.join(',');
+        }
+        else if (symbol !== undefined) {
+            market = this.market(symbol);
+            watchMessageHash = name + '::' + symbol;
+            unWatchMessageHash = unWatchMessageHash + '::' + symbol;
+            productIds = [market['id']];
+        }
+        const url = this.urls['api']['ws'];
+        // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
+        let message = {
+            'type': 'unsubscribe',
+            'product_ids': productIds,
+            'channel': name,
+        };
+        const subscription = {
+            'messageHashes': [unWatchMessageHash],
+            'subMessageHashes': [watchMessageHash],
+            'topic': topic,
+            'unsubscribe': true,
+            'symbols': [symbol],
+        };
+        if (isPrivate) {
+            message = this.extend(message, this.createWSAuth(name, productIds));
+        }
+        this.options['unSubscription'] = subscription;
+        const res = await this.watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription);
+        this.options['unSubscriptionPending'] = false;
+        this.options['unSubscription'] = undefined;
+        return res;
+    }
+    /**
+     * @ignore
+     * @method
      * @description subscribes to a websocket channel
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
      * @param {string} name the name of the channel
@@ -125,6 +187,58 @@ export default class coinbase extends coinbaseRest {
             subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
         }
         return await this.watchMultiple(url, messageHashes, subscribe, messageHashes);
+    }
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} topic unified topic
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string[]} [symbols] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
+    async unSubscribeMultiple(topic, name, isPrivate, symbols = undefined, params = {}) {
+        if (this.safeBool(this.options, 'unSubscriptionPending', false)) {
+            throw new ExchangeError(this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
+        }
+        this.options['unSubscriptionPending'] = true;
+        await this.loadMarkets();
+        const productIds = [];
+        const watchMessageHashes = [];
+        const unWatchMessageHashes = [];
+        symbols = this.marketSymbols(symbols, undefined, false);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const marketId = market['id'];
+            productIds.push(marketId);
+            watchMessageHashes.push(name + '::' + symbol);
+            unWatchMessageHashes.push('unsubscribe:' + name + '::' + symbol);
+        }
+        const url = this.urls['api']['ws'];
+        let message = {
+            'type': 'unsubscribe',
+            'product_ids': productIds,
+            'channel': name,
+        };
+        if (isPrivate) {
+            message = this.extend(message, this.createWSAuth(name, productIds));
+        }
+        const subscription = {
+            'messageHashes': unWatchMessageHashes,
+            'subMessageHashes': watchMessageHashes,
+            'topic': topic,
+            'unsubscribe': true,
+            'symbols': symbols,
+        };
+        this.options['unSubscription'] = subscription;
+        const res = await this.watchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription);
+        this.options['unSubscriptionPending'] = false;
+        this.options['unSubscription'] = undefined;
+        return res;
     }
     createWSAuth(name, productIds) {
         const subscribe = {};
@@ -161,11 +275,26 @@ export default class coinbase extends coinbaseRest {
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
      * @param {string} [symbol] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
+        await this.loadMarkets();
         const name = 'ticker';
         return await this.subscribe(name, false, symbol, params);
+    }
+    /**
+     * @method
+     * @name coinbase#unWatchTicker
+     * @description stops watching a price ticker
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+     * @param {string} [symbol] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async unWatchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        const name = 'ticker';
+        return await this.unSubscribe('ticker', name, false, symbol);
     }
     /**
      * @method
@@ -174,9 +303,10 @@ export default class coinbase extends coinbaseRest {
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -189,6 +319,22 @@ export default class coinbase extends coinbaseRest {
             return tickers;
         }
         return this.tickers;
+    }
+    /**
+     * @method
+     * @name coinbase#unWatchTickers
+     * @description stop watching
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async unWatchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        return await this.unSubscribeMultiple('ticker', 'ticker_batch', false, symbols);
     }
     handleTickers(client, message) {
         //
@@ -360,7 +506,7 @@ export default class coinbase extends coinbaseRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -374,6 +520,20 @@ export default class coinbase extends coinbaseRest {
     }
     /**
      * @method
+     * @name coinbase#unWatchTrades
+     * @description stops watching the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async unWatchTrades(symbol, params = {}) {
+        await this.loadMarkets();
+        const name = 'market_trades';
+        return await this.unSubscribe('trades', name, false, symbol);
+    }
+    /**
+     * @method
      * @name coinbase#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
@@ -381,7 +541,7 @@ export default class coinbase extends coinbaseRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -396,6 +556,20 @@ export default class coinbase extends coinbaseRest {
     }
     /**
      * @method
+     * @name coinbase#unWatchTradesForSymbols
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        await this.loadMarkets();
+        const name = 'market_trades';
+        return await this.unSubscribeMultiple('trades', name, false, symbols, params);
+    }
+    /**
+     * @method
      * @name coinbase#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
@@ -403,7 +577,7 @@ export default class coinbase extends coinbaseRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -416,13 +590,27 @@ export default class coinbase extends coinbaseRest {
     }
     /**
      * @method
+     * @name coinbase#unWatchOrders
+     * @description stops watching information on multiple orders made by the user
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async unWatchOrders(symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const name = 'user';
+        return await this.unSubscribe('orders', name, true, this.symbol(symbol));
+    }
+    /**
+     * @method
      * @name coinbase#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -434,13 +622,28 @@ export default class coinbase extends coinbaseRest {
     }
     /**
      * @method
+     * @name coinbase#unWatchOrderBook
+     * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook(symbol, params = {}) {
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const name = 'level2';
+        return await this.unSubscribe('orderbook', name, false, symbol);
+    }
+    /**
+     * @method
      * @name coinbase#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -573,8 +776,9 @@ export default class coinbase extends coinbaseRest {
         const id = this.safeString(order, 'order_id');
         const clientOrderId = this.safeString(order, 'client_order_id');
         const marketId = this.safeString(order, 'product_id');
-        const datetime = this.safeString(order, 'time');
+        const datetime = this.safeString2(order, 'time', 'creation_time');
         market = this.safeMarket(marketId, market);
+        const stopPrice = this.safeString(order, 'stop_price');
         return this.safeOrder({
             'info': order,
             'symbol': this.safeString(market, 'symbol'),
@@ -586,16 +790,16 @@ export default class coinbase extends coinbaseRest {
             'type': this.safeString(order, 'order_type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': this.safeString(order, 'side'),
-            'price': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': undefined,
-            'cost': undefined,
+            'side': this.safeStringLower2(order, 'side', 'order_side'),
+            'price': this.safeString(order, 'limit_price'),
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'amount': this.safeString(order, 'cumulative_quantity'),
+            'cost': this.omitZero(this.safeString(order, 'filled_value')),
             'average': this.safeString(order, 'avg_price'),
             'filled': this.safeString(order, 'cumulative_quantity'),
             'remaining': this.safeString(order, 'leaves_quantity'),
-            'status': this.safeStringLower(order, 'status'),
+            'status': this.parseOrderStatus(this.safeString(order, 'status')),
             'fee': {
                 'amount': this.safeString(order, 'total_fees'),
                 'currency': this.safeString(market, 'quote'),
@@ -689,6 +893,31 @@ export default class coinbase extends coinbaseRest {
         //         ]
         //     }
         //
+        //
+        //      {
+        //        channel: 'subscriptions',
+        //        client_id: '',
+        //        timestamp: '2025-09-15T17:02:49.90120868Z',
+        //        sequence_num: 3,
+        //        events: [ { subscriptions: {} } ]
+        //      }
+        //
+        const events = this.safeList(message, 'events', []);
+        const firstEvent = this.safeValue(events, 0, {});
+        const isUnsub = ('subscriptions' in firstEvent);
+        const subKeys = Object.keys(firstEvent['subscriptions']);
+        const subKeysLength = subKeys.length;
+        if (isUnsub && subKeysLength === 0) {
+            const unSubObject = this.safeDict(this.options, 'unSubscription', {});
+            const messageHashes = this.safeList(unSubObject, 'messageHashes', []);
+            const subMessageHashes = this.safeList(unSubObject, 'subMessageHashes', []);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription(client, subHash, messageHash);
+            }
+            this.cleanCache(unSubObject);
+        }
         return message;
     }
     handleHeartbeats(client, message) {

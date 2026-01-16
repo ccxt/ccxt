@@ -5333,5 +5333,278 @@
       }
     },
     "margin": null
+  },
+  "ASR": {
+    "id": "ASR",
+    "name": "AS Roma Fan Token",
+    "code": "ASR",
+    "type": "crypto",
+    "precision": 0.01,
+    "info": {
+      "coin": "ASR",
+      "depositAllEnable": true,
+      "withdrawAllEnable": true,
+      "name": "AS Roma Fan Token",
+      "free": "0",
+      "locked": "0",
+      "freeze": "0",
+      "withdrawing": "0",
+      "ipoing": "0",
+      "ipoable": "0",
+      "storage": "0",
+      "isLegalMoney": false,
+      "trading": true,
+      "networkList": [
+        {
+          "network": "BSC",
+          "coin": "ASR",
+          "withdrawIntegerMultiple": "0.01",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": false,
+          "depositDesc": "",
+          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
+          "specialTips": "",
+          "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the BNB Smart Chain network. You will potentially lose your assets if the chosen platform does not support refunds of wrongfully deposited assets.",
+          "name": "BNB Smart Chain (BEP20)",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0.02",
+          "withdrawMin": "0.04",
+          "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.0004",
+          "minConfirm": "5",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "1",
+          "busy": false,
+          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddress": "0x80d5f92c2c8c682070c95495313ddb680b267320"
+        },
+        {
+          "network": "CHZ2",
+          "coin": "ASR",
+          "withdrawIntegerMultiple": "1",
+          "isDefault": true,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "Please make sure the token you are depositing ends with the contract address 89386.",
+          "specialWithdrawTips": "",
+          "name": "Chiliz Chain (CAP20)",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0",
+          "withdrawMin": "1",
+          "withdrawMax": "992457",
+          "withdrawInternalMin": "0",
+          "minConfirm": "15",
+          "unLockConfirm": "30",
+          "sameAddress": false,
+          "estimatedArrivalTime": "1",
+          "busy": false,
+          "contractAddressUrl": "https://chiliscan.com/token/",
+          "contractAddress": "0xa6610b3361c4c0d206aa3364cd985016c2d89386"
+        },
+        {
+          "network": "CHZ",
+          "coin": "ASR",
+          "withdrawIntegerMultiple": "1",
+          "isDefault": false,
+          "depositEnable": false,
+          "withdrawEnable": false,
+          "depositDesc": "Deposit for this token is not supported, please try other networks.",
+          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
+          "specialTips": "",
+          "specialWithdrawTips": "You are withdrawing tokens via the CHZ network. Please ensure that the receiving platform supports these tokens or you will be at risk of losing your assets.",
+          "name": "Chiliz Legacy Chain",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0",
+          "withdrawMin": "1",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
+          "minConfirm": "15",
+          "unLockConfirm": "30",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://explorer.chiliz.com/tokens/"
+        }
+      ]
+    },
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "networks": {
+      "BEP20": {
+        "info": {
+          "network": "BSC",
+          "coin": "ASR",
+          "withdrawIntegerMultiple": "0.01",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": false,
+          "depositDesc": "",
+          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
+          "specialTips": "",
+          "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the BNB Smart Chain network. You will potentially lose your assets if the chosen platform does not support refunds of wrongfully deposited assets.",
+          "name": "BNB Smart Chain (BEP20)",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0.02",
+          "withdrawMin": "0.04",
+          "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.0004",
+          "minConfirm": "5",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "1",
+          "busy": false,
+          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddress": "0x80d5f92c2c8c682070c95495313ddb680b267320"
+        },
+        "id": "BSC",
+        "network": "BEP20",
+        "active": false,
+        "deposit": true,
+        "withdraw": false,
+        "fee": 0.02,
+        "precision": 0.01,
+        "limits": {
+          "withdraw": {
+            "min": 0.04,
+            "max": 10000000000
+          },
+          "deposit": {
+            "min": 0.0004,
+            "max": null
+          }
+        }
+      },
+      "CHZ2": {
+        "info": {
+          "network": "CHZ2",
+          "coin": "ASR",
+          "withdrawIntegerMultiple": "1",
+          "isDefault": true,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "Please make sure the token you are depositing ends with the contract address 89386.",
+          "specialWithdrawTips": "",
+          "name": "Chiliz Chain (CAP20)",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0",
+          "withdrawMin": "1",
+          "withdrawMax": "992457",
+          "withdrawInternalMin": "0",
+          "minConfirm": "15",
+          "unLockConfirm": "30",
+          "sameAddress": false,
+          "estimatedArrivalTime": "1",
+          "busy": false,
+          "contractAddressUrl": "https://chiliscan.com/token/",
+          "contractAddress": "0xa6610b3361c4c0d206aa3364cd985016c2d89386"
+        },
+        "id": "CHZ2",
+        "network": "CHZ2",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "precision": 1,
+        "limits": {
+          "withdraw": {
+            "min": 1,
+            "max": 992457
+          },
+          "deposit": {
+            "min": null,
+            "max": null
+          }
+        }
+      },
+      "CHZ": {
+        "info": {
+          "network": "CHZ",
+          "coin": "ASR",
+          "withdrawIntegerMultiple": "1",
+          "isDefault": false,
+          "depositEnable": false,
+          "withdrawEnable": false,
+          "depositDesc": "Deposit for this token is not supported, please try other networks.",
+          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
+          "specialTips": "",
+          "specialWithdrawTips": "You are withdrawing tokens via the CHZ network. Please ensure that the receiving platform supports these tokens or you will be at risk of losing your assets.",
+          "name": "Chiliz Legacy Chain",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0",
+          "withdrawMin": "1",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
+          "minConfirm": "15",
+          "unLockConfirm": "30",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://explorer.chiliz.com/tokens/"
+        },
+        "id": "CHZ",
+        "network": "CHZ",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": 0,
+        "precision": 1,
+        "limits": {
+          "withdraw": {
+            "min": 1,
+            "max": 9999999
+          },
+          "deposit": {
+            "min": null,
+            "max": null
+          }
+        }
+      }
+    },
+    "fee": 0,
+    "fees": {
+      "BSC": 0.02,
+      "CHZ2": 0,
+      "CHZ": 0
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "margin": null
   }
 }

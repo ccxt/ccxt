@@ -5,10 +5,13 @@ namespace ccxt\pro;
 use React\EventLoop\Loop;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
+use RuntimeException;
+
 use function React\Promise\race;
 
 class Future implements PromiseInterface {
     private Deferred $deferred;
+    private bool $hasListeners = false;
 
     // implements PromiseInterface lets it be awaitable
     public function __construct() {
@@ -16,6 +19,7 @@ class Future implements PromiseInterface {
     }
 
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface {
+        $this->hasListeners = true;
         return $this->deferred->promise()->then($onFulfilled, $onRejected);
     }
 
@@ -34,22 +38,30 @@ class Future implements PromiseInterface {
     }
 
     public function catch(callable $onRejected): PromiseInterface {
+        $this->hasListeners = true;
         return $this->deferred->promise()->catch($onRejected);
     }
 
     public function finally(callable $onFulfilledOrRejected): PromiseInterface {
+        $this->hasListeners = true;
         return $this->deferred->promise()->finally($onFulfilledOrRejected);
     }
 
     public function cancel(): void {
-        $this->deferred->promise()->cancel();
+        if ($this->hasListeners) {
+            $this->deferred->reject(new RuntimeException('Promise has been canceled'));
+        } else {
+            $this->deferred->promise()->cancel();
+        }
     }
 
     public function otherwise(callable $onRejected): PromiseInterface {
+        // deprecated
         return $this->deferred->promise()->otherwise($onRejected);
     }
 
     public function always(callable $onFulfilledOrRejected): PromiseInterface {
+        // deprecated
         return $this->deferred->promise()->always($onFulfilledOrRejected);
     }
 

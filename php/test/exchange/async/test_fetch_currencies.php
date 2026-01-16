@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_currency.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_fetch_currencies($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
@@ -18,15 +17,19 @@ function test_fetch_currencies($exchange, $skipped_properties) {
         $currencies = Async\await($exchange->fetch_currencies());
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         $num_inactive_currencies = 0;
-        $max_inactive_currencies_percentage = 60; // no more than X% currencies should be inactive
+        $max_inactive_currencies_percentage = $exchange->safe_integer($skipped_properties, 'maxInactiveCurrenciesPercentage', 50); // no more than X% currencies should be inactive
         $required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC'];
-        // todo: remove undefined check
-        if ($currencies !== null) {
+        $features = $exchange->features;
+        $features_spot = $exchange->safe_dict($features, 'spot', array());
+        $fetch_currencies = $exchange->safe_dict($features_spot, 'fetchCurrencies', array());
+        $is_fetch_currencies_private = $exchange->safe_value($fetch_currencies, 'private', false);
+        if (!$is_fetch_currencies_private) {
             $values = is_array($currencies) ? array_values($currencies) : array();
             assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
             $currencies_length = count($values);
             // ensure exchange returns enough length of currencies
-            assert($currencies_length > 5, $exchange->id . ' ' . $method . ' must return at least several currencies, but it returned ' . ((string) $currencies_length));
+            $skip_amount = (is_array($skipped_properties) && array_key_exists('amountOfCurrencies', $skipped_properties));
+            assert($skip_amount || $currencies_length > 5, $exchange->id . ' ' . $method . ' must return at least several currencies, but it returned ' . ((string) $currencies_length));
             // allow skipped exchanges
             $skip_active = (is_array($skipped_properties) && array_key_exists('activeCurrenciesQuota', $skipped_properties));
             $skip_major_currency_check = (is_array($skipped_properties) && array_key_exists('activeMajorCurrencies', $skipped_properties));

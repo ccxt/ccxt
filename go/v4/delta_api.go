@@ -7,738 +7,202 @@
 
 package ccxt
 
-func (this *delta) PublicGetAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *delta) PublicGetIndices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetIndices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetIndices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetIndices", args...)
 }
 
-func (this *delta) PublicGetProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetProducts", args...)
 }
 
-func (this *delta) PublicGetProductsSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetProductsSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetProductsSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetProductsSymbol", args...)
 }
 
-func (this *delta) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *delta) PublicGetTickersSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickersSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetTickersSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickersSymbol", args...)
 }
 
-func (this *delta) PublicGetL2orderbookSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetL2orderbookSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetL2orderbookSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetL2orderbookSymbol", args...)
 }
 
-func (this *delta) PublicGetTradesSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradesSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetTradesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradesSymbol", args...)
 }
 
-func (this *delta) PublicGetStats (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetStats(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats", args...)
 }
 
-func (this *delta) PublicGetHistoryCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetHistoryCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetHistoryCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHistoryCandles", args...)
 }
 
-func (this *delta) PublicGetHistorySparklines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetHistorySparklines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetHistorySparklines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHistorySparklines", args...)
 }
 
-func (this *delta) PublicGetSettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PublicGetSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSettings", args...)
 }
 
-func (this *delta) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *delta) PrivateGetProductsProductIdOrdersLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetProductsProductIdOrdersLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
-func (this *delta) PrivateGetPositionsMargined (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPositionsMargined", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetOrdersClientOrderIdClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersClientOrderIdClientOid", args...)
 }
 
-func (this *delta) PrivateGetPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetProductsProductIdOrdersLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetProductsProductIdOrdersLeverage", args...)
 }
 
-func (this *delta) PrivateGetOrdersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetPositionsMargined(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPositionsMargined", args...)
 }
 
-func (this *delta) PrivateGetFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPositions", args...)
 }
 
-func (this *delta) PrivateGetFillsHistoryDownloadCsv (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFillsHistoryDownloadCsv", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
-func (this *delta) PrivateGetWalletBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWalletBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *delta) PrivateGetWalletTransactions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWalletTransactions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetFillsHistoryDownloadCsv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFillsHistoryDownloadCsv", args...)
 }
 
-func (this *delta) PrivateGetWalletTransactionsDownload (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWalletTransactionsDownload", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetWalletBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletBalances", args...)
 }
 
-func (this *delta) PrivateGetWalletsSubAccountsTransferHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWalletsSubAccountsTransferHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetWalletTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *delta) PrivateGetUsersTradingPreferences (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersTradingPreferences", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetWalletTransactionsDownload(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletTransactionsDownload", args...)
 }
 
-func (this *delta) PrivateGetSubAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSubAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetWalletsSubAccountsTransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletsSubAccountsTransferHistory", args...)
 }
 
-func (this *delta) PrivateGetProfile (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetProfile", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetUsersTradingPreferences(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersTradingPreferences", args...)
 }
 
-func (this *delta) PrivateGetDepositsAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDepositsAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetSubAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccounts", args...)
 }
 
-func (this *delta) PrivateGetOrdersLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetProfile(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetProfile", args...)
 }
 
-func (this *delta) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetHeartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHeartbeat", args...)
 }
 
-func (this *delta) PrivatePostOrdersBracket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersBracket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivateGetDepositsAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositsAddress", args...)
 }
 
-func (this *delta) PrivatePostOrdersBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *delta) PrivatePostProductsProductIdOrdersLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostProductsProductIdOrdersLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostOrdersBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersBracket", args...)
 }
 
-func (this *delta) PrivatePostPositionsChangeMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPositionsChangeMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *delta) PrivatePostPositionsCloseAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPositionsCloseAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostProductsProductIdOrdersLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostProductsProductIdOrdersLeverage", args...)
 }
 
-func (this *delta) PrivatePostWalletsSubAccountBalanceTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWalletsSubAccountBalanceTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostPositionsChangeMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPositionsChangeMargin", args...)
 }
 
-func (this *delta) PrivatePostOrdersCancelAfter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersCancelAfter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostPositionsCloseAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPositionsCloseAll", args...)
 }
 
-func (this *delta) PrivatePostOrdersLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostWalletsSubAccountBalanceTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletsSubAccountBalanceTransfer", args...)
 }
 
-func (this *delta) PrivatePutOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostHeartbeatCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHeartbeatCreate", args...)
 }
 
-func (this *delta) PrivatePutOrdersBracket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutOrdersBracket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostHeartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHeartbeat", args...)
 }
 
-func (this *delta) PrivatePutOrdersBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutOrdersBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostOrdersCancelAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersCancelAfter", args...)
 }
 
-func (this *delta) PrivatePutPositionsAutoTopup (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutPositionsAutoTopup", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePostOrdersLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersLeverage", args...)
 }
 
-func (this *delta) PrivatePutUsersUpdateMmp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutUsersUpdateMmp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePutOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrders", args...)
 }
 
-func (this *delta) PrivatePutUsersResetMmp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutUsersResetMmp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePutOrdersBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrdersBracket", args...)
 }
 
-func (this *delta) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePutOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrdersBatch", args...)
 }
 
-func (this *delta) PrivateDeleteOrdersAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrdersAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePutPositionsAutoTopup(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutPositionsAutoTopup", args...)
 }
 
-func (this *delta) PrivateDeleteOrdersBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrdersBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DeltaCore) PrivatePutUsersUpdateMmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutUsersUpdateMmp", args...)
+}
+
+func (this *DeltaCore) PrivatePutUsersResetMmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutUsersResetMmp", args...)
+}
+
+func (this *DeltaCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+func (this *DeltaCore) PrivateDeleteOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
+}
+
+func (this *DeltaCore) PrivateDeleteOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
 }

@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_order_book.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symbols) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbols) {
@@ -19,6 +18,7 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
         $ends = $now + 15000;
         while ($now < $ends) {
             $response = null;
+            $success = true;
             try {
                 $response = Async\await($exchange->watch_order_book_for_symbols($symbols));
             } catch(\Throwable $e) {
@@ -27,13 +27,17 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                continue;
+                // continue;
+                $success = false;
             }
-            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an object. ' . $exchange->json($response));
-            $now = $exchange->milliseconds();
-            assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
-            test_order_book($exchange, $skipped_properties, $method, $response, null);
+            if ($success === true) {
+                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an object. ' . $exchange->json($response));
+                $now = $exchange->milliseconds();
+                assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
+                test_order_book($exchange, $skipped_properties, $method, $response, null);
+            }
         }
+        return true;
     }) ();
 }

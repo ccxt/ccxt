@@ -7,4946 +7,1450 @@
 
 package ccxt
 
-func (this *bybit) PublicGetSpotV3PublicSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicQuoteDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicQuoteDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicQuoteDepthMerged (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicQuoteDepthMerged", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicQuoteTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicQuoteTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicQuoteKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicQuoteKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicQuoteTicker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicQuoteTicker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicQuoteTickerPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicQuoteTickerPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicQuoteTickerBookTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicQuoteTickerBookTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicServerTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicServerTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicInfos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicInfos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicMarginProductInfos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicMarginProductInfos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetSpotV3PublicMarginEnsureTokens (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSpotV3PublicMarginEnsureTokens", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV3PublicTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV3PublicTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetContractV3PublicCopytradingSymbolList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetContractV3PublicCopytradingSymbolList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicOrderBookL2 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicOrderBookL2", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicInstrumentsInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicInstrumentsInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicMarkPriceKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicMarkPriceKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicIndexPriceKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicIndexPriceKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicFundingHistoryFundingRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicFundingHistoryFundingRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicRiskLimitList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicRiskLimitList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicDeliveryPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicDeliveryPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicRecentTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicRecentTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicOpenInterest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicOpenInterest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetDerivativesV3PublicInsurance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDerivativesV3PublicInsurance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5AnnouncementsIndex (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5AnnouncementsIndex", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketMarkPriceKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketMarkPriceKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketIndexPriceKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketIndexPriceKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketPremiumIndexPriceKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketPremiumIndexPriceKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketInstrumentsInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketInstrumentsInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketFundingHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketFundingHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketRecentTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketRecentTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketOpenInterest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketOpenInterest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketHistoricalVolatility (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketHistoricalVolatility", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketInsurance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketInsurance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketRiskLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketRiskLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketDeliveryPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketDeliveryPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5MarketAccountRatio (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5MarketAccountRatio", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5SpotLeverTokenInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5SpotLeverTokenInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5SpotLeverTokenReference (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5SpotLeverTokenReference", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5SpotMarginTradeData (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5SpotMarginTradeData", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5SpotMarginTradeCollateral (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5SpotMarginTradeCollateral", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5SpotCrossMarginTradeData (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5SpotCrossMarginTradeData", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5SpotCrossMarginTradePledgeToken (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5SpotCrossMarginTradePledgeToken", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5SpotCrossMarginTradeBorrowToken (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5SpotCrossMarginTradeBorrowToken", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5CryptoLoanCollateralData (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5CryptoLoanCollateralData", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5CryptoLoanLoanableData (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5CryptoLoanLoanableData", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5InsLoanProductInfos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5InsLoanProductInfos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5InsLoanEnsureTokensConvert (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5InsLoanEnsureTokensConvert", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PublicGetV5EarnProduct (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetV5EarnProduct", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5MarketInstrumentsInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5MarketInstrumentsInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV2PrivateWalletFundRecords (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV2PrivateWalletFundRecords", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateHistoryOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateHistoryOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateMyTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateMyTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateReference (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateReference", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateCrossMarginOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateCrossMarginOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateCrossMarginAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateCrossMarginAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateCrossMarginLoanInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateCrossMarginLoanInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateCrossMarginRepayHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateCrossMarginRepayHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateMarginLoanInfos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateMarginLoanInfos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateMarginRepaidInfos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateMarginRepaidInfos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetSpotV3PrivateMarginLtv (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotV3PrivateMarginLtv", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateTransferInterTransferListQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateTransferInterTransferListQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateTransferSubMemberListQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateTransferSubMemberListQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateTransferSubMemberTransferListQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateTransferSubMemberTransferListQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateTransferUniversalTransferListQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateTransferUniversalTransferListQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateCoinInfoQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateCoinInfoQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateDepositAddressQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateDepositAddressQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateCopytradingOrderList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateCopytradingOrderList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateCopytradingPositionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateCopytradingPositionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateCopytradingWalletBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateCopytradingWalletBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivatePositionLimitInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivatePositionLimitInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateOrderUnfilledOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateOrderUnfilledOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateOrderList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateOrderList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivatePositionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivatePositionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateExecutionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateExecutionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivatePositionClosedPnl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivatePositionClosedPnl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateAccountWalletBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateAccountWalletBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateAccountFeeRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateAccountFeeRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetContractV3PrivateAccountWalletFundRecords (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContractV3PrivateAccountWalletFundRecords", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateOrderUnfilledOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateOrderUnfilledOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateOrderList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateOrderList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivatePositionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivatePositionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateExecutionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateExecutionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateDeliveryRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateDeliveryRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateSettlementRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateSettlementRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountWalletBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateAccountWalletBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountTransactionLog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateAccountTransactionLog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountBorrowHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateAccountBorrowHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountBorrowRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateAccountBorrowRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUnifiedV3PrivateAccountInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUserV3PrivateFrozenSubMember (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserV3PrivateFrozenSubMember", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUserV3PrivateQuerySubMembers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserV3PrivateQuerySubMembers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUserV3PrivateQueryApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserV3PrivateQueryApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetUserV3PrivateGetMemberType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserV3PrivateGetMemberType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateTransferTransferCoinListQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateTransferTransferCoinListQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateTransferAccountCoinBalanceQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateTransferAccountCoinBalanceQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateTransferAccountCoinsBalanceQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateTransferAssetInfoQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateTransferAssetInfoQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PublicDepositAllowedDepositListQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PublicDepositAllowedDepositListQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateDepositRecordQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateDepositRecordQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetAssetV3PrivateWithdrawRecordQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetV3PrivateWithdrawRecordQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5OrderRealtime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5OrderRealtime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5OrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5OrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5OrderSpotBorrowCheck (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5OrderSpotBorrowCheck", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PositionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PositionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5ExecutionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5ExecutionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PositionClosedPnl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PositionClosedPnl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PositionMoveHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PositionMoveHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PreUpgradeOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PreUpgradeOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PreUpgradeExecutionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PreUpgradeExecutionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PreUpgradePositionClosedPnl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PreUpgradePositionClosedPnl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PreUpgradeAccountTransactionLog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PreUpgradeAccountTransactionLog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PreUpgradeAssetDeliveryRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PreUpgradeAssetDeliveryRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5PreUpgradeAssetSettlementRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5PreUpgradeAssetSettlementRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountWalletBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountWalletBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountBorrowHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountBorrowHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountCollateralInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountCollateralInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetCoinGreeks (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetCoinGreeks", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountFeeRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountFeeRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountTransactionLog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountTransactionLog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountContractTransactionLog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountContractTransactionLog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountSmpGroup (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountSmpGroup", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountMmpState (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountMmpState", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AccountWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AccountWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetExchangeQueryCoinList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetExchangeQueryCoinList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetExchangeConvertResultQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetExchangeConvertResultQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetExchangeQueryConvertHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetExchangeQueryConvertHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetExchangeOrderRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetExchangeOrderRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetDeliveryRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetDeliveryRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetSettlementRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetSettlementRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetTransferQueryAssetInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetTransferQueryAssetInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetTransferQueryAccountCoinsBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetTransferQueryAccountCoinsBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetTransferQueryAccountCoinBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetTransferQueryAccountCoinBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetTransferQueryTransferCoinList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetTransferQueryTransferCoinList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetTransferQueryInterTransferList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetTransferQueryInterTransferList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetTransferQuerySubMemberList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetTransferQuerySubMemberList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetTransferQueryUniversalTransferList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetTransferQueryUniversalTransferList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetDepositQueryAllowedList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetDepositQueryAllowedList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetDepositQueryRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetDepositQueryRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetDepositQuerySubMemberRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetDepositQuerySubMemberRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetDepositQueryInternalRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetDepositQueryInternalRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetDepositQueryAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetDepositQueryAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetDepositQuerySubMemberAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetDepositQuerySubMemberAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetCoinQueryInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetCoinQueryInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetWithdrawQueryRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetWithdrawQueryRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetWithdrawWithdrawableAmount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetWithdrawWithdrawableAmount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AssetWithdrawVaspList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AssetWithdrawVaspList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5UserQuerySubMembers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5UserQuerySubMembers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5UserQueryApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5UserQueryApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5UserSubApikeys (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5UserSubApikeys", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5UserGetMemberType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5UserGetMemberType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5UserAffCustomerInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5UserAffCustomerInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5UserDelSubmember (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5UserDelSubmember", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5UserSubmembers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5UserSubmembers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5AffiliateAffUserList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5AffiliateAffUserList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5SpotLeverTokenOrderRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5SpotLeverTokenOrderRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5SpotMarginTradeInterestRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5SpotMarginTradeInterestRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5SpotMarginTradeState (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5SpotMarginTradeState", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5SpotCrossMarginTradeLoanInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5SpotCrossMarginTradeLoanInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5SpotCrossMarginTradeAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5SpotCrossMarginTradeAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5SpotCrossMarginTradeOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5SpotCrossMarginTradeOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5SpotCrossMarginTradeRepayHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5SpotCrossMarginTradeRepayHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5CryptoLoanBorrowableCollateralisableNumber (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5CryptoLoanBorrowableCollateralisableNumber", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5CryptoLoanOngoingOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5CryptoLoanOngoingOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5CryptoLoanRepaymentHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5CryptoLoanRepaymentHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5CryptoLoanBorrowHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5CryptoLoanBorrowHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5CryptoLoanMaxCollateralAmount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5CryptoLoanMaxCollateralAmount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5CryptoLoanAdjustmentHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5CryptoLoanAdjustmentHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5InsLoanProductInfos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5InsLoanProductInfos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5InsLoanEnsureTokensConvert (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5InsLoanEnsureTokensConvert", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5InsLoanLoanOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5InsLoanLoanOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5InsLoanRepaidHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5InsLoanRepaidHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5InsLoanLtvConvert (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5InsLoanLtvConvert", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5LendingInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5LendingInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5LendingHistoryOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5LendingHistoryOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5LendingAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5LendingAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5BrokerEarningRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5BrokerEarningRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5BrokerEarningsInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5BrokerEarningsInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5BrokerAccountInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5BrokerAccountInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5BrokerAssetQuerySubMemberDepositRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5BrokerAssetQuerySubMemberDepositRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5EarnOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5EarnOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivateGetV5EarnPosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetV5EarnPosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostSpotV3PrivateOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotV3PrivateOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostSpotV3PrivateCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotV3PrivateCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostSpotV3PrivateCancelOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotV3PrivateCancelOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostSpotV3PrivateCancelOrdersByIds (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotV3PrivateCancelOrdersByIds", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostSpotV3PrivatePurchase (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotV3PrivatePurchase", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostSpotV3PrivateRedeem (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotV3PrivateRedeem", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostSpotV3PrivateCrossMarginLoan (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotV3PrivateCrossMarginLoan", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostSpotV3PrivateCrossMarginRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotV3PrivateCrossMarginRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostAssetV3PrivateTransferInterTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetV3PrivateTransferInterTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostAssetV3PrivateWithdrawCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetV3PrivateWithdrawCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostAssetV3PrivateWithdrawCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetV3PrivateWithdrawCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostAssetV3PrivateTransferSubMemberTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetV3PrivateTransferSubMemberTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostAssetV3PrivateTransferTransferSubMemberSave (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetV3PrivateTransferTransferSubMemberSave", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostAssetV3PrivateTransferUniversalTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetV3PrivateTransferUniversalTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUserV3PrivateCreateSubMember (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserV3PrivateCreateSubMember", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUserV3PrivateCreateSubApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserV3PrivateCreateSubApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUserV3PrivateUpdateApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserV3PrivateUpdateApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUserV3PrivateDeleteApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserV3PrivateDeleteApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUserV3PrivateUpdateSubApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserV3PrivateUpdateSubApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUserV3PrivateDeleteSubApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserV3PrivateDeleteSubApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateCopytradingOrderCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateCopytradingOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderClose (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateCopytradingOrderClose", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateCopytradingPositionClose (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateCopytradingPositionClose", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateCopytradingPositionSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateCopytradingPositionSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateCopytradingWalletTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateCopytradingWalletTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderTradingStop (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateCopytradingOrderTradingStop", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateOrderCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateOrderCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateOrderCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateOrderCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateOrderReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateOrderReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivatePositionSetAutoAddMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivatePositionSetAutoAddMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivatePositionSwitchIsolated (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivatePositionSwitchIsolated", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivatePositionSwitchMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivatePositionSwitchMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivatePositionSwitchTpslMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivatePositionSwitchTpslMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivatePositionSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivatePositionSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivatePositionTradingStop (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivatePositionTradingStop", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivatePositionSetRiskLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivatePositionSetRiskLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostContractV3PrivateAccountSetMarginMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostContractV3PrivateAccountSetMarginMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateOrderCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateOrderReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCreateBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateOrderCreateBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderReplaceBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateOrderReplaceBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancelBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateOrderCancelBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateOrderCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivatePositionSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivatePositionSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivatePositionTpslSwitchMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivatePositionTpslSwitchMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivatePositionSetRiskLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivatePositionSetRiskLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivatePositionTradingStop (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivatePositionTradingStop", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostUnifiedV3PrivateAccountSetMarginMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUnifiedV3PrivateAccountSetMarginMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateRegistertime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFhtComplianceTaxV3PrivateRegistertime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFhtComplianceTaxV3PrivateCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFhtComplianceTaxV3PrivateStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateUrl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFhtComplianceTaxV3PrivateUrl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5OrderCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5OrderCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5OrderAmend (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5OrderAmend", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5OrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5OrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5OrderCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5OrderCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5OrderCreateBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5OrderCreateBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5OrderAmendBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5OrderAmendBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5OrderCancelBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5OrderCancelBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5OrderDisconnectedCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5OrderDisconnectedCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionSwitchIsolated (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionSwitchIsolated", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionSetTpslMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionSetTpslMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionSwitchMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionSwitchMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionSetRiskLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionSetRiskLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionTradingStop (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionTradingStop", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionSetAutoAddMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionSetAutoAddMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionAddMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionAddMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionMovePositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionMovePositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5PositionConfirmPendingMmr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5PositionConfirmPendingMmr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountUpgradeToUta (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountUpgradeToUta", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountQuickRepayment (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountQuickRepayment", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountSetMarginMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountSetMarginMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountSetHedgingMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountSetHedgingMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountMmpModify (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountMmpModify", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountMmpReset (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountMmpReset", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AssetExchangeQuoteApply (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AssetExchangeQuoteApply", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AssetExchangeConvertExecute (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AssetExchangeConvertExecute", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AssetTransferInterTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AssetTransferInterTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AssetTransferSaveTransferSubMember (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AssetTransferSaveTransferSubMember", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AssetTransferUniversalTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AssetTransferUniversalTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AssetDepositDepositToAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AssetDepositDepositToAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AssetWithdrawCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AssetWithdrawCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AssetWithdrawCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AssetWithdrawCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5UserCreateSubMember (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5UserCreateSubMember", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5UserCreateSubApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5UserCreateSubApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5UserFrozenSubMember (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5UserFrozenSubMember", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5UserUpdateApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5UserUpdateApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5UserUpdateSubApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5UserUpdateSubApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5UserDeleteApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5UserDeleteApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5UserDeleteSubApi (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5UserDeleteSubApi", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5SpotLeverTokenPurchase (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5SpotLeverTokenPurchase", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5SpotLeverTokenRedeem (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5SpotLeverTokenRedeem", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5SpotMarginTradeSwitchMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5SpotMarginTradeSwitchMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5SpotMarginTradeSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5SpotMarginTradeSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5SpotCrossMarginTradeLoan (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5SpotCrossMarginTradeLoan", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5SpotCrossMarginTradeRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5SpotCrossMarginTradeRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5SpotCrossMarginTradeSwitch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5SpotCrossMarginTradeSwitch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5CryptoLoanBorrow (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5CryptoLoanBorrow", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5CryptoLoanRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5CryptoLoanRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5CryptoLoanAdjustLtv (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5CryptoLoanAdjustLtv", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5InsLoanAssociationUid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5InsLoanAssociationUid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5LendingPurchase (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5LendingPurchase", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5LendingRedeem (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5LendingRedeem", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5LendingRedeemCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5LendingRedeemCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountSetCollateralSwitch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountSetCollateralSwitch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountSetCollateralSwitchBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountSetCollateralSwitchBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5AccountDemoApplyMoney (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5AccountDemoApplyMoney", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5BrokerAwardInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5BrokerAwardInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5BrokerAwardDistributeAward (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5BrokerAwardDistributeAward", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5BrokerAwardDistributionRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5BrokerAwardDistributionRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bybit) PrivatePostV5EarnPlaceOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostV5EarnPlaceOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BybitCore) PublicGetSpotV3PublicSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicSymbols", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicQuoteDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepth", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicQuoteDepthMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepthMerged", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicQuoteTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTrades", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicQuoteKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteKline", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicQuoteTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTicker24hr", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicQuoteTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerPrice", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicQuoteTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerBookTicker", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicServerTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicServerTime", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicInfos", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicMarginProductInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicMarginProductInfos", args...)
+}
+
+func (this *BybitCore) PublicGetSpotV3PublicMarginEnsureTokens(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicMarginEnsureTokens", args...)
+}
+
+func (this *BybitCore) PublicGetV3PublicTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3PublicTime", args...)
+}
+
+func (this *BybitCore) PublicGetContractV3PublicCopytradingSymbolList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetContractV3PublicCopytradingSymbolList", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicOrderBookL2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicOrderBookL2", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicKline", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicTickers", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicInstrumentsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicInstrumentsInfo", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicMarkPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicMarkPriceKline", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicIndexPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicIndexPriceKline", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicFundingHistoryFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicFundingHistoryFundingRate", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicRiskLimitList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicRiskLimitList", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicDeliveryPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicDeliveryPrice", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicRecentTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicRecentTrade", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicOpenInterest", args...)
+}
+
+func (this *BybitCore) PublicGetDerivativesV3PublicInsurance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicInsurance", args...)
+}
+
+func (this *BybitCore) PublicGetV5AnnouncementsIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5AnnouncementsIndex", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketTime", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketKline", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketMarkPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketMarkPriceKline", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketIndexPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketIndexPriceKline", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketPremiumIndexPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketPremiumIndexPriceKline", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketInstrumentsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketInstrumentsInfo", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketOrderbook", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketTickers", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketFundingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketFundingHistory", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketRecentTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketRecentTrade", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketOpenInterest", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketHistoricalVolatility(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketHistoricalVolatility", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketInsurance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketInsurance", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketRiskLimit", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketDeliveryPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketDeliveryPrice", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketAccountRatio", args...)
+}
+
+func (this *BybitCore) PublicGetV5SpotLeverTokenInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotLeverTokenInfo", args...)
+}
+
+func (this *BybitCore) PublicGetV5SpotLeverTokenReference(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotLeverTokenReference", args...)
+}
+
+func (this *BybitCore) PublicGetV5SpotMarginTradeData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotMarginTradeData", args...)
+}
+
+func (this *BybitCore) PublicGetV5SpotMarginTradeCollateral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotMarginTradeCollateral", args...)
+}
+
+func (this *BybitCore) PublicGetV5SpotCrossMarginTradeData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeData", args...)
+}
+
+func (this *BybitCore) PublicGetV5SpotCrossMarginTradePledgeToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradePledgeToken", args...)
+}
+
+func (this *BybitCore) PublicGetV5SpotCrossMarginTradeBorrowToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeBorrowToken", args...)
+}
+
+func (this *BybitCore) PublicGetV5CryptoLoanCollateralData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5CryptoLoanCollateralData", args...)
+}
+
+func (this *BybitCore) PublicGetV5CryptoLoanLoanableData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5CryptoLoanLoanableData", args...)
+}
+
+func (this *BybitCore) PublicGetV5CryptoLoanCommonLoanableData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5CryptoLoanCommonLoanableData", args...)
+}
+
+func (this *BybitCore) PublicGetV5CryptoLoanCommonCollateralData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5CryptoLoanCommonCollateralData", args...)
+}
+
+func (this *BybitCore) PublicGetV5CryptoLoanFixedSupplyOrderQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5CryptoLoanFixedSupplyOrderQuote", args...)
+}
+
+func (this *BybitCore) PublicGetV5CryptoLoanFixedBorrowOrderQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5CryptoLoanFixedBorrowOrderQuote", args...)
+}
+
+func (this *BybitCore) PublicGetV5InsLoanProductInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5InsLoanProductInfos", args...)
+}
+
+func (this *BybitCore) PublicGetV5InsLoanEnsureTokensConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5InsLoanEnsureTokensConvert", args...)
+}
+
+func (this *BybitCore) PublicGetV5EarnProduct(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5EarnProduct", args...)
+}
+
+func (this *BybitCore) PrivateGetV5MarketInstrumentsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5MarketInstrumentsInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV2PrivateWalletFundRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2PrivateWalletFundRecords", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateOrder", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateOpenOrders", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateHistoryOrders", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMyTrades", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateAccount", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateReference(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateReference", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginOrders", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginAccount", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginLoanInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginRepayHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateMarginLoanInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginLoanInfos", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateMarginRepaidInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginRepaidInfos", args...)
+}
+
+func (this *BybitCore) PrivateGetSpotV3PrivateMarginLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginLtv", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferInterTransferListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferInterTransferListQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferSubMemberListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberListQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferSubMemberTransferListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberTransferListQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferUniversalTransferListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferUniversalTransferListQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateCoinInfoQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateCoinInfoQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateDepositAddressQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateDepositAddressQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateCopytradingOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingOrderList", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateCopytradingPositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingPositionList", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateCopytradingWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingWalletBalance", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivatePositionLimitInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionLimitInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateOrderUnfilledOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateOrderUnfilledOrders", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateOrderList", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivatePositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionList", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateExecutionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateExecutionList", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivatePositionClosedPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionClosedPnl", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateAccountWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletBalance", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateAccountFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountFeeRate", args...)
+}
+
+func (this *BybitCore) PrivateGetContractV3PrivateAccountWalletFundRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletFundRecords", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateOrderUnfilledOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderUnfilledOrders", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderList", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivatePositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivatePositionList", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateExecutionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateExecutionList", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateDeliveryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateDeliveryRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateSettlementRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateSettlementRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountWalletBalance", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountTransactionLog", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountBorrowRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowRate", args...)
+}
+
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetUserV3PrivateFrozenSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserV3PrivateFrozenSubMember", args...)
+}
+
+func (this *BybitCore) PrivateGetUserV3PrivateQuerySubMembers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserV3PrivateQuerySubMembers", args...)
+}
+
+func (this *BybitCore) PrivateGetUserV3PrivateQueryApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserV3PrivateQueryApi", args...)
+}
+
+func (this *BybitCore) PrivateGetUserV3PrivateGetMemberType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserV3PrivateGetMemberType", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferTransferCoinListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferTransferCoinListQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferAccountCoinBalanceQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinBalanceQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferAccountCoinsBalanceQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferAssetInfoQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAssetInfoQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PublicDepositAllowedDepositListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PublicDepositAllowedDepositListQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateDepositRecordQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateDepositRecordQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetAssetV3PrivateWithdrawRecordQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateWithdrawRecordQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetV5OrderRealtime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5OrderRealtime", args...)
+}
+
+func (this *BybitCore) PrivateGetV5OrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5OrderHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5OrderSpotBorrowCheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5OrderSpotBorrowCheck", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PositionList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5ExecutionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5ExecutionList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PositionClosedPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PositionClosedPnl", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PositionMoveHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PositionMoveHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PreUpgradeOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeOrderHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PreUpgradeExecutionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeExecutionList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PreUpgradePositionClosedPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradePositionClosedPnl", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PreUpgradeAccountTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAccountTransactionLog", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PreUpgradeAssetDeliveryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAssetDeliveryRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PreUpgradeAssetSettlementRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAssetSettlementRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountWalletBalance", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountBorrowHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountInstrumentsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountInstrumentsInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountCollateralInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountCollateralInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetCoinGreeks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetCoinGreeks", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountFeeRate", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountTransactionLog", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountContractTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountContractTransactionLog", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountSmpGroup(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountSmpGroup", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountMmpState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountMmpState", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountWithdrawal", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetExchangeQueryCoinList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetExchangeQueryCoinList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetExchangeConvertResultQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetExchangeConvertResultQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetExchangeQueryConvertHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetExchangeQueryConvertHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetExchangeOrderRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetExchangeOrderRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetDeliveryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDeliveryRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetSettlementRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetSettlementRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetTransferQueryAssetInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAssetInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetTransferQueryAccountCoinsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinsBalance", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetTransferQueryAccountCoinBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinBalance", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetTransferQueryTransferCoinList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryTransferCoinList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetTransferQueryInterTransferList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryInterTransferList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetTransferQuerySubMemberList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQuerySubMemberList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetTransferQueryUniversalTransferList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryUniversalTransferList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetDepositQueryAllowedList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryAllowedList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetDepositQueryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetDepositQuerySubMemberRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetDepositQueryInternalRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryInternalRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetDepositQueryAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryAddress", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetDepositQuerySubMemberAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberAddress", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetCoinQueryInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetCoinQueryInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetWithdrawQueryAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawQueryAddress", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetWithdrawQueryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawQueryRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetWithdrawWithdrawableAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawWithdrawableAmount", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetWithdrawVaspList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawVaspList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetConvertSmallBalanceList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetConvertSmallBalanceList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetConvertSmallBalanceHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetConvertSmallBalanceHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5FiatQueryCoinList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5FiatQueryCoinList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5FiatReferencePrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5FiatReferencePrice", args...)
+}
+
+func (this *BybitCore) PrivateGetV5FiatTradeQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5FiatTradeQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetV5FiatQueryTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5FiatQueryTradeHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5FiatBalanceQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5FiatBalanceQuery", args...)
+}
+
+func (this *BybitCore) PrivateGetV5UserQuerySubMembers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserQuerySubMembers", args...)
+}
+
+func (this *BybitCore) PrivateGetV5UserQueryApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserQueryApi", args...)
+}
+
+func (this *BybitCore) PrivateGetV5UserSubApikeys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserSubApikeys", args...)
+}
+
+func (this *BybitCore) PrivateGetV5UserGetMemberType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserGetMemberType", args...)
+}
+
+func (this *BybitCore) PrivateGetV5UserAffCustomerInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserAffCustomerInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5UserDelSubmember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserDelSubmember", args...)
+}
+
+func (this *BybitCore) PrivateGetV5UserSubmembers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserSubmembers", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AffiliateAffUserList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AffiliateAffUserList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotLeverTokenOrderRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotLeverTokenOrderRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeInterestRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeInterestRateHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeState", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeMaxBorrowable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeMaxBorrowable", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradePositionTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradePositionTiers", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeCoinstate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeCoinstate", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeRepaymentAvailableAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeRepaymentAvailableAmount", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeGetAutoRepayMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeGetAutoRepayMode", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeLoanInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeAccount", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeOrders", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeRepayHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanBorrowableCollateralisableNumber(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanBorrowableCollateralisableNumber", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanOngoingOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanOngoingOrders", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanRepaymentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanRepaymentHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanBorrowHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanMaxCollateralAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanMaxCollateralAmount", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanAdjustmentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanAdjustmentHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanCommonMaxCollateralAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanCommonMaxCollateralAmount", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanCommonAdjustmentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanCommonAdjustmentHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanCommonPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanCommonPosition", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleOngoingCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleOngoingCoin", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleBorrowHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleRepaymentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleRepaymentHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedBorrowContractInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedBorrowContractInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedSupplyContractInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedSupplyContractInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedBorrowOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedBorrowOrderInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedRenewInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedRenewInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedSupplyOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedSupplyOrderInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedRepaymentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedRepaymentHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5InsLoanProductInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanProductInfos", args...)
+}
+
+func (this *BybitCore) PrivateGetV5InsLoanEnsureTokensConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanEnsureTokensConvert", args...)
+}
+
+func (this *BybitCore) PrivateGetV5InsLoanLoanOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanLoanOrder", args...)
+}
+
+func (this *BybitCore) PrivateGetV5InsLoanRepaidHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanRepaidHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5InsLoanLtvConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanLtvConvert", args...)
+}
+
+func (this *BybitCore) PrivateGetV5LendingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5LendingInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5LendingHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5LendingHistoryOrder", args...)
+}
+
+func (this *BybitCore) PrivateGetV5LendingAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5LendingAccount", args...)
+}
+
+func (this *BybitCore) PrivateGetV5BrokerEarningRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5BrokerEarningRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5BrokerEarningsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5BrokerEarningsInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5BrokerAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5BrokerAccountInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5BrokerAssetQuerySubMemberDepositRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5BrokerAssetQuerySubMemberDepositRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5EarnProduct(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5EarnProduct", args...)
+}
+
+func (this *BybitCore) PrivateGetV5EarnOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5EarnOrder", args...)
+}
+
+func (this *BybitCore) PrivateGetV5EarnPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5EarnPosition", args...)
+}
+
+func (this *BybitCore) PrivateGetV5EarnYield(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5EarnYield", args...)
+}
+
+func (this *BybitCore) PrivateGetV5EarnHourlyYield(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5EarnHourlyYield", args...)
+}
+
+func (this *BybitCore) PrivatePostSpotV3PrivateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateOrder", args...)
+}
+
+func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrder", args...)
+}
+
+func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrders", args...)
+}
+
+func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrdersByIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrdersByIds", args...)
+}
+
+func (this *BybitCore) PrivatePostSpotV3PrivatePurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivatePurchase", args...)
+}
+
+func (this *BybitCore) PrivatePostSpotV3PrivateRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateRedeem", args...)
+}
+
+func (this *BybitCore) PrivatePostSpotV3PrivateCrossMarginLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginLoan", args...)
+}
+
+func (this *BybitCore) PrivatePostSpotV3PrivateCrossMarginRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginRepay", args...)
+}
+
+func (this *BybitCore) PrivatePostAssetV3PrivateTransferInterTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferInterTransfer", args...)
+}
+
+func (this *BybitCore) PrivatePostAssetV3PrivateWithdrawCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCreate", args...)
+}
+
+func (this *BybitCore) PrivatePostAssetV3PrivateWithdrawCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostAssetV3PrivateTransferSubMemberTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferSubMemberTransfer", args...)
+}
+
+func (this *BybitCore) PrivatePostAssetV3PrivateTransferTransferSubMemberSave(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferTransferSubMemberSave", args...)
+}
+
+func (this *BybitCore) PrivatePostAssetV3PrivateTransferUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferUniversalTransfer", args...)
+}
+
+func (this *BybitCore) PrivatePostUserV3PrivateCreateSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateCreateSubMember", args...)
+}
+
+func (this *BybitCore) PrivatePostUserV3PrivateCreateSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateCreateSubApi", args...)
+}
+
+func (this *BybitCore) PrivatePostUserV3PrivateUpdateApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateUpdateApi", args...)
+}
+
+func (this *BybitCore) PrivatePostUserV3PrivateDeleteApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateDeleteApi", args...)
+}
+
+func (this *BybitCore) PrivatePostUserV3PrivateUpdateSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateUpdateSubApi", args...)
+}
+
+func (this *BybitCore) PrivatePostUserV3PrivateDeleteSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateDeleteSubApi", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCreate", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderClose", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingPositionClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionClose", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingPositionSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionSetLeverage", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingWalletTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingWalletTransfer", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderTradingStop", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCreate", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCancelAll", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateOrderReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderReplace", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSetAutoAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetAutoAddMargin", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchIsolated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchIsolated", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchMode", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchTpslMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchTpslMode", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetLeverage", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivatePositionTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionTradingStop", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSetRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetRiskLimit", args...)
+}
+
+func (this *BybitCore) PrivatePostContractV3PrivateAccountSetMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateAccountSetMarginMode", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreate", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplace", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCreateBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreateBatch", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderReplaceBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplaceBatch", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancelBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelBatch", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelAll", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetLeverage", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionTpslSwitchMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTpslSwitchMode", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionSetRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetRiskLimit", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTradingStop", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount", args...)
+}
+
+func (this *BybitCore) PrivatePostUnifiedV3PrivateAccountSetMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountSetMarginMode", args...)
+}
+
+func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateRegistertime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateRegistertime", args...)
+}
+
+func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateCreate", args...)
+}
+
+func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateStatus", args...)
+}
+
+func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateUrl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateUrl", args...)
+}
+
+func (this *BybitCore) PrivatePostV5OrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCreate", args...)
+}
+
+func (this *BybitCore) PrivatePostV5OrderAmend(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderAmend", args...)
+}
+
+func (this *BybitCore) PrivatePostV5OrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostV5OrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCancelAll", args...)
+}
+
+func (this *BybitCore) PrivatePostV5OrderCreateBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCreateBatch", args...)
+}
+
+func (this *BybitCore) PrivatePostV5OrderAmendBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderAmendBatch", args...)
+}
+
+func (this *BybitCore) PrivatePostV5OrderCancelBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCancelBatch", args...)
+}
+
+func (this *BybitCore) PrivatePostV5OrderDisconnectedCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderDisconnectedCancelAll", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSetLeverage", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionSwitchIsolated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSwitchIsolated", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionSetTpslMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSetTpslMode", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionSwitchMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSwitchMode", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionSetRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSetRiskLimit", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionTradingStop", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionSetAutoAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSetAutoAddMargin", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionAddMargin", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionMovePositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionMovePositions", args...)
+}
+
+func (this *BybitCore) PrivatePostV5PositionConfirmPendingMmr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionConfirmPendingMmr", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountUpgradeToUta(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountUpgradeToUta", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountQuickRepayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountQuickRepayment", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountSetMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetMarginMode", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountSetHedgingMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetHedgingMode", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountMmpModify(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountMmpModify", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountMmpReset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountMmpReset", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountBorrow", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountRepay", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountNoConvertRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountNoConvertRepay", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetExchangeQuoteApply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetExchangeQuoteApply", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetExchangeConvertExecute(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetExchangeConvertExecute", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetTransferInterTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetTransferInterTransfer", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetTransferSaveTransferSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetTransferSaveTransferSubMember", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetTransferUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetTransferUniversalTransfer", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetDepositDepositToAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetDepositDepositToAccount", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetWithdrawCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetWithdrawCreate", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetWithdrawCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetWithdrawCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetCovertGetQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetCovertGetQuote", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetCovertSmallBalanceExecute(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetCovertSmallBalanceExecute", args...)
+}
+
+func (this *BybitCore) PrivatePostV5FiatQuoteApply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5FiatQuoteApply", args...)
+}
+
+func (this *BybitCore) PrivatePostV5FiatTradeExecute(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5FiatTradeExecute", args...)
+}
+
+func (this *BybitCore) PrivatePostV5UserCreateSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserCreateSubMember", args...)
+}
+
+func (this *BybitCore) PrivatePostV5UserCreateSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserCreateSubApi", args...)
+}
+
+func (this *BybitCore) PrivatePostV5UserFrozenSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserFrozenSubMember", args...)
+}
+
+func (this *BybitCore) PrivatePostV5UserUpdateApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserUpdateApi", args...)
+}
+
+func (this *BybitCore) PrivatePostV5UserUpdateSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserUpdateSubApi", args...)
+}
+
+func (this *BybitCore) PrivatePostV5UserDeleteApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserDeleteApi", args...)
+}
+
+func (this *BybitCore) PrivatePostV5UserDeleteSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserDeleteSubApi", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotLeverTokenPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotLeverTokenPurchase", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotLeverTokenRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotLeverTokenRedeem", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotMarginTradeSwitchMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeSwitchMode", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotMarginTradeSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeSetLeverage", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotMarginTradeSetAutoRepayMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeSetAutoRepayMode", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeLoan", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeRepay", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeSwitch", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanBorrow", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanRepay", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanAdjustLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanAdjustLtv", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanCommonAdjustLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanCommonAdjustLtv", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleBorrow", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleRepay", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleRepayCollateral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleRepayCollateral", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedBorrow", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedRenew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedRenew", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedSupply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedSupply", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedBorrowOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedBorrowOrderCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedSupplyOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedSupplyOrderCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedFullyRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedFullyRepay", args...)
+}
+
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedRepayCollateral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedRepayCollateral", args...)
+}
+
+func (this *BybitCore) PrivatePostV5InsLoanAssociationUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5InsLoanAssociationUid", args...)
+}
+
+func (this *BybitCore) PrivatePostV5InsLoanRepayLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5InsLoanRepayLoan", args...)
+}
+
+func (this *BybitCore) PrivatePostV5LendingPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5LendingPurchase", args...)
+}
+
+func (this *BybitCore) PrivatePostV5LendingRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5LendingRedeem", args...)
+}
+
+func (this *BybitCore) PrivatePostV5LendingRedeemCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5LendingRedeemCancel", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountSetCollateralSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitch", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountSetCollateralSwitchBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitchBatch", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AccountDemoApplyMoney(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountDemoApplyMoney", args...)
+}
+
+func (this *BybitCore) PrivatePostV5BrokerAwardInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5BrokerAwardInfo", args...)
+}
+
+func (this *BybitCore) PrivatePostV5BrokerAwardDistributeAward(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5BrokerAwardDistributeAward", args...)
+}
+
+func (this *BybitCore) PrivatePostV5BrokerAwardDistributionRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5BrokerAwardDistributionRecord", args...)
+}
+
+func (this *BybitCore) PrivatePostV5EarnPlaceOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5EarnPlaceOrder", args...)
 }

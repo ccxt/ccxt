@@ -131,6 +131,7 @@ const exec = (bin, ...args) => {
             const hasFailed = (
                 // exception caught in "test -> testMethod"
                 output.indexOf('[TEST_FAILURE]') > -1 ||
+                // below checks are retained just for the sake of completeness & possible edge-cases, however it should not be needed anymore, because we always add `[TEST_FAILURE]` to the output in tests
                 // 1) thrown from JS assert module
                 output.indexOf('AssertionError:') > -1 ||
                 // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
@@ -276,7 +277,7 @@ const testExchange = async (exchange) => {
         { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
         { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
-        { key: '--go',           language: 'GO',           exec: [ 'cd go/ && go run tests/main.go',          ...args] },
+        { key: '--go',           language: 'GO',           exec: [ 'go', 'run', '-C', 'go', './tests/main.go',          ...args] },
     ];
 
     // select tests based on cli arguments
@@ -292,6 +293,7 @@ const testExchange = async (exchange) => {
     if (skipSettings[exchange]) {
         if (skipSettings[exchange].skipCSharp)   selectedTests = selectedTests.filter (t => t.key !== '--csharp'); 
         if (skipSettings[exchange].skipPhpAsync) selectedTests = selectedTests.filter (t => t.key !== '--php-async');
+        if (skipSettings[exchange].skipPythonAsync) selectedTests = selectedTests.filter (t => t.key !== '--python-async');
     }
     // if it's WS tests, then remove sync versions (php & python) from queue
     if (wsFlag) {

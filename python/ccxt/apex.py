@@ -41,6 +41,7 @@ class apex(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': False,
                 'cancelOrder': True,
@@ -59,10 +60,14 @@ class apex(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledAndClosedOrders': False,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrders': False,
@@ -78,6 +83,7 @@ class apex(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -96,6 +102,8 @@ class apex(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -113,6 +121,7 @@ class apex(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
@@ -357,7 +366,7 @@ class apex(Exchange, ImplicitAPI):
         https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetV3AccountBalance(params)
@@ -380,7 +389,7 @@ class apex(Exchange, ImplicitAPI):
         https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetV3Account(params)
@@ -757,7 +766,7 @@ class apex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -777,14 +786,14 @@ class apex(Exchange, ImplicitAPI):
 
         :param str symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetV3DataAllTickerInfo(params)
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -807,9 +816,9 @@ class apex(Exchange, ImplicitAPI):
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
         request['limit'] = limit  # max 200, default 200
-        request, params = self.handle_until_option('end', request, params)
+        request, params = self.handle_until_option('end', request, params, 0.001)
         if since is not None:
-            request['start'] = since
+            request['start'] = int(math.floor(since / 1000))
         response = self.publicGetV3Klines(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         OHLCVs = self.safe_list(data, market['id2'], [])
@@ -847,7 +856,7 @@ class apex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -902,7 +911,7 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -982,7 +991,7 @@ class apex(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1034,11 +1043,11 @@ class apex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -1212,14 +1221,14 @@ class apex(Exchange, ImplicitAPI):
 
     def parse_order_type(self, type: Str):
         types: dict = {
-            'LIMIT': 'LIMIT',
-            'MARKET': 'MARKET',
-            'STOP_LIMIT': 'STOP_LIMIT',
-            'STOP_MARKET': 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT': 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET': 'TAKE_PROFIT_MARKET',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         }
-        return self.safe_string_upper(types, type, type)
+        return self.safe_string(types, type, type)
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         if market is None and marketId is not None:
@@ -1275,11 +1284,13 @@ class apex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
+        :param float [params.stopLossPrice]: The price a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price a take profit order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "POST_ONLY"
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
         :param str [params.clientOrderId]: a unique id for the order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1290,11 +1301,19 @@ class apex(Exchange, ImplicitAPI):
         if price is not None:
             orderPrice = self.price_to_precision(symbol, price)
         fees = self.safe_dict(self.fees, 'swap', {})
-        taker = self.safe_number(fees, 'taker', 0.0005)
-        maker = self.safe_number(fees, 'maker', 0.0002)
-        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), str(taker)), str(market['precision']['price'])), TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+        taker = self.safe_string(fees, 'taker', '0.0005')
+        maker = self.safe_string(fees, 'maker', '0.0002')
+        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), taker), self.number_to_string(market['precision']['price'])), TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
         timeNow = self.milliseconds()
-        # triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string(params, 'triggerPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        if stopLossPrice is not None:
+            orderType = 'STOP_MARKET' if (orderType == 'MARKET') else 'STOP_LIMIT'
+            triggerPrice = stopLossPrice
+        elif takeProfitPrice is not None:
+            orderType = 'TAKE_PROFIT_MARKET' if (orderType == 'MARKET') else 'TAKE_PROFIT_LIMIT'
+            triggerPrice = takeProfitPrice
         isMarket = orderType == 'MARKET'
         if isMarket and (price is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for market orders')
@@ -1313,7 +1332,7 @@ class apex(Exchange, ImplicitAPI):
         accountId = self.get_account_id()
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(accountId)
-        params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
+        params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
         orderToSign = {
             'accountId': accountId,
             'slotId': clientOrderId,
@@ -1322,9 +1341,11 @@ class apex(Exchange, ImplicitAPI):
             'size': orderSize,
             'price': orderPrice,
             'direction': orderSide,
-            'makerFeeRate': str(maker),
-            'takerFeeRate': str(taker),
+            'makerFeeRate': maker,
+            'takerFeeRate': taker,
         }
+        if triggerPrice is not None:
+            orderToSign['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         signature = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
         request: dict = {
             'symbol': market['id'],
@@ -1338,6 +1359,8 @@ class apex(Exchange, ImplicitAPI):
             'clientId': clientOrderId,
             'brokerId': self.safe_string(self.options, 'brokerId', '6956'),
         }
+        if triggerPrice is not None:
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['signature'] = signature
         response = self.privatePostV3Order(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
@@ -1352,7 +1375,7 @@ class apex(Exchange, ImplicitAPI):
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.transferId]: UUID, which is unique across the platform
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         configResponse = self.publicGetV3Symbols(params)
@@ -1485,7 +1508,7 @@ class apex(Exchange, ImplicitAPI):
             'status': self.safe_string(transfer, 'status'),
         }
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel all open orders in a market
 
@@ -1493,7 +1516,7 @@ class apex(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1503,7 +1526,7 @@ class apex(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         response = self.privatePostV3DeleteOpenOrders(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        return data
+        return [self.parse_order(data, market)]
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1514,7 +1537,7 @@ class apex(Exchange, ImplicitAPI):
         :param str id: order id
  @param symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
@@ -1527,7 +1550,7 @@ class apex(Exchange, ImplicitAPI):
             request['id'] = id
             response = self.privatePostV3DeleteOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        return data
+        return self.safe_order(data)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1540,7 +1563,7 @@ class apex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique id for the order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1566,7 +1589,7 @@ class apex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         response = self.privateGetV3OpenOrders(params)
@@ -1589,7 +1612,7 @@ class apex(Exchange, ImplicitAPI):
         :param str [params.type]: "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
         :param str [params.orderType]: "ACTIVE","CONDITION","HISTORY"
         :param boolean [params.page]: Page numbers start from 0
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1621,7 +1644,7 @@ class apex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1650,7 +1673,7 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.side]: BUY or SELL
         :param str [params.orderType]: "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
         :param boolean [params.page]: Page numbers start from 0
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1684,7 +1707,7 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params.until]: end time, ms
         :param boolean [params.side]: BUY or SELL
         :param boolean [params.page]: Page numbers start from 0
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1735,7 +1758,7 @@ class apex(Exchange, ImplicitAPI):
             'rate': self.safe_number(income, 'rate'),
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -1768,7 +1791,7 @@ class apex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         response = self.privateGetV3Account(params)

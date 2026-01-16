@@ -7,6 +7,9 @@ namespace ccxt\abstract;
 
 
 abstract class cryptocom extends \ccxt\Exchange {
+    public function base_public_get_v1_public_get_announcements($params = array()) {
+        return $this->request('v1/public/get-announcements', array('base', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v1_public_get_public_auth($params = array()) {
         return $this->request('public/auth', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -57,6 +60,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v1_private_post_private_create_order($params = array()) {
         return $this->request('private/create-order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function v1_private_post_private_amend_order($params = array()) {
+        return $this->request('private/amend-order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function v1_private_post_private_create_order_list($params = array()) {
         return $this->request('private/create-order-list', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
@@ -123,6 +129,27 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v1_private_post_private_get_instrument_fee_rate($params = array()) {
         return $this->request('private/get-instrument-fee-rate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function v1_private_post_private_fiat_fiat_deposit_info($params = array()) {
+        return $this->request('private/fiat/fiat-deposit-info', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1_private_post_private_fiat_fiat_deposit_history($params = array()) {
+        return $this->request('private/fiat/fiat-deposit-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1_private_post_private_fiat_fiat_withdraw_history($params = array()) {
+        return $this->request('private/fiat/fiat-withdraw-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1_private_post_private_fiat_fiat_create_withdraw($params = array()) {
+        return $this->request('private/fiat/fiat-create-withdraw', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1_private_post_private_fiat_fiat_transaction_quota($params = array()) {
+        return $this->request('private/fiat/fiat-transaction-quota', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1_private_post_private_fiat_fiat_transaction_limit($params = array()) {
+        return $this->request('private/fiat/fiat-transaction-limit', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1_private_post_private_fiat_fiat_get_bank_accounts($params = array()) {
+        return $this->request('private/fiat/fiat-get-bank-accounts', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function v1_private_post_private_staking_stake($params = array()) {
         return $this->request('private/staking/stake', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
@@ -358,6 +385,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function derivatives_private_post_private_get_order_list($params = array()) {
         return $this->request('private/get-order-list', array('derivatives', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function basePublicGetV1PublicGetAnnouncements($params = array()) {
+        return $this->request('v1/public/get-announcements', array('base', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v1PublicGetPublicAuth($params = array()) {
         return $this->request('public/auth', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -408,6 +438,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v1PrivatePostPrivateCreateOrder($params = array()) {
         return $this->request('private/create-order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function v1PrivatePostPrivateAmendOrder($params = array()) {
+        return $this->request('private/amend-order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function v1PrivatePostPrivateCreateOrderList($params = array()) {
         return $this->request('private/create-order-list', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
@@ -474,6 +507,27 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v1PrivatePostPrivateGetInstrumentFeeRate($params = array()) {
         return $this->request('private/get-instrument-fee-rate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function v1PrivatePostPrivateFiatFiatDepositInfo($params = array()) {
+        return $this->request('private/fiat/fiat-deposit-info', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateFiatFiatDepositHistory($params = array()) {
+        return $this->request('private/fiat/fiat-deposit-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateFiatFiatWithdrawHistory($params = array()) {
+        return $this->request('private/fiat/fiat-withdraw-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateFiatFiatCreateWithdraw($params = array()) {
+        return $this->request('private/fiat/fiat-create-withdraw', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateFiatFiatTransactionQuota($params = array()) {
+        return $this->request('private/fiat/fiat-transaction-quota', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateFiatFiatTransactionLimit($params = array()) {
+        return $this->request('private/fiat/fiat-transaction-limit', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateFiatFiatGetBankAccounts($params = array()) {
+        return $this->request('private/fiat/fiat-get-bank-accounts', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function v1PrivatePostPrivateStakingStake($params = array()) {
         return $this->request('private/staking/stake', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));

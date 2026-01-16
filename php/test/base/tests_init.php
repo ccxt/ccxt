@@ -7,13 +7,20 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_number.php';
+use React\Async;
+use React\Promise;
+use \ccxt\Precise;
+include_once __DIR__ . '/test_decimal_to_precision.php';
+include_once __DIR__ . '/test_number_to_string.php';
+include_once __DIR__ . '/test_precise.php';
 include_once __DIR__ . '/test_datetime.php';
 include_once __DIR__ . '/test_cryptography.php';
 include_once __DIR__ . '/test_extend.php';
 include_once __DIR__ . '/test_deep_extend.php';
 include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
+include_once __DIR__ . '/test_safe_ticker.php';
+include_once __DIR__ . '/test_json.php';
 include_once __DIR__ . '/test_sort_by.php';
 include_once __DIR__ . '/test_sum.php';
 include_once __DIR__ . '/test_omit.php';
@@ -22,22 +29,35 @@ include_once __DIR__ . '/test_filter_by.php';
 include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
+include_once __DIR__ . '/test_parse_precision.php';
+include_once __DIR__ . '/test_arrays_concat.php';
+include_once __DIR__ . '/test_sleep.php';
+include_once __DIR__ . '/test_eth_methods.php';
 
 function base_tests_init() {
-    test_language_specific();
-    test_after_constructor();
-    test_extend();
-    test_deep_extend();
-    test_cryptography();
-    test_datetime();
-    test_number();
-    test_safe_methods();
-    // testJson ();
-    test_sort_by();
-    test_sum();
-    test_omit();
-    test_group_by();
-    test_filter_by();
-    test_handle_methods();
-    test_remove_repeated_elements_from_array();
+    return Async\async(function () {
+        test_language_specific();
+        test_after_constructor();
+        test_extend();
+        test_deep_extend();
+        test_cryptography();
+        test_datetime();
+        test_decimal_to_precision();
+        test_number_to_string();
+        test_precise();
+        test_safe_methods();
+        test_safe_ticker();
+        test_json();
+        test_sort_by();
+        test_sum();
+        test_omit();
+        test_group_by();
+        test_filter_by();
+        test_handle_methods();
+        test_remove_repeated_elements_from_array();
+        test_parse_precision();
+        test_arrays_concat();
+        test_eth_methods();
+        Async\await(test_sleep());
+    }) ();
 }

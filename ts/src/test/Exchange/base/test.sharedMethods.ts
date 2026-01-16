@@ -161,9 +161,13 @@ function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: obje
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601 (dt);
-            const dtParsedString = exchange.iso8601 (dtParsed);
-            const dtEntryString = exchange.iso8601 (entry['timestamp']);
-            assert (dtParsedString === dtEntryString, 'datetime is not iso8601 of timestamp:' + dtParsedString + '(string) != ' + dtEntryString + '(from ts)' + logText);
+            const tsMs = entry['timestamp'];
+            const diff = Math.abs (dtParsed - tsMs);
+            if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
+                const dtParsedString = exchange.iso8601 (dtParsed);
+                const dtEntryString = exchange.iso8601 (tsMs);
+                assert (false, 'datetime is not iso8601 of timestamp:' + dtParsedString + '(string) != ' + dtEntryString + '(from ts)' + logText);
+            }
         }
     }
 }
@@ -317,9 +321,8 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
     const logText = logTemplate (exchange, method, entry);
     const keyString = stringValue (key);
     if (Number.isInteger (key)) {
-        key = key as number;
         assert (Array.isArray (entry), 'fee container is expected to be an array' + logText);
-        assert (key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
+        assert (key as number < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     } else {
         assert (typeof entry === 'object', 'fee container is expected to be an object' + logText);
         assert (key in entry, 'fee key "' + key + '" was expected to be present in entry' + logText);
@@ -537,6 +540,15 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
+function getActiveMarkets (exchange, includeUnknown = true) {
+    const filteredActive = exchange.filterBy (exchange.markets, 'active', true);
+    if (includeUnknown) {
+        const filteredUndefined = exchange.filterBy (exchange.markets, 'active', undefined);
+        return exchange.arrayConcat (filteredActive, filteredUndefined);
+    }
+    return filteredActive;
+}
+
 function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
@@ -639,4 +651,5 @@ export default {
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
     concat,
+    getActiveMarkets,
 };

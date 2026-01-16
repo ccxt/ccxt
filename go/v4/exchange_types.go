@@ -3,6 +3,8 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -52,9 +54,24 @@ func SafeBoolTyped(m interface{}, key interface{}) *bool {
 	return nil
 }
 
+func SafeMapToMap(sm *sync.Map) map[string]interface{} {
+	if sm == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
+}
+
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]interface{}
+	Id             *string
 	UppercaseId    *string
 	LowercaseId    *string
 	Symbol         *string
@@ -88,6 +105,10 @@ type MarketInterface struct {
 
 // CreateMarketInterface initializes the MarketInterface struct
 func NewMarketInterface(data interface{}) MarketInterface {
+	if data == nil {
+		return MarketInterface{}
+	}
+
 	m := data.(map[string]interface{})
 
 	// Handle limits if present
@@ -98,6 +119,7 @@ func NewMarketInterface(data interface{}) MarketInterface {
 
 	return MarketInterface{
 		Info:           m,
+		Id:             SafeStringTyped(m, "id"),
 		UppercaseId:    SafeStringTyped(m, "uppercaseId"),
 		LowercaseId:    SafeStringTyped(m, "lowercaseId"),
 		Symbol:         SafeStringTyped(m, "symbol"),
@@ -128,6 +150,22 @@ func NewMarketInterface(data interface{}) MarketInterface {
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
 	}
+}
+
+func NewMarketsMap(data2 interface{}) map[string]MarketInterface {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
+	// data := ConvertToMap(data2)
+	if dataMap, ok := data2.(*sync.Map); ok {
+		data2 = SafeMapToMap(dataMap)
+	}
+	data := data2.(map[string]interface{})
+	result := make(map[string]MarketInterface)
+	for key, value := range data {
+		result[key] = NewMarketInterface(value)
+	}
+	return result
 }
 
 // Precision struct
@@ -297,7 +335,7 @@ func NewMarket(data interface{}) Market {
 		Precision:     precision,
 		MarginModes:   marginModes,
 		Limits:        limits,
-		Info:          m,
+		Info:          GetInfo(m),
 		Created:       created,
 	}
 }
@@ -450,7 +488,7 @@ func NewTicker(data interface{}) Ticker {
 		Average:       SafeFloatTyped(m, "average"),
 		BaseVolume:    SafeFloatTyped(m, "baseVolume"),
 		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
-		Info:          m,
+		Info:          GetInfo(m),
 	}
 }
 
@@ -523,6 +561,9 @@ type OrderBook struct {
 
 // NewOrderBook initializes an OrderBook struct from a map.
 func NewOrderBook(orderbook2 interface{}) OrderBook {
+	if orderbook2 == nil {
+		return OrderBook{}
+	}
 	orderbook := orderbook2.(map[string]interface{})
 	return OrderBook{
 		Bids:      parseOrderBookEntries(orderbook, "bids"),
@@ -537,8 +578,8 @@ func NewOrderBook(orderbook2 interface{}) OrderBook {
 // parseOrderBookEntries extracts and converts order book entries to [][]float64.
 func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]float64 {
 	if value, ok := orderbook[key]; ok {
+		var result [][]float64
 		if entries, ok := value.([]interface{}); ok {
-			var result [][]float64
 			for _, entry := range entries {
 				if pair, ok := entry.([]interface{}); ok {
 					var floatPair []float64
@@ -550,6 +591,19 @@ func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]flo
 					if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
 						result = append(result, floatPair)
 					}
+				}
+			}
+			return result
+		} else if entries, ok := value.([][]interface{}); ok {
+			for _, entry := range entries {
+				var floatPair []float64
+				for _, v := range entry {
+					if num, ok := v.(float64); ok {
+						floatPair = append(floatPair, num)
+					}
+				}
+				if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
+					result = append(result, floatPair)
 				}
 			}
 			return result
@@ -616,6 +670,33 @@ type Balance struct {
 	Total *float64
 }
 
+// String returns a string representation of the Balance struct
+func (b *Balance) String() string {
+	var result strings.Builder
+	result.WriteString("Balance{")
+
+	if b.Free != nil {
+		result.WriteString(fmt.Sprintf(" Free:%v", *b.Free))
+	} else {
+		result.WriteString(" Free:nil")
+	}
+
+	if b.Used != nil {
+		result.WriteString(fmt.Sprintf(" Used:%v", *b.Used))
+	} else {
+		result.WriteString(" Used:nil")
+	}
+
+	if b.Total != nil {
+		result.WriteString(fmt.Sprintf(" Total:%v", *b.Total))
+	} else {
+		result.WriteString(" Total:nil")
+	}
+
+	result.WriteString("}")
+	return result.String()
+}
+
 type Balances struct {
 	Balances map[string]Balance
 	Free     map[string]*float64
@@ -625,7 +706,8 @@ type Balances struct {
 }
 
 // NewBalance initializes a Balance struct from a map.
-func NewBalance(balanceData map[string]interface{}) Balance {
+func NewBalance(balanceData2 interface{}) Balance {
+	balanceData := balanceData2.(map[string]interface{})
 	return Balance{
 		Free:  SafeFloatTyped(balanceData, "free"),
 		Used:  SafeFloatTyped(balanceData, "used"),
@@ -709,6 +791,59 @@ func (b *Balances) GetBalance(key string) (Balance, error) {
 // SetBalance sets or updates a Balance by key.
 func (b *Balances) SetBalance(key string, balance Balance) {
 	b.Balances[key] = balance
+}
+
+// String returns a string representation of the Balances struct
+func (b *Balances) String() string {
+	var result strings.Builder
+	result.WriteString("Balances{")
+
+	if len(b.Balances) > 0 {
+		result.WriteString(" Balances:{")
+		for key, balance := range b.Balances {
+			result.WriteString(fmt.Sprintf(" %s:%s", key, balance.String()))
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Free) > 0 {
+		result.WriteString(" Free:{")
+		for key, value := range b.Free {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Used) > 0 {
+		result.WriteString(" Used:{")
+		for key, value := range b.Used {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Total) > 0 {
+		result.WriteString(" Total:{")
+		for key, value := range b.Total {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	result.WriteString("}")
+	return result.String()
 }
 
 // funding rate
@@ -1081,22 +1216,30 @@ func NewOpenInterests(fundingRatesData2 interface{}) OpenInterests {
 }
 
 type Liquidation struct {
-	Symbol     *string
-	QuoteValue *float64
-	BaseValue  *float64
-	Timestamp  *int64
-	Datetime   *string
-	Info       map[string]interface{}
+	Symbol       *string
+	QuoteValue   *float64
+	BaseValue    *float64
+	Timestamp    *int64
+	Datetime     *string
+	Side         *string
+	Contracts    *float64
+	ContractSize *float64
+	Price        *float64
+	Info         map[string]interface{}
 }
 
 func NewLiquidation(data interface{}) Liquidation {
 	return Liquidation{
-		Symbol:     SafeStringTyped(data, "symbol"),
-		QuoteValue: SafeFloatTyped(data, "quoteValue"),
-		BaseValue:  SafeFloatTyped(data, "baseValue"),
-		Timestamp:  SafeInt64Typed(data, "timestamp"),
-		Datetime:   SafeStringTyped(data, "datetime"),
-		Info:       GetInfo(data),
+		Symbol:       SafeStringTyped(data, "symbol"),
+		QuoteValue:   SafeFloatTyped(data, "quoteValue"),
+		BaseValue:    SafeFloatTyped(data, "baseValue"),
+		Timestamp:    SafeInt64Typed(data, "timestamp"),
+		Datetime:     SafeStringTyped(data, "datetime"),
+		Side:         SafeStringTyped(data, "side"),
+		Contracts:    SafeFloatTyped(data, "contracts"),
+		ContractSize: SafeFloatTyped(data, "contractSize"),
+		Price:        SafeFloatTyped(data, "price"),
+		Info:         GetInfo(data),
 	}
 }
 
@@ -1539,6 +1682,7 @@ func NewLedgerEntry(data interface{}) LedgerEntry {
 
 type Greeks struct {
 	Info                  map[string]interface{}
+	Symbol                *string
 	Timestamp             *int64
 	Datetime              *string
 	Delta                 *float64
@@ -1546,6 +1690,9 @@ type Greeks struct {
 	Theta                 *float64
 	Vega                  *float64
 	Rho                   *float64
+	Vanna                 *float64
+	Volga                 *float64
+	Charm                 *float64
 	BidSize               *float64
 	AskSize               *float64
 	BidImpliedVolatility  *float64
@@ -1562,12 +1709,16 @@ func NewGreeks(data interface{}) Greeks {
 	return Greeks{
 		Info:                  GetInfo(data),
 		Timestamp:             SafeInt64Typed(data, "timestamp"),
+		Symbol:                SafeStringTyped(data, "symbol"),
 		Datetime:              SafeStringTyped(data, "datetime"),
 		Delta:                 SafeFloatTyped(data, "delta"),
 		Gamma:                 SafeFloatTyped(data, "gamma"),
 		Theta:                 SafeFloatTyped(data, "theta"),
 		Vega:                  SafeFloatTyped(data, "vega"),
 		Rho:                   SafeFloatTyped(data, "rho"),
+		Vanna:                 SafeFloatTyped(data, "vanna"),
+		Volga:                 SafeFloatTyped(data, "volga"),
+		Charm:                 SafeFloatTyped(data, "charm"),
 		BidSize:               SafeFloatTyped(data, "bidSize"),
 		AskSize:               SafeFloatTyped(data, "askSize"),
 		BidImpliedVolatility:  SafeFloatTyped(data, "bidImpliedVolatility"),
@@ -1615,6 +1766,9 @@ type Currencies struct {
 }
 
 func NewCurrencies(data2 interface{}) Currencies {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
 	data := data2.(map[string]interface{})
 	info := GetInfo(data)
 	currencies := make(map[string]Currency)
@@ -1791,7 +1945,12 @@ func NewLeverageTier(data interface{}) LeverageTier {
 // array helpers
 
 func NewTradeArray(trades2 interface{}) []Trade {
-	trades := trades2.([]interface{})
+	var trades []interface{}
+	if tr, ok := trades2.(*ArrayCache); ok {
+		trades = tr.ToArray()
+	} else {
+		trades = trades2.([]interface{})
+	}
 	result := make([]Trade, 0, len(trades))
 	for _, t := range trades {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
@@ -1803,7 +1962,13 @@ func NewTradeArray(trades2 interface{}) []Trade {
 }
 
 func NewOrderArray(orders2 interface{}) []Order {
-	orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+
+	}
 	result := make([]Order, 0, len(orders))
 	for _, t := range orders {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
@@ -1814,8 +1979,28 @@ func NewOrderArray(orders2 interface{}) []Order {
 	return result
 }
 
-func NewOHLCVArray(orders2 interface{}) []OHLCV {
+func NewGreeksArray(orders2 interface{}) []Greeks {
 	orders := orders2.([]interface{})
+	result := make([]Greeks, 0, len(orders))
+	for _, t := range orders {
+		if tradeMap, ok := t.(map[string]interface{}); ok {
+			order := NewGreeks(tradeMap)
+			result = append(result, order)
+		}
+	}
+	return result
+}
+
+func NewOHLCVArray(orders2 interface{}) []OHLCV {
+	// orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else if tr2, ok := orders2.(*ArrayCacheByTimestamp); ok {
+		orders = tr2.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+	}
 	result := make([]OHLCV, 0, len(orders))
 	for _, t := range orders {
 		if ohlcvlist, ok := t.([]interface{}); ok {
@@ -1887,7 +2072,15 @@ func NewTransferEntryArray(orders2 interface{}) []TransferEntry {
 }
 
 func NewPositionArray(orders2 interface{}) []Position {
-	orders := orders2.([]interface{})
+	// orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else if tr2, ok := orders2.(*ArrayCacheBySymbolBySide); ok {
+		orders = tr2.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+	}
 	result := make([]Position, 0, len(orders))
 	for _, t := range orders {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
@@ -2064,5 +2257,19 @@ func NewCancellationRequest(request map[string]interface{}) CancellationRequest 
 	return CancellationRequest{
 		Id:     SafeStringTyped(request, "id"),
 		Symbol: SafeStringTyped(request, "symbol"),
+	}
+}
+
+// DepositWithdrawFeeNetwork
+
+type DepositWithdrawFeeNetwork struct {
+	fee        *float64
+	percentage *float64
+}
+
+func NewDepositWithdrawFeeNetwork(data interface{}) DepositWithdrawFeeNetwork {
+	return DepositWithdrawFeeNetwork{
+		fee:        SafeFloatTyped(data, "fee"),
+		percentage: SafeFloatTyped(data, "percentage"),
 	}
 }

@@ -1,6 +1,7 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
+    basePublicGetV1PublicGetAnnouncements(params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicAuth(params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetInstruments(params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetBook(params?: {}): Promise<implicitReturnType>;
@@ -18,6 +19,7 @@ interface Exchange {
     v1PrivatePostPrivateUserBalanceHistory(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetPositions(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateCreateOrder(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateAmendOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateCreateOrderList(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateCancelOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateCancelOrderList(params?: {}): Promise<implicitReturnType>;
@@ -40,6 +42,13 @@ interface Exchange {
     v1PrivatePostPrivateGetDepositHistory(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetFeeRate(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetInstrumentFeeRate(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatDepositInfo(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatDepositHistory(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatWithdrawHistory(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatCreateWithdraw(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatTransactionQuota(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatTransactionLimit(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatGetBankAccounts(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingStake(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingUnstake(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingGetStakingPosition(params?: {}): Promise<implicitReturnType>;

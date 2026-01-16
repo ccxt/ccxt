@@ -7,2178 +7,546 @@
 
 package ccxt
 
-func (this *bitfinex) PublicGetConfConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubActionObject (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubActionObject", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubActionObjectDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubActionObjectDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapObject (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapObject", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapObjectDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapObjectDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapCurrencyDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapCurrencyDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapCurrencySym (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapCurrencySym", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapCurrencyLabel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapCurrencyLabel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapCurrencyUnit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapCurrencyUnit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapCurrencyUndl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapCurrencyUndl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapCurrencyPool (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapCurrencyPool", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapCurrencyExplorer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapCurrencyExplorer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapCurrencyTxFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapCurrencyTxFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubMapTxMethod (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubMapTxMethod", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubListObject (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubListObject", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubListObjectDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubListObjectDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubListCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubListCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubListPairExchange (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubListPairExchange", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubListPairMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubListPairMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubListPairFutures (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubListPairFutures", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubListCompetitions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubListCompetitions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubInfoObject (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubInfoObject", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubInfoObjectDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubInfoObjectDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubInfoPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubInfoPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubInfoPairFutures (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubInfoPairFutures", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubInfoTxStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubInfoTxStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetConfPubFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConfPubFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetPlatformStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPlatformStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetTickerSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetTickersHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickersHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetTradesSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradesSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetBookSymbolPrecision (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBookSymbolPrecision", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetBookSymbolP0 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBookSymbolP0", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetBookSymbolP1 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBookSymbolP1", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetBookSymbolP2 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBookSymbolP2", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetBookSymbolP3 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBookSymbolP3", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetBookSymbolR0 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBookSymbolR0", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolSideSection (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolSideSection", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolSideLast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolSideLast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolSideHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolSideHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolSection (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolSection", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolLast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolLast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolLongLast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolLongLast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolLongHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolLongHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolShortLast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolShortLast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStats1KeySizeSymbolShortHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats1KeySizeSymbolShortHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetCandlesTradeTimeframeSymbolPeriodSection (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandlesTradeTimeframeSymbolPeriodSection", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetCandlesTradeTimeframeSymbolSection (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandlesTradeTimeframeSymbolSection", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetCandlesTradeTimeframeSymbolLast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandlesTradeTimeframeSymbolLast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetCandlesTradeTimeframeSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandlesTradeTimeframeSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStatusType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStatusType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStatusDeriv (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStatusDeriv", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetStatusDerivSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStatusDerivSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetLiquidationsHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetLiquidationsHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetRankingsKeyTimeframeSymbolSection (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRankingsKeyTimeframeSymbolSection", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetRankingsKeyTimeframeSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRankingsKeyTimeframeSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetPulseHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPulseHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetPulseProfileNickname (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPulseProfileNickname", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetFundingStatsSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFundingStatsSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicGetExtVasps (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetExtVasps", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicPostCalcTradeAvg (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostCalcTradeAvg", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PublicPostCalcFx (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostCalcFx", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRWallets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRWallets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRWalletsHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRWalletsHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthROrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthROrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthROrdersSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthROrdersSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWOrderSubmit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWOrderSubmit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWOrderUpdate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWOrderUpdate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWOrderMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWOrderMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWOrderCancelMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWOrderCancelMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthROrdersSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthROrdersSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthROrdersHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthROrdersHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthROrderSymbolIdTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthROrderSymbolIdTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRTradesSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRTradesSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRTradesHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRTradesHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRLedgersCurrencyHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRLedgersCurrencyHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRLedgersHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRLedgersHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRInfoMarginKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRInfoMarginKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRInfoMarginBase (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRInfoMarginBase", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRInfoMarginSymAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRInfoMarginSymAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWPositionClaim (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWPositionClaim", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWPositionIncrease (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWPositionIncrease", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRPositionIncreaseInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRPositionIncreaseInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRPositionsHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRPositionsHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRPositionsAudit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRPositionsAudit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRPositionsSnap (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRPositionsSnap", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWDerivCollateralSet (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWDerivCollateralSet", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWDerivCollateralLimits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWDerivCollateralLimits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingOffers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingOffers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingOffersSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingOffersSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWFundingOfferSubmit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWFundingOfferSubmit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWFundingOfferCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWFundingOfferCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWFundingOfferCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWFundingOfferCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWFundingClose (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWFundingClose", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWFundingAuto (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWFundingAuto", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWFundingKeep (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWFundingKeep", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingOffersSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingOffersSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingOffersHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingOffersHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingLoans (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingLoans", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingLoansHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingLoansHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingLoansSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingLoansSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingLoansSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingLoansSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingCredits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingCredits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingCreditsHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingCreditsHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingCreditsSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingCreditsSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingCreditsSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingCreditsSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingTradesSymbolHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingTradesSymbolHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRFundingTradesHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRFundingTradesHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRInfoFundingKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRInfoFundingKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRInfoUser (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRInfoUser", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRSummary (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRSummary", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRLoginsHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRLoginsHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRPermissions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRPermissions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWToken (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWToken", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRAuditHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRAuditHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWDepositInvoice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWDepositInvoice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRMovementsCurrencyHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRMovementsCurrencyHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRMovementsHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRMovementsHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRAlerts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRAlerts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWAlertSet (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWAlertSet", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWAlertPriceSymbolPriceDel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWAlertPriceSymbolPriceDel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWAlertTypeSymbolPriceDel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWAlertTypeSymbolPriceDel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthCalcOrderAvail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthCalcOrderAvail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWSettingsSet (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWSettingsSet", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRSettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRSettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWSettingsDel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWSettingsDel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthRPulseHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthRPulseHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWPulseAdd (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWPulseAdd", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitfinex) PrivatePostAuthWPulseDel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthWPulseDel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitfinexCore) PublicGetConfConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfConfig", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubActionObject(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubActionObject", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubActionObjectDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubActionObjectDetail", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapObject(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapObject", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapObjectDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapObjectDetail", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapCurrencyDetail", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapCurrencySym(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapCurrencySym", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyLabel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapCurrencyLabel", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyUnit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapCurrencyUnit", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyUndl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapCurrencyUndl", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyPool(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapCurrencyPool", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyExplorer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapCurrencyExplorer", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapCurrencyTxFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapCurrencyTxFee", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubMapTxMethod(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubMapTxMethod", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubListObject(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubListObject", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubListObjectDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubListObjectDetail", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubListCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubListCurrency", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubListPairExchange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubListPairExchange", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubListPairMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubListPairMargin", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubListPairFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubListPairFutures", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubListCompetitions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubListCompetitions", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubInfoObject(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubInfoObject", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubInfoObjectDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubInfoObjectDetail", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubInfoPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubInfoPair", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubInfoPairFutures(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubInfoPairFutures", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubInfoTxStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubInfoTxStatus", args...)
+}
+
+func (this *BitfinexCore) PublicGetConfPubFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConfPubFees", args...)
+}
+
+func (this *BitfinexCore) PublicGetPlatformStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPlatformStatus", args...)
+}
+
+func (this *BitfinexCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickers", args...)
+}
+
+func (this *BitfinexCore) PublicGetTickerSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerSymbol", args...)
+}
+
+func (this *BitfinexCore) PublicGetTickersHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickersHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetTradesSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradesSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetBookSymbolPrecision(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBookSymbolPrecision", args...)
+}
+
+func (this *BitfinexCore) PublicGetBookSymbolP0(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBookSymbolP0", args...)
+}
+
+func (this *BitfinexCore) PublicGetBookSymbolP1(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBookSymbolP1", args...)
+}
+
+func (this *BitfinexCore) PublicGetBookSymbolP2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBookSymbolP2", args...)
+}
+
+func (this *BitfinexCore) PublicGetBookSymbolP3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBookSymbolP3", args...)
+}
+
+func (this *BitfinexCore) PublicGetBookSymbolR0(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBookSymbolR0", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideSection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolSideSection", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideLast(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolSideLast", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSideHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolSideHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolSection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolSection", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLast(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolLast", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLongLast(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolLongLast", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolLongHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolLongHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolShortLast(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolShortLast", args...)
+}
+
+func (this *BitfinexCore) PublicGetStats1KeySizeSymbolShortHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats1KeySizeSymbolShortHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolPeriodSection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesTradeTimeframeSymbolPeriodSection", args...)
+}
+
+func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolSection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesTradeTimeframeSymbolSection", args...)
+}
+
+func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolLast(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesTradeTimeframeSymbolLast", args...)
+}
+
+func (this *BitfinexCore) PublicGetCandlesTradeTimeframeSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesTradeTimeframeSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetStatusType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStatusType", args...)
+}
+
+func (this *BitfinexCore) PublicGetStatusDeriv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStatusDeriv", args...)
+}
+
+func (this *BitfinexCore) PublicGetStatusDerivSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStatusDerivSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetLiquidationsHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetLiquidationsHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetRankingsKeyTimeframeSymbolSection(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRankingsKeyTimeframeSymbolSection", args...)
+}
+
+func (this *BitfinexCore) PublicGetRankingsKeyTimeframeSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRankingsKeyTimeframeSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetPulseHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPulseHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetPulseProfileNickname(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPulseProfileNickname", args...)
+}
+
+func (this *BitfinexCore) PublicGetFundingStatsSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFundingStatsSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PublicGetExtVasps(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExtVasps", args...)
+}
+
+func (this *BitfinexCore) PublicPostCalcTradeAvg(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostCalcTradeAvg", args...)
+}
+
+func (this *BitfinexCore) PublicPostCalcFx(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostCalcFx", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRWallets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRWallets", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRWalletsHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRWalletsHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthROrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthROrders", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthROrdersSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthROrdersSymbol", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWOrderSubmit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWOrderSubmit", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWOrderUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWOrderUpdate", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWOrderCancel", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWOrderMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWOrderMulti", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWOrderCancelMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWOrderCancelMulti", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthROrdersSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthROrdersSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthROrdersHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthROrdersHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthROrderSymbolIdTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthROrderSymbolIdTrades", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRTradesSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRTradesSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRTradesHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRTradesHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRLedgersCurrencyHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRLedgersCurrencyHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRLedgersHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRLedgersHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRInfoMarginKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRInfoMarginKey", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRInfoMarginBase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRInfoMarginBase", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRInfoMarginSymAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRInfoMarginSymAll", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRPositions", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWPositionClaim(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWPositionClaim", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWPositionIncrease(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWPositionIncrease", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRPositionIncreaseInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRPositionIncreaseInfo", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRPositionsHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRPositionsHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRPositionsAudit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRPositionsAudit", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRPositionsSnap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRPositionsSnap", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWDerivCollateralSet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWDerivCollateralSet", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWDerivCollateralLimits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWDerivCollateralLimits", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingOffers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingOffers", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingOffersSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingOffersSymbol", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWFundingOfferSubmit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWFundingOfferSubmit", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWFundingOfferCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWFundingOfferCancel", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWFundingOfferCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWFundingOfferCancelAll", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWFundingClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWFundingClose", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWFundingAuto(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWFundingAuto", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWFundingKeep(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWFundingKeep", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingOffersSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingOffersSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingOffersHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingOffersHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingLoans(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingLoans", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingLoansHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingLoansHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingLoansSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingLoansSymbol", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingLoansSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingLoansSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingCredits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingCredits", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingCreditsHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingCreditsHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingCreditsSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingCreditsSymbol", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingCreditsSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingCreditsSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingTradesSymbolHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingTradesSymbolHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRFundingTradesHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRFundingTradesHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRInfoFundingKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRInfoFundingKey", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRInfoUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRInfoUser", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRSummary", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRLoginsHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRLoginsHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRPermissions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRPermissions", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWToken", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRAuditHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRAuditHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWTransfer", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWDepositAddress", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWDepositInvoice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWDepositInvoice", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWWithdraw", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRMovementsCurrencyHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRMovementsCurrencyHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRMovementsHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRMovementsHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRAlerts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRAlerts", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWAlertSet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWAlertSet", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWAlertPriceSymbolPriceDel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWAlertPriceSymbolPriceDel", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWAlertTypeSymbolPriceDel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWAlertTypeSymbolPriceDel", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthCalcOrderAvail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthCalcOrderAvail", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWSettingsSet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWSettingsSet", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRSettings", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWSettingsDel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWSettingsDel", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthRPulseHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthRPulseHist", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWPulseAdd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWPulseAdd", args...)
+}
+
+func (this *BitfinexCore) PrivatePostAuthWPulseDel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthWPulseDel", args...)
 }

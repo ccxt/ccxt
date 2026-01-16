@@ -1,6 +1,9 @@
 {
     "exchange": "bitvavo",
     "skipKeys": ["clientOrderId"],
+    "options": {
+        "operatorId": 123456
+    },
     "outputType": "json",
     "methods": {
         "fetchDeposits": [
@@ -41,6 +44,9 @@
             {
                 "description": "Market buy order",
                 "method": "createOrder",
+                "options": {
+                    "operatorId": 123456
+                },
                 "url": "https://api.bitvavo.com/v2/order",
                 "input": [
                     "BTC/EUR",
@@ -48,25 +54,31 @@
                     "buy",
                     0.0002
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.0002\"}"
+                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.0002\", \"operatorId\":123456}"
             },
             {
                 "description": "Limit Buy Order",
                 "method": "createOrder",
                 "url": "https://api.bitvavo.com/v2/order",
+                "options": {
+                    "operatorId": 123456
+                },
                 "input": [
                     "BTC/EUR",
                     "limit",
                     "buy",
                     0.0002,
-                    33000
+                    33123
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"33000\",\"amount\":\"0.0002\"}"
+                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"33123\",\"amount\":\"0.0002\", \"operatorId\":123456}"
             },
             {
                 "description": "Spot Market Buy with Trigger Price",
                 "method": "createOrder",
                 "url": "https://api.bitvavo.com/v2/order",
+                "options": {
+                    "operatorId": 123456
+                },
                 "input": [
                     "BTC/EUR",
                     "market",
@@ -77,11 +89,14 @@
                         "triggerPrice": 30000
                     }
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"stopLoss\",\"amount\":\"0.0002\",\"triggerAmount\":\"30000\",\"triggerType\":\"price\",\"triggerReference\":\"lastTrade\"}"
+                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"stopLoss\",\"amount\":\"0.0002\",\"triggerAmount\":\"30000\",\"triggerType\":\"price\",\"triggerReference\":\"lastTrade\", \"operatorId\":123456}"
             },
             {
                 "description": "Create order with clientOrderId",
                 "method": "createOrder",
+                "options": {
+                    "operatorId": 123456
+                },
                 "url": "https://api.bitvavo.com/v2/order",
                 "input": [
                     "LTC/EUR",
@@ -93,14 +108,17 @@
                         "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9"
                     }
                 ],
-                "output": "{\"market\":\"LTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.05\",\"clientOrderId\":\"2be7d0df-d8dc-7b93-a550-8876f3b393e9\"}"
+                "output": "{\"market\":\"LTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.05\",\"clientOrderId\":\"2be7d0df-d8dc-7b93-a550-8876f3b393e9\", \"operatorId\":123456}"
             }
         ],
         "cancelOrder": [
             {
                 "description": "Cancel Order",
+                "options": {
+                    "operatorId": 123456
+                },
                 "method": "cancelOrder",
-                "url": "https://api.bitvavo.com/v2/order?orderId=42a876f3-400d-4686-980f-3d6983f251c2&market=BTC-EUR",
+                "url": "https://api.bitvavo.com/v2/order?orderId=42a876f3-400d-4686-980f-3d6983f251c2&market=BTC-EUR&operatorId=123456",
                 "input": [
                     "42a876f3-400d-4686-980f-3d6983f251c2",
                     "BTC/EUR"
@@ -108,8 +126,11 @@
             },
             {
                 "description": "Cancel Order",
+                "options": {
+                    "operatorId": 123456
+                },
                 "method": "cancelOrder",
-                "url": "https://api.bitvavo.com/v2/order?clientOrderId=42a876f3-400d-4686-980f-3d6983f251c2&market=BTC-EUR",
+                "url": "https://api.bitvavo.com/v2/order?clientOrderId=42a876f3-400d-4686-980f-3d6983f251c2&market=BTC-EUR&operatorId=123456",
                 "input": [
                     "",
                     "BTC/EUR",
@@ -124,6 +145,9 @@
                 "description": "Edit Order, edit price",
                 "method": "editOrder",
                 "url": "https://api.bitvavo.com/v2/order",
+                "options": {
+                    "operatorId": 123456
+                },
                 "input": [
                     "24bcd0e3-43f7-43f3-97f0-04df043e2d45",
                     "BTC/EUR",
@@ -132,11 +156,14 @@
                     null,
                     32000
                 ],
-                "output": "{\"price\":\"32000\",\"orderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\"}"
+                "output": "{\"price\":\"32000\",\"orderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\", \"operatorId\":123456}"
             },
             {
                 "description": "Edit Order, edit price with clientOrderId",
                 "method": "editOrder",
+                "options": {
+                    "operatorId": 123456
+                },
                 "url": "https://api.bitvavo.com/v2/order",
                 "input": [
                     "",
@@ -149,7 +176,7 @@
                         "clientOrderId": "24bcd0e3-43f7-43f3-97f0-04df043e2d45"
                     }
                 ],
-                "output": "{\"price\":\"32000\",\"clientOrderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\"}"
+                "output": "{\"price\":\"32000\",\"clientOrderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\", \"operatorId\":123456}"
             }
         ],
         "fetchOrder": [
@@ -189,7 +216,7 @@
             {
                 "description": "Cancel all orders",
                 "method": "cancelAllOrders",
-                "url": "https://api.bitvavo.com/v2/orders",
+                "url": "https://api.bitvavo.com/v2/orders?operatorId=123456",
                 "input": []
             }
         ],

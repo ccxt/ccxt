@@ -83,6 +83,27 @@ public partial class Exchange
         {
             var precisionDigitsString = DecimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
             var newNumPrecisionDigits = PrecisionFromString(precisionDigitsString);
+            if (roundingMode == TRUNCATE)
+            {
+                // Add these lines before the existing scaling logic:
+                var xStr = NumberToString2(parsedX);
+                var truncatedX = TruncateToString(xStr, Math.Max(0, newNumPrecisionDigits));
+                parsedX = Convert.ToDouble(truncatedX, CultureInfo.InvariantCulture);
+
+                var scale = Math.Pow(10, newNumPrecisionDigits);
+                var xScaled = Math.Round(parsedX * scale);
+                var tickScaled = Math.Round(numPrecisionDigits * scale);
+                var ticks = Math.Truncate(xScaled / tickScaled);
+                parsedX = (ticks * tickScaled) / scale;
+                if ((int)paddingMode == NO_PADDING)
+                {
+                    // Fixed: avoid the Convert.ToDouble() that loses precision
+                    var result = parsedX.ToString($"F{newNumPrecisionDigits}", CultureInfo.InvariantCulture);
+                    return result.Contains('.') ? result.TrimEnd('0').TrimEnd('.') : result;
+                }
+                return DecimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
+            }
+
             var missing = parsedX % numPrecisionDigits;
             // See: https://github.com/ccxt/ccxt/pull/6486
             missing = Convert.ToDouble(DecimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING), CultureInfo.InvariantCulture);
@@ -293,6 +314,35 @@ public partial class Exchange
         return split.Length > 1 ? split[1].Length : 0;
     }
 
+    public static string TruncateToString(object num, int precision = 0)
+    {
+        var numStr = NumberToString(num);
+        if (numStr == null) return null;
+
+        if (precision > 0)
+        {
+            // Regex pattern: ([-]*\d+\.\d{precision})(\d)
+            // Captures: minus sign (optional) + digits + dot + exactly 'precision' digits after dot
+            var pattern = @"([-]*\d+\.\d{" + precision + @"})(\d)";
+            var match = Regex.Match(numStr, pattern);
+
+            if (match.Success)
+            {
+                return match.Groups[1].Value; // Return the first captured group
+            }
+
+            return numStr; // Return original if no match (e.g., number has fewer decimal places)
+        }
+
+        // If precision is 0, return integer part
+        var dotIndex = numStr.IndexOf('.');
+        if (dotIndex >= 0)
+        {
+            return numStr.Substring(0, dotIndex);
+        }
+
+        return numStr; // Already an integer
+    }
 
     public virtual string numberToString(object number) => NumberToString(number);
 
@@ -323,4 +373,68 @@ public partial class Exchange
         return decimalValue.ToString(CultureInfo.InvariantCulture); // https://stackoverflow.com/questions/1546113/double-to-string-conversion-without-scientific-notation
     }
 
+
+    public static string NumberToString2(object number)
+{
+    if (number == null)
+        return null;
+    
+    if (number.GetType() == typeof(Int32) || number.GetType() == typeof(Int64))
+        return number.ToString();
+    
+    if (number.GetType() == typeof(string))
+        return number.ToString();
+    
+    // Convert to double and get initial string representation
+    var doubleValue = Convert.ToDouble(number, CultureInfo.InvariantCulture);
+    var s = doubleValue.ToString("G", CultureInfo.InvariantCulture);
+    
+    // Handle scientific notation for small numbers (< 1.0)
+    if (Math.Abs(doubleValue) < 1.0)
+    {
+        var lowerS = s.ToLower();
+        if (lowerS.Contains("e-"))
+        {
+            var parts = lowerS.Split(new[] { "e-" }, StringSplitOptions.None);
+            if (parts.Length == 2)
+            {
+                var n = parts[0].Replace(".", ""); // Remove decimal point
+                var e = int.Parse(parts[1]);
+                var isNegative = s[0] == '-';
+                var numPart = isNegative ? n.Substring(1) : n; // Remove minus sign if present
+                
+                // Create the result: sign + "0." + zeros + number_part
+                var zeros = new string('0', e - 1);
+                var result = (isNegative ? "-" : "") + "0." + zeros + numPart;
+                return result;
+            }
+        }
+    }
+    else
+    {
+        // Handle scientific notation for large numbers
+        var lowerS = s.ToLower();
+        if (lowerS.Contains("e"))
+        {
+            var parts = lowerS.Split('e');
+            if (parts.Length == 2)
+            {
+                var e = int.Parse(parts[1]);
+                var mantissaParts = parts[0].Split('.');
+                var wholePart = mantissaParts[0];
+                var fractionalPart = mantissaParts.Length > 1 ? mantissaParts[1] : "";
+                
+                if (fractionalPart.Length > 0)
+                {
+                    e -= fractionalPart.Length;
+                }
+                
+                var zeros = new string('0', e);
+                return wholePart + fractionalPart + zeros;
+            }
+        }
+    }
+    
+    return s;
+}
 }

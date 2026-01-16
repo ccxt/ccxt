@@ -22,6 +22,9 @@ public partial class onetrading : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
@@ -34,9 +37,14 @@ public partial class onetrading : Exchange
                 { "createStopMarketOrder", false },
                 { "createStopOrder", true },
                 { "fetchAccounts", false },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -48,21 +56,41 @@ public partial class onetrading : Exchange
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -75,6 +103,7 @@ public partial class onetrading : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -86,9 +115,13 @@ public partial class onetrading : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", false },
                 { "setMargin", false },
                 { "setMarginMode", false },
@@ -314,7 +347,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.onetrading.com/#time
+     * @see https://docs.onetrading.com/rest/public/time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -335,7 +368,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.onetrading.com/#currencies
+     * @see https://docs.onetrading.com/rest/public/currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -390,7 +423,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchMarkets
      * @description retrieves data on all markets for onetrading
-     * @see https://docs.onetrading.com/#instruments
+     * @see https://docs.onetrading.com/rest/public/instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -415,34 +448,81 @@ public partial class onetrading : Exchange
 
     public override object parseMarket(object market)
     {
-        object baseAsset = this.safeValue(market, "base", new Dictionary<string, object>() {});
-        object quoteAsset = this.safeValue(market, "quote", new Dictionary<string, object>() {});
+        //
+        //   {
+        //      "base":{
+        //         "code":"BTC",
+        //         "precision":"5"
+        //      },
+        //      "quote":{
+        //         "code":"USDC",
+        //         "precision":"2"
+        //      },
+        //      "amount_precision":"5",
+        //      "market_precision":"2",
+        //      "min_size":"10.0",
+        //      "min_price":"1000",
+        //      "max_price":"10000000",
+        //      "id":"BTC_USDC",
+        //      "type":"SPOT",
+        //      "state":"ACTIVE"
+        //   }
+        //
+        //
+        //  {
+        //      "base": {
+        //          "code": "BTC",
+        //          "precision": 5
+        //      },
+        //      "quote": {
+        //          "code": "EUR",
+        //          "precision": 2
+        //      },
+        //      "amount_precision": 5,
+        //      "market_precision": 2,
+        //      "min_size": "10.0",
+        //      "min_price": "1000",
+        //      "max_price": "10000000",
+        //      "id": "BTC_EUR_P",
+        //      "type": "PERP",
+        //      "state": "ACTIVE"
+        //  }
+        //
+        object baseAsset = this.safeDict(market, "base", new Dictionary<string, object>() {});
+        object quoteAsset = this.safeDict(market, "quote", new Dictionary<string, object>() {});
         object baseId = this.safeString(baseAsset, "code");
         object quoteId = this.safeString(quoteAsset, "code");
-        object id = add(add(baseId, "_"), quoteId);
+        object id = this.safeString(market, "id");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object state = this.safeString(market, "state");
+        object type = this.safeString(market, "type");
+        object isPerp = isEqual(type, "PERP");
+        object symbol = add(add(bs, "/"), quote);
+        if (isTrue(isPerp))
+        {
+            symbol = add(add(symbol, ":"), quote);
+        }
         return new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", null },
+            { "settle", ((bool) isTrue(isPerp)) ? quote : null },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", null },
-            { "type", "spot" },
-            { "spot", true },
+            { "settleId", ((bool) isTrue(isPerp)) ? quoteId : null },
+            { "type", ((bool) isTrue(isPerp)) ? "swap" : "spot" },
+            { "spot", !isTrue(isPerp) },
             { "margin", false },
-            { "swap", false },
+            { "swap", isPerp },
             { "future", false },
             { "option", false },
             { "active", (isEqual(state, "ACTIVE")) },
-            { "contract", false },
-            { "linear", null },
-            { "inverse", null },
-            { "contractSize", null },
+            { "contract", isPerp },
+            { "linear", ((bool) isTrue(isPerp)) ? true : null },
+            { "inverse", ((bool) isTrue(isPerp)) ? false : null },
+            { "contractSize", ((bool) isTrue(isPerp)) ? this.parseNumber("1") : null },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -478,10 +558,11 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://docs.onetrading.com/#fee-groups
-     * @see https://docs.onetrading.com/#fees
+     * @see https://docs.onetrading.com/rest/public/fee-groups
+     * @see https://docs.onetrading.com/rest/trading/fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -511,40 +592,69 @@ public partial class onetrading : Exchange
         await this.loadMarkets();
         object response = await this.publicGetFees(parameters);
         //
-        //     [
-        //         {
-        //             "fee_group_id":"default",
-        //             "display_text":"The standard fee plan.",
-        //             "fee_tiers":[
-        //                 {"volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"},
-        //                 {"volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"},
-        //                 {"volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"},
-        //                 {"volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"},
-        //                 {"volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"},
-        //                 {"volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"},
-        //                 {"volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065"}
-        //             ],
-        //             "fee_discount_rate":"25.0",
-        //             "minimum_price_value":"0.12"
-        //         }
-        //     ]
+        // [
+        //     {
+        //         'fee_group_id': 'SPOT',
+        //         'display_text': 'The fee plan for spot trading.',
+        //         'volume_currency': 'EUR',
+        //         'fee_tiers': [
+        //             {
+        //                 'volume': '0',
+        //                 'fee_group_id': 'SPOT',
+        //                 'maker_fee': '0.1000',
+        //                 'taker_fee': '0.2000',
+        //             },
+        //             {
+        //                 'volume': '10000',
+        //                 'fee_group_id': 'SPOT',
+        //                 'maker_fee': '0.0400',
+        //                 'taker_fee': '0.0800',
+        //             },
+        //         ],
+        //     },
+        //     {
+        //         'fee_group_id': 'FUTURES',
+        //         'display_text': 'The fee plan for futures trading.',
+        //         'volume_currency': 'EUR',
+        //         'fee_tiers': [
+        //             {
+        //                 'volume': '0',
+        //                 'fee_group_id': 'FUTURES',
+        //                 'maker_fee': '0.1000',
+        //                 'taker_fee': '0.2000',
+        //             },
+        //             {
+        //                 'volume': '10000',
+        //                 'fee_group_id': 'FUTURES',
+        //                 'maker_fee': '0.0400',
+        //                 'taker_fee': '0.0800',
+        //             },
+        //         ],
+        //     },
+        // ];
         //
-        object first = this.safeValue(response, 0, new Dictionary<string, object>() {});
-        object feeTiers = this.safeValue(first, "fee_tiers");
-        object tiers = this.parseFeeTiers(feeTiers);
-        object firstTier = this.safeValue(feeTiers, 0, new Dictionary<string, object>() {});
+        object spotFees = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        object futuresFees = this.safeDict(response, 1, new Dictionary<string, object>() {});
+        object spotFeeTiers = this.safeList(spotFees, "fee_tiers", new List<object>() {});
+        object futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new List<object>() {});
+        object spotTiers = this.parseFeeTiers(spotFeeTiers);
+        object futuresTiers = this.parseFeeTiers(futuresFeeTiers);
+        object firstSpotTier = this.safeDict(spotTiers, 0, new Dictionary<string, object>() {});
+        object firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            object tierObject = ((bool) isTrue((getValue(market, "spot")))) ? firstSpotTier : firstFuturesTier;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
-                { "info", first },
+                { "info", spotFees },
                 { "symbol", symbol },
-                { "maker", this.safeNumber(firstTier, "maker_fee") },
-                { "taker", this.safeNumber(firstTier, "taker_fee") },
+                { "maker", this.safeNumber(tierObject, "maker_fee") },
+                { "taker", this.safeNumber(tierObject, "taker_fee") },
                 { "percentage", true },
                 { "tierBased", true },
-                { "tiers", tiers },
+                { "tiers", spotTiers },
             };
         }
         return result;
@@ -556,37 +666,56 @@ public partial class onetrading : Exchange
         await this.loadMarkets();
         object response = await this.privateGetAccountFees(parameters);
         //
-        //     {
-        //         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
-        //         "running_trading_volume": "0.0",
-        //         "fee_group_id": "default",
-        //         "collect_fees_in_best": false,
-        //         "fee_discount_rate": "25.0",
-        //         "minimum_price_value": "0.12",
-        //         "fee_tiers": [
-        //             { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" },
-        //             { "volume": "100.0", "fee_group_id": "default", "maker_fee": "0.09", "taker_fee": "0.1" },
-        //             { "volume": "250.0", "fee_group_id": "default", "maker_fee": "0.08", "taker_fee": "0.1" },
-        //             { "volume": "1000.0", "fee_group_id": "default", "maker_fee": "0.07", "taker_fee": "0.09" },
-        //             { "volume": "5000.0", "fee_group_id": "default", "maker_fee": "0.06", "taker_fee": "0.08" },
-        //             { "volume": "10000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.07" },
-        //             { "volume": "20000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.06" },
-        //             { "volume": "50000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.05" }
-        //         ],
-        //         "active_fee_tier": { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" }
-        //     }
+        // {
+        //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
+        //    "running_volumes":[
+        //       {
+        //          "fee_group_id":"SPOT",
+        //          "volume":"0",
+        //          "currency":"EUR"
+        //       },
+        //       {
+        //          "fee_group_id":"FUTURES",
+        //          "volume":"0",
+        //          "currency":"EUR"
+        //       }
+        //    ],
+        //    "active_fee_tiers":[
+        //       {
+        //          "fee_group_id":"SPOT",
+        //          "volume":"0",
+        //          "maker_fee":"0.1000",
+        //          "taker_fee":"0.2000"
+        //       },
+        //       {
+        //          "fee_group_id":"FUTURES",
+        //          "volume":"0",
+        //          "maker_fee":"0.1000",
+        //          "taker_fee":"0.2000"
+        //       }
+        //    ]
+        // }
         //
-        object activeFeeTier = this.safeValue(response, "active_fee_tier", new Dictionary<string, object>() {});
-        object makerFee = this.safeString(activeFeeTier, "maker_fee");
-        object takerFee = this.safeString(activeFeeTier, "taker_fee");
-        makerFee = Precise.stringDiv(makerFee, "100");
-        takerFee = Precise.stringDiv(takerFee, "100");
-        object feeTiers = this.safeValue(response, "fee_tiers");
+        object activeFeeTier = this.safeList(response, "active_fee_tiers");
+        object spotFees = this.safeDict(activeFeeTier, 0, new Dictionary<string, object>() {});
+        object futuresFees = this.safeDict(activeFeeTier, 1, new Dictionary<string, object>() {});
+        object spotMakerFee = this.safeString(spotFees, "maker_fee");
+        object spotTakerFee = this.safeString(spotFees, "taker_fee");
+        spotMakerFee = Precise.stringDiv(spotMakerFee, "100");
+        spotTakerFee = Precise.stringDiv(spotTakerFee, "100");
+        // const feeTiers = this.safeValue (response, 'fee_tiers');
+        object futuresMakerFee = this.safeString(futuresFees, "maker_fee");
+        object futuresTakerFee = this.safeString(futuresFees, "taker_fee");
+        futuresMakerFee = Precise.stringDiv(futuresMakerFee, "100");
+        futuresTakerFee = Precise.stringDiv(futuresTakerFee, "100");
         object result = new Dictionary<string, object>() {};
-        object tiers = this.parseFeeTiers(feeTiers);
+        // const tiers = this.parseFeeTiers (feeTiers);
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            object makerFee = ((bool) isTrue((getValue(market, "spot")))) ? spotMakerFee : futuresMakerFee;
+            object takerFee = ((bool) isTrue((getValue(market, "spot")))) ? spotTakerFee : futuresTakerFee;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -594,7 +723,7 @@ public partial class onetrading : Exchange
                 { "taker", this.parseNumber(takerFee) },
                 { "percentage", true },
                 { "tierBased", true },
-                { "tiers", tiers },
+                { "tiers", null },
             };
         }
         return result;
@@ -679,10 +808,10 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.onetrading.com/#market-ticker-for-instrument
+     * @see https://docs.onetrading.com/rest/public/market-ticker-instrument
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -718,10 +847,10 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.onetrading.com/#market-ticker
+     * @see https://docs.onetrading.com/rest/public/market-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -763,11 +892,11 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.onetrading.com/#order-book
+     * @see https://docs.onetrading.com/rest/public/orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -882,7 +1011,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.onetrading.com/#candlesticks
+     * @see https://docs.onetrading.com/rest/public/candlesticks
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1041,9 +1170,9 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.onetrading.com/#balances
+     * @see https://docs.onetrading.com/rest/trading/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -1217,7 +1346,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#createOrder
      * @description create a trade order
-     * @see https://docs.onetrading.com/#create-order
+     * @see https://docs.onetrading.com/rest/trading/create-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1225,7 +1354,7 @@ public partial class onetrading : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1294,11 +1423,12 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#cancelOrder
      * @description cancels an open order
-     * @see https://docs.onetrading.com/#close-order-by-order-id
+     * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
+     * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
      * @param {string} id order id
      * @param {string} symbol not used by bitmex cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1334,10 +1464,10 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#cancelAllOrders
      * @description cancel all open orders
-     * @see https://docs.onetrading.com/#close-all-orders
+     * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -1355,20 +1485,22 @@ public partial class onetrading : Exchange
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
      * @method
      * @name onetrading#cancelOrders
      * @description cancel multiple orders
-     * @see https://docs.onetrading.com/#close-all-orders
+     * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1381,18 +1513,21 @@ public partial class onetrading : Exchange
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        object order = this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
+        return new List<object>() {order};
     }
 
     /**
      * @method
      * @name onetrading#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.onetrading.com/#get-order
+     * @see https://docs.onetrading.com/rest/trading/get-order-order-id
      * @param {string} id the order id
      * @param {string} symbol not used by onetrading fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1450,12 +1585,12 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.onetrading.com/#get-orders
+     * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1569,12 +1704,12 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.onetrading.com/#get-orders
+     * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1589,13 +1724,13 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.onetrading.com/#trades-for-order
+     * @see https://docs.onetrading.com/rest/trading/get-trades-for-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1652,12 +1787,12 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.onetrading.com/#all-trades
+     * @see https://docs.onetrading.com/rest/trading/get-trades
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {

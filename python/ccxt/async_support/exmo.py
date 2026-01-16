@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
@@ -363,7 +364,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
@@ -376,7 +377,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
@@ -388,7 +389,7 @@ class exmo(Exchange, ImplicitAPI):
         https://documenter.getpostman.com/view/10287440/SzYXWKPi#7de7e75c-5833-45a8-b937-c2276d235aaa
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         options = self.safe_value(self.options, 'fetchTradingFees', {})
         defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
@@ -510,7 +511,7 @@ class exmo(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/#/?id=fees-structure>`
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/?id=fees-structure>`
         """
         await self.load_markets()
         cryptoList = await self.publicGetPaymentsProvidersCryptoList(params)
@@ -580,7 +581,7 @@ class exmo(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/#/?id=fees-structure>`
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/?id=fees-structure>`
         """
         await self.load_markets()
         response = await self.publicGetPaymentsProvidersCryptoList(params)
@@ -666,8 +667,9 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
+        promises = []
         #
-        currencyList = await self.publicGetCurrencyListExtended(params)
+        promises.append(self.publicGetCurrencyListExtended(params))
         #
         #     [
         #         {"name":"VLX","description":"Velas"},
@@ -676,7 +678,7 @@ class exmo(Exchange, ImplicitAPI):
         #         {"name":"USD","description":"US Dollar"}
         #     ]
         #
-        cryptoList = await self.publicGetPaymentsProvidersCryptoList(params)
+        promises.append(self.publicGetPaymentsProvidersCryptoList(params))
         #
         #     {
         #         "BTC":[
@@ -701,73 +703,92 @@ class exmo(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
+        responses = await asyncio.gather(*promises)
+        currencyList = responses[0]
+        cryptoList = responses[1]
         result: dict = {}
         for i in range(0, len(currencyList)):
             currency = currencyList[i]
             currencyId = self.safe_string(currency, 'name')
-            name = self.safe_string(currency, 'description')
-            providers = self.safe_value(cryptoList, currencyId)
-            active = False
+            code = self.safe_currency_code(currencyId)
             type = 'crypto'
-            limits: dict = {
-                'deposit': {
-                    'min': None,
-                    'max': None,
-                },
-                'withdraw': {
-                    'min': None,
-                    'max': None,
-                },
-            }
-            fee = None
-            depositEnabled = None
-            withdrawEnabled = None
+            networks = {}
+            providers = self.safe_list(cryptoList, currencyId)
             if providers is None:
-                active = True
                 type = 'fiat'
             else:
                 for j in range(0, len(providers)):
                     provider = providers[j]
+                    name = self.safe_string(provider, 'name')
+                    # get network-id by removing extra things
+                    networkId = name.replace(currencyId + ' ', '')
+                    networkId = networkId.replace('(', '')
+                    replaceChar = ')'  # transpiler trick
+                    networkId = networkId.replace(replaceChar, '')
+                    networkCode = self.network_id_to_code(networkId)
+                    if not (networkCode in networks):
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': None,
+                            'deposit': None,
+                            'withdraw': None,
+                            'fee': None,
+                            'limits': {
+                                'withdraw': {
+                                    'min': None,
+                                    'max': None,
+                                },
+                                'deposit': {
+                                    'min': None,
+                                    'max': None,
+                                },
+                            },
+                            'info': [],  # set, because of multiple network sub-entries
+                        }
                     typeInner = self.safe_string(provider, 'type')
                     minValue = self.safe_string(provider, 'min')
                     maxValue = self.safe_string(provider, 'max')
-                    if Precise.string_eq(maxValue, '0.0'):
-                        maxValue = None
-                    activeProvider = self.safe_value(provider, 'enabled')
+                    activeProvider = self.safe_bool(provider, 'enabled')
+                    networkEntry = networks[networkCode]
                     if typeInner == 'deposit':
-                        if activeProvider and not depositEnabled:
-                            depositEnabled = True
-                        elif not activeProvider:
-                            depositEnabled = False
+                        networkEntry['deposit'] = activeProvider
+                        networkEntry['limits']['deposit']['min'] = minValue
+                        networkEntry['limits']['deposit']['max'] = maxValue
                     elif typeInner == 'withdraw':
-                        if activeProvider and not withdrawEnabled:
-                            withdrawEnabled = True
-                        elif not activeProvider:
-                            withdrawEnabled = False
-                    if activeProvider:
-                        active = True
-                        limitMin = self.number_to_string(limits[typeInner]['min'])
-                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
-                            limits[typeInner]['min'] = minValue
-                            limits[typeInner]['max'] = maxValue
-                            if typeInner == 'withdraw':
-                                commissionDesc = self.safe_string(provider, 'commission_desc')
-                                fee = self.parse_fixed_float_value(commissionDesc)
-            code = self.safe_currency_code(currencyId)
-            result[code] = {
+                        networkEntry['withdraw'] = activeProvider
+                        networkEntry['limits']['withdraw']['min'] = minValue
+                        networkEntry['limits']['withdraw']['max'] = maxValue
+                    info = self.safe_list(networkEntry, 'info')
+                    info.append(provider)
+                    networkEntry['info'] = info
+                    networks[networkCode] = networkEntry
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'code': code,
-                'name': name,
+                'name': self.safe_string(currency, 'description'),
                 'type': type,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
                 'precision': self.parse_number('1e-8'),
-                'limits': limits,
-                'info': providers,
-                'networks': {},
-            }
+                'limits': {
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': {
+                    'currency': currency,
+                    'providers': providers,
+                },
+                'networks': networks,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -779,7 +800,8 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetPairSettings(params)
+        promises = []
+        promises.append(self.publicGetPairSettings(params))
         #
         #     {
         #         "BTC_USD":{
@@ -796,8 +818,9 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         marginPairsDict: dict = {}
-        if self.check_required_credentials(False):
-            marginPairs = await self.privatePostMarginPairList(params)
+        fetchMargin = self.check_required_credentials(False)
+        if fetchMargin:
+            promises.append(self.privatePostMarginPairList(params))
             #
             #    {
             #        "pairs": [
@@ -827,14 +850,18 @@ class exmo(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            pairs = self.safe_value(marginPairs, 'pairs')
+        responses = await asyncio.gather(*promises)
+        spotResponse = responses[0]
+        if fetchMargin:
+            marginPairs = responses[1]
+            pairs = self.safe_list(marginPairs, 'pairs')
             marginPairsDict = self.index_by(pairs, 'name')
-        keys = list(response.keys())
+        keys = list(spotResponse.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
-            market = response[id]
-            marginMarket = self.safe_value(marginPairsDict, id)
+            market = spotResponse[id]
+            marginMarket = self.safe_dict(marginPairsDict, id)
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
@@ -896,7 +923,7 @@ class exmo(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -930,7 +957,7 @@ class exmo(Exchange, ImplicitAPI):
             request['from'] = to - (limit * duration) - 1
             request['to'] = to
         else:
-            request['from'] = self.parse_to_int(since / 1000) - 1
+            request['from'] = self.parse_to_int(since / 1000)
             if untilIsDefined:
                 request['to'] = min(until, now)
             else:
@@ -1012,7 +1039,7 @@ class exmo(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: *isolated* fetches the isolated margin balance
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         marginMode = None
@@ -1058,7 +1085,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1080,7 +1107,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
         await self.load_markets()
         ids = None
@@ -1155,7 +1182,7 @@ class exmo(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1193,7 +1220,7 @@ class exmo(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTicker(params)
@@ -1297,7 +1324,7 @@ class exmo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1344,7 +1371,7 @@ class exmo(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.offset]: last deal offset, default = 0
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -1434,7 +1461,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         params = self.extend(params, {'cost': cost})
@@ -1449,7 +1476,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         params = self.extend(params, {'cost': cost})
@@ -1464,7 +1491,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         params = self.extend(params, {'cost': cost})
@@ -1488,7 +1515,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: *spot only* 'fok', 'ioc' or 'post_only'
         :param boolean [params.postOnly]: *spot only* True for post only orders
         :param float [params.cost]: *spot only* *market orders only* the cost of the order in the quote currency for market orders
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1584,7 +1611,7 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True to cancel a trigger order
         :param str [params.marginMode]: set to 'cross' or 'isolated' to cancel a margin order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -1628,7 +1655,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by exmo fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1673,7 +1700,7 @@ class exmo(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: set to "isolated" to fetch trades for a margin order
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOrderTrades', params)
@@ -1746,7 +1773,7 @@ class exmo(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: set to "isolated" for margin orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1984,7 +2011,7 @@ class exmo(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -1996,7 +2023,7 @@ class exmo(Exchange, ImplicitAPI):
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: set to "isolated" for margin orders
-        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         marginMode = None
@@ -2093,7 +2120,7 @@ class exmo(Exchange, ImplicitAPI):
         :param int [params.distance]: distance for trailing stop orders
         :param int [params.expire]: expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
         :param str [params.comment]: optional comment for order. up to 50 latin symbols, whitespaces, underscores
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2123,7 +2150,7 @@ class exmo(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         await self.load_markets()
         response = await self.privatePostDepositAddress(params)
@@ -2159,7 +2186,7 @@ class exmo(Exchange, ImplicitAPI):
             return self.markets[symbols[0]]
         return None
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2170,7 +2197,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
@@ -2335,7 +2362,7 @@ class exmo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -2387,7 +2414,7 @@ class exmo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2438,7 +2465,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str id: withdrawal id
         :param str code: unified currency code of the currency withdrawn, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2489,7 +2516,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str id: deposit id
         :param str code: unified currency code, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2541,7 +2568,7 @@ class exmo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None

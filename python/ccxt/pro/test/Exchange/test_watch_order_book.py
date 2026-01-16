@@ -21,14 +21,18 @@ async def test_watch_order_book(exchange, skipped_properties, symbol):
     ends = now + 15000
     while now < ends:
         response = None
+        success = True
         try:
             response = await exchange.watch_order_book(symbol)
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
             now = exchange.milliseconds()
-            continue
-        # [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-        assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response)
-        now = exchange.milliseconds()
-        test_order_book(exchange, skipped_properties, method, response, symbol)
+            # continue;
+            success = False
+        if success:
+            # [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response)
+            now = exchange.milliseconds()
+            test_order_book(exchange, skipped_properties, method, response, symbol)
+    return True

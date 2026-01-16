@@ -7,1794 +7,458 @@
 
 package ccxt
 
-func (this *phemex) PublicGetCfgV2Products (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCfgV2Products", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetCfgFundingRates (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCfgFundingRates", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetNomicsTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetNomicsTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetMdKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMdKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetMdV2KlineList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMdV2KlineList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetMdV2Kline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMdV2Kline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetMdV2KlineLast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMdV2KlineLast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetMdOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMdOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetMdTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMdTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetMdSpotTicker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMdSpotTicker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PublicGetExchangePublicCfgChainSettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetExchangePublicCfgChainSettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetMdFullbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetMdFullbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetMdOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetMdOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetMdTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetMdTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetMdTicker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetMdTicker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetMdTicker24hrAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetMdTicker24hrAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetMdSpotTicker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetMdSpotTicker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetMdSpotTicker24hrAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetMdSpotTicker24hrAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetExchangePublicProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetExchangePublicProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V1GetApiDataPublicDataFundingRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GetApiDataPublicDataFundingRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V2GetPublicProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GetPublicProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V2GetPublicProductsPlus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GetPublicProductsPlus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V2GetMdV2Orderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GetMdV2Orderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V2GetMdV2Trade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GetMdV2Trade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V2GetMdV2Ticker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GetMdV2Ticker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V2GetMdV2Ticker24hrAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GetMdV2Ticker24hrAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) V2GetApiDataPublicDataFundingRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GetApiDataPublicDataFundingRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetSpotOrdersActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotOrdersActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetSpotOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetSpotWallets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSpotWallets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeSpotOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeSpotOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeSpotOrderTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeSpotOrderTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeOrderV2OrderList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeOrderV2OrderList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeOrderV2TradingList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeOrderV2TradingList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetAccountsAccountPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountsAccountPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetGAccountsAccountPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetGAccountsAccountPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetAccountsPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountsPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataFuturesFundingFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataFuturesFundingFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataGFuturesFundingFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataGFuturesFundingFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataFuturesOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataFuturesOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataGFuturesOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataGFuturesOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataFuturesOrdersByOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataFuturesOrdersByOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataGFuturesOrdersByOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataGFuturesOrdersByOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataFuturesTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataFuturesTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataGFuturesTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataGFuturesTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataFuturesTradingFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataFuturesTradingFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataGFuturesTradingFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataGFuturesTradingFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataFuturesV2TradeAccountDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataFuturesV2TradeAccountDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetGOrdersActiveList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetGOrdersActiveList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetOrdersActiveList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersActiveList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeOrderList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeOrderList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeOrderTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeOrderTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexUserUsersChildren (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexUserUsersChildren", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexUserWalletsV2DepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexUserWalletsV2DepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexUserWalletsTradeAccountDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexUserWalletsTradeAccountDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexDepositWalletsApiDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexDepositWalletsApiDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexDepositWalletsApiDepositHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexDepositWalletsApiDepositHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexDepositWalletsApiChainCfg (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexDepositWalletsApiChainCfg", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexWithdrawWalletsApiWithdrawHist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexWithdrawWalletsApiWithdrawHist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexWithdrawWalletsApiAssetInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexWithdrawWalletsApiAssetInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetPhemexUserOrderClosedPositionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPhemexUserOrderClosedPositionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeMarginsTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeMarginsTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeWalletsConfirmWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeWalletsConfirmWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeWalletsWithdrawList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeWalletsWithdrawList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeWalletsDepositList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeWalletsDepositList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetExchangeWalletsV2DepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeWalletsV2DepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataSpotsFunds (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataSpotsFunds", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataSpotsOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataSpotsOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataSpotsOrdersByOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataSpotsOrdersByOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataSpotsPnls (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataSpotsPnls", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataSpotsTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataSpotsTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetApiDataSpotsTradesByOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiDataSpotsTradesByOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetAssetsConvert (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetsConvert", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetAssetsTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetsTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetAssetsSpotsSubAccountsTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetsSpotsSubAccountsTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetAssetsFuturesSubAccountsTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetsFuturesSubAccountsTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateGetAssetsQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetsQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostSpotOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSpotOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostGOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostPositionsAssign (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPositionsAssign", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostExchangeWalletsTransferOut (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeWalletsTransferOut", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostExchangeWalletsTransferIn (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeWalletsTransferIn", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostExchangeMargins (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeMargins", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostExchangeWalletsCreateWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeWalletsCreateWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostExchangeWalletsCancelWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeWalletsCancelWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostExchangeWalletsCreateWithdrawAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeWalletsCreateWithdrawAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostAssetsTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetsTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostAssetsSpotsSubAccountsTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetsSpotsSubAccountsTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostAssetsFuturesSubAccountsTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetsFuturesSubAccountsTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostAssetsUniversalTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetsUniversalTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostAssetsConvert (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetsConvert", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostPhemexWithdrawWalletsApiCreateWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPhemexWithdrawWalletsApiCreateWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePostPhemexWithdrawWalletsApiCancelWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPhemexWithdrawWalletsApiCancelWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePutSpotOrdersCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutSpotOrdersCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePutSpotOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutSpotOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePutOrdersReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutOrdersReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePutGOrdersReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutGOrdersReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePutPositionsLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutPositionsLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePutGPositionsLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutGPositionsLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePutGPositionsSwitchPosModeSync (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutGPositionsSwitchPosModeSync", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivatePutPositionsRiskLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutPositionsRiskLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateDeleteSpotOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteSpotOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateDeleteSpotOrdersAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteSpotOrdersAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateDeleteOrdersCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrdersCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateDeleteOrdersAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrdersAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateDeleteGOrdersCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteGOrdersCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateDeleteGOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteGOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *phemex) PrivateDeleteGOrdersAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteGOrdersAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *PhemexCore) PublicGetCfgV2Products(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCfgV2Products", args...)
+}
+
+func (this *PhemexCore) PublicGetCfgFundingRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCfgFundingRates", args...)
+}
+
+func (this *PhemexCore) PublicGetProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetProducts", args...)
+}
+
+func (this *PhemexCore) PublicGetNomicsTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetNomicsTrades", args...)
+}
+
+func (this *PhemexCore) PublicGetMdKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMdKline", args...)
+}
+
+func (this *PhemexCore) PublicGetMdV2KlineList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMdV2KlineList", args...)
+}
+
+func (this *PhemexCore) PublicGetMdV2Kline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMdV2Kline", args...)
+}
+
+func (this *PhemexCore) PublicGetMdV2KlineLast(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMdV2KlineLast", args...)
+}
+
+func (this *PhemexCore) PublicGetMdOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMdOrderbook", args...)
+}
+
+func (this *PhemexCore) PublicGetMdTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMdTrade", args...)
+}
+
+func (this *PhemexCore) PublicGetMdSpotTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMdSpotTicker24hr", args...)
+}
+
+func (this *PhemexCore) PublicGetExchangePublicCfgChainSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangePublicCfgChainSettings", args...)
+}
+
+func (this *PhemexCore) V1GetMdFullbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetMdFullbook", args...)
+}
+
+func (this *PhemexCore) V1GetMdOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetMdOrderbook", args...)
+}
+
+func (this *PhemexCore) V1GetMdTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetMdTrade", args...)
+}
+
+func (this *PhemexCore) V1GetMdTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetMdTicker24hr", args...)
+}
+
+func (this *PhemexCore) V1GetMdTicker24hrAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetMdTicker24hrAll", args...)
+}
+
+func (this *PhemexCore) V1GetMdSpotTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetMdSpotTicker24hr", args...)
+}
+
+func (this *PhemexCore) V1GetMdSpotTicker24hrAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetMdSpotTicker24hrAll", args...)
+}
+
+func (this *PhemexCore) V1GetExchangePublicProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetExchangePublicProducts", args...)
+}
+
+func (this *PhemexCore) V1GetApiDataPublicDataFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1GetApiDataPublicDataFundingRateHistory", args...)
+}
+
+func (this *PhemexCore) V2GetPublicProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2GetPublicProducts", args...)
+}
+
+func (this *PhemexCore) V2GetPublicProductsPlus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2GetPublicProductsPlus", args...)
+}
+
+func (this *PhemexCore) V2GetMdV2Orderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2GetMdV2Orderbook", args...)
+}
+
+func (this *PhemexCore) V2GetMdV2Trade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2GetMdV2Trade", args...)
+}
+
+func (this *PhemexCore) V2GetMdV2Ticker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2GetMdV2Ticker24hr", args...)
+}
+
+func (this *PhemexCore) V2GetMdV2Ticker24hrAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2GetMdV2Ticker24hrAll", args...)
+}
+
+func (this *PhemexCore) V2GetApiDataPublicDataFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2GetApiDataPublicDataFundingRateHistory", args...)
+}
+
+func (this *PhemexCore) PrivateGetSpotOrdersActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotOrdersActive", args...)
+}
+
+func (this *PhemexCore) PrivateGetSpotOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotOrders", args...)
+}
+
+func (this *PhemexCore) PrivateGetSpotWallets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotWallets", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeSpotOrder", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeSpotOrderTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeSpotOrderTrades", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeOrderV2OrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeOrderV2OrderList", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeOrderV2TradingList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeOrderV2TradingList", args...)
+}
+
+func (this *PhemexCore) PrivateGetAccountsAccountPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsAccountPositions", args...)
+}
+
+func (this *PhemexCore) PrivateGetGAccountsAccountPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGAccountsAccountPositions", args...)
+}
+
+func (this *PhemexCore) PrivateGetGAccountsPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGAccountsPositions", args...)
+}
+
+func (this *PhemexCore) PrivateGetGAccountsRiskUnit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGAccountsRiskUnit", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataFuturesFundingFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataFuturesFundingFees", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataGFuturesFundingFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataGFuturesFundingFees", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataFuturesOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataFuturesOrders", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataGFuturesOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataGFuturesOrders", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataFuturesOrdersByOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataFuturesOrdersByOrderId", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataGFuturesOrdersByOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataGFuturesOrdersByOrderId", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataFuturesTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataFuturesTrades", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataGFuturesTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataGFuturesTrades", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataFuturesTradingFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataFuturesTradingFees", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataGFuturesTradingFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataGFuturesTradingFees", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataFuturesV2TradeAccountDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataFuturesV2TradeAccountDetail", args...)
+}
+
+func (this *PhemexCore) PrivateGetGOrdersActiveList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGOrdersActiveList", args...)
+}
+
+func (this *PhemexCore) PrivateGetOrdersActiveList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersActiveList", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeOrderList", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeOrder", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeOrderTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeOrderTrade", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexUserUsersChildren(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexUserUsersChildren", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexUserWalletsV2DepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexUserWalletsV2DepositAddress", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexUserWalletsTradeAccountDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexUserWalletsTradeAccountDetail", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexDepositWalletsApiDepositAddress", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiDepositHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexDepositWalletsApiDepositHist", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexDepositWalletsApiChainCfg(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexDepositWalletsApiChainCfg", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexWithdrawWalletsApiWithdrawHist(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexWithdrawWalletsApiWithdrawHist", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexWithdrawWalletsApiAssetInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexWithdrawWalletsApiAssetInfo", args...)
+}
+
+func (this *PhemexCore) PrivateGetPhemexUserOrderClosedPositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPhemexUserOrderClosedPositionList", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeMarginsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeMarginsTransfer", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeWalletsConfirmWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeWalletsConfirmWithdraw", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeWalletsWithdrawList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeWalletsWithdrawList", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeWalletsDepositList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeWalletsDepositList", args...)
+}
+
+func (this *PhemexCore) PrivateGetExchangeWalletsV2DepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeWalletsV2DepositAddress", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataSpotsFunds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataSpotsFunds", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataSpotsOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataSpotsOrders", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataSpotsOrdersByOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataSpotsOrdersByOrderId", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataSpotsPnls(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataSpotsPnls", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataSpotsTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataSpotsTrades", args...)
+}
+
+func (this *PhemexCore) PrivateGetApiDataSpotsTradesByOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiDataSpotsTradesByOrderId", args...)
+}
+
+func (this *PhemexCore) PrivateGetAssetsConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetsConvert", args...)
+}
+
+func (this *PhemexCore) PrivateGetAssetsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetsTransfer", args...)
+}
+
+func (this *PhemexCore) PrivateGetAssetsSpotsSubAccountsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetsSpotsSubAccountsTransfer", args...)
+}
+
+func (this *PhemexCore) PrivateGetAssetsFuturesSubAccountsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetsFuturesSubAccountsTransfer", args...)
+}
+
+func (this *PhemexCore) PrivateGetAssetsQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetsQuote", args...)
+}
+
+func (this *PhemexCore) PrivatePostSpotOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotOrders", args...)
+}
+
+func (this *PhemexCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
+}
+
+func (this *PhemexCore) PrivatePostGOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGOrders", args...)
+}
+
+func (this *PhemexCore) PrivatePostPositionsAssign(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPositionsAssign", args...)
+}
+
+func (this *PhemexCore) PrivatePostExchangeWalletsTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeWalletsTransferOut", args...)
+}
+
+func (this *PhemexCore) PrivatePostExchangeWalletsTransferIn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeWalletsTransferIn", args...)
+}
+
+func (this *PhemexCore) PrivatePostExchangeMargins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeMargins", args...)
+}
+
+func (this *PhemexCore) PrivatePostExchangeWalletsCreateWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeWalletsCreateWithdraw", args...)
+}
+
+func (this *PhemexCore) PrivatePostExchangeWalletsCancelWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeWalletsCancelWithdraw", args...)
+}
+
+func (this *PhemexCore) PrivatePostExchangeWalletsCreateWithdrawAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeWalletsCreateWithdrawAddress", args...)
+}
+
+func (this *PhemexCore) PrivatePostAssetsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetsTransfer", args...)
+}
+
+func (this *PhemexCore) PrivatePostAssetsSpotsSubAccountsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetsSpotsSubAccountsTransfer", args...)
+}
+
+func (this *PhemexCore) PrivatePostAssetsFuturesSubAccountsTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetsFuturesSubAccountsTransfer", args...)
+}
+
+func (this *PhemexCore) PrivatePostAssetsUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetsUniversalTransfer", args...)
+}
+
+func (this *PhemexCore) PrivatePostAssetsConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetsConvert", args...)
+}
+
+func (this *PhemexCore) PrivatePostPhemexWithdrawWalletsApiCreateWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPhemexWithdrawWalletsApiCreateWithdraw", args...)
+}
+
+func (this *PhemexCore) PrivatePostPhemexWithdrawWalletsApiCancelWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPhemexWithdrawWalletsApiCancelWithdraw", args...)
+}
+
+func (this *PhemexCore) PrivatePutSpotOrdersCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutSpotOrdersCreate", args...)
+}
+
+func (this *PhemexCore) PrivatePutSpotOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutSpotOrders", args...)
+}
+
+func (this *PhemexCore) PrivatePutOrdersReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrdersReplace", args...)
+}
+
+func (this *PhemexCore) PrivatePutGOrdersReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutGOrdersReplace", args...)
+}
+
+func (this *PhemexCore) PrivatePutGOrdersCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutGOrdersCreate", args...)
+}
+
+func (this *PhemexCore) PrivatePutPositionsLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutPositionsLeverage", args...)
+}
+
+func (this *PhemexCore) PrivatePutGPositionsLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutGPositionsLeverage", args...)
+}
+
+func (this *PhemexCore) PrivatePutGPositionsSwitchPosModeSync(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutGPositionsSwitchPosModeSync", args...)
+}
+
+func (this *PhemexCore) PrivatePutPositionsRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutPositionsRiskLimit", args...)
+}
+
+func (this *PhemexCore) PrivateDeleteSpotOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteSpotOrders", args...)
+}
+
+func (this *PhemexCore) PrivateDeleteSpotOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteSpotOrdersAll", args...)
+}
+
+func (this *PhemexCore) PrivateDeleteOrdersCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersCancel", args...)
+}
+
+func (this *PhemexCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+func (this *PhemexCore) PrivateDeleteOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
+}
+
+func (this *PhemexCore) PrivateDeleteGOrdersCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteGOrdersCancel", args...)
+}
+
+func (this *PhemexCore) PrivateDeleteGOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteGOrders", args...)
+}
+
+func (this *PhemexCore) PrivateDeleteGOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteGOrdersAll", args...)
 }

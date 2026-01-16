@@ -42,6 +42,7 @@ public partial class coinex : Exchange
                 { "createTakeProfitOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", true },
+                { "editOrders", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
@@ -55,7 +56,7 @@ public partial class coinex : Exchange
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", true },
-                { "fetchDepositWithdrawFees", false },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingInterval", true },
                 { "fetchFundingIntervals", false },
@@ -300,6 +301,7 @@ public partial class coinex : Exchange
                             { "futures/index", 1 },
                             { "futures/funding-rate", 1 },
                             { "futures/funding-rate-history", 1 },
+                            { "futures/premium-index-history", 1 },
                             { "futures/position-level", 1 },
                             { "futures/liquidation-history", 1 },
                             { "futures/basis-history", 1 },
@@ -314,20 +316,26 @@ public partial class coinex : Exchange
                             { "account/subs/info", 1 },
                             { "account/subs/api", 40 },
                             { "account/subs/transfer-history", 40 },
+                            { "account/subs/balance", 1 },
                             { "account/subs/spot-balance", 1 },
                             { "account/trade-fee-rate", 40 },
+                            { "account/futures-market-settings", 1 },
+                            { "account/info", 1 },
                             { "assets/spot/balance", 40 },
                             { "assets/futures/balance", 40 },
                             { "assets/margin/balance", 1 },
                             { "assets/financial/balance", 40 },
                             { "assets/amm/liquidity", 40 },
                             { "assets/credit/info", 40 },
+                            { "assets/spot/transcation-history", 1 },
                             { "assets/margin/borrow-history", 40 },
                             { "assets/margin/interest-limit", 1 },
                             { "assets/deposit-address", 40 },
                             { "assets/deposit-history", 40 },
                             { "assets/withdraw", 40 },
                             { "assets/transfer-history", 40 },
+                            { "assets/amm/liquidity-pool", 40 },
+                            { "assets/amm/income-history", 40 },
                             { "spot/order-status", 8 },
                             { "spot/batch-order-status", 8 },
                             { "spot/pending-order", 8 },
@@ -350,6 +358,12 @@ public partial class coinex : Exchange
                             { "futures/position-funding-history", 40 },
                             { "futures/position-adl-history", 1 },
                             { "futures/position-settle-history", 1 },
+                            { "refer/referee", 1 },
+                            { "refer/referee-rebate/record", 1 },
+                            { "refer/referee-rebate/detail", 1 },
+                            { "refer/agent-referee", 1 },
+                            { "refer/agent-rebate/record", 1 },
+                            { "refer/agent-rebate/detail", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account/subs", 40 },
@@ -360,6 +374,7 @@ public partial class coinex : Exchange
                             { "account/subs/delete-api", 40 },
                             { "account/subs/transfer", 40 },
                             { "account/settings", 40 },
+                            { "account/futures-market-settings", 40 },
                             { "assets/margin/borrow", 40 },
                             { "assets/margin/repay", 40 },
                             { "assets/renewal-deposit-address", 40 },
@@ -374,6 +389,7 @@ public partial class coinex : Exchange
                             { "spot/batch-stop-order", 1 },
                             { "spot/modify-order", 13.334 },
                             { "spot/modify-stop-order", 13.334 },
+                            { "spot/batch-modify-order", 13.334 },
                             { "spot/cancel-all-order", 1 },
                             { "spot/cancel-order", 6.667 },
                             { "spot/cancel-stop-order", 6.667 },
@@ -387,6 +403,7 @@ public partial class coinex : Exchange
                             { "futures/batch-stop-order", 1 },
                             { "futures/modify-order", 20 },
                             { "futures/modify-stop-order", 20 },
+                            { "futures/batch-modify-order", 20 },
                             { "futures/cancel-all-order", 1 },
                             { "futures/cancel-order", 10 },
                             { "futures/cancel-stop-order", 10 },
@@ -638,6 +655,7 @@ public partial class coinex : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "ip not allow visit", typeof(PermissionDenied) },
                     { "service too busy", typeof(ExchangeNotAvailable) },
+                    { "Service is not available during funding fee settlement", typeof(OperationFailed) },
                 } },
             } },
         });
@@ -712,6 +730,7 @@ public partial class coinex : Exchange
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
+                object networkCode = this.networkIdToCode(networkId, code);
                 if (isTrue(isEqual(networkId, null)))
                 {
                     continue;
@@ -724,7 +743,7 @@ public partial class coinex : Exchange
                 object canWithdrawChain = this.safeBool(chain, "withdraw_enabled");
                 object network = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", networkId },
+                    { "network", networkCode },
                     { "name", null },
                     { "active", isTrue(canDepositChain) && isTrue(canWithdrawChain) },
                     { "deposit", canDepositChain },
@@ -747,7 +766,7 @@ public partial class coinex : Exchange
                     } },
                     { "info", chain },
                 };
-                ((IDictionary<string,object>)networks)[(string)networkId] = network;
+                ((IDictionary<string,object>)networks)[(string)networkCode] = network;
             }
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
@@ -772,7 +791,7 @@ public partial class coinex : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
+                { "networks", networks },
                 { "type", "crypto" },
                 { "info", coin },
             });
@@ -807,17 +826,19 @@ public partial class coinex : Exchange
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "base_ccy": "SORA",
-        //                 "base_ccy_precision": 8,
-        //                 "is_amm_available": true,
-        //                 "is_margin_available": false,
-        //                 "maker_fee_rate": "0.003",
-        //                 "market": "SORAUSDT",
-        //                 "min_amount": "500",
+        //                 "market": "BTCUSDT",
+        //                 "taker_fee_rate": "0.002",
+        //                 "maker_fee_rate": "0.002",
+        //                 "min_amount": "0.0005",
+        //                 "base_ccy": "BTC",
         //                 "quote_ccy": "USDT",
-        //                 "quote_ccy_precision": 6,
-        //                 "taker_fee_rate": "0.003"
-        //             },
+        //                 "base_ccy_precision": 8,
+        //                 "quote_ccy_precision": 2,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": true,
+        //                 "is_pre_trading_available": true,
+        //                 "is_api_trading_available": true
+        //             }
         //         ],
         //         "message": "OK"
         //     }
@@ -844,11 +865,11 @@ public partial class coinex : Exchange
                 { "settleId", null },
                 { "type", "spot" },
                 { "spot", true },
-                { "margin", null },
+                { "margin", this.safeBool(market, "is_margin_available") },
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", null },
+                { "active", this.safeBool(market, "is_api_trading_available") },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -1060,7 +1081,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -1138,7 +1159,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -1247,7 +1268,7 @@ public partial class coinex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1365,7 +1386,7 @@ public partial class coinex : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1415,7 +1436,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -1445,7 +1466,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -1744,7 +1765,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    // financial
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'margin', 'swap', 'financial', or 'spot'
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -2070,7 +2091,7 @@ public partial class coinex : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -2241,7 +2262,7 @@ public partial class coinex : Exchange
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', 'PO'
      * @param {boolean} [params.postOnly] set to true if you wish to make a post only order
      * @param {boolean} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -2306,7 +2327,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/order/http/put-multi-stop-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the api endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -2430,9 +2451,9 @@ public partial class coinex : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true for canceling stop orders
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2507,7 +2528,7 @@ public partial class coinex : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price to trigger stop orders
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -2578,6 +2599,94 @@ public partial class coinex : Exchange
 
     /**
      * @method
+     * @name coinex#editOrders
+     * @description edit a list of trade orders
+     * @see https://docs.coinex.com/api/v2/spot/order/http/edit-multi-order
+     * @see https://docs.coinex.com/api/v2/futures/order/http/edit-multi-order
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> editOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object orderSymbols = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            object market = this.market(marketId);
+            ((IList<object>)orderSymbols).Add(marketId);
+            object id = this.safeString(rawOrder, "id");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object marginMode = null;
+            var marginModeorderParamsVariable = this.handleMarginModeAndParams("editOrders", orderParams);
+            marginMode = ((IList<object>)marginModeorderParamsVariable)[0];
+            orderParams = ((IList<object>)marginModeorderParamsVariable)[1];
+            object market_type = "SPOT";
+            if (isTrue(getValue(market, "swap")))
+            {
+                market_type = "FUTURES";
+            } else if (isTrue(!isEqual(marginMode, null)))
+            {
+                market_type = "MARGIN";
+            }
+            object orderRequest = new Dictionary<string, object>() {
+                { "order_id", this.parseToNumeric(id) },
+                { "market", getValue(market, "id") },
+                { "market_type", market_type },
+            };
+            if (isTrue(!isEqual(amount, null)))
+            {
+                ((IDictionary<string,object>)orderRequest)["amount"] = this.amountToPrecision(marketId, amount);
+            }
+            if (isTrue(!isEqual(price, null)))
+            {
+                ((IDictionary<string,object>)orderRequest)["price"] = this.priceToPrecision(marketId, price);
+            }
+            ((IList<object>)ordersRequests).Add(this.extend(orderRequest, orderParams));
+        }
+        orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
+        object firstSymbol = this.safeString(orderSymbols, 0);
+        object firstMarket = this.market(firstSymbol);
+        object request = new Dictionary<string, object>() {
+            { "orders", ordersRequests },
+        };
+        object response = null;
+        if (isTrue(getValue(firstMarket, "spot")))
+        {
+            response = await this.v2PrivatePostSpotBatchModifyOrder(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v2PrivatePostFuturesBatchModifyOrder(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            object code = this.safeString(entry, "code");
+            object message = this.safeString(entry, "message");
+            if (isTrue(isTrue((!isEqual(code, "0"))) || isTrue((isTrue(isTrue(isTrue((!isEqual(message, "Success"))) && isTrue((!isEqual(message, "Succeeded")))) && isTrue((!isEqual(((string)message).ToLower(), "ok")))) && !isTrue(data)))))
+            {
+                object feedback = add(add(this.id, " "), message);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            }
+            object item = this.safeDict(entry, "data", new Dictionary<string, object>() {});
+            object order = this.parseOrder(item);
+            ((IList<object>)result).Add(order);
+        }
+        return result;
+    }
+
+    /**
+     * @method
      * @name coinex#cancelOrder
      * @description cancels an open order
      * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-order
@@ -2593,7 +2702,7 @@ public partial class coinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
      * @param {boolean} [params.trigger] set to true for canceling a trigger order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2696,7 +2805,7 @@ public partial class coinex : Exchange
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' for canceling spot margin orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -2744,7 +2853,7 @@ public partial class coinex : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2786,7 +2895,7 @@ public partial class coinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2885,7 +2994,7 @@ public partial class coinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2912,7 +3021,7 @@ public partial class coinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2928,7 +3037,7 @@ public partial class coinex : Exchange
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network to create a deposit address on
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
@@ -2968,7 +3077,7 @@ public partial class coinex : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network to create a deposit address on
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -3044,7 +3153,7 @@ public partial class coinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trades
      * @param {string} [params.side] the side of the trades, either 'buy' or 'sell', required for swap
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3102,7 +3211,7 @@ public partial class coinex : Exchange
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -3202,7 +3311,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -3430,7 +3539,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
@@ -3643,7 +3752,7 @@ public partial class coinex : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -3659,7 +3768,7 @@ public partial class coinex : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -3676,7 +3785,7 @@ public partial class coinex : Exchange
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3752,7 +3861,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -3797,7 +3906,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
     {
@@ -3868,7 +3977,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -3919,10 +4028,10 @@ public partial class coinex : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} [tag] memo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -4005,11 +4114,11 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] timestamp in ms of the latest funding rate
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4208,7 +4317,7 @@ public partial class coinex : Exchange
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.symbol] unified ccxt symbol, required when either the fromAccount or toAccount is margin
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -4295,7 +4404,7 @@ public partial class coinex : Exchange
      * @param {int} [limit] the maximum number of transfer structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching transfers to and from your margin account
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4365,7 +4474,7 @@ public partial class coinex : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4428,7 +4537,7 @@ public partial class coinex : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposit structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4525,7 +4634,7 @@ public partial class coinex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the borrow rate for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.code unified currency code
-     * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+     * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
     public async override Task<object> fetchIsolatedBorrowRate(object symbol, object parameters = null)
     {
@@ -4572,7 +4681,7 @@ public partial class coinex : Exchange
      * @param {int} [since] the earliest time in ms to fetch borrrow interest for
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4661,7 +4770,7 @@ public partial class coinex : Exchange
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.isAutoRenew] whether to renew the margin loan automatically or not, default is false
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
@@ -4712,7 +4821,7 @@ public partial class coinex : Exchange
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.borrow_id] extra parameter that is not required
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
@@ -4776,7 +4885,7 @@ public partial class coinex : Exchange
      * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
     {
@@ -4822,6 +4931,75 @@ public partial class coinex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ((object)this.parseDepositWithdrawFee(data, currency));
+    }
+
+    /**
+     * @method
+     * @name coinex#fetchDepositWithdrawFees
+     * @description fetch the fees for deposits and withdrawals
+     * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+     * @param codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.v2PublicGetAssetsAllDepositWithdrawConfig(parameters);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "asset": {
+        //                     "ccy": "CET",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "inter_transfer_enabled": true,
+        //                     "is_st": false
+        //                 },
+        //                 "chains": [
+        //                     {
+        //                         "chain": "CSC",
+        //                         "min_deposit_amount": "0.8",
+        //                         "min_withdraw_amount": "8",
+        //                         "deposit_enabled": true,
+        //                         "withdraw_enabled": true,
+        //                         "deposit_delay_minutes": 0,
+        //                         "safe_confirmations": 10,
+        //                         "irreversible_confirmations": 20,
+        //                         "deflation_rate": "0",
+        //                         "withdrawal_fee": "0.026",
+        //                         "withdrawal_precision": 8,
+        //                         "memo": "",
+        //                         "is_memo_required_for_deposit": false,
+        //                         "explorer_asset_url": ""
+        //                     },
+        //                 ]
+        //             }
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object item = getValue(data, i);
+            object asset = this.safeDict(item, "asset", new Dictionary<string, object>() {});
+            object currencyId = this.safeString(asset, "ccy");
+            if (isTrue(isEqual(currencyId, null)))
+            {
+                continue;
+            }
+            object code = this.safeCurrencyCode(currencyId);
+            if (isTrue(isTrue(isEqual(codes, null)) || isTrue(this.inArray(code, codes))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = this.parseDepositWithdrawFee(item);
+            }
+        }
+        return result;
     }
 
     public override object parseDepositWithdrawFee(object fee, object currency = null)
@@ -4905,7 +5083,7 @@ public partial class coinex : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.code unified currency code
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
@@ -4975,7 +5153,7 @@ public partial class coinex : Exchange
      * @param {int} [limit] the maximum amount of records to fetch, default is 10
      * @param {object} [params] extra parameters specific to the exchange api endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -5058,7 +5236,7 @@ public partial class coinex : Exchange
      * @param {string} [params.price] the price to fulfill the order, ignored in market orders
      * @param {string} [params.amount] the amount to trade in units of the base currency
      * @param {string} [params.clientOrderId] the client id of the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
@@ -5303,7 +5481,7 @@ public partial class coinex : Exchange
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @param {int} [params.positionId] the id of the position that you want to retrieve margin adjustment history for
-     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
     {

@@ -7,34 +7,10 @@
 
 package ccxt
 
-func (this *hyperliquid) PublicPostInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HyperliquidCore) PublicPostInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostInfo", args...)
 }
 
-func (this *hyperliquid) PrivatePostExchange (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchange", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HyperliquidCore) PrivatePostExchange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchange", args...)
 }

@@ -1,16 +1,45 @@
 package ccxt
 
 import (
+	"bytes"
+	"compress/flate"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
+
+// serialize writes in AddElementToObject to avoid concurrent map writes in hot WS paths
+var addElementMu sync.Mutex
+
+func UnWrapType(value interface{}) interface{} {
+	// converts from wrapped types to basic types
+	// like OrderBook, Ticker, Trade, etc to map[string]interface{} or []interface{}
+	// also if value is a string, it panics with that string (error message)
+	if value == nil {
+		return nil
+	}
+	switch v := value.(type) {
+	case OrderBookInterface:
+		return v.ToMap()
+	case ArrayCacheByTimestamp:
+		return v.ToArray()
+	case ArrayCache:
+		return v.ToArray()
+	case string:
+		panic(v)
+	default:
+		return value
+	}
+}
 
 func Add(a interface{}, b interface{}) interface{} {
 	if (a == nil) || (b == nil) {
@@ -53,6 +82,7 @@ func Add(a interface{}, b interface{}) interface{} {
 		if IsInteger(res) {
 			return ParseInt(res)
 		}
+		return res
 	case string:
 		if bType, ok := b.(string); ok {
 			return aType + bType // Concatenate as strings
@@ -87,6 +117,16 @@ func EvalTruthy(val interface{}) bool {
 		return len(v) > 0
 	case map[string]interface{}:
 		return len(v) > 0
+	case *sync.Map:
+		if v == nil {
+			return false
+		}
+		hasAny := false
+		v.Range(func(_, _ interface{}) bool {
+			hasAny = true
+			return false // stop after the first item
+		})
+		return hasAny
 	case []string:
 		return len(v) > 0
 	case []int64:
@@ -107,7 +147,7 @@ func EvalTruthy(val interface{}) bool {
 		// }
 	}
 
-	return true // Consider non-nil complex types as truthy
+	// return true // Consider non-nil complex types as truthy
 }
 
 // func IsInteger(value interface{}) bool {
@@ -143,18 +183,138 @@ func IsInteger(value interface{}) bool {
 	}
 }
 
+// func GetValue(collection interface{}, key interface{}) interface{} {
+
+// 	if collection == nil {
+// 		return nil
+// 	}
+// 	if key == nil {
+// 		return nil
+// 	}
+
+// 	keyNum := -1
+// 	keyStr, ok := key.(string)
+// 	if !ok {
+// 		keyNum64 := ParseInt(key)
+// 		if keyNum64 == math.MinInt64 {
+// 			return nil
+// 		}
+// 		keyNum = int(keyNum64)
+// 	}
+
+// 	_, isMap := collection.(map[string]interface{})
+
+// 	if isMap || keyNum != -1 {
+// 		switch v := collection.(type) {
+// 		case map[string]interface{}:
+// 			if !ok {
+// 				return nil
+// 			}
+// 			if val, ok := v[keyStr]; ok {
+// 				return val
+// 			}
+// 			return nil
+// 		case []interface{}:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []string:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []int64:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []float64:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []bool:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []int:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case string:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return string(v[keyNum])
+// 		}
+// 	}
+
+// 	// this is needed in checkRequiredCredentials or alike
+// 	reflectValue := reflect.ValueOf(collection)
+
+// 	if reflectValue.Kind() == reflect.Ptr {
+// 		reflectValue = reflectValue.Elem()
+// 	}
+// 	if reflectValue.Kind() == reflect.Struct {
+// 		stringKey := key.(string)
+// 		stringKeyCapitalized := Capitalize(stringKey)
+// 		field := reflectValue.FieldByName(stringKey)
+
+// 		fieldCapitalized := reflectValue.FieldByName(stringKeyCapitalized)
+// 		if fieldCapitalized.IsValid() {
+// 			return fieldCapitalized.Interface()
+// 		}
+
+// 		if field.IsValid() {
+// 			return field.Interface()
+// 		}
+
+// 		return nil
+// 	}
+
+// 	switch reflectValue.Kind() {
+// 	case reflect.Slice, reflect.Array:
+// 		// Handle slice or array: key should be an integer index.
+// 		index2 := ParseInt(key)
+// 		if index2 == math.MinInt64 {
+// 			return nil // Key is not an int, invalid index
+// 		}
+// 		index := int(index2)
+// 		if index < 0 || index >= reflectValue.Len() {
+// 			return nil // Index out of bounds
+// 		}
+// 		return reflectValue.Index(index).Interface()
+
+// 	case reflect.Map:
+// 		// Handle map: key needs to be appropriate for the map
+// 		keyStr, ok := key.(string)
+// 		if !ok {
+// 			return nil // Key is not a string, invalid key
+// 		}
+// 		reflectKeyValue := reflect.ValueOf(keyStr)
+// 		if reflectValue.MapIndex(reflectKeyValue).IsValid() {
+// 			return reflectValue.MapIndex(reflectKeyValue).Interface()
+// 		}
+// 		return nil
+
+// 	default:
+// 		// Type not supported
+// 		return nil
+// 	}
+// }
+
 func GetValue(collection interface{}, key interface{}) interface{} {
 
-	if collection == nil {
-		return nil
-	}
-	if key == nil {
+	if collection == nil || key == nil {
 		return nil
 	}
 
 	keyNum := -1
-	keyStr, ok := key.(string)
-	if !ok {
+	keyStr, isStr := key.(string)
+	if !isStr {
 		keyNum64 := ParseInt(key)
 		if keyNum64 == math.MinInt64 {
 			return nil
@@ -162,53 +322,87 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		keyNum = int(keyNum64)
 	}
 
-	_, isMap := collection.(map[string]interface{})
-
-	if isMap || keyNum != -1 {
-		switch v := collection.(type) {
-		case map[string]interface{}:
-			if !ok {
-				return nil
+	switch v := collection.(type) {
+	case map[string]interface{}:
+		if !isStr {
+			return nil
+		}
+		// serialize map reads to avoid races with concurrent writes
+		addElementMu.Lock()
+		val, ok := v[keyStr]
+		addElementMu.Unlock()
+		if ok {
+			return val
+		}
+	case *sync.Map:
+		if v == nil {
+			return nil
+		}
+		if !isStr {
+			return nil
+		}
+		val, ok := v.Load(keyStr)
+		if ok {
+			return val
+		} else {
+			return nil
+		}
+	case []interface{}:
+		if keyNum >= 0 && keyNum < len(v) {
+			return v[keyNum]
+		}
+	case []string:
+		if keyNum >= 0 && keyNum < len(v) {
+			return v[keyNum]
+		}
+	case []int64:
+		if keyNum >= 0 && keyNum < len(v) {
+			return v[keyNum]
+		}
+	case []float64:
+		if keyNum >= 0 && keyNum < len(v) {
+			return v[keyNum]
+		}
+	case []bool:
+		if keyNum >= 0 && keyNum < len(v) {
+			return v[keyNum]
+		}
+	case []int:
+		if keyNum >= 0 && keyNum < len(v) {
+			return v[keyNum]
+		}
+	case string:
+		if keyNum >= 0 && keyNum < len(v) {
+			return string(v[keyNum])
+		}
+	case map[string]map[string]*ArrayCacheByTimestamp:
+		if keyStr != "" {
+			if innerMap, ok := v[keyStr]; ok {
+				return innerMap
 			}
+		}
+	case map[string]*ArrayCacheByTimestamp:
+		if keyStr != "" {
 			if val, ok := v[keyStr]; ok {
 				return val
 			}
-			return nil
-		case []interface{}:
-			if keyNum >= len(v) {
-				return nil
+		}
+	case map[string]*ArrayCache:
+		if keyStr != "" {
+			if val, ok := v[keyStr]; ok {
+				return val
 			}
-			return v[keyNum]
-		case []string:
-			if keyNum >= len(v) {
-				return nil
+		}
+	case map[string]*ArrayCacheBySymbolBySide:
+		if keyStr != "" {
+			if val, ok := v[keyStr]; ok {
+				return val
 			}
-			return v[keyNum]
-		case []int64:
-			if keyNum >= len(v) {
-				return nil
-			}
-			return v[keyNum]
-		case []float64:
-			if keyNum >= len(v) {
-				return nil
-			}
-			return v[keyNum]
-		case []bool:
-			if keyNum >= len(v) {
-				return nil
-			}
-			return v[keyNum]
-		case []int:
-			if keyNum >= len(v) {
-				return nil
-			}
-			return v[keyNum]
-		case string:
-			if keyNum >= len(v) {
-				return nil
-			}
-			return string(v[keyNum])
+		}
+	default:
+		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
+		if obs, ok := collection.(IOrderBookSide); ok {
+			return (obs.GetData())[keyNum]
 		}
 	}
 
@@ -394,6 +588,8 @@ func GetArrayLength(value interface{}) int {
 	}
 
 	switch v := value.(type) {
+	case [][]interface{}: // TODO: double/triple arrays of all the types
+		return len(v)
 	case []interface{}:
 		return len(v)
 	case []string:
@@ -408,6 +604,36 @@ func GetArrayLength(value interface{}) int {
 		return len(v)
 	case string:
 		return len(v) // should we do it here?
+	case IOrderBookSide:
+		return v.Len()
+	case IArrayCache:
+		return len(v.ToArray())
+	case interface{}:
+		if array, ok := value.([]interface{}); ok {
+			return len(array)
+		}
+		// handle interface {}(*interface {}) *[]interface {}
+		if arrayPtr, ok := value.(*[]interface{}); ok {
+			return len(*arrayPtr)
+		}
+
+		if interfacePtr, ok := value.(*interface{}); ok {
+			if array, ok := (*interfacePtr).([]interface{}); ok {
+				return len(array)
+			}
+			if arrayPtr, ok := (*interfacePtr).(*[]interface{}); ok {
+				return len(*arrayPtr)
+			}
+		}
+	default:
+		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
+		if obs, ok := value.(IOrderBookSide); ok {
+			return obs.Len()
+		}
+		// Check for IArrayCache in default case
+		if cache, ok := value.(IArrayCache); ok {
+			return len(cache.ToArray())
+		}
 	}
 
 	// val := reflect.ValueOf(value)
@@ -581,6 +807,10 @@ func IsEqual(a, b interface{}) bool {
 		if bVal, ok := b.(string); ok {
 			return aVal == bVal
 		}
+	case *sync.Map:
+		if aVal == nil {
+			return true
+		}
 	}
 
 	// If types don't match or aren't handled, return false
@@ -717,6 +947,13 @@ func PlusEqual(a, value interface{}) interface{} {
 // }
 
 func AppendToArray(slicePtr *interface{}, element interface{}) {
+	// // Check if slicePtr is nil, which indicates we received a function return value
+	// // In this case, we need to handle it differently
+	// if slicePtr == nil {
+	// 	// This shouldn't happen with proper usage, but we'll handle it gracefully
+	// 	return
+	// }
+
 	switch array := (*slicePtr).(type) {
 	case []interface{}:
 		*slicePtr = append(array, element)
@@ -727,13 +964,22 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 			// Handle the case where the element is not a string if needed
 			// fmt.Println("Error: element is not a string")
 		}
+	case interface{}:
+		if array, ok := array.([]interface{}); ok {
+			*slicePtr = append(array, element)
+		}
 	default:
+		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
+		if obs, ok := (*slicePtr).(IOrderBookSide); ok {
+			*slicePtr = append(obs.GetData(), element.([]interface{}))
+		}
 		// fmt.Println("Error: Unsupported slice type")
 	}
 }
 
 // without reflection
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
+
 	switch obj := arrayOrDict.(type) {
 	case []string:
 		if index, ok := stringOrInt.(int); ok {
@@ -804,12 +1050,100 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 		}
 	case map[string]interface{}:
 		if key, ok := stringOrInt.(string); ok {
+			addElementMu.Lock()
 			obj[key] = value
+			addElementMu.Unlock()
 			// return nil
 		} else {
 			// return fmt.Errorf("invalid key type for map: expected string")
 		}
+	case *sync.Map:
+		if key, ok := stringOrInt.(string); ok {
+			obj.Store(key, value)
+			// return nil
+		} else {
+			// return fmt.Errorf("invalid key type for sync.Map: expected string")
+		}
+	case map[string]map[string]*ArrayCacheByTimestamp:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(map[string]*ArrayCacheByTimestamp); ok {
+				addElementMu.Lock()
+				obj[key] = v
+				addElementMu.Unlock()
+			} else if _, ok := value.(map[string]interface{}); ok {
+				// assume we want a new map[string]*ArrayCacheByTimestamp
+				cache := make(map[string]*ArrayCacheByTimestamp)
+				addElementMu.Lock()
+				obj[key] = cache
+				addElementMu.Unlock()
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]map[string]*ArrayCacheByTimestamp")
+			}
+		}
+	case map[string]*ArrayCacheByTimestamp:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(*ArrayCacheByTimestamp); ok {
+				addElementMu.Lock()
+				obj[key] = v
+				addElementMu.Unlock()
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheByTimestamp")
+			}
+		}
+	case map[string]*ArrayCache:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(*ArrayCache); ok {
+				addElementMu.Lock()
+				obj[key] = v
+				addElementMu.Unlock()
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]*ArrayCache")
+			}
+		}
+	case map[string]*ArrayCacheBySymbolById:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(*ArrayCacheBySymbolById); ok {
+				addElementMu.Lock()
+				obj[key] = v
+				addElementMu.Unlock()
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolById")
+			}
+		}
+	case map[string]*ArrayCacheBySymbolBySide:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(*ArrayCacheBySymbolBySide); ok {
+				addElementMu.Lock()
+				obj[key] = v
+				addElementMu.Unlock()
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolBySide")
+			}
+		}
 	default:
+		// Handle OrderBookInterface types using type assertion
+		if orderbook, ok := arrayOrDict.(OrderBookInterface); ok {
+			// Use reflection to dynamically set the field
+			val := reflect.ValueOf(orderbook)
+			// If it's an interface, get the underlying value
+			if val.Kind() == reflect.Interface {
+				val = val.Elem()
+			}
+			// If it's a pointer, get the element
+			if val.Kind() == reflect.Ptr {
+				val = val.Elem()
+			}
+			field := val.FieldByName(Capitalize(stringOrInt.(string))) // do remove reflection here??
+			if field.IsValid() && field.CanSet() {
+				if value != nil {
+					// Convert value to the correct type
+					valueVal := reflect.ValueOf(value)
+					if valueVal.Type().ConvertibleTo(field.Type()) {
+						field.Set(valueVal.Convert(field.Type()))
+					}
+				}
+			}
+		}
 		// return fmt.Errorf("unsupported type: %T", arrayOrDict)
 	}
 }
@@ -864,8 +1198,57 @@ func InOp(dict interface{}, key interface{}) bool {
 
 	switch v := dict.(type) {
 	case map[string]interface{}:
-		if _, ok := v[key.(string)]; ok {
+		// serialize map read to avoid concurrent read/write with AddElementToObject
+		addElementMu.Lock()
+		_, ok := v[key.(string)]
+		addElementMu.Unlock()
+		if ok {
 			return true
+		}
+	case *sync.Map:
+		if v == nil {
+			return false
+		}
+		if keyStr, ok := key.(string); ok {
+			if _, ok := v.Load(keyStr); ok {
+				return true
+			}
+		}
+	case map[string]map[string]*ArrayCacheByTimestamp:
+		if keyStr, ok2 := key.(string); ok2 {
+			addElementMu.Lock()
+			_, ok3 := v[keyStr]
+			addElementMu.Unlock()
+			if ok3 {
+				return true
+			}
+		}
+	case map[string]*ArrayCacheByTimestamp:
+		if keyStr, ok2 := key.(string); ok2 {
+			addElementMu.Lock()
+			_, ok3 := v[keyStr]
+			addElementMu.Unlock()
+			if ok3 {
+				return true
+			}
+		}
+	case map[string]*ArrayCache:
+		if keyStr, ok2 := key.(string); ok2 {
+			addElementMu.Lock()
+			_, ok3 := v[keyStr]
+			addElementMu.Unlock()
+			if ok3 {
+				return true
+			}
+		}
+	case map[string]*ArrayCacheBySymbolBySide:
+		if keyStr, ok2 := key.(string); ok2 {
+			addElementMu.Lock()
+			_, ok3 := v[keyStr]
+			addElementMu.Unlock()
+			if ok3 {
+				return true
+			}
 		}
 	}
 
@@ -972,6 +1355,8 @@ func IsDictionary(v interface{}) bool {
 	}
 	switch v.(type) {
 	case map[string]interface{}:
+		return true
+	case *sync.Map:
 		return true
 	case Dict:
 		return true
@@ -1246,6 +1631,18 @@ func ObjectKeys(v interface{}) []string {
 			keys = append(keys, key)
 		}
 		return keys
+	} else if syncMap, ok := v.(*sync.Map); ok {
+		keys := []string{}
+		if syncMap == nil {
+			return keys
+		}
+		syncMap.Range(func(k, _ interface{}) bool {
+			if keyStr, ok := k.(string); ok {
+				keys = append(keys, keyStr)
+			}
+			return true
+		})
+		return keys
 	}
 	return nil
 	// val := reflect.ValueOf(v)
@@ -1263,12 +1660,25 @@ func ObjectKeys(v interface{}) []string {
 
 // ObjectValues returns the values of a map as a slice of interface{}
 func ObjectValues(v interface{}) []interface{} {
+	if v == nil {
+		return nil
+	}
 	// return values
 	if mapObject, ok := v.(map[string]interface{}); ok {
 		values := make([]interface{}, 0, len(mapObject))
 		for _, value := range mapObject {
 			values = append(values, value)
 		}
+		return values
+	} else if syncMap, ok := v.(*sync.Map); ok {
+		values := []interface{}{}
+		if syncMap == nil {
+			return values
+		}
+		syncMap.Range(func(_, value interface{}) bool {
+			values = append(values, value)
+			return true
+		})
 		return values
 	}
 	return nil
@@ -1290,7 +1700,7 @@ func IsArray(v interface{}) bool {
 		return false
 	}
 	switch v.(type) {
-	case []interface{}:
+	case []interface{}, [][]interface{}:
 		return true
 	case []string, []bool:
 		return true
@@ -2008,42 +2418,42 @@ func ParseJSON(input interface{}) interface{} {
 	if err != nil {
 		return nil
 	}
-	convertNumbers(result) //convert json.Number to int64
-	return result
+	return normalizeNumbers(result)
 }
 
-func convertNumbers(data interface{}) {
+func normalizeNumbers(data interface{}) interface{} {
 	switch v := data.(type) {
 	case map[string]interface{}:
-		for key, value := range v {
-			if number, ok := value.(json.Number); ok {
-				// Try to convert the json.Number to int64
-				if intVal, err := number.Int64(); err == nil {
-					v[key] = intVal
-				} else {
-					v[key] = number.String() // Preserve the string if not convertible to int64
-				}
-			} else {
-				convertNumbers(value) // Recurse for nested maps
-			}
+		for key, val := range v {
+			v[key] = normalizeNumbers(val)
 		}
+		return v
 	case []interface{}:
-		for i, value := range v {
-			if number, ok := value.(json.Number); ok {
-				// Try to convert the json.Number to int64
-				if intVal, err := number.Int64(); err == nil {
-					v[i] = intVal
-				} else {
-					v[i] = number.String() // Preserve the string if not convertible to int64
-				}
-			} else {
-				convertNumbers(value) // Recurse for nested arrays
+		for i, val := range v {
+			v[i] = normalizeNumbers(val)
+		}
+		return v
+	case json.Number:
+		numStr := v.String()
+		if i, err := strconv.ParseInt(numStr, 10, 64); err == nil {
+			return i
+		}
+		if f, err := strconv.ParseFloat(numStr, 64); err == nil {
+			if strconv.FormatFloat(f, 'g', -1, 64) == numStr {
+				return f
 			}
 		}
+		return numStr
+	default:
+		return v
 	}
 }
 
 func throwDynamicException(exceptionType interface{}, message interface{}) {
+	ThrowDynamicException(exceptionType, message)
+}
+
+func ThrowDynamicException(exceptionType interface{}, message interface{}) {
 	functionError := exceptionType.(func(...interface{}) error)
 	errorMsg := functionError(message)
 	panic(errorMsg)
@@ -2106,7 +2516,7 @@ func JsonStringify(obj interface{}) string {
 	return string(jsonData)
 }
 
-func toFixed(number interface{}, decimals interface{}) float64 {
+func ToFixed(number interface{}, decimals interface{}) float64 {
 	// Assert that the number is a float64 or convert it
 	num := ToFloat64(number)
 
@@ -2118,27 +2528,69 @@ func toFixed(number interface{}, decimals interface{}) float64 {
 }
 
 func Remove(dict interface{}, key interface{}) {
-	// Attempt to cast the dict to map[string]interface{}
-	castedDict, ok := dict.(map[string]interface{})
-	if !ok {
-		// Panic if the cast fails
-		panic("provided value is not a map[string]interface{}")
-	}
-
-	// Attempt to cast the key to string
+	// Attempt to cast the key to string first
 	keyStr, ok := key.(string)
 	if !ok {
 		// Panic if the key is not a string
 		panic("provided key is not a string")
 	}
-
-	// Check if the key exists, panic if it doesn't
-	if _, exists := castedDict[keyStr]; !exists {
-		panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+	switch v := dict.(type) {
+	case ArrayCache, *ArrayCache, ArrayCacheByTimestamp, *ArrayCacheByTimestamp, ArrayCacheBySymbolById, *ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, *ArrayCacheBySymbolBySide:
+		v.(interface{ Remove(string) }).Remove(keyStr)
+		return
+	case map[string]*ArrayCache:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		if cache := v[keyStr]; cache != nil {
+			cache.Remove(keyStr)
+		}
+		delete(v, keyStr)
+		return
+	case map[string]*ArrayCacheByTimestamp:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		if cache := v[keyStr]; cache != nil {
+			cache.Remove(keyStr)
+		}
+		delete(v, keyStr)
+		return
+	case map[string]*ArrayCacheBySymbolById:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		if cache := v[keyStr]; cache != nil {
+			cache.Remove(keyStr)
+		}
+		delete(v, keyStr)
+		return
+	case map[string]*ArrayCacheBySymbolBySide:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		if cache := v[keyStr]; cache != nil {
+			cache.Remove(keyStr)
+		}
+		delete(v, keyStr)
+		return
+	case *sync.Map:
+		// Check if the key exists in sync.Map
+		if _, exists := v.Load(keyStr); !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the sync.Map", keyStr))
+		}
+		// Remove the key from the sync.Map
+		v.Delete(keyStr)
+		return
+	case map[string]interface{}:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		delete(v, keyStr)
+		return
+	default:
+		panic(fmt.Sprintf("exchange_helpers.Remove: provided value type is %T", v))
 	}
-
-	// Remove the key from the map
-	delete(castedDict, keyStr)
 }
 
 func Capitalize(s string) string {
@@ -2756,19 +3208,29 @@ func PanicOnError(msg interface{}) {
 	switch v := msg.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
-			panic(fmt.Sprintf("panic:%v:%v", caller, msg))
-			// panic(v)
+			stack := debug.Stack()[:300]
+			panicMsg := fmt.Sprintf("panic:%v:%v\nStack trace:\n%s", caller, msg, stack)
+			panic(panicMsg)
 		}
 	case []interface{}:
 		for _, item := range v {
 			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
-				// panic(fmt.Sprintf("panic:%v:%v", caller, str))
-				panic(str)
+				stack := debug.Stack()[:300]
+				panicMsg := fmt.Sprintf("%s\nStack trace:\n%s", str, stack)
+				panic(panicMsg)
 			} else if nestedSlice, ok := item.([]interface{}); ok {
 				// Handle nested []interface{} cases recursively
 				PanicOnError(nestedSlice)
 			}
 		}
+	case *Error:
+		stack := debug.Stack()[:300]
+		panicMsg := fmt.Sprintf("ccxt.Error:%v:%v\nStack trace:\n%s", caller, v, stack)
+		panic(panicMsg)
+	case error:
+		stack := debug.Stack()[:300]
+		panicMsg := fmt.Sprintf("error:%v:%v\nStack trace:\n%s", caller, v, stack)
+		panic(panicMsg)
 	default:
 		return
 	}
@@ -2778,12 +3240,15 @@ func ReturnPanicError(ch chan interface{}) {
 	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
 	if r := recover(); r != nil {
 		if r != "break" {
+			stack := debug.Stack()
 			strErr := ToString(r)
+			var panicMsg string
 			if !strings.HasPrefix(strErr, "panic:") {
-				ch <- "panic:" + strErr
+				panicMsg = fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
 			} else {
-				ch <- strErr
+				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
 			}
+			ch <- panicMsg
 		}
 	}
 }
@@ -2809,4 +3274,64 @@ func getCallerName() string {
 
 func Print(v interface{}) {
 	fmt.Println(v)
+}
+
+func HandleDelta(bookside interface{}, delta interface{}) interface{} {
+	if bookside == nil {
+		return nil
+	}
+
+	// Cast bookside to *OrderBookSide
+	orderbookSide, ok := bookside.(*OrderBookSide)
+	if !ok {
+		return bookside
+	}
+
+	// Cast delta to []interface{}
+	deltaSlice, ok := delta.([]interface{})
+	if !ok || len(deltaSlice) < 2 {
+		return bookside
+	}
+
+	// Extract price and size from delta
+	price := ToFloat64(deltaSlice[0])
+	size := ToFloat64(deltaSlice[1])
+
+	// Create a new entry [price, size]
+	entry := []interface{}{price, size}
+
+	// Store the entry in the OrderBookSide
+	orderbookSide.StoreArray(entry)
+
+	return orderbookSide
+}
+
+func HandleDeltas(bookside interface{}, deltas interface{}) interface{} {
+	// Cast deltas to []interface{}
+	deltasSlice, ok := deltas.([]interface{})
+	if !ok {
+		return bookside
+	}
+
+	// Process each delta
+	for _, delta := range deltasSlice {
+		bookside = HandleDelta(bookside, delta)
+	}
+
+	return bookside
+}
+
+func GunzipSync(data []byte) ([]byte, error) {
+	r, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	return io.ReadAll(r)
+}
+
+func InflateSync(data []byte) ([]byte, error) {
+	r := flate.NewReader(bytes.NewReader(data))
+	defer r.Close()
+	return io.ReadAll(r)
 }

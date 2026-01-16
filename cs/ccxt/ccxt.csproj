@@ -10,9 +10,9 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>4.4.88</PackageVersion>
-    <AssemblyVersion>4.4.88</AssemblyVersion>
-    <FileVersion>4.4.88</FileVersion>
+    <PackageVersion>4.5.33</PackageVersion>
+    <AssemblyVersion>4.5.33</AssemblyVersion>
+    <FileVersion>4.5.33</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -25,9 +25,10 @@
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReleaseNotes />
-    <NoWarn>CS1998,CS0168, CS0108, CS8604, CS8600, CS8601, CS8602, CS8603, CS8625, CS8618, CS8981, CA2200, CS8974, CS043, CS0436, CA2200, CS8619</NoWarn>
-  </PropertyGroup>
+    <NoWarn>CS1998, CS0168, CS3021, CS0108, CS8604, CS8600, CS8601, CS8602, CS8603, CS8625, CS8618, CS8981, CA2200, CS8974, CS043, CS0436, CA2200, CS8619, CS4014, CS8625, CS8600, CS0184</NoWarn>
+  </PropertyGroup>   
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
     <PackageReference Include="Newtonsoft.Json" Version="*" />
           </ItemGroup>
   <ItemGroup>

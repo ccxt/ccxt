@@ -7,466 +7,118 @@
 
 package ccxt
 
-func (this *hollaex) PublicGetHealth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetHealth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetHealth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHealth", args...)
 }
 
-func (this *hollaex) PublicGetConstants (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetConstants", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetConstants(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConstants", args...)
 }
 
-func (this *hollaex) PublicGetKit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetKit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetKit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetKit", args...)
 }
 
-func (this *hollaex) PublicGetTiers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTiers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTiers", args...)
 }
 
-func (this *hollaex) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *hollaex) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *hollaex) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *hollaex) PublicGetOrderbooks (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbooks", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetOrderbooks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbooks", args...)
 }
 
-func (this *hollaex) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *hollaex) PublicGetChart (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChart", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetChart(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetChart", args...)
 }
 
-func (this *hollaex) PublicGetCharts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCharts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetCharts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCharts", args...)
 }
 
-func (this *hollaex) PublicGetMinicharts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMinicharts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetMinicharts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMinicharts", args...)
 }
 
-func (this *hollaex) PublicGetOraclePrices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOraclePrices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetOraclePrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOraclePrices", args...)
 }
 
-func (this *hollaex) PublicGetQuickTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuickTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetQuickTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuickTrade", args...)
 }
 
-func (this *hollaex) PublicGetUdfConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetUdfConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetUdfConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUdfConfig", args...)
 }
 
-func (this *hollaex) PublicGetUdfHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetUdfHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetUdfHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUdfHistory", args...)
 }
 
-func (this *hollaex) PublicGetUdfSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetUdfSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PublicGetUdfSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUdfSymbols", args...)
 }
 
-func (this *hollaex) PrivateGetUser (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUser", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateGetUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUser", args...)
 }
 
-func (this *hollaex) PrivateGetUserBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateGetUserBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserBalance", args...)
 }
 
-func (this *hollaex) PrivateGetUserDeposits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserDeposits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateGetUserDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserDeposits", args...)
 }
 
-func (this *hollaex) PrivateGetUserWithdrawals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserWithdrawals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateGetUserWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserWithdrawals", args...)
 }
 
-func (this *hollaex) PrivateGetUserWithdrawalFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserWithdrawalFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateGetUserWithdrawalFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserWithdrawalFee", args...)
 }
 
-func (this *hollaex) PrivateGetUserTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateGetUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserTrades", args...)
 }
 
-func (this *hollaex) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *hollaex) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *hollaex) PrivatePostUserWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivatePostUserWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserWithdrawal", args...)
 }
 
-func (this *hollaex) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *hollaex) PrivateDeleteOrderAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrderAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateDeleteOrderAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrderAll", args...)
 }
 
-func (this *hollaex) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HollaexCore) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }

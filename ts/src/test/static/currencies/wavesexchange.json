@@ -77,25 +77,53 @@
         }
     },
     "USDT": {
+        "info": null,
         "id": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC",
+        "numericId": null,
         "code": "USDT",
-        "precision": 6,
+        "precision": 0.000001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "WAVES": {
+        "info": null,
         "id": "WAVES",
+        "numericId": null,
         "code": "WAVES",
-        "precision": 8,
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "WBTC": {

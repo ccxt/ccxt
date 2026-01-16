@@ -15,7 +15,19 @@ class Helper
         if (data.ContainsKey("info"))
         {
             var info = data["info"];
-            if (info is IDictionary<string, object>)
+            if (info is ccxt.pro.IOrderBook)
+            {
+                var copy = (info as ccxt.pro.IOrderBook).Copy();
+                // return new Dictionary<string, object> { concurrentDict as IDictionary<string, object> };
+                var newInfo = new Dictionary<string, object>();
+                foreach (var kvp in copy)
+                {
+                    newInfo.Add(kvp.Key, kvp.Value);
+                }
+                return newInfo;
+
+            }
+            else if (info is IDictionary<string, object>)
             {
                 return new Dictionary<string, object>(info as IDictionary<string, object>);
             }
@@ -1017,6 +1029,11 @@ public struct Liquidation
     public double? baseValue;
     public Int64? timestamp;
     public string? datetime;
+    public string? side;
+
+    public double? contractSize;
+
+    public double? contracts;
     public Dictionary<string, object> info;
 
     public Liquidation(object openInterest)
@@ -1026,6 +1043,9 @@ public struct Liquidation
         baseValue = Exchange.SafeFloat(openInterest, "baseValue");
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");
         datetime = Exchange.SafeString(openInterest, "datetime");
+        side = Exchange.SafeString(openInterest, "side");
+        contractSize = Exchange.SafeFloat(openInterest, "contractSize");
+        contracts = Exchange.SafeFloat(openInterest, "contracts");
         info = Helper.GetInfo(openInterest);
     }
 }

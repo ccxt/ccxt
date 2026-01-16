@@ -29,6 +29,7 @@ else
     npm run tsBuildFile ts/src/$exchange_name.ts &
     npx tsx build/transpile.ts $exchange_name &
     npm run transpileCsSingle $exchange_name &
+    npx tsx build/goTranspiler.ts $exchange_name &
     wait
 fi
 

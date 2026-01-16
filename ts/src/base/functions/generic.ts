@@ -40,6 +40,13 @@ const keysort = (x: Dictionary<any>, out: Dictionary<any> = {}) => {
     return out;
 };
 
+const sort = (array: string[]| any) => {
+    const newArray = array.slice();
+    newArray.sort();
+    return newArray;
+}
+
+
 /*
     Accepts a map/array of objects and a key name to be used as an index:
     array = [
@@ -207,7 +214,7 @@ export {
     , isEmpty
 
     // ------------------------------------------------------------------------
-
+    , sort
     , keysort
 
     // ------------------------------------------------------------------------

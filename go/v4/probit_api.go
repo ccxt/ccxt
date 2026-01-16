@@ -7,306 +7,78 @@
 
 package ccxt
 
-func (this *probit) PublicGetMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PublicGetMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarket", args...)
 }
 
-func (this *probit) PublicGetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PublicGetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
-func (this *probit) PublicGetCurrencyWithPlatform (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencyWithPlatform", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PublicGetCurrencyWithPlatform(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencyWithPlatform", args...)
 }
 
-func (this *probit) PublicGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *probit) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *probit) PublicGetOrderBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PublicGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
-func (this *probit) PublicGetTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PublicGetTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrade", args...)
 }
 
-func (this *probit) PublicGetCandle (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandle", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PublicGetCandle(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandle", args...)
 }
 
-func (this *probit) PrivatePostNewOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostNewOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivatePostNewOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostNewOrder", args...)
 }
 
-func (this *probit) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *probit) PrivatePostWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivatePostWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawal", args...)
 }
 
-func (this *probit) PrivateGetBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivateGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *probit) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *probit) PrivateGetOpenOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivateGetOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenOrder", args...)
 }
 
-func (this *probit) PrivateGetOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivateGetOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderHistory", args...)
 }
 
-func (this *probit) PrivateGetTradeHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivateGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeHistory", args...)
 }
 
-func (this *probit) PrivateGetDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivateGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositAddress", args...)
 }
 
-func (this *probit) PrivateGetTransferPayment (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTransferPayment", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) PrivateGetTransferPayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransferPayment", args...)
 }
 
-func (this *probit) AccountsPostToken (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountsPostToken", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ProbitCore) AccountsPostToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountsPostToken", args...)
 }

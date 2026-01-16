@@ -15,7 +15,7 @@ sys.path.append(root)
 from ccxt.base.decimal_to_precision import ROUND  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_UP  # noqa E402
 from ccxt.base.decimal_to_precision import ROUND_DOWN  # noqa E402
-import ccxt  # noqa: F402
+import ccxt.async_support as ccxt  # noqa: F402
 
 def test_datetime():
     exchange = ccxt.Exchange({
@@ -24,7 +24,7 @@ def test_datetime():
     assert exchange.iso8601(514862627000) == '1986-04-26T01:23:47.000Z'
     assert exchange.iso8601(514862627559) == '1986-04-26T01:23:47.559Z'
     assert exchange.iso8601(514862627062) == '1986-04-26T01:23:47.062Z'
-    assert exchange.iso8601(0) == '1970-01-01T00:00:00.000Z'
+    assert exchange.iso8601(1) == '1970-01-01T00:00:00.001Z'
     assert exchange.iso8601(-1) is None
     # assert (exchange.iso8601 () === undefined);
     # todo: assert (exchange.iso8601 () === undefined);

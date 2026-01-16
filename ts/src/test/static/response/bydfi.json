@@ -1,0 +1,2367 @@
+{
+    "exchange": "bydfi",
+    "skipKeys": [
+        "timestamp",
+        "datetime"
+    ],
+    "options": {},
+    "methods": {
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "orderId": "1208864446987255809",
+                            "asset": "USDC",
+                            "amount": "200",
+                            "status": "SUCCESS",
+                            "txId": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
+                            "network": "ETH",
+                            "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
+                            "addressTag": null,
+                            "finishTime": "1766145475000",
+                            "createTime": "1766145344000"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "1208864446987255809",
+                            "asset": "USDC",
+                            "amount": "200",
+                            "status": "SUCCESS",
+                            "txId": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
+                            "network": "ETH",
+                            "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
+                            "addressTag": null,
+                            "finishTime": "1766145475000",
+                            "createTime": "1766145344000"
+                        },
+                        "id": "1208864446987255809",
+                        "txid": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
+                        "type": "deposit",
+                        "currency": "USDC",
+                        "network": "ERC20",
+                        "amount": 200,
+                        "status": "ok",
+                        "timestamp": 1766145344000,
+                        "datetime": "2025-12-19T11:55:44.000Z",
+                        "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "updated": 1766145475000,
+                        "comment": null,
+                        "fee": null,
+                        "internal": false
+                    }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "Fetch transfers",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDC",
+                    1766163153218,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "orderId": "1210384300945281025",
+                            "txId": "cc12ab647490439b84b6e02ab6e5f011",
+                            "sourceWallet": "SPOT",
+                            "targetWallet": "SWAP",
+                            "asset": "USDC",
+                            "amount": "10",
+                            "status": "SUCCESS",
+                            "timestamp": "1766507705000"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "1210384300945281025",
+                            "txId": "cc12ab647490439b84b6e02ab6e5f011",
+                            "sourceWallet": "SPOT",
+                            "targetWallet": "SWAP",
+                            "asset": "USDC",
+                            "amount": "10",
+                            "status": "SUCCESS",
+                            "timestamp": "1766507705000"
+                        },
+                        "id": "cc12ab647490439b84b6e02ab6e5f011",
+                        "timestamp": 1766507705000,
+                        "datetime": "2025-12-23T16:35:05.000Z",
+                        "currency": "USDC",
+                        "amount": 10,
+                        "fromAccount": "spot",
+                        "toAccount": "swap",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Transfer from spot to swap",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    10,
+                    "spot",
+                    "swap"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "success",
+                        "success": true
+                    },
+                    "id": null,
+                    "timestamp": 1766507705096,
+                    "datetime": "2025-12-23T16:35:05.096Z",
+                    "currency": "USDC",
+                    "amount": 10,
+                    "fromAccount": "spot",
+                    "toAccount": "swap",
+                    "status": "ok"
+                }
+            },
+            {
+                "description": "Transfer from swap to spot",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    42,
+                    "swap",
+                    "spot"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "success",
+                        "success": true
+                    },
+                    "id": null,
+                    "timestamp": 1766507675005,
+                    "datetime": "2025-12-23T16:34:35.005Z",
+                    "currency": "USDC",
+                    "amount": 42,
+                    "fromAccount": "swap",
+                    "toAccount": "spot",
+                    "status": "ok"
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance for swap",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "wallet": "W001",
+                            "asset": "USDT",
+                            "balance": "0",
+                            "frozen": "0",
+                            "positionMargin": "0",
+                            "availableBalance": "0",
+                            "canWithdrawAmount": "0",
+                            "bonusAmount": "0"
+                        },
+                        {
+                            "wallet": "W001",
+                            "asset": "USDC",
+                            "balance": "131.92072838",
+                            "frozen": "0",
+                            "positionMargin": "0",
+                            "availableBalance": "131.92072838",
+                            "canWithdrawAmount": "131.92072838",
+                            "bonusAmount": "0"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "wallet": "W001",
+                            "asset": "USDT",
+                            "balance": "0",
+                            "frozen": "0",
+                            "positionMargin": "0",
+                            "availableBalance": "0",
+                            "canWithdrawAmount": "0",
+                            "bonusAmount": "0"
+                        },
+                        {
+                            "wallet": "W001",
+                            "asset": "USDC",
+                            "balance": "131.92072838",
+                            "frozen": "0",
+                            "positionMargin": "0",
+                            "availableBalance": "131.92072838",
+                            "canWithdrawAmount": "131.92072838",
+                            "bonusAmount": "0"
+                        }
+                    ],
+                    "timestamp": 1766507531446,
+                    "datetime": "2025-12-23T16:32:11.446Z",
+                    "USDT": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "USDC": {
+                        "free": 131.92072838,
+                        "used": 0,
+                        "total": 131.92072838
+                    },
+                    "free": {
+                        "USDT": 0,
+                        "USDC": 131.92072838
+                    },
+                    "used": {
+                        "USDT": 0,
+                        "USDC": 0
+                    },
+                    "total": {
+                        "USDT": 0,
+                        "USDC": 131.92072838
+                    }
+                }
+            },
+            {
+                "description": "Fetch balance for spot",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "walletType": "spot",
+                            "asset": "USDC",
+                            "total": "68",
+                            "available": "68",
+                            "frozen": "0"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "walletType": "spot",
+                            "asset": "USDC",
+                            "total": "68",
+                            "available": "68",
+                            "frozen": "0"
+                        }
+                    ],
+                    "timestamp": 1766507503293,
+                    "datetime": "2025-12-23T16:31:43.293Z",
+                    "USDC": {
+                        "free": 68,
+                        "used": 0,
+                        "total": 68
+                    },
+                    "free": {
+                        "USDC": 68
+                    },
+                    "used": {
+                        "USDC": 0
+                    },
+                    "total": {
+                        "USDC": 68
+                    }
+                }
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fetch position mode for market",
+                "method": "fetchPositionMode",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "wallet": "W001",
+                        "contractType": "FUTURE",
+                        "settleCoin": "USDT",
+                        "positionType": "ONEWAY",
+                        "unitModel": "2",
+                        "pricingModel": "FLAG",
+                        "priceProtection": "CLOSE",
+                        "totalWallet": "2"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "success",
+                        "data": {
+                            "wallet": "W001",
+                            "contractType": "FUTURE",
+                            "settleCoin": "USDT",
+                            "positionType": "ONEWAY",
+                            "unitModel": "2",
+                            "pricingModel": "FLAG",
+                            "priceProtection": "CLOSE",
+                            "totalWallet": "2"
+                        },
+                        "success": true
+                    },
+                    "hedged": false
+                }
+            },
+            {
+                "description": "Fetch position mode for USDC settle coin",
+                "method": "fetchPositionMode",
+                "input": [
+                    null,
+                    {
+                        "settleCoin": "USDC"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "wallet": "W001",
+                        "contractType": "FUTURE",
+                        "settleCoin": "USDC",
+                        "positionType": "HEDGE",
+                        "unitModel": "2",
+                        "pricingModel": "FLAG",
+                        "priceProtection": "CLOSE",
+                        "totalWallet": "2"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "success",
+                        "data": {
+                            "wallet": "W001",
+                            "contractType": "FUTURE",
+                            "settleCoin": "USDC",
+                            "positionType": "HEDGE",
+                            "unitModel": "2",
+                            "pricingModel": "FLAG",
+                            "priceProtection": "CLOSE",
+                            "totalWallet": "2"
+                        },
+                        "success": true
+                    },
+                    "hedged": true
+                }
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "Set position mode for USDC settle coin",
+                "method": "setPositionMode",
+                "input": [
+                    true,
+                    null,
+                    {
+                        "settleCoin": "USDC"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "success": true
+                }
+            }
+        ],
+        "createMarketSellOrder": [
+            {
+                "description": "Create market sell order",
+                "method": "createMarketSellOrder",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409262478679277568",
+                        "clientOrderId": "7409262478679277568",
+                        "price": null,
+                        "origQty": "1",
+                        "avgPrice": null,
+                        "executedQty": "0",
+                        "orderType": "MARKET",
+                        "side": "SELL",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766505832357",
+                        "updateTime": "1766505832357"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409262478679277568",
+                        "clientOrderId": "7409262478679277568",
+                        "price": null,
+                        "origQty": "1",
+                        "avgPrice": null,
+                        "executedQty": "0",
+                        "orderType": "MARKET",
+                        "side": "SELL",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766505832357",
+                        "updateTime": "1766505832357"
+                    },
+                    "id": "7409262478679277568",
+                    "clientOrderId": "7409262478679277568",
+                    "timestamp": 1766505832357,
+                    "datetime": "2025-12-23T16:03:52.357Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1766505832357,
+                    "status": "open",
+                    "symbol": "ETH/USDC:USDC",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {},
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "success": true
+                }
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "marginType": "CROSS"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "marginType": "CROSS"
+                    },
+                    "symbol": "ETH/USDC:USDC",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "Fetch positions history",
+                "method": "fetchPositionsHistory",
+                "input": [],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "id": "16794895",
+                            "wallet": "W001",
+                            "currency": "USDC",
+                            "symbol": "ETH-USDC",
+                            "side": "SELL",
+                            "positionSide": "BOTH",
+                            "leverage": "1",
+                            "avgOpenPositionPrice": "2943.555",
+                            "openPositionVolume": "4",
+                            "openCount": "2",
+                            "highPrice": "2944.07",
+                            "lowPrice": "2942.61",
+                            "avgClosePositionPrice": "2942.61",
+                            "closePositionVolume": "4",
+                            "closePositionCost": "11.77044",
+                            "closeCount": "1",
+                            "positionProfits": "0.00378",
+                            "lossBonus": "0",
+                            "capitalFeeTotal": "0",
+                            "capitalFeeOutCash": "0",
+                            "capitalFeeInCash": "0",
+                            "capitalFeeBonus": "0",
+                            "openFeeTotal": "-0.00706454",
+                            "openFeeBonus": "0",
+                            "closeFeeTotal": "-0.00706227",
+                            "closeFeeBonus": "0",
+                            "liqLoss": "0",
+                            "liqClosed": false,
+                            "sequence": "53688896793",
+                            "updateTime": "1766499334962",
+                            "createTime": "1766499278417"
+                        },
+                        {
+                            "id": "16788366",
+                            "wallet": "W001",
+                            "currency": "USDC",
+                            "symbol": "ETH-USDC",
+                            "side": "BUY",
+                            "positionSide": "BOTH",
+                            "leverage": "1",
+                            "avgOpenPositionPrice": "3032.45",
+                            "openPositionVolume": "1",
+                            "openCount": "1",
+                            "highPrice": "3032.45",
+                            "lowPrice": "2953.67",
+                            "avgClosePositionPrice": "2953.67",
+                            "closePositionVolume": "1",
+                            "closePositionCost": "2.95367",
+                            "closeCount": "1",
+                            "positionProfits": "-0.07878",
+                            "lossBonus": "0",
+                            "capitalFeeTotal": "-0.00026361",
+                            "capitalFeeOutCash": "-0.00026361",
+                            "capitalFeeInCash": "0",
+                            "capitalFeeBonus": "0",
+                            "openFeeTotal": "-0.00181947",
+                            "openFeeBonus": "0",
+                            "closeFeeTotal": "-0.00177221",
+                            "closeFeeBonus": "0",
+                            "liqLoss": "0",
+                            "liqClosed": false,
+                            "sequence": "53685341336",
+                            "updateTime": "1766494929423",
+                            "createTime": "1766423985842"
+                        },
+                        {
+                            "id": "16787589",
+                            "wallet": "W001",
+                            "currency": "USDC",
+                            "symbol": "ETH-USDC",
+                            "side": "BUY",
+                            "positionSide": "BOTH",
+                            "leverage": "10",
+                            "avgOpenPositionPrice": "3036.25",
+                            "openPositionVolume": "2",
+                            "openCount": "2",
+                            "highPrice": "3039.77",
+                            "lowPrice": "3025.51",
+                            "avgClosePositionPrice": "3038.43",
+                            "closePositionVolume": "2",
+                            "closePositionCost": "6.07686",
+                            "closeCount": "2",
+                            "positionProfits": "0.00436",
+                            "lossBonus": "0",
+                            "capitalFeeTotal": "-0.00014717",
+                            "capitalFeeOutCash": "-0.00014717",
+                            "capitalFeeInCash": "0",
+                            "capitalFeeBonus": "0",
+                            "openFeeTotal": "-0.00364351",
+                            "openFeeBonus": "0",
+                            "closeFeeTotal": "-0.00364613",
+                            "closeFeeBonus": "0",
+                            "liqLoss": "0",
+                            "liqClosed": false,
+                            "sequence": "53625660805",
+                            "updateTime": "1766421387319",
+                            "createTime": "1766417894720"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "16794895",
+                            "wallet": "W001",
+                            "currency": "USDC",
+                            "symbol": "ETH-USDC",
+                            "side": "SELL",
+                            "positionSide": "BOTH",
+                            "leverage": "1",
+                            "avgOpenPositionPrice": "2943.555",
+                            "openPositionVolume": "4",
+                            "openCount": "2",
+                            "highPrice": "2944.07",
+                            "lowPrice": "2942.61",
+                            "avgClosePositionPrice": "2942.61",
+                            "closePositionVolume": "4",
+                            "closePositionCost": "11.77044",
+                            "closeCount": "1",
+                            "positionProfits": "0.00378",
+                            "lossBonus": "0",
+                            "capitalFeeTotal": "0",
+                            "capitalFeeOutCash": "0",
+                            "capitalFeeInCash": "0",
+                            "capitalFeeBonus": "0",
+                            "openFeeTotal": "-0.00706454",
+                            "openFeeBonus": "0",
+                            "closeFeeTotal": "-0.00706227",
+                            "closeFeeBonus": "0",
+                            "liqLoss": "0",
+                            "liqClosed": false,
+                            "sequence": "53688896793",
+                            "updateTime": "1766499334962",
+                            "createTime": "1766499278417"
+                        },
+                        "id": "16794895",
+                        "symbol": "ETH/USDC:USDC",
+                        "entryPrice": 2943.555,
+                        "markPrice": null,
+                        "lastPrice": 2942.61,
+                        "notional": 11.77044,
+                        "collateral": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0.00378,
+                        "side": "short",
+                        "contracts": 4,
+                        "contractSize": 0.001,
+                        "timestamp": 1766499278417,
+                        "datetime": "2025-12-23T14:14:38.417Z",
+                        "lastUpdateTimestamp": 1766499334962,
+                        "hedged": false,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": 1,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    },
+                    {
+                        "info": {
+                            "id": "16788366",
+                            "wallet": "W001",
+                            "currency": "USDC",
+                            "symbol": "ETH-USDC",
+                            "side": "BUY",
+                            "positionSide": "BOTH",
+                            "leverage": "1",
+                            "avgOpenPositionPrice": "3032.45",
+                            "openPositionVolume": "1",
+                            "openCount": "1",
+                            "highPrice": "3032.45",
+                            "lowPrice": "2953.67",
+                            "avgClosePositionPrice": "2953.67",
+                            "closePositionVolume": "1",
+                            "closePositionCost": "2.95367",
+                            "closeCount": "1",
+                            "positionProfits": "-0.07878",
+                            "lossBonus": "0",
+                            "capitalFeeTotal": "-0.00026361",
+                            "capitalFeeOutCash": "-0.00026361",
+                            "capitalFeeInCash": "0",
+                            "capitalFeeBonus": "0",
+                            "openFeeTotal": "-0.00181947",
+                            "openFeeBonus": "0",
+                            "closeFeeTotal": "-0.00177221",
+                            "closeFeeBonus": "0",
+                            "liqLoss": "0",
+                            "liqClosed": false,
+                            "sequence": "53685341336",
+                            "updateTime": "1766494929423",
+                            "createTime": "1766423985842"
+                        },
+                        "id": "16788366",
+                        "symbol": "ETH/USDC:USDC",
+                        "entryPrice": 3032.45,
+                        "markPrice": null,
+                        "lastPrice": 2953.67,
+                        "notional": 2.95367,
+                        "collateral": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.07878,
+                        "side": "long",
+                        "contracts": 1,
+                        "contractSize": 0.001,
+                        "timestamp": 1766423985842,
+                        "datetime": "2025-12-22T17:19:45.842Z",
+                        "lastUpdateTimestamp": 1766494929423,
+                        "hedged": false,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": 1,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    },
+                    {
+                        "info": {
+                            "id": "16787589",
+                            "wallet": "W001",
+                            "currency": "USDC",
+                            "symbol": "ETH-USDC",
+                            "side": "BUY",
+                            "positionSide": "BOTH",
+                            "leverage": "10",
+                            "avgOpenPositionPrice": "3036.25",
+                            "openPositionVolume": "2",
+                            "openCount": "2",
+                            "highPrice": "3039.77",
+                            "lowPrice": "3025.51",
+                            "avgClosePositionPrice": "3038.43",
+                            "closePositionVolume": "2",
+                            "closePositionCost": "6.07686",
+                            "closeCount": "2",
+                            "positionProfits": "0.00436",
+                            "lossBonus": "0",
+                            "capitalFeeTotal": "-0.00014717",
+                            "capitalFeeOutCash": "-0.00014717",
+                            "capitalFeeInCash": "0",
+                            "capitalFeeBonus": "0",
+                            "openFeeTotal": "-0.00364351",
+                            "openFeeBonus": "0",
+                            "closeFeeTotal": "-0.00364613",
+                            "closeFeeBonus": "0",
+                            "liqLoss": "0",
+                            "liqClosed": false,
+                            "sequence": "53625660805",
+                            "updateTime": "1766421387319",
+                            "createTime": "1766417894720"
+                        },
+                        "id": "16787589",
+                        "symbol": "ETH/USDC:USDC",
+                        "entryPrice": 3036.25,
+                        "markPrice": null,
+                        "lastPrice": 3038.43,
+                        "notional": 6.07686,
+                        "collateral": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0.00436,
+                        "side": "long",
+                        "contracts": 2,
+                        "contractSize": 0.001,
+                        "timestamp": 1766417894720,
+                        "datetime": "2025-12-22T15:38:14.720Z",
+                        "lastUpdateTimestamp": 1766421387319,
+                        "hedged": false,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": 10,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch leverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "symbol": "ETH-USDC",
+                        "leverage": "2",
+                        "maxNotionalValue": "60000000"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "ETH-USDC",
+                        "leverage": "2",
+                        "maxNotionalValue": "60000000"
+                    },
+                    "symbol": "ETH/USDC:USDC",
+                    "marginMode": null,
+                    "longLeverage": 2,
+                    "shortLeverage": 2
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage",
+                "method": "setLeverage",
+                "input": [
+                    2,
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "symbol": "ETH-USDC",
+                        "leverage": "2",
+                        "maxNotionalValue": "60000000"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "symbol": "ETH-USDC",
+                    "leverage": "2",
+                    "maxNotionalValue": "60000000"
+                }
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1766163153218,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "orderId": "7409258352281059328",
+                            "orderType": "MARKET",
+                            "symbol": "ETH-USDC",
+                            "origQty": "1",
+                            "side": "BUY",
+                            "positionSide": "BOTH",
+                            "positionAvgPrice": null,
+                            "positionVolume": null,
+                            "positionType": null,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "action": null,
+                            "price": "2920.77",
+                            "avgPrice": "2920.77",
+                            "brkPrice": null,
+                            "dealVolume": null,
+                            "status": "2",
+                            "wallet": "W001",
+                            "alias": null,
+                            "contractId": null,
+                            "mtime": "1766504848549",
+                            "ctime": "1766504848547",
+                            "fixedPrice": null,
+                            "direction": null,
+                            "triggerPrice": null,
+                            "priceType": null,
+                            "basePrecision": "8",
+                            "baseShowPrecision": "2",
+                            "strategyType": null,
+                            "leverageLevel": "1",
+                            "marginType": "CROSS",
+                            "remark": null,
+                            "callbackRate": null,
+                            "activationPrice": null
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "7409258352281059328",
+                            "orderType": "MARKET",
+                            "symbol": "ETH-USDC",
+                            "origQty": "1",
+                            "side": "BUY",
+                            "positionSide": "BOTH",
+                            "positionAvgPrice": null,
+                            "positionVolume": null,
+                            "positionType": null,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "action": null,
+                            "price": "2920.77",
+                            "avgPrice": "2920.77",
+                            "brkPrice": null,
+                            "dealVolume": null,
+                            "status": "2",
+                            "wallet": "W001",
+                            "alias": null,
+                            "contractId": null,
+                            "mtime": "1766504848549",
+                            "ctime": "1766504848547",
+                            "fixedPrice": null,
+                            "direction": null,
+                            "triggerPrice": null,
+                            "priceType": null,
+                            "basePrecision": "8",
+                            "baseShowPrecision": "2",
+                            "strategyType": null,
+                            "leverageLevel": "1",
+                            "marginType": "CROSS",
+                            "remark": null,
+                            "callbackRate": null,
+                            "activationPrice": null
+                        },
+                        "id": "7409258352281059328",
+                        "clientOrderId": null,
+                        "timestamp": 1766504848547,
+                        "datetime": "2025-12-23T15:47:28.547Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1766504848549,
+                        "status": "closed",
+                        "symbol": "ETH/USDC:USDC",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 2920.77,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 1,
+                        "filled": 1,
+                        "remaining": 0,
+                        "cost": 2.92077,
+                        "trades": [],
+                        "fee": {},
+                        "average": 2920.77,
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "Fetch positions for ETH/USDC:USDC market",
+                "method": "fetchPositionsForSymbol",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDC",
+                            "side": "BUY",
+                            "volume": "0.001",
+                            "avgPrice": "2920.77",
+                            "liqPrice": "0",
+                            "markPrice": "2921.64",
+                            "unPnl": "0.00087",
+                            "positionMargin": "0",
+                            "settleCoin": "USDC",
+                            "im": "2.92077",
+                            "mm": "0.007301925"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDC",
+                            "side": "BUY",
+                            "volume": "0.001",
+                            "avgPrice": "2920.77",
+                            "liqPrice": "0",
+                            "markPrice": "2921.64",
+                            "unPnl": "0.00087",
+                            "positionMargin": "0",
+                            "settleCoin": "USDC",
+                            "im": "2.92077",
+                            "mm": "0.007301925"
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDC:USDC",
+                        "entryPrice": 2920.77,
+                        "markPrice": 2921.64,
+                        "lastPrice": null,
+                        "notional": null,
+                        "collateral": null,
+                        "unrealizedPnl": 0.00087,
+                        "realizedPnl": null,
+                        "side": "long",
+                        "contracts": 1,
+                        "contractSize": 0.001,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "hedged": null,
+                        "maintenanceMargin": 0.007301925,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 2.92077,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "liquidationPrice": 0,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDC",
+                            "side": "BUY",
+                            "volume": "0.001",
+                            "avgPrice": "2920.77",
+                            "liqPrice": "0",
+                            "markPrice": "2921.98",
+                            "unPnl": "0.00121",
+                            "positionMargin": "0",
+                            "settleCoin": "USDC",
+                            "im": "2.92077",
+                            "mm": "0.007301925"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDC",
+                            "side": "BUY",
+                            "volume": "0.001",
+                            "avgPrice": "2920.77",
+                            "liqPrice": "0",
+                            "markPrice": "2921.98",
+                            "unPnl": "0.00121",
+                            "positionMargin": "0",
+                            "settleCoin": "USDC",
+                            "im": "2.92077",
+                            "mm": "0.007301925"
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDC:USDC",
+                        "entryPrice": 2920.77,
+                        "markPrice": 2921.98,
+                        "lastPrice": null,
+                        "notional": null,
+                        "collateral": null,
+                        "unrealizedPnl": 0.00121,
+                        "realizedPnl": null,
+                        "side": "long",
+                        "contracts": 1,
+                        "contractSize": 0.001,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "hedged": null,
+                        "maintenanceMargin": 0.007301925,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 2.92077,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "liquidationPrice": 0,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "createMarketBuyOrder": [
+            {
+                "description": "Create market buy order",
+                "method": "createMarketBuyOrder",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409258352281059328",
+                        "clientOrderId": "7409258352281059328",
+                        "price": null,
+                        "origQty": "1",
+                        "avgPrice": null,
+                        "executedQty": "0",
+                        "orderType": "MARKET",
+                        "side": "BUY",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766504848547",
+                        "updateTime": "1766504848547"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409258352281059328",
+                        "clientOrderId": "7409258352281059328",
+                        "price": null,
+                        "origQty": "1",
+                        "avgPrice": null,
+                        "executedQty": "0",
+                        "orderType": "MARKET",
+                        "side": "BUY",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766504848547",
+                        "updateTime": "1766504848547"
+                    },
+                    "id": "7409258352281059328",
+                    "clientOrderId": "7409258352281059328",
+                    "timestamp": 1766504848547,
+                    "datetime": "2025-12-23T15:47:28.547Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1766504848547,
+                    "status": "open",
+                    "symbol": "ETH/USDC:USDC",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {},
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrder": [
+            {
+                "description": "Fetch open order by id",
+                "method": "fetchOpenOrder",
+                "input": [
+                    "7409256288494706688",
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "orderId": "7409256288494706688",
+                            "clientOrderId": "7409256288494706688",
+                            "price": "5999",
+                            "origQty": "2",
+                            "avgPrice": "0",
+                            "executedQty": "0",
+                            "orderType": "LIMIT",
+                            "side": "SELL",
+                            "status": "NEW",
+                            "stopPrice": null,
+                            "activatePrice": null,
+                            "timeInForce": null,
+                            "workingType": "CONTRACT_PRICE",
+                            "positionSide": "BOTH",
+                            "priceProtect": false,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "createTime": "1766503977701",
+                            "updateTime": "1766504356503"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409256288494706688",
+                        "clientOrderId": "7409256288494706688",
+                        "price": "5999",
+                        "origQty": "2",
+                        "avgPrice": "0",
+                        "executedQty": "0",
+                        "orderType": "LIMIT",
+                        "side": "SELL",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766503977701",
+                        "updateTime": "1766504356503"
+                    },
+                    "id": "7409256288494706688",
+                    "clientOrderId": "7409256288494706688",
+                    "timestamp": 1766503977701,
+                    "datetime": "2025-12-23T15:32:57.701Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1766504356503,
+                    "status": "open",
+                    "symbol": "ETH/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 5999,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 2,
+                    "filled": 0,
+                    "remaining": 2,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {},
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open trigger orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ETH/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "orderId": "7408900801366482944",
+                            "clientOrderId": "7408900801366482944",
+                            "price": "2000",
+                            "origQty": "1",
+                            "avgPrice": null,
+                            "executedQty": null,
+                            "orderType": "LIMIT",
+                            "side": "SELL",
+                            "status": "NEW",
+                            "stopPrice": "2100",
+                            "activatePrice": null,
+                            "timeInForce": null,
+                            "workingType": "CONTRACT_PRICE",
+                            "positionSide": "BOTH",
+                            "priceProtect": false,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "createTime": "1766419602000",
+                            "updateTime": "1766419602000"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "orderId": "7408900801366482944",
+                            "clientOrderId": "7408900801366482944",
+                            "price": "2000",
+                            "origQty": "1",
+                            "avgPrice": null,
+                            "executedQty": null,
+                            "orderType": "LIMIT",
+                            "side": "SELL",
+                            "status": "NEW",
+                            "stopPrice": "2100",
+                            "activatePrice": null,
+                            "timeInForce": null,
+                            "workingType": "CONTRACT_PRICE",
+                            "positionSide": "BOTH",
+                            "priceProtect": false,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "createTime": "1766419602000",
+                            "updateTime": "1766419602000"
+                        },
+                        "id": "7408900801366482944",
+                        "clientOrderId": "7408900801366482944",
+                        "timestamp": 1766419602000,
+                        "datetime": "2025-12-22T16:06:42.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1766419602000,
+                        "status": "open",
+                        "symbol": "ETH/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 2000,
+                        "triggerPrice": 2100,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 1,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "trades": [],
+                        "fee": {},
+                        "average": null,
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "stopPrice": 2100
+                    }
+                ]
+            },
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "orderId": "7409256288494706688",
+                            "clientOrderId": "7409256288494706688",
+                            "price": "5999",
+                            "origQty": "2",
+                            "avgPrice": "0",
+                            "executedQty": "0",
+                            "orderType": "LIMIT",
+                            "side": "SELL",
+                            "status": "NEW",
+                            "stopPrice": null,
+                            "activatePrice": null,
+                            "timeInForce": null,
+                            "workingType": "CONTRACT_PRICE",
+                            "positionSide": "BOTH",
+                            "priceProtect": false,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "createTime": "1766503977701",
+                            "updateTime": "1766504356503"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "orderId": "7409256288494706688",
+                            "clientOrderId": "7409256288494706688",
+                            "price": "5999",
+                            "origQty": "2",
+                            "avgPrice": "0",
+                            "executedQty": "0",
+                            "orderType": "LIMIT",
+                            "side": "SELL",
+                            "status": "NEW",
+                            "stopPrice": null,
+                            "activatePrice": null,
+                            "timeInForce": null,
+                            "workingType": "CONTRACT_PRICE",
+                            "positionSide": "BOTH",
+                            "priceProtect": false,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "createTime": "1766503977701",
+                            "updateTime": "1766504356503"
+                        },
+                        "id": "7409256288494706688",
+                        "clientOrderId": "7409256288494706688",
+                        "timestamp": 1766503977701,
+                        "datetime": "2025-12-23T15:32:57.701Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1766504356503,
+                        "status": "open",
+                        "symbol": "ETH/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 5999,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 2,
+                        "filled": 0,
+                        "remaining": 2,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {},
+                        "average": null,
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit order amount and price",
+                "method": "editOrder",
+                "input": [
+                    "7409254699688157184",
+                    "ETH/USDC:USDC",
+                    "limit",
+                    "sell",
+                    2,
+                    5999
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409254699688157184",
+                        "clientOrderId": "7409254699688157184",
+                        "price": "5999",
+                        "origQty": "2",
+                        "avgPrice": "0",
+                        "executedQty": "0",
+                        "orderType": "LIMIT",
+                        "side": "SELL",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766503977701",
+                        "updateTime": "1766503977704"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409254699688157184",
+                        "clientOrderId": "7409254699688157184",
+                        "price": "5999",
+                        "origQty": "2",
+                        "avgPrice": "0",
+                        "executedQty": "0",
+                        "orderType": "LIMIT",
+                        "side": "SELL",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766503977701",
+                        "updateTime": "1766503977704"
+                    },
+                    "id": "7409254699688157184",
+                    "clientOrderId": "7409254699688157184",
+                    "timestamp": 1766503977701,
+                    "datetime": "2025-12-23T15:32:57.701Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1766503977704,
+                    "status": "open",
+                    "symbol": "ETH/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 5999,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 2,
+                    "filled": 0,
+                    "remaining": 2,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {},
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "createLimitSellOrder": [
+            {
+                "description": "Create limit sell order",
+                "method": "createLimitSellOrder",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1,
+                    6000
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409254699688157184",
+                        "clientOrderId": "7409254699688157184",
+                        "price": "6000",
+                        "origQty": "1",
+                        "avgPrice": null,
+                        "executedQty": "0",
+                        "orderType": "LIMIT",
+                        "side": "SELL",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766503977701",
+                        "updateTime": "1766503977701"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409254699688157184",
+                        "clientOrderId": "7409254699688157184",
+                        "price": "6000",
+                        "origQty": "1",
+                        "avgPrice": null,
+                        "executedQty": "0",
+                        "orderType": "LIMIT",
+                        "side": "SELL",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766503977701",
+                        "updateTime": "1766503977701"
+                    },
+                    "id": "7409254699688157184",
+                    "clientOrderId": "7409254699688157184",
+                    "timestamp": 1766503977701,
+                    "datetime": "2025-12-23T15:32:57.701Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1766503977701,
+                    "status": "open",
+                    "symbol": "ETH/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 6000,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {},
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "createLimitBuyOrder": [
+            {
+                "description": "Create limit buy order",
+                "method": "createLimitBuyOrder",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1,
+                    1000
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409253405409828864",
+                        "clientOrderId": "7409253405409828864",
+                        "price": "1000",
+                        "origQty": "1",
+                        "avgPrice": null,
+                        "executedQty": "0",
+                        "orderType": "LIMIT",
+                        "side": "BUY",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766503669121",
+                        "updateTime": "1766503669121"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "wallet": "W001",
+                        "symbol": "ETH-USDC",
+                        "orderId": "7409253405409828864",
+                        "clientOrderId": "7409253405409828864",
+                        "price": "1000",
+                        "origQty": "1",
+                        "avgPrice": null,
+                        "executedQty": "0",
+                        "orderType": "LIMIT",
+                        "side": "BUY",
+                        "status": "NEW",
+                        "stopPrice": null,
+                        "activatePrice": null,
+                        "timeInForce": null,
+                        "workingType": "CONTRACT_PRICE",
+                        "positionSide": "BOTH",
+                        "priceProtect": false,
+                        "reduceOnly": false,
+                        "closePosition": false,
+                        "createTime": "1766503669121",
+                        "updateTime": "1766503669121"
+                    },
+                    "id": "7409253405409828864",
+                    "clientOrderId": "7409253405409828864",
+                    "timestamp": 1766503669121,
+                    "datetime": "2025-12-23T15:27:49.121Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1766503669121,
+                    "status": "open",
+                    "symbol": "ETH/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 1000,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {},
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all orders",
+                "method": "cancelAllOrders",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "orderId": "7409253405409828864",
+                            "clientOrderId": "7409253405409828864",
+                            "price": "1000",
+                            "origQty": "1",
+                            "avgPrice": "0",
+                            "executedQty": "0",
+                            "orderType": "LIMIT",
+                            "side": "BUY",
+                            "status": "CANCELED",
+                            "stopPrice": null,
+                            "activatePrice": null,
+                            "timeInForce": null,
+                            "workingType": "CONTRACT_PRICE",
+                            "positionSide": "BOTH",
+                            "priceProtect": false,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "createTime": "1766503669121",
+                            "updateTime": "1766503669123"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "orderId": "7409253405409828864",
+                            "clientOrderId": "7409253405409828864",
+                            "price": "1000",
+                            "origQty": "1",
+                            "avgPrice": "0",
+                            "executedQty": "0",
+                            "orderType": "LIMIT",
+                            "side": "BUY",
+                            "status": "CANCELED",
+                            "stopPrice": null,
+                            "activatePrice": null,
+                            "timeInForce": null,
+                            "workingType": "CONTRACT_PRICE",
+                            "positionSide": "BOTH",
+                            "priceProtect": false,
+                            "reduceOnly": false,
+                            "closePosition": false,
+                            "createTime": "1766503669121",
+                            "updateTime": "1766503669123"
+                        },
+                        "id": "7409253405409828864",
+                        "clientOrderId": "7409253405409828864",
+                        "timestamp": 1766503669121,
+                        "datetime": "2025-12-23T15:27:49.121Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1766503669123,
+                        "status": "canceled",
+                        "symbol": "ETH/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 1000,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 1,
+                        "filled": 0,
+                        "remaining": 1,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {},
+                        "average": null,
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1766163153218,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDC",
+                            "fundingRate": "0.00007365",
+                            "fundingTime": "1766476800000",
+                            "markPrice": "2962.13"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDC",
+                            "fundingRate": "0.00007365",
+                            "fundingTime": "1766476800000",
+                            "markPrice": "2962.13"
+                        },
+                        "symbol": "ETH/USDC:USDC",
+                        "fundingRate": 0.00007365,
+                        "timestamp": 1766476800000,
+                        "datetime": "2025-12-23T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "symbol": "ETH-USDC",
+                        "lastFundingRate": "-0.00000075",
+                        "nextFundingTime": "1766505600000",
+                        "time": "1766503065007"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "ETH-USDC",
+                        "lastFundingRate": "-0.00000075",
+                        "nextFundingTime": "1766505600000",
+                        "time": "1766503065007"
+                    },
+                    "symbol": "ETH/USDC:USDC",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1766503065007,
+                    "datetime": "2025-12-23T15:17:45.007Z",
+                    "fundingRate": -7.5e-7,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1766505600000,
+                    "nextFundingDatetime": "2025-12-23T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDC",
+                            "open": "3039.05",
+                            "high": "3057.77",
+                            "low": "2899.47",
+                            "last": "2916.73",
+                            "vol": "90329941",
+                            "time": "1766502934227"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDC:USDC",
+                    "timestamp": 1766502934227,
+                    "datetime": "2025-12-23T15:15:34.227Z",
+                    "high": 3057.77,
+                    "low": 2899.47,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 3039.05,
+                    "close": 2916.73,
+                    "last": 2916.73,
+                    "previousClose": null,
+                    "change": -122.32,
+                    "percentage": -4.024942004902848,
+                    "average": 2977.89,
+                    "baseVolume": 90329941,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "ETH-USDC",
+                        "open": "3039.05",
+                        "high": "3057.77",
+                        "low": "2899.47",
+                        "last": "2916.73",
+                        "vol": "90329941",
+                        "time": "1766502934227"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "1m",
+                    1766163153218,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "s": "ETH-USDC",
+                            "t": "1766163180000",
+                            "c": "2969.130000000000000000",
+                            "o": "2967.230000000000000000",
+                            "h": "2970.970000000000000000",
+                            "l": "2966.230000000000000000",
+                            "v": "69153.000000000000000000"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    [
+                        1766163180000,
+                        2967.23,
+                        2970.97,
+                        2966.23,
+                        2969.13,
+                        69153
+                    ]
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1766163153218,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "orderId": "7409235226591690752",
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "time": "1766499334962",
+                            "dealPrice": "2942.61",
+                            "dealVolume": "4",
+                            "fee": "0.01",
+                            "side": "BUY",
+                            "type": "2",
+                            "liqPrice": null,
+                            "basePrecision": "8",
+                            "baseShowPrecision": "2",
+                            "tradePnl": "0.00378",
+                            "marginType": "CROSS",
+                            "leverageLevel": "1"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "7409235226591690752",
+                            "wallet": "W001",
+                            "symbol": "ETH-USDC",
+                            "time": "1766499334962",
+                            "dealPrice": "2942.61",
+                            "dealVolume": "4",
+                            "fee": "0.01",
+                            "side": "BUY",
+                            "type": "2",
+                            "liqPrice": null,
+                            "basePrecision": "8",
+                            "baseShowPrecision": "2",
+                            "tradePnl": "0.00378",
+                            "marginType": "CROSS",
+                            "leverageLevel": "1"
+                        },
+                        "timestamp": 1766499334962,
+                        "datetime": "2025-12-23T14:15:34.962Z",
+                        "symbol": "ETH/USDC:USDC",
+                        "id": null,
+                        "order": "7409235226591690752",
+                        "type": "market",
+                        "side": null,
+                        "takerOrMaker": null,
+                        "price": 2942.61,
+                        "amount": 4,
+                        "cost": 11.77044,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.01
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1766163153218,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": [
+                        {
+                            "id": "7409248832782913536",
+                            "symbol": "ETH-USDC",
+                            "price": "2915.13",
+                            "quantity": "8",
+                            "side": "SELL",
+                            "time": "1766502578898"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "7409248832782913536",
+                            "symbol": "ETH-USDC",
+                            "price": "2915.13",
+                            "quantity": "8",
+                            "side": "SELL",
+                            "time": "1766502578898"
+                        },
+                        "timestamp": 1766502578898,
+                        "datetime": "2025-12-23T15:09:38.898Z",
+                        "symbol": "ETH/USDC:USDC",
+                        "id": "7409248832782913536",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2915.13,
+                        "amount": 8,
+                        "cost": 23.32104,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDC:USDC",
+                    5
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "success",
+                    "data": {
+                        "lastUpdateId": "20193164",
+                        "symbol": "ETH-USDC",
+                        "asks": [
+                            {
+                                "price": "2909.93",
+                                "amount": "21195"
+                            },
+                            {
+                                "price": "2909.95",
+                                "amount": "40789"
+                            },
+                            {
+                                "price": "2909.96",
+                                "amount": "48091"
+                            },
+                            {
+                                "price": "2909.98",
+                                "amount": "7307"
+                            },
+                            {
+                                "price": "2909.99",
+                                "amount": "22805"
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "price": "2909.91",
+                                "amount": "12119"
+                            },
+                            {
+                                "price": "2909.9",
+                                "amount": "20212"
+                            },
+                            {
+                                "price": "2909.89",
+                                "amount": "7458"
+                            },
+                            {
+                                "price": "2909.88",
+                                "amount": "70"
+                            },
+                            {
+                                "price": "2909.86",
+                                "amount": "12158"
+                            }
+                        ],
+                        "e": "20193164"
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDC:USDC",
+                    "bids": [
+                        [
+                            2909.91,
+                            12119
+                        ],
+                        [
+                            2909.9,
+                            20212
+                        ],
+                        [
+                            2909.89,
+                            7458
+                        ],
+                        [
+                            2909.88,
+                            70
+                        ],
+                        [
+                            2909.86,
+                            12158
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2909.93,
+                            21195
+                        ],
+                        [
+                            2909.95,
+                            40789
+                        ],
+                        [
+                            2909.96,
+                            48091
+                        ],
+                        [
+                            2909.98,
+                            7307
+                        ],
+                        [
+                            2909.99,
+                            22805
+                        ]
+                    ],
+                    "timestamp": 1766502263350,
+                    "datetime": "2025-12-23T15:04:23.350Z",
+                    "nonce": 20193164
+                }
+            }
+        ]
+  }
+}

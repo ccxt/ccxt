@@ -17,18 +17,20 @@ public partial class Exchange
     public string userAgent { get; set; }
     public bool verbose { get; set; } = true;
     public bool enableRateLimit { get; set; } = true;
+    public double rollingWindowSize { get; set; } = 0.0;  // set to 0.0 to use leaky bucket rate limiter
+    public string rateLimiterAlgorithm { get; set; } = "leakyBucket";
     public long lastRestRequestTimestamp { get; set; } = 0;
     public string url { get; set; } = "";
 
     public string hostname { get; set; } = "";
 
-    public dict baseCurrencies { get; set; } = new dict();
+    public IDictionary<string, object> baseCurrencies { get; set; } = new dict();
 
     public bool reloadingMarkets { get; set; } = false;
 
     public Task<object> marketsLoading { get; set; } = null;
 
-    public dict quoteCurrencies { get; set; } = new dict();
+    public IDictionary<string, object> quoteCurrencies { get; set; } = new dict();
 
     public dict api { get; set; } = new dict();
 
@@ -36,7 +38,7 @@ public partial class Exchange
 
     public bool reduceFees { get; set; } = true;
 
-    public dict markets_by_id { get; set; } = null;
+    public IDictionary<string, object> markets_by_id { get; set; } = null;
 
     public List<object> symbols { get; set; } = new list();
 
@@ -69,7 +71,7 @@ public partial class Exchange
     public bool isSandboxModeEnabled { get; set; } = false;
 
     public object markets { get; set; } = null;
-    public object currencies { get; set; } = null;
+    public object currencies { get; set; } = new dict();
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
     public object timeframes { get; set; } = new dict();
@@ -94,7 +96,7 @@ public partial class Exchange
     public string twofa { get; set; }
     public string privateKey { get; set; }
     public string walletAddress { get; set; }
-    public string token { get; set; }
+    public object token { get; set; }
     public string login { get; set; }
     public string proxy { get; set; }
     public string agent { get; set; }
@@ -130,6 +132,7 @@ public partial class Exchange
     public object name { get; set; }
 
     public object headers { get; set; } = new dict();
+    public bool returnResponseHeaders { get; set; } = false;
 
     public dict httpExceptions { get; set; } = new dict();
 
@@ -260,9 +263,11 @@ public partial class Exchange
             var extendedDict = extendedOptions as dict;
             var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
             this.options = concurrentExtendedDict;
-        } else {
+        }
+        else
+        {
             var dict2 = this.getDefaultOptions() as dict;
-            this.options =  new ConcurrentDictionary<string, object>(dict2);
+            this.options = new ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
@@ -280,7 +285,12 @@ public partial class Exchange
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
         this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);
-        this.paddingMode = ((int)SafeInteger(extendedProperties, "paddingMode", this.paddingMode));
+        var paddingModeOp = SafeInteger(extendedProperties, "paddingMode", this.paddingMode);
+        if (paddingModeOp != null)
+        {
+            this.paddingMode = ((int)paddingModeOp);
+
+        }
         this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies") as dict;
         var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
         this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;
@@ -290,5 +300,8 @@ public partial class Exchange
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
+        this.rollingWindowSize = (int)(SafeInteger(extendedProperties, "rollingWindowSize") ?? 0.0);
+        this.rateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket");
+        this.returnResponseHeaders = (bool)SafeValue(extendedProperties, "returnResponseHeaders", false);
     }
 }

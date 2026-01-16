@@ -6,6 +6,32 @@
     ],
     "outputType": "json",
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer from swap to spot",
+                "method": "transfer",
+                "url": "https://api.mexc.com/api/v3/capital/transfer?asset=USDT&amount=1&fromAccountType=FUTURES&toAccountType=SPOT&timestamp=1759328309546&recvWindow=5000&signature=c46acee7a5dfdc9bb370eaa01de579597cfcece73c9e52e0d11fe2b6b2342305",
+                "input": [
+                    "USDT",
+                    1,
+                    "swap",
+                    "spot"
+                ],
+                "output": null
+            },
+            {
+                "description": "transfer from spot to futures",
+                "method": "transfer",
+                "url": "https://api.mexc.com/api/v3/capital/transfer?asset=USDT&amount=1&fromAccountType=SPOT&toAccountType=FUTURES&timestamp=1759328120276&recvWindow=5000&signature=dfad4e88d4960b6573e3104e7fd5099ad9ef9283f228745c9177a00d37b471fe",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": null
+            }
+        ],
         "fetchTradingFee": [
             {
                 "description": "fetchTradingFee",
@@ -308,6 +334,13 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "spot orders no symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api.mexc.com/api/v3/openOrders?timestamp=1763377014861&recvWindow=5000&signature=d4ab06a30c313ed081606309119306439861b1f6aad77d17fe68dfda798a332d",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.mexc.com/api/v3/openOrders?symbol=LTCUSDT&timestamp=1699458297358&recvWindow=5000&signature=6c929bb88a2d7bf13ef808b5ceb47101119c8f0a9bd395c6032fece0353e4647",
@@ -428,12 +461,19 @@
         ],
         "fetchTransfers": [
             {
-                "description": "fetch USDT transfers",
+                "description": "fetch futures - spot transfers",
                 "method": "fetchTransfers",
-                "url": "https://www.mexc.com/open/api/v2/asset/internal/transfer/record?currency=USDT",
+                "url": "https://api.mexc.com/api/v3/capital/transfer?fromAccountType=FUTURES&toAccountType=SPOT&timestamp=1759327539901&recvWindow=5000&signature=12fec501599abd41bfcfa71dea40330e97b80a01d9a3d7e56876885c718ff43c",
                 "input": [
-                    "USDT"
-                ]
+                    null,
+                    null,
+                    null,
+                    {
+                        "fromAccountType": "FUTURES",
+                        "toAccountType": "SPOT"
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchDepositAddress": [
@@ -533,6 +573,66 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with until param for swap",
+                "method": "fetchOHLCV",
+                "url": "https://contract.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764810000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "until": 1764930000001
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV with limit and until param for swap",
+                "method": "fetchOHLCV",
+                "url": "https://contract.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764929820",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    3,
+                    {
+                        "until": 1764930000001
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV with limit and until param for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=1764929820001&limit=3&endTime=1764930000002",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    3,
+                    {
+                        "until": 1764930000001
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV with until param for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.mexc.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=1764900000001&endTime=1764930000002",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "until": 1764930000001
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch OHLCV - spot",
                 "method": "fetchOHLCV",
@@ -749,6 +849,22 @@
             }
         ],
         "withdraw": [
+            {
+                "description": "internal transfer withdraw",
+                "method": "withdraw",
+                "url": "https://api.mexc.com/api/v3/capital/transfer/internal?asset=USDT&amount=0.1&toAccount=to_someone%40gmail.com&toAccountType=EMAIL&timestamp=1756409115448&recvWindow=5000&signature=4a16eb036f895b590d5a69ffa3e1d81015d9bf87a057f7361796f3e3853ec073",
+                "input": [
+                    "USDT",
+                    0.1,
+                    "to_someone@gmail.com",
+                    null,
+                    {
+                        "internal": true,
+                        "toAccountType": "EMAIL"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "withdraw",
                 "method": "withdraw",

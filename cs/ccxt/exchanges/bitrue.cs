@@ -11,7 +11,7 @@ public partial class bitrue : Exchange
             { "id", "bitrue" },
             { "name", "Bitrue" },
             { "countries", new List<object>() {"SG"} },
-            { "rateLimit", 1000 },
+            { "rateLimit", 10 },
             { "certified", false },
             { "version", "v1" },
             { "pro", true },
@@ -153,66 +153,57 @@ public partial class bitrue : Exchange
                     { "kline", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "public.json", 1 },
-                                { "public{currency}.json", 1 },
+                                { "public.json", 0.24 },
+                                { "public{currency}.json", 0.24 },
                             } },
                         } },
                     } },
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "ping", 1 },
-                                { "time", 1 },
-                                { "exchangeInfo", 1 },
+                                { "ping", 0.24 },
+                                { "time", 0.24 },
+                                { "exchangeInfo", 0.24 },
                                 { "depth", new Dictionary<string, object>() {
                                     { "cost", 1 },
-                                    { "byLimit", new List<object>() {new List<object>() {100, 1}, new List<object>() {500, 5}, new List<object>() {1000, 10}} },
+                                    { "byLimit", new List<object>() {new List<object>() {100, 0.24}, new List<object>() {500, 1.2}, new List<object>() {1000, 2.4}} },
                                 } },
-                                { "trades", 1 },
-                                { "historicalTrades", 5 },
-                                { "aggTrades", 1 },
+                                { "trades", 0.24 },
+                                { "historicalTrades", 1.2 },
+                                { "aggTrades", 0.24 },
                                 { "ticker/24hr", new Dictionary<string, object>() {
-                                    { "cost", 1 },
-                                    { "noSymbol", 40 },
+                                    { "cost", 0.24 },
+                                    { "noSymbol", 9.6 },
                                 } },
-                                { "ticker/price", new Dictionary<string, object>() {
-                                    { "cost", 1 },
-                                    { "noSymbol", 2 },
-                                } },
-                                { "ticker/bookTicker", new Dictionary<string, object>() {
-                                    { "cost", 1 },
-                                    { "noSymbol", 2 },
-                                } },
-                                { "market/kline", 1 },
+                                { "ticker/price", 0.24 },
+                                { "ticker/bookTicker", 0.24 },
+                                { "market/kline", 0.24 },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "order", 1 },
-                                { "openOrders", 1 },
-                                { "allOrders", 5 },
-                                { "account", 5 },
-                                { "myTrades", new Dictionary<string, object>() {
-                                    { "cost", 5 },
-                                    { "noSymbol", 40 },
-                                } },
-                                { "etf/net-value/{symbol}", 1 },
-                                { "withdraw/history", 1 },
-                                { "deposit/history", 1 },
+                                { "order", 5 },
+                                { "openOrders", 5 },
+                                { "allOrders", 25 },
+                                { "account", 25 },
+                                { "myTrades", 25 },
+                                { "etf/net-value/{symbol}", 0.24 },
+                                { "withdraw/history", 120 },
+                                { "deposit/history", 120 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "order", 4 },
-                                { "withdraw/commit", 1 },
+                                { "order", 5 },
+                                { "withdraw/commit", 120 },
                             } },
                             { "delete", new Dictionary<string, object>() {
-                                { "order", 1 },
+                                { "order", 5 },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "myTrades", 5 },
+                                { "myTrades", 1.2 },
                             } },
                         } },
                     } },
@@ -221,34 +212,34 @@ public partial class bitrue : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "ping", 1 },
-                                { "time", 1 },
-                                { "contracts", 1 },
-                                { "depth", 1 },
-                                { "ticker", 1 },
-                                { "klines", 1 },
+                                { "ping", 0.24 },
+                                { "time", 0.24 },
+                                { "contracts", 0.24 },
+                                { "depth", 0.24 },
+                                { "ticker", 0.24 },
+                                { "klines", 0.24 },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "myTrades", 1 },
-                                { "openOrders", 1 },
-                                { "order", 1 },
-                                { "account", 1 },
-                                { "leverageBracket", 1 },
-                                { "commissionRate", 1 },
-                                { "futures_transfer_history", 1 },
-                                { "forceOrdersHistory", 1 },
+                                { "myTrades", 5 },
+                                { "openOrders", 5 },
+                                { "order", 5 },
+                                { "account", 5 },
+                                { "leverageBracket", 5 },
+                                { "commissionRate", 5 },
+                                { "futures_transfer_history", 5 },
+                                { "forceOrdersHistory", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "positionMargin", 1 },
-                                { "level_edit", 1 },
-                                { "cancel", 1 },
-                                { "order", 1 },
-                                { "allOpenOrders", 1 },
-                                { "futures_transfer", 1 },
+                                { "positionMargin", 5 },
+                                { "level_edit", 5 },
+                                { "cancel", 5 },
+                                { "order", 25 },
+                                { "allOpenOrders", 5 },
+                                { "futures_transfer", 5 },
                             } },
                         } },
                     } },
@@ -257,34 +248,34 @@ public partial class bitrue : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "ping", 1 },
-                                { "time", 1 },
-                                { "contracts", 1 },
-                                { "depth", 1 },
-                                { "ticker", 1 },
-                                { "klines", 1 },
+                                { "ping", 0.24 },
+                                { "time", 0.24 },
+                                { "contracts", 0.24 },
+                                { "depth", 0.24 },
+                                { "ticker", 0.24 },
+                                { "klines", 0.24 },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "myTrades", 1 },
-                                { "openOrders", 1 },
-                                { "order", 1 },
-                                { "account", 1 },
-                                { "leverageBracket", 1 },
-                                { "commissionRate", 1 },
-                                { "futures_transfer_history", 1 },
-                                { "forceOrdersHistory", 1 },
+                                { "myTrades", 5 },
+                                { "openOrders", 5 },
+                                { "order", 5 },
+                                { "account", 5 },
+                                { "leverageBracket", 5 },
+                                { "commissionRate", 5 },
+                                { "futures_transfer_history", 5 },
+                                { "forceOrdersHistory", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "positionMargin", 1 },
-                                { "level_edit", 1 },
-                                { "cancel", 1 },
-                                { "order", 1 },
-                                { "allOpenOrders", 1 },
-                                { "futures_transfer", 1 },
+                                { "positionMargin", 5 },
+                                { "level_edit", 5 },
+                                { "cancel", 5 },
+                                { "order", 5 },
+                                { "allOpenOrders", 5 },
+                                { "futures_transfer", 5 },
                             } },
                         } },
                     } },
@@ -327,7 +318,9 @@ public partial class bitrue : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "createMarketBuyOrderRequiresPrice", true },
-                { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "linear", "inverse"} },
+                } },
                 { "fetchMyTradesMethod", "v2PrivateGetMyTrades" },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
@@ -622,7 +615,7 @@ public partial class bitrue : Exchange
      * @description the latest known information on the availability of the exchange API
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     public async override Task<object> fetchStatus(object parameters = null)
     {
@@ -792,10 +785,20 @@ public partial class bitrue : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object>() {};
-        object fetchMarkets = this.safeValue(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
-        for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
+        object types = null;
+        object defaultTypes = new List<object>() {"spot", "linear", "inverse"};
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        if (isTrue(!isEqual(fetchMarketsOptions, null)))
         {
-            object marketType = getValue(fetchMarkets, i);
+            types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
+        } else
+        {
+            // for backward-compatibility
+            types = this.safeList(this.options, "fetchMarkets", defaultTypes);
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        {
+            object marketType = getValue(types, i);
             if (isTrue(isEqual(marketType, "spot")))
             {
                 ((IList<object>)promisesRaw).Add(this.spotV1PublicGetExchangeInfo(parameters));
@@ -1081,7 +1084,7 @@ public partial class bitrue : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
      * @param {string} [params.subType] 'linear', 'inverse'
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -1126,7 +1129,7 @@ public partial class bitrue : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1284,7 +1287,7 @@ public partial class bitrue : Exchange
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -1501,7 +1504,7 @@ public partial class bitrue : Exchange
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -1571,7 +1574,7 @@ public partial class bitrue : Exchange
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -1768,7 +1771,7 @@ public partial class bitrue : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1957,7 +1960,7 @@ public partial class bitrue : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -1994,7 +1997,7 @@ public partial class bitrue : Exchange
      * @param {decimal} [params.icebergQty]
      * @param {long} [params.recvWindow]
      * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -2131,7 +2134,7 @@ public partial class bitrue : Exchange
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2236,7 +2239,7 @@ public partial class bitrue : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2298,7 +2301,7 @@ public partial class bitrue : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2391,7 +2394,7 @@ public partial class bitrue : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2520,7 +2523,7 @@ public partial class bitrue : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2623,7 +2626,7 @@ public partial class bitrue : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2696,7 +2699,7 @@ public partial class bitrue : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2911,7 +2914,7 @@ public partial class bitrue : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -3018,7 +3021,7 @@ public partial class bitrue : Exchange
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {

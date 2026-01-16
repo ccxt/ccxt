@@ -37,18 +37,18 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'editOrderWs' => true,
                 'fetchBalanceWs' => true,
                 'fetchCurrenciesWS' => true,
-                'fetchDepositAddressWs' => true,
+                'fetchDepositAddressWs' => false,
                 'fetchDepositsWs' => true,
-                'fetchDepositWithdrawFeesWs' => true,
+                'fetchDepositWithdrawFeesWs' => false,
                 'fetchMyTradesWs' => true,
                 'fetchOHLCVWs' => true,
                 'fetchOpenOrdersWs' => true,
                 'fetchOrderWs' => true,
-                'fetchOrderBookWs' => true,
+                'fetchOrderBookWs' => false,
                 'fetchOrdersWs' => true,
-                'fetchTickerWs' => true,
-                'fetchTickersWs' => true,
-                'fetchTimeWs' => true,
+                'fetchTickerWs' => false,
+                'fetchTickersWs' => false,
+                'fetchTimeWs' => false,
                 'fetchTradingFeesWs' => true,
                 'fetchWithdrawalsWs' => true,
                 'withdrawWs' => true,
@@ -123,7 +123,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public('ticker24h', $symbol, $params));
         }) ();
@@ -138,7 +138,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              *
              * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -197,7 +197,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -248,7 +248,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -288,7 +288,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -391,7 +391,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -592,7 +592,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument');
@@ -630,7 +630,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
@@ -684,7 +684,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {string} [$params->selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
              * @param {bool} [$params->disableMarketProtection] don't cancel if the next fill $price is 10% worse than the best fill $price
              * @param {bool} [$params->responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -707,7 +707,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {float} [$amount] how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -726,7 +726,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -744,7 +744,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -789,7 +789,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -816,7 +816,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrdersWs() requires a $symbol argument');
@@ -855,7 +855,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -883,7 +883,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTradesWs() requires a $symbol argument');
@@ -927,7 +927,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function withdraw_ws(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -936,7 +936,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
@@ -977,7 +977,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -1011,7 +1011,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($withdrawals, $messageHash);
     }
 
-    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1044,7 +1044,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
              * @param {int} [$limit] the maximum number of $deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -1084,7 +1084,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              *
              * fetch the trading fees for multiple markets
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -1106,7 +1106,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function fetch_currencies_ws($params = array ()) {
+    public function fetch_currencies_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *
@@ -1431,7 +1431,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        $action => 'privateCreateOrder',
@@ -1454,14 +1454,16 @@ class bitvavo extends \ccxt\async\bitvavo {
         $messageHash = $this->safe_string($message, 'requestId', $buildMessage);
         $rejected = false;
         try {
-            $this->handle_errors($code, $error, $client->url, null, null, $error, $message, null, null);
+            $this->handle_errors($code, $error, $client->url, '', array(), $error, $message, array(), array());
         } catch (Exception $e) {
             $rejected = true;
             $client->reject ($e, $messageHash);
         }
         if (!$rejected) {
             $client->reject ($message, $messageHash);
+            return true;
         }
+        return null;
     }
 
     public function handle_message(Client $client, $message) {

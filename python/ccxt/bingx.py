@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -45,6 +45,9 @@ class bingx(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': True,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
@@ -65,9 +68,18 @@ class bingx(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -78,10 +90,14 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': True,
                 'fetchLiquidations': False,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': True,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMarkPrice': True,
@@ -91,6 +107,8 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -105,8 +123,11 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
@@ -118,6 +139,7 @@ class bingx(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
+                    'fund': 'https://open-api.{hostname}/openApi',
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
@@ -127,6 +149,7 @@ class bingx(Exchange, ImplicitAPI):
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
+                    'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'swap': 'https://open-api-vst.{hostname}/openApi',  # only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
@@ -153,6 +176,15 @@ class bingx(Exchange, ImplicitAPI):
                 'secret': True,
             },
             'api': {
+                'fund': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/balance': 1,
+                            },
+                        },
+                    },
+                },
                 'spot': {
                     'v1': {
                         'public': {
@@ -163,7 +195,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/depth': 1,
                                 'market/kline': 1,
                                 'ticker/24hr': 1,
-                                'ticker/price': 1,
+                                'ticker/price': 1,  # deprecated, still can be used
                                 'ticker/bookTicker': 1,
                             },
                         },
@@ -175,6 +207,9 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/myTrades': 2,
                                 'user/commissionRate': 5,
                                 'account/balance': 2,
+                                'oco/orderList': 5,
+                                'oco/openOrderList': 5,
+                                'oco/historyOrderList': 5,
                             },
                             'post': {
                                 'trade/order': 2,
@@ -184,6 +219,8 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/cancelOrders': 5,
                                 'trade/cancelOpenOrders': 5,
                                 'trade/cancelAllAfter': 5,
+                                'oco/order': 5,
+                                'oco/cancel': 5,
                             },
                         },
                     },
@@ -192,6 +229,7 @@ class bingx(Exchange, ImplicitAPI):
                             'get': {
                                 'market/depth': 1,
                                 'market/kline': 1,
+                                'ticker/price': 1,
                             },
                         },
                     },
@@ -217,6 +255,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/historicalTrades': 1,
                                 'market/markPriceKlines': 1,
                                 'trade/multiAssetsRules': 1,
+                                'tradingRules': 1,
                             },
                         },
                         'private': {
@@ -234,6 +273,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'user/marginAssets': 5,
                             },
                             'post': {
+                                'trade/amend': 2,
                                 'trade/cancelReplace': 2,
                                 'positionSide/dual': 5,
                                 'trade/batchCancelReplace': 5,
@@ -242,6 +282,8 @@ class bingx(Exchange, ImplicitAPI):
                                 'twap/order': 5,
                                 'twap/cancelOrder': 5,
                                 'trade/assetMode': 5,
+                                'trade/reverse': 5,
+                                'trade/autoAddMargin': 5,
                             },
                         },
                     },
@@ -300,6 +342,11 @@ class bingx(Exchange, ImplicitAPI):
                         'public': {
                             'get': {
                                 'quote/klines': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'user/balance': 2,
                             },
                         },
                     },
@@ -442,10 +489,19 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'swap/trace/currentTrack': 2,
+                                'PFutures/traderDetail': 2,
+                                'PFutures/profitHistorySummarys': 2,
+                                'PFutures/profitDetail': 2,
+                                'PFutures/tradingPairs': 2,
+                                'spot/traderDetail': 2,
+                                'spot/profitHistorySummarys': 2,
+                                'spot/profitDetail': 2,
+                                'spot/historyOrder': 2,
                             },
                             'post': {
                                 'swap/trace/closeTrackOrder': 2,
                                 'swap/trace/setTPSL': 2,
+                                'PFutures/setCommission': 2,
                                 'spot/trader/sellOrder': 10,
                             },
                         },
@@ -456,11 +512,42 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'asset/transfer': 1,
+                                'asset/transferRecord': 5,
                                 'capital/deposit/hisrec': 1,
                                 'capital/withdraw/history': 1,
                             },
                             'post': {
                                 'post/asset/transfer': 1,
+                            },
+                        },
+                    },
+                    'asset': {
+                        'v1': {
+                            'private': {
+                                'post': {
+                                    'transfer': 5,
+                                },
+                            },
+                            'public': {
+                                'get': {
+                                    'transfer/supportCoins': 5,
+                                },
+                            },
+                        },
+                    },
+                },
+                'agent': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/inviteAccountList': 5,
+                                'reward/commissionDataList': 5,
+                                'account/inviteRelationCheck': 5,
+                                'asset/depositDetailList': 5,
+                                'reward/third/commissionDataList': 5,
+                                'asset/partnerData': 5,
+                                'commissionDataList/referralCode': 5,
+                                'account/superiorCheck': 5,
                             },
                         },
                     },
@@ -513,6 +600,8 @@ class bingx(Exchange, ImplicitAPI):
                     '100437': BadRequest,  # {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': InsufficientFunds,  # {"code":101204,"msg":"","data":{}}
                     '110425': InvalidOrder,  # {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
+                    'Insufficient assets': InsufficientFunds,  # {"transferErrorMsg":"Insufficient assets"}
+                    'illegal transferType': BadRequest,  # {"transferErrorMsg":"illegal transferType"}
                 },
                 'broad': {},
             },
@@ -526,14 +615,19 @@ class bingx(Exchange, ImplicitAPI):
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
-                    'spot': 'FUND',
-                    'swap': 'PFUTURES',
-                    'future': 'SFUTURES',
+                    'funding': 'fund',
+                    'spot': 'spot',
+                    'future': 'stdFutures',
+                    'swap': 'USDTMPerp',
+                    'linear': 'USDTMPerp',
+                    'inverse': 'coinMPerp',
                 },
                 'accountsById': {
-                    'FUND': 'spot',
-                    'PFUTURES': 'swap',
-                    'SFUTURES': 'future',
+                    'fund': 'funding',
+                    'spot': 'spot',
+                    'stdFutures': 'future',
+                    'USDTMPerp': 'linear',
+                    'coinMPerp': 'inverse',
                 },
                 'recvWindow': 5 * 1000,  # 5 sec
                 'broker': 'CCXT',
@@ -545,8 +639,11 @@ class bingx(Exchange, ImplicitAPI):
                     'LTC': 'LTC',
                 },
                 'networks': {
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARB',
                     'MATIC': 'POLYGON',
+                    'ZKSYNC': 'ZKSYNCERA',
+                    'AVAXC': 'AVAX-C',
+                    'HBAR': 'HEDERA',
                 },
             },
             'features': {
@@ -643,6 +740,9 @@ class bingx(Exchange, ImplicitAPI):
                 #
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'triggerPriceType': None,
                         'attachedStopLossTakeProfit': None,
@@ -714,10 +814,10 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
-            return None
+            return {}
         isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         if isSandbox:
-            return None
+            return {}
         response = self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
         #    {
@@ -775,6 +875,10 @@ class bingx(Exchange, ImplicitAPI):
                         'min': self.safe_number(rawNetwork, 'withdrawMin'),
                         'max': self.safe_number(rawNetwork, 'withdrawMax'),
                     },
+                    'deposit': {
+                        'min': self.safe_number(rawNetwork, 'depositMin'),
+                        'max': None,
+                    },
                 }
                 precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
                 networks[networkCode] = {
@@ -788,20 +892,35 @@ class bingx(Exchange, ImplicitAPI):
                     'precision': precision,
                     'limits': limits,
                 }
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': None,
-                'name': name,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'networks': networks,
-                'fee': None,
-                'limits': None,
-                'type': 'crypto',  # only cryptos now
-            })
+            if not (code in result):  # the exchange could return the same currency with different networks
+                result[code] = {
+                    'info': entry,
+                    'code': code,
+                    'id': currencyId,
+                    'precision': None,
+                    'name': name,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'networks': networks,
+                    'fee': None,
+                    'limits': None,
+                    'type': 'crypto',  # only cryptos now
+                }
+            else:
+                existing = result[code]
+                existingNetworks = self.safe_dict(existing, 'networks', {})
+                newNetworkCodes = list(networks.keys())
+                for j in range(0, len(newNetworkCodes)):
+                    newNetworkCode = newNetworkCodes[j]
+                    if not (newNetworkCode in existingNetworks):
+                        existingNetworks[newNetworkCode] = networks[newNetworkCode]
+                result[code]['networks'] = existingNetworks
+        codes = list(result.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = result[code]
+            result[code] = self.safe_currency_structure(currency)
         return result
 
     def fetch_spot_markets(self, params) -> List[Market]:
@@ -1016,7 +1135,7 @@ class bingx(Exchange, ImplicitAPI):
         swapMarkets = self.array_concat(linearSwapMarkets, inverseSwapMarkets)
         return self.array_concat(spotMarkets, swapMarkets)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1169,7 +1288,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1392,7 +1511,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1501,7 +1620,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1529,7 +1648,7 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data', [])
+        data = self.safe_dict(response, 'data')
         return self.parse_funding_rate(data, market)
 
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
@@ -1540,7 +1659,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols, 'swap', True)
@@ -1589,11 +1708,11 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -1658,7 +1777,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1749,7 +1868,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1809,7 +1928,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = None
@@ -1870,7 +1989,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1925,7 +2044,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = None
@@ -2078,13 +2197,14 @@ class bingx(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-        https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+        https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
         https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract balances
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :param str [params.type]: the type of balance to fetch(spot, swap, funding) default is `spot`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = None
@@ -2113,6 +2233,21 @@ class bingx(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
+        elif (marketType == 'funding') or (marketType == 'fund'):
+            response = self.fundV1PrivateGetAccountBalance(marketTypeQuery)
+            # {
+            #     code: '0',
+            #     timestamp: '1754906016631',
+            #     data: {
+            #         assets: [
+            #             {
+            #                 asset: 'USDT',
+            #                 free: '44.37692200000000237300',
+            #                 locked: '0.00000000000000000000'
+            #             }
+            #         ]
+            #     }
+            # }
         elif marketType == 'spot':
             response = self.spotV1PrivateGetAccountBalance(marketTypeQuery)
             #
@@ -2154,27 +2289,26 @@ class bingx(Exchange, ImplicitAPI):
                 #     }
                 #
             else:
-                response = self.swapV2PrivateGetUserBalance(marketTypeQuery)
+                response = self.swapV3PrivateGetUserBalance(marketTypeQuery)
                 #
                 #     {
                 #         "code": 0,
                 #         "msg": "",
-                #         "data": {
-                #             "balance": {
-                #                 "userId": "1177064765068660742",
+                #         "data": [
+                #             {
+                #                 "userId": "116***295",
                 #                 "asset": "USDT",
-                #                 "balance": "51.5198",
-                #                 "equity": "50.5349",
-                #                 "unrealizedProfit": "-0.9849",
-                #                 "realisedProfit": "-0.2134",
-                #                 "availableMargin": "49.1428",
-                #                 "usedMargin": "1.3922",
+                #                 "balance": "194.8212",
+                #                 "equity": "196.7431",
+                #                 "unrealizedProfit": "1.9219",
+                #                 "realisedProfit": "-109.2504",
+                #                 "availableMargin": "193.7609",
+                #                 "usedMargin": "1.0602",
                 #                 "freezedMargin": "0.0000",
                 #                 "shortUid": "12851936"
                 #             }
-                #         }
+                #         ]
                 #     }
-                #
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
@@ -2240,41 +2374,41 @@ class bingx(Exchange, ImplicitAPI):
         #     {
         #         "code": 0,
         #         "msg": "",
-        #         "data": {
-        #             "balance": {
-        #                 "userId": "1177064765068660742",
+        #         "data": [
+        #             {
+        #                 "userId": "116***295",
         #                 "asset": "USDT",
-        #                 "balance": "51.5198",
-        #                 "equity": "50.5349",
-        #                 "unrealizedProfit": "-0.9849",
-        #                 "realisedProfit": "-0.2134",
-        #                 "availableMargin": "49.1428",
-        #                 "usedMargin": "1.3922",
+        #                 "balance": "194.8212",
+        #                 "equity": "196.7431",
+        #                 "unrealizedProfit": "1.9219",
+        #                 "realisedProfit": "-109.2504",
+        #                 "availableMargin": "193.7609",
+        #                 "usedMargin": "1.0602",
         #                 "freezedMargin": "0.0000",
         #                 "shortUid": "12851936"
         #             }
-        #         }
+        #         ]
         #     }
         #
         result: dict = {'info': response}
-        standardAndInverseBalances = self.safe_list(response, 'data')
-        firstStandardOrInverse = self.safe_dict(standardAndInverseBalances, 0)
-        isStandardOrInverse = firstStandardOrInverse is not None
+        contractBalances = self.safe_list(response, 'data')
+        firstContractBalances = self.safe_dict(contractBalances, 0)
+        isContract = firstContractBalances is not None
         spotData = self.safe_dict(response, 'data', {})
-        spotBalances = self.safe_list(spotData, 'balances')
-        firstSpot = self.safe_dict(spotBalances, 0)
-        isSpot = firstSpot is not None
-        if isStandardOrInverse:
-            for i in range(0, len(standardAndInverseBalances)):
-                balance = standardAndInverseBalances[i]
+        spotBalances = self.safe_list_2(spotData, 'balances', 'assets', [])
+        if isContract:
+            for i in range(0, len(contractBalances)):
+                balance = contractBalances[i]
                 currencyId = self.safe_string(balance, 'asset')
+                if currencyId is None:  # linear v3 returns empty asset
+                    break
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'availableMargin', 'availableBalance')
                 account['used'] = self.safe_string(balance, 'usedMargin')
                 account['total'] = self.safe_string(balance, 'maxWithdrawAmount')
                 result[code] = account
-        elif isSpot:
+        else:
             for i in range(0, len(spotBalances)):
                 balance = spotBalances[i]
                 currencyId = self.safe_string(balance, 'asset')
@@ -2282,16 +2416,6 @@ class bingx(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
-                result[code] = account
-        else:
-            linearSwapData = self.safe_dict(response, 'data', {})
-            linearSwapBalance = self.safe_dict(linearSwapData, 'balance')
-            if linearSwapBalance:
-                currencyId = self.safe_string(linearSwapBalance, 'asset')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
-                account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
                 result[code] = account
         return self.safe_balance(result)
 
@@ -2306,7 +2430,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of records to fetch
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :param int [params.until]: the latest time in ms to fetch positions for
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2367,7 +2491,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract positions
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2458,7 +2582,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2661,7 +2785,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', side, cost, None, params)
@@ -2672,7 +2796,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -2683,7 +2807,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'sell', cost, None, params)
@@ -2793,8 +2917,8 @@ class bingx(Exchange, ImplicitAPI):
             isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
             stopLoss = self.safe_value(params, 'stopLoss')
             takeProfit = self.safe_value(params, 'takeProfit')
-            isStopLoss = stopLoss is not None
-            isTakeProfit = takeProfit is not None
+            hasStopLoss = stopLoss is not None
+            hasTakeProfit = takeProfit is not None
             if ((type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT')) and not isTrailing:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
@@ -2826,9 +2950,9 @@ class bingx(Exchange, ImplicitAPI):
                 elif isTrailingPercentOrder:
                     requestTrailingPercent = Precise.string_div(trailingPercent, '100')
                     request['priceRate'] = self.parse_to_numeric(requestTrailingPercent)
-            if isStopLoss or isTakeProfit:
+            if hasStopLoss or hasTakeProfit:
                 stringifiedAmount = self.number_to_string(amount)
-                if isStopLoss:
+                if hasStopLoss:
                     slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                     slWorkingType = self.safe_string(stopLoss, 'workingType', 'MARK_PRICE')
                     slType = self.safe_string(stopLoss, 'type', 'STOP_MARKET')
@@ -2843,7 +2967,7 @@ class bingx(Exchange, ImplicitAPI):
                     slQuantity = self.safe_string(stopLoss, 'quantity', stringifiedAmount)
                     slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
                     request['stopLoss'] = self.json(slRequest)
-                if isTakeProfit:
+                if hasTakeProfit:
                     tkTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
                     tkWorkingType = self.safe_string(takeProfit, 'workingType', 'MARK_PRICE')
                     tpType = self.safe_string(takeProfit, 'type', 'TAKE_PROFIT_MARKET')
@@ -2908,7 +3032,7 @@ class bingx(Exchange, ImplicitAPI):
         :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
         :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3018,7 +3142,7 @@ class bingx(Exchange, ImplicitAPI):
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.sync]: *spot only* if True, multiple orders are ordered serially and all orders do not require the same symbol/side/type
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         ordersRequests = []
@@ -3518,7 +3642,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique id for the order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         isTwapOrder = self.safe_bool(params, 'twap', False)
@@ -3690,7 +3814,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -3830,7 +3954,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
@@ -3973,7 +4097,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.twap]: if fetching twap order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         isTwapOrder = self.safe_bool(params, 'twap', False)
@@ -4145,7 +4269,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param int [params.orderId]: Only return subsequent orders, and return the latest order by default
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -4233,7 +4357,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.twap]: if fetching twap open orders
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -4415,7 +4539,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
@@ -4436,7 +4560,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
-        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
@@ -4459,7 +4583,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
         :param boolean [params.twap]: if fetching twap orders
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -4637,34 +4761,48 @@ class bingx(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
 
-        https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+        https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
 
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
+        :param str fromAccount: account to transfer from(spot, swap, futures, or funding)
+        :param str toAccount: account to transfer to(spot, swap(linear or inverse), future, or funding)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
+        subType = None
+        subType, params = self.handle_sub_type_and_params('transfer', None, params)
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
+        if fromId == 'swap':
+            if subType == 'inverse':
+                fromId = 'coinMPerp'
+            else:
+                fromId = 'USDTMPerp'
+        if toId == 'swap':
+            if subType == 'inverse':
+                toId = 'coinMPerp'
+            else:
+                toId = 'USDTMPerp'
         request: dict = {
+            'fromAccount': fromId,
+            'toAccount': toId,
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
-            'type': fromId + '_' + toId,
         }
-        response = self.spotV3PrivateGetGetAssetTransfer(self.extend(request, params))
+        response = self.apiAssetV1PrivatePostTransfer(self.extend(request, params))
         #
-        #    {
-        #        "tranId":13526853623
-        #    }
+        #     {
+        #         "tranId": 1933130865269936128,
+        #         "transferId": "1051450703949464903736"
+        #     }
         #
         return {
             'info': response,
-            'id': self.safe_string(response, 'tranId'),
+            'id': self.safe_string(response, 'transferId'),
             'timestamp': None,
             'datetime': None,
             'currency': code,
@@ -4678,15 +4816,19 @@ class bingx(Exchange, ImplicitAPI):
         """
         fetch a history of internal transfers made on an account
 
-        https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+        https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new
 
         :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
-        :param int [limit]: the maximum number of transfers structures to retrieve
+        :param int [limit]: the maximum number of transfers structures to retrieve(default 10, max 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :param str params.fromAccount:(mandatory) transfer from(spot, swap(linear or inverse), future, or funding)
+        :param str params.toAccount:(mandatory) transfer to(spot, swap(linear or inverse), future, or funding)
+        :param boolean [params.paginate]: whether to paginate the results(default False)
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -4696,27 +4838,36 @@ class bingx(Exchange, ImplicitAPI):
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId is None or toId is None:
-            raise ExchangeError(self.id + ' fromAccount & toAccount parameter are required')
-        request: dict = {
-            'type': fromId + '_' + toId,
-        }
+            raise ExchangeError(self.id + ' fromAccount & toAccount parameters are required')
+        if fromAccount is not None:
+            request['fromAccount'] = fromId
+        if toAccount is not None:
+            request['toAccount'] = toId
+        params = self.omit(params, ['fromAccount', 'toAccount'])
+        maxLimit = 100
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, params, maxLimit)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['size'] = limit
-        response = self.spotV3PrivateGetAssetTransfer(self.extend(request, params))
+            request['pageSize'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        response = self.apiV3PrivateGetAssetTransferRecord(self.extend(request, params))
         #
         #     {
-        #         "total": 3,
+        #         "total": 2,
         #         "rows": [
         #             {
-        #                 "asset":"USDT",
-        #                 "amount":"-100.00000000000000000000",
-        #                 "type":"FUND_SFUTURES",
-        #                 "status":"CONFIRMED",
-        #                 "tranId":1067594500957016069,
-        #                 "timestamp":1658388859000
-        #             },
+        #                 "asset": "LTC",
+        #                 "amount": "0.05000000000000000000",
+        #                 "status": "CONFIRMED",
+        #                 "transferId": "1051461075661819338791",
+        #                 "timestamp": 1752202092000,
+        #                 "fromAccount": "spot",
+        #                 "toAccount": "USDTMPerp"
+        #             }
         #         ]
         #     }
         #
@@ -4724,15 +4875,14 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_transfers(rows, currency, since, limit)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
-        tranId = self.safe_string(transfer, 'tranId')
+        tranId = self.safe_string(transfer, 'transferId')
         timestamp = self.safe_integer(transfer, 'timestamp')
-        currencyCode = self.safe_currency_code(None, currency)
+        currencyId = self.safe_string(transfer, 'asset')
+        currencyCode = self.safe_currency_code(currencyId, currency)
         status = self.safe_string(transfer, 'status')
         accountsById = self.safe_dict(self.options, 'accountsById', {})
-        typeId = self.safe_string(transfer, 'type')
-        typeIdSplit = typeId.split('_')
-        fromId = self.safe_string(typeIdSplit, 0)
-        toId = self.safe_string(typeId, 1)
+        fromId = self.safe_string(transfer, 'fromAccount')
+        toId = self.safe_string(transfer, 'toAccount')
         fromAccount = self.safe_string(accountsById, fromId, fromId)
         toAccount = self.safe_string(accountsById, toId, toId)
         return {
@@ -4744,8 +4894,14 @@ class bingx(Exchange, ImplicitAPI):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': status,
+            'status': self.parse_transfer_status(status),
         }
+
+    def parse_transfer_status(self, status: Str) -> str:
+        statuses: dict = {
+            'CONFIRMED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
@@ -4755,7 +4911,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary `address structures <https://docs.ccxt.com/#/?id=address-structure>`, indexed by the network
+        :returns dict: a dictionary `address structures <https://docs.ccxt.com/?id=address-structure>`, indexed by the network
         """
         self.load_markets()
         currency = self.currency(code)
@@ -4799,7 +4955,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         network = self.safe_string(params, 'network')
         params = self.omit(params, ['network'])
@@ -4852,7 +5008,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -4895,7 +5051,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -4983,7 +5139,7 @@ class bingx(Exchange, ImplicitAPI):
         id = self.safe_string(transaction, 'id', dataId)
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')
-        timestamp = self.safe_integer(transaction, 'insertTime')
+        timestamp = self.safe_integer_2(transaction, 'insertTime', 'timestamp')
         datetime = self.iso8601(timestamp)
         if timestamp is None:
             datetime = self.safe_string(transaction, 'applyTime')
@@ -5097,7 +5253,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the bingx api endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: A `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
         if type is None:
@@ -5154,7 +5310,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -5241,7 +5397,7 @@ class bingx(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'shortLeverage'),
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -5318,7 +5474,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms for the ending date filter, default is None
         :param str params['trandingUnit']: COIN(directly represent assets such and ETH) or CONT(represents the number of contract sheets)
         :param str params['orderId']: the order id required for inverse swap
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -5437,37 +5593,13 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
-        #    {
-        #        "coin": "BTC",
-        #        "name": "BTC",
-        #        "networkList": [
-        #          {
-        #            "name": "BTC",
-        #            "network": "BTC",
-        #            "isDefault": True,
-        #            "minConfirm": "2",
-        #            "withdrawEnable": True,
-        #            "withdrawFee": "0.00035",
-        #            "withdrawMax": "1.62842",
-        #            "withdrawMin": "0.0005"
-        #          },
-        #          {
-        #            "name": "BTC",
-        #            "network": "BEP20",
-        #            "isDefault": False,
-        #            "minConfirm": "15",
-        #            "withdrawEnable": True,
-        #            "withdrawFee": "0.00001",
-        #            "withdrawMax": "1.62734",
-        #            "withdrawMin": "0.0001"
-        #          }
-        #        ]
-        #    }
+        # currencie structure
         #
-        networkList = self.safe_list(fee, 'networkList', [])
-        networkListLength = len(networkList)
+        networks = self.safe_dict(fee, 'networks', {})
+        networkCodes = list(networks.keys())
+        networksLength = len(networkCodes)
         result: dict = {
-            'info': fee,
+            'info': networks,
             'withdraw': {
                 'fee': None,
                 'percentage': None,
@@ -5478,18 +5610,15 @@ class bingx(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        if networkListLength != 0:
-            for i in range(0, networkListLength):
-                network = networkList[i]
-                networkId = self.safe_string(network, 'network')
-                isDefault = self.safe_bool(network, 'isDefault')
-                currencyCode = self.safe_string(currency, 'code')
-                networkCode = self.network_id_to_code(networkId, currencyCode)
+        if networksLength != 0:
+            for i in range(0, networksLength):
+                networkCode = networkCodes[i]
+                network = networks[networkCode]
                 result['networks'][networkCode] = {
                     'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(network, 'withdrawFee'), 'percentage': False},
+                    'withdraw': {'fee': self.safe_number(network, 'fee'), 'percentage': False},
                 }
-                if isDefault:
+                if networksLength == 1:
                     result['withdraw']['fee'] = self.safe_number(network, 'withdrawFee')
                     result['withdraw']['percentage'] = False
         return result
@@ -5502,14 +5631,20 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
-        response = self.walletsV1PrivateGetCapitalConfigGetall(params)
-        coins = self.safe_list(response, 'data')
-        return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
+        response = self.fetch_currencies(params)
+        depositWithdrawFees: dict = {}
+        responseCodes = list(response.keys())
+        for i in range(0, len(responseCodes)):
+            code = responseCodes[i]
+            if (codes is None) or (self.in_array(code, codes)):
+                entry = response[code]
+                depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(entry)
+        return depositWithdrawFees
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -5520,14 +5655,24 @@ class bingx(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str [tag]:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [params.walletType]: 1 fund(funding) account, 2 standard account, 3 perpetual account, 15 spot account
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        walletType = self.safe_integer(params, 'walletType', 1)
+        defaultWalletType = 15  # spot
+        walletType = None
+        walletType, params = self.handle_option_and_params_2(params, 'withdraw', 'type', 'walletType', defaultWalletType)
+        walletTypes = {
+            'funding': 1,
+            'fund': 1,
+            'standard': 2,
+            'perpetual': 3,
+            'spot': 15,
+        }
+        walletType = self.safe_integer(walletTypes, walletType, defaultWalletType)
         request: dict = {
             'coin': currency['id'],
             'address': address,
@@ -5552,11 +5697,12 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_transaction(data)
 
     def parse_params(self, params):
-        sortedParams = self.keysort(params)
-        keys = list(sortedParams.keys())
+        # sortedParams = self.keysort(params)
+        rawKeys = list(params.keys())
+        keys = self.sort(rawKeys)
         for i in range(0, len(keys)):
             key = keys[i]
-            value = sortedParams[key]
+            value = params[key]
             if isinstance(value, list):
                 arrStr = '['
                 for j in range(0, len(value)):
@@ -5565,8 +5711,8 @@ class bingx(Exchange, ImplicitAPI):
                         arrStr += ','
                     arrStr += str(arrayElement)
                 arrStr += ']'
-                sortedParams[key] = arrStr
-        return sortedParams
+                params[key] = arrStr
+        return params
 
     def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -5580,7 +5726,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the bingx api endpoint
         :param int [params.until]: timestamp in ms of the latest liquidation
-        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -5716,7 +5862,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str [side]: not used by bingx
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param str|None [params.positionId]: the id of the position you would like to close
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -5782,7 +5928,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param str [params.recvWindow]: request valid time window value
-        :returns dict[]: `a list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `a list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
@@ -5920,7 +6066,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str [params.reduceOnly]: *contract only* True or False, default=false for single position mode. self parameter is not accepted for both long and short positions mode
         :param float [params.priceRate]: *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
         :param str [params.workingType]: *contract only* StopPrice trigger price types, MARK_PRICE(default), CONTRACT_PRICE, or INDEX_PRICE
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -6035,7 +6181,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -6092,7 +6238,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -6166,13 +6312,14 @@ class bingx(Exchange, ImplicitAPI):
         }
 
     def custom_encode(self, params):
-        sortedParams = self.keysort(params)
-        keys = list(sortedParams.keys())
+        # sortedParams = self.keysort(params)
+        rawKeys = list(params.keys())
+        keys = self.sort(rawKeys)
         adjustedValue = None
         result = None
         for i in range(0, len(keys)):
             key = keys[i]
-            value = sortedParams[key]
+            value = params[key]
             if isinstance(value, list):
                 arrStr = None
                 for j in range(0, len(value)):
@@ -6196,6 +6343,76 @@ class bingx(Exchange, ImplicitAPI):
                 result += '&' + key + '=' + value
         return result
 
+    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+        """
+        retrieve information on the maximum leverage, for different trade sizes for a single market
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports swap markets only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.swapV1PrivateGetMaintMarginRatio(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1767789967284,
+        #         "data": [
+        #             {
+        #                 "tier": "Tier 1",
+        #                 "symbol": "ETH-USDT",
+        #                 "minPositionVal": "0",
+        #                 "maxPositionVal": "900000",
+        #                 "maintMarginRatio": "0.003300",
+        #                 "maintAmount": "0.000000"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+        #
+        #     [
+        #         {
+        #             "tier": "Tier 1",
+        #             "symbol": "ETH-USDT",
+        #             "minPositionVal": "0",
+        #             "maxPositionVal": "900000",
+        #             "maintMarginRatio": "0.003300",
+        #             "maintAmount": "0.000000"
+        #         }
+        #     ]
+        #
+        tiers = []
+        for i in range(0, len(info)):
+            tier = self.safe_dict(info, i)
+            tierString = self.safe_string(tier, 'tier')
+            tierParts = tierString.split(' ')
+            marketId = self.safe_string(tier, 'symbol')
+            market = self.safe_market(marketId, market, None, 'swap')
+            tiers.append({
+                'tier': self.safe_number(tierParts, 1),
+                'symbol': self.safe_symbol(marketId, market),
+                'currency': self.safe_string(market, 'settle'),
+                'minNotional': self.safe_number(tier, 'minPositionVal'),
+                'maxNotional': self.safe_number(tier, 'maxPositionVal'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintMarginRatio'),
+                'maxLeverage': None,
+                'info': tier,
+            })
+        return tiers
+
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
         version = section[1]
@@ -6205,8 +6422,13 @@ class bingx(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         url = self.implode_hostname(self.urls['api'][type])
         path = self.implode_params(path, params)
-        if version == 'transfer':
-            type = 'account/transfer'
+        versionIsTransfer = (version == 'transfer')
+        versionIsAsset = (version == 'asset')
+        if versionIsTransfer or versionIsAsset:
+            if versionIsTransfer:
+                type = 'account/transfer'
+            else:
+                type = 'api/asset'
             version = section[2]
             access = section[3]
         if path != 'account/apiPermissions':
@@ -6230,7 +6452,7 @@ class bingx(Exchange, ImplicitAPI):
                 encodeRequest = self.custom_encode(params)
             else:
                 parsedParams = self.parse_params(params)
-                encodeRequest = self.rawencode(parsedParams)
+                encodeRequest = self.rawencode(parsedParams, True)
             signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
@@ -6241,7 +6463,7 @@ class bingx(Exchange, ImplicitAPI):
                 params['signature'] = signature
                 body = self.json(params)
             else:
-                query = self.urlencode(parsedParams)
+                query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -6265,7 +6487,10 @@ class bingx(Exchange, ImplicitAPI):
         #
         code = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        if code is not None and code != '0':
+        transferErrorMsg = self.safe_string(response, 'transferErrorMsg')  # handling with errors from transfer endpoint
+        if (transferErrorMsg is not None) or (code is not None and code != '0'):
+            if transferErrorMsg is not None:
+                message = transferErrorMsg
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)

@@ -1,0 +1,452 @@
+{
+    "exchange": "backpack",
+    "skipKeys": [ "signature", "startTime", "orderId" ],
+    "outputType": "both",
+    "secret": "bSQmK8JSjtExl2iBSi0d9CxZRon4tjWTjFC7HfEhVv+IRkdI74dJ7d7l+MRWHFAZiQpQl76bnzDxBCuiAZYFCQ==",
+    "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://api.backpack.exchange/wapi/v1/history/funding?limit=1",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api.backpack.exchange/api/v1/position",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders",
+                "method": "fetchOrders",
+                "url": "https://api.backpack.exchange/wapi/v1/history/orders?limit=1&symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.backpack.exchange/api/v1/orders",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": "{\"symbol\":\"ETH_USDC\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "8284661092",
+                    "ETH/USDC"
+                ],
+                "output": "{\"orderId\":8284661092,\"symbol\":\"ETH_USDC\"}"
+            }
+        ],
+        "fetchOpenOrder": [
+            {
+                "description": "fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://api.backpack.exchange/api/v1/order?orderId=8284661092&symbol=ETH_USDC",
+                "input": [
+                    8284661092,
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.backpack.exchange/api/v1/orders?symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "order with\n client order Id",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ADA/USDC:USDC",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "clientOrderId": 55555
+                    }
+                ],
+                "output": "{\"clientId\":55555,\"orderType\":\"Market\",\"quantity\":\"1\",\"side\":\"Bid\",\"symbol\":\"ADA_USDC_PERP\"}"
+            },
+            {
+                "description": "swap order with take profit and stop loss",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ADA/USDC:USDC",
+                    "market",
+                    "buy",
+                    4,
+                    null,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 0.2
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 2
+                        }
+                    }
+                ],
+                "output": "{\"orderType\":\"Market\",\"quantity\":\"4\",\"side\":\"Bid\",\"stopLossTriggerPrice\":\"0.2\",\"symbol\":\"ADA_USDC_PERP\",\"takeProfitTriggerPrice\":\"2\"}"
+            },
+            {
+                "description": "spot market sell with cost",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "DOGE/USDC",
+                    "market",
+                    "sell",
+                    0,
+                    0,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "{\"orderType\":\"Market\",\"quoteQuantity\":\"5\",\"side\":\"Ask\",\"symbol\":\"DOGE_USDC\"}"
+            },
+            {
+                "description": "spot market buy with cost",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "DOGE/USDC",
+                    "market",
+                    "buy",
+                    0,
+                    0,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "{\"orderType\":\"Market\",\"quoteQuantity\":\"5\",\"side\":\"Bid\",\"symbol\":\"DOGE_USDC\"}"
+            },
+            {
+                "description": "swap order with trigger price",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    4000,
+                    {
+                        "triggerPrice": 4100
+                    }
+                ],
+                "output": "{\"orderType\":\"Limit\",\"price\":\"4000\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC_PERP\",\"triggerPrice\":\"4100\",\"triggerQuantity\":\"0.001\"}"
+            },
+            {
+                "description": "create swap limit order",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    4000
+                ],
+                "output": "{\"orderType\":\"Limit\",\"price\":\"4000\",\"quantity\":\"0.001\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC_PERP\"}"
+            },
+            {
+                "description": "create spot limit order",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ETH/USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    4000
+                ],
+                "output": "{\"orderType\":\"Limit\",\"price\":\"4000\",\"quantity\":\"0.001\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC\"}"
+            },
+            {
+                "description": "create swap market order",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.001
+                ],
+                "output": "{\"orderType\":\"Market\",\"quantity\":\"0.001\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC_PERP\"}"
+            },
+            {
+                "description": "create spot market order",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ETH/USDC",
+                    "market",
+                    "buy",
+                    0.001
+                ],
+                "output": "{\"orderType\":\"Market\",\"quantity\":\"0.001\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC\"}"
+            },
+            {
+                "description": "spot createOrder with a selfTradePrevention param",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ETH/USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    3500,
+                    {
+                        "selfTradePrevention": "EXPIRE_BOTH"
+                    }
+                ],
+                "output": "{\"orderType\":\"Limit\",\"price\":\"3500\",\"quantity\":\"0.001\",\"selfTradePrevention\":\"RejectBoth\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.backpack.exchange/wapi/v1/capital/deposit/address?blockchain=Ethereum",
+                "input": [
+                    "USDC",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.backpack.exchange/wapi/v1/capital/withdrawals",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.backpack.exchange/wapi/v1/capital/deposits",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "Fetch time",
+                "method": "fetchTime",
+                "url": "https://api.backpack.exchange/api/v1/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "url": "https://api.backpack.exchange/api/v1/status",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch users trades with since and limit parameters",
+                "method": "fetchMyTrades",
+                "url": "https://api.backpack.exchange/wapi/v1/history/fills?fillType=User&from=1754062378000&limit=1&symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC",
+                    1754062378000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.backpack.exchange/wapi/v1/history/fills?fillType=User&symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades with since and limit parameters",
+                "method": "fetchTrades",
+                "url": "https://api.backpack.exchange/api/v1/trades?limit=1&symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC",
+                    1757604778000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.backpack.exchange/api/v1/trades?symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.backpack.exchange/api/v1/fundingRates?symbol=ETH_USDC_PERP",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.backpack.exchange/api/v1/openInterest?symbol=ETH_USDC_PERP",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.backpack.exchange/api/v1/markPrices?symbol=ETH_USDC_PERP",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV with since and limit parameters",
+                "method": "fetchOHLCV",
+                "url": "https://api.backpack.exchange/api/v1/klines?interval=1m&startTime=1757604778&symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC",
+                    "1m",
+                    1757604778000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.backpack.exchange/api/v1/klines?interval=1m&startTime=1754912316&symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.backpack.exchange/api/v1/depth?symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.backpack.exchange/api/v1/ticker?symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.backpack.exchange/api/v1/tickers",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.backpack.exchange/api/v1/assets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.backpack.exchange/api/v1/capital",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://api.backpack.exchange/api/v1/markets",
+                "input": [],
+                "output": null
+            }
+        ]
+    }
+}

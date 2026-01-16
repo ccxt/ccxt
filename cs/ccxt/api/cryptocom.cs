@@ -11,6 +11,11 @@ public partial class cryptocom : Exchange
 {
     public cryptocom (object args = null): base(args) {}
 
+    public async Task<object> basePublicGetV1PublicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("basePublicGetV1PublicGetAnnouncements",parameters);
+    }
+
     public async Task<object> v1PublicGetPublicAuth (object parameters = null)
     {
         return await this.callAsync ("v1PublicGetPublicAuth",parameters);
@@ -94,6 +99,11 @@ public partial class cryptocom : Exchange
     public async Task<object> v1PrivatePostPrivateCreateOrder (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateCreateOrder",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateAmendOrder (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateAmendOrder",parameters);
     }
 
     public async Task<object> v1PrivatePostPrivateCreateOrderList (object parameters = null)
@@ -204,6 +214,41 @@ public partial class cryptocom : Exchange
     public async Task<object> v1PrivatePostPrivateGetInstrumentFeeRate (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateGetInstrumentFeeRate",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatDepositInfo (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatDepositInfo",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatDepositHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatDepositHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatWithdrawHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatWithdrawHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatCreateWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatCreateWithdraw",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatTransactionQuota (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatTransactionQuota",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatTransactionLimit (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatTransactionLimit",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateFiatFiatGetBankAccounts (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateFiatFiatGetBankAccounts",parameters);
     }
 
     public async Task<object> v1PrivatePostPrivateStakingStake (object parameters = null)

@@ -2,7 +2,7 @@ package ccxt
 
 import "sync"
 
-func (this *Exchange) SetRateLimit(rateLimit bool) {
+func (this *Exchange) SetEnableRateLimit(rateLimit bool) {
 	this.EnableRateLimit = rateLimit
 }
 
@@ -54,7 +54,7 @@ func (this *Exchange) GetHas() map[string]interface{} {
 	return this.Has
 }
 
-func (this *Exchange) GetOptions() map[string]interface{} {
+func (this *Exchange) GetOptions() *sync.Map {
 	return this.Options
 }
 
@@ -70,11 +70,11 @@ func (this *Exchange) GetApi() map[string]interface{} {
 	return this.Api
 }
 
-func (this *Exchange) GetCurrencies() map[string]interface{} {
+func (this *Exchange) GetCurrencies() *sync.Map {
 	return this.Currencies
 }
 
-func (this *Exchange) GetMarkets() map[string]interface{} {
+func (this *Exchange) GetMarkets() *sync.Map {
 	return this.Markets
 }
 
@@ -82,12 +82,16 @@ func (this *Exchange) SetPrivateKey(privateKey interface{}) {
 	this.PrivateKey = privateKey.(string)
 }
 
+func (this *Exchange) SetAccountId(accountId interface{}) {
+	this.AccountId = accountId.(string)
+}
+
 func (this *Exchange) SetWalletAddress(publicKey interface{}) {
 	this.WalletAddress = publicKey.(string)
 }
 
 func (this *Exchange) SetCurrencies(currencies interface{}) {
-	this.Currencies = currencies.(map[string]interface{})
+	this.Currencies = this.MapToSafeMap(currencies.(map[string]interface{}))
 }
 
 func (this *Exchange) SetPassword(password interface{}) {
@@ -129,7 +133,7 @@ func (this *Exchange) SetAccounts(accounts interface{}) {
 }
 
 func (this *Exchange) SetOptions(options interface{}) {
-	this.Options = options.(map[string]interface{})
+	this.Options = this.MapToSafeMap(options.(map[string]interface{}))
 }
 
 func (this *Exchange) SetWssProxy(wssProxy interface{}) {
@@ -160,4 +164,15 @@ func (this *Exchange) GetCache() *sync.Map {
 
 func (this *Exchange) GetItf() interface{} {
 	return this.Itf
+}
+
+func (this *Exchange) GetReturnResponseHeaders() bool {
+	return this.ReturnResponseHeaders
+}
+
+func (this *Exchange) SetReturnResponseHeaders(val interface{}) {
+	if val == nil {
+		return
+	}
+	this.ReturnResponseHeaders = val.(bool)
 }

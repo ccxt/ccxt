@@ -7,2466 +7,746 @@
 
 package ccxt
 
-func (this *bingx) SpotV1PublicGetServerTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PublicGetServerTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PublicGetCommonSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PublicGetCommonSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PublicGetMarketTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PublicGetMarketDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PublicGetMarketDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PublicGetMarketKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PublicGetMarketKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PublicGetTicker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PublicGetTicker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PublicGetTickerPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PublicGetTickerPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PublicGetTickerBookTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PublicGetTickerBookTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivateGetTradeQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivateGetTradeQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivateGetTradeOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivateGetTradeOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivateGetTradeHistoryOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivateGetTradeHistoryOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivateGetTradeMyTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivateGetTradeMyTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivateGetUserCommissionRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivateGetUserCommissionRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivateGetAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivateGetAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivatePostTradeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivatePostTradeCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivatePostTradeCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivatePostTradeBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivatePostTradeBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivatePostTradeOrderCancelReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivatePostTradeOrderCancelReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivatePostTradeCancelOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivatePostTradeCancelOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivatePostTradeCancelOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivatePostTradeCancelOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV1PrivatePostTradeCancelAllAfter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV1PrivatePostTradeCancelAllAfter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV2PublicGetMarketDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV2PublicGetMarketDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV2PublicGetMarketKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV2PublicGetMarketKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV3PrivateGetGetAssetTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV3PrivateGetGetAssetTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV3PrivateGetAssetTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV3PrivateGetAssetTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV3PrivateGetCapitalDepositHisrec (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV3PrivateGetCapitalDepositHisrec", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV3PrivateGetCapitalWithdrawHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV3PrivateGetCapitalWithdrawHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SpotV3PrivatePostPostAssetTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotV3PrivatePostPostAssetTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PublicGetTickerPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PublicGetTickerPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PublicGetMarketHistoricalTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PublicGetMarketHistoricalTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PublicGetMarketMarkPriceKlines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PublicGetMarketMarkPriceKlines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PublicGetTradeMultiAssetsRules (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PublicGetTradeMultiAssetsRules", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetPositionSideDual (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetPositionSideDual", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetTradeBatchCancelReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetTradeBatchCancelReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetTradeFullOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetTradeFullOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetMaintMarginRatio (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetMaintMarginRatio", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetTradePositionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetTradePositionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetPositionMarginHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetPositionMarginHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetTwapOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetTwapOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetTwapHistoryOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetTwapHistoryOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetTwapOrderDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetTwapOrderDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetTradeAssetMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetTradeAssetMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivateGetUserMarginAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivateGetUserMarginAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivatePostTradeCancelReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivatePostTradeCancelReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivatePostPositionSideDual (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivatePostPositionSideDual", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivatePostTradeBatchCancelReplace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivatePostTradeBatchCancelReplace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivatePostTradeClosePosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivatePostTradeClosePosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivatePostTradeGetVst (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivatePostTradeGetVst", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivatePostTwapOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivatePostTwapOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivatePostTwapCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivatePostTwapCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV1PrivatePostTradeAssetMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV1PrivatePostTradeAssetMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetServerTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetServerTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuoteContracts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuoteContracts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuotePrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuotePrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuoteDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuoteDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuoteTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuoteTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuotePremiumIndex (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuotePremiumIndex", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuoteFundingRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuoteFundingRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuoteKlines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuoteKlines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuoteOpenInterest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuoteOpenInterest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuoteTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuoteTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PublicGetQuoteBookTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PublicGetQuoteBookTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetUserBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetUserBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetUserPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetUserPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetUserIncome (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetUserIncome", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeOpenOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeOpenOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeMarginType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeMarginType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeForceOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeForceOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeAllOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeAllOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeAllFillOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeAllFillOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetTradeFillHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetTradeFillHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetUserIncomeExport (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetUserIncomeExport", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetUserCommissionRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetUserCommissionRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateGetQuoteBookTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateGetQuoteBookTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivatePostTradeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivatePostTradeBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivatePostTradeBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivatePostTradeCloseAllPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivatePostTradeCloseAllPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivatePostTradeCancelAllAfter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivatePostTradeCancelAllAfter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivatePostTradeMarginType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivatePostTradeMarginType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivatePostTradeLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivatePostTradeLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivatePostTradePositionMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivatePostTradePositionMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivatePostTradeOrderTest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivatePostTradeOrderTest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateDeleteTradeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateDeleteTradeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateDeleteTradeBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateDeleteTradeBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV2PrivateDeleteTradeAllOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV2PrivateDeleteTradeAllOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SwapV3PublicGetQuoteKlines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("swapV3PublicGetQuoteKlines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PublicGetMarketContracts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PublicGetMarketContracts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PublicGetMarketPremiumIndex (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PublicGetMarketPremiumIndex", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PublicGetMarketOpenInterest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PublicGetMarketOpenInterest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PublicGetMarketKlines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PublicGetMarketKlines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PublicGetMarketDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PublicGetMarketDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PublicGetMarketTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PublicGetMarketTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetTradeLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetTradeLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetTradeForceOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetTradeForceOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetTradeAllFillOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetTradeAllFillOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetTradeOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetTradeOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetTradeOrderDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetTradeOrderDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetTradeOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetTradeOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetTradeMarginType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetTradeMarginType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetUserCommissionRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetUserCommissionRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetUserPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetUserPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateGetUserBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateGetUserBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivatePostTradeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivatePostTradeLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivatePostTradeLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivatePostTradeAllOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivatePostTradeAllOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivatePostTradeCloseAllPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivatePostTradeCloseAllPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivatePostTradeMarginType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivatePostTradeMarginType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivatePostTradePositionMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivatePostTradePositionMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateDeleteTradeAllOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateDeleteTradeAllOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CswapV1PrivateDeleteTradeCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("cswapV1PrivateDeleteTradeCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) ContractV1PrivateGetAllPosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractV1PrivateGetAllPosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) ContractV1PrivateGetAllOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractV1PrivateGetAllOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) ContractV1PrivateGetBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractV1PrivateGetBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivateGetCapitalConfigGetall (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivateGetCapitalConfigGetall", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivateGetCapitalDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivateGetCapitalDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivateGetCapitalInnerTransferRecords (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivateGetCapitalInnerTransferRecords", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivateGetCapitalSubAccountDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivateGetCapitalSubAccountDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivateGetCapitalDepositSubHisrec (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivateGetCapitalDepositSubHisrec", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivateGetCapitalSubAccountInnerTransferRecords (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivateGetCapitalSubAccountInnerTransferRecords", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivateGetCapitalDepositRiskRecords (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivateGetCapitalDepositRiskRecords", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivatePostCapitalWithdrawApply (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivatePostCapitalWithdrawApply", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivatePostCapitalInnerTransferApply (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivatePostCapitalInnerTransferApply", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivatePostCapitalSubAccountInnerTransferApply (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivatePostCapitalSubAccountInnerTransferApply", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) WalletsV1PrivatePostCapitalDepositCreateSubAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("walletsV1PrivatePostCapitalDepositCreateSubAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SubAccountV1PrivateGetList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("subAccountV1PrivateGetList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SubAccountV1PrivateGetAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("subAccountV1PrivateGetAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SubAccountV1PrivateGetAllAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("subAccountV1PrivateGetAllAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SubAccountV1PrivatePostCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("subAccountV1PrivatePostCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SubAccountV1PrivatePostApiKeyCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("subAccountV1PrivatePostApiKeyCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SubAccountV1PrivatePostApiKeyEdit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("subAccountV1PrivatePostApiKeyEdit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SubAccountV1PrivatePostApiKeyDel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("subAccountV1PrivatePostApiKeyDel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) SubAccountV1PrivatePostUpdateStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("subAccountV1PrivatePostUpdateStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) AccountV1PrivateGetUid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountV1PrivateGetUid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) AccountV1PrivateGetApiKeyQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountV1PrivateGetApiKeyQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) AccountV1PrivateGetAccountApiPermissions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountV1PrivateGetAccountApiPermissions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) AccountV1PrivateGetAllAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountV1PrivateGetAllAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) AccountV1PrivatePostInnerTransferAuthorizeSubAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountV1PrivatePostInnerTransferAuthorizeSubAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) AccountTransferV1PrivateGetSubAccountAssetTransferHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountTransferV1PrivateGetSubAccountAssetTransferHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) AccountTransferV1PrivatePostSubAccountTransferAssetSupportCoins (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) AccountTransferV1PrivatePostSubAccountTransferAsset (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("accountTransferV1PrivatePostSubAccountTransferAsset", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) UserAuthPrivatePostUserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("userAuthPrivatePostUserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) UserAuthPrivatePutUserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("userAuthPrivatePutUserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) UserAuthPrivateDeleteUserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("userAuthPrivateDeleteUserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CopyTradingV1PrivateGetSwapTraceCurrentTrack (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("copyTradingV1PrivateGetSwapTraceCurrentTrack", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CopyTradingV1PrivatePostSwapTraceCloseTrackOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("copyTradingV1PrivatePostSwapTraceCloseTrackOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CopyTradingV1PrivatePostSwapTraceSetTPSL (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("copyTradingV1PrivatePostSwapTraceSetTPSL", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) CopyTradingV1PrivatePostSpotTraderSellOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("copyTradingV1PrivatePostSpotTraderSellOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) ApiV3PrivateGetAssetTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("apiV3PrivateGetAssetTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) ApiV3PrivateGetCapitalDepositHisrec (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("apiV3PrivateGetCapitalDepositHisrec", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) ApiV3PrivateGetCapitalWithdrawHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("apiV3PrivateGetCapitalWithdrawHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bingx) ApiV3PrivatePostPostAssetTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("apiV3PrivatePostPostAssetTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BingxCore) FundV1PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fundV1PrivateGetAccountBalance", args...)
+}
+
+func (this *BingxCore) SpotV1PublicGetServerTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetServerTime", args...)
+}
+
+func (this *BingxCore) SpotV1PublicGetCommonSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetCommonSymbols", args...)
+}
+
+func (this *BingxCore) SpotV1PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetMarketTrades", args...)
+}
+
+func (this *BingxCore) SpotV1PublicGetMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetMarketDepth", args...)
+}
+
+func (this *BingxCore) SpotV1PublicGetMarketKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetMarketKline", args...)
+}
+
+func (this *BingxCore) SpotV1PublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetTicker24hr", args...)
+}
+
+func (this *BingxCore) SpotV1PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetTickerPrice", args...)
+}
+
+func (this *BingxCore) SpotV1PublicGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PublicGetTickerBookTicker", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetTradeQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetTradeQuery", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetTradeOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetTradeOpenOrders", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetTradeHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetTradeHistoryOrders", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetTradeMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetTradeMyTrades", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetUserCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetUserCommissionRate", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetAccountBalance", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetOcoOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetOcoOrderList", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetOcoOpenOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetOcoOpenOrderList", args...)
+}
+
+func (this *BingxCore) SpotV1PrivateGetOcoHistoryOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivateGetOcoHistoryOrderList", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostTradeOrder", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostTradeCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostTradeCancel", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostTradeBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostTradeBatchOrders", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostTradeOrderCancelReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostTradeOrderCancelReplace", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostTradeCancelOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostTradeCancelOrders", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostTradeCancelOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostTradeCancelOpenOrders", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostTradeCancelAllAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostTradeCancelAllAfter", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostOcoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostOcoOrder", args...)
+}
+
+func (this *BingxCore) SpotV1PrivatePostOcoCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV1PrivatePostOcoCancel", args...)
+}
+
+func (this *BingxCore) SpotV2PublicGetMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV2PublicGetMarketDepth", args...)
+}
+
+func (this *BingxCore) SpotV2PublicGetMarketKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV2PublicGetMarketKline", args...)
+}
+
+func (this *BingxCore) SpotV2PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV2PublicGetTickerPrice", args...)
+}
+
+func (this *BingxCore) SpotV3PrivateGetGetAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV3PrivateGetGetAssetTransfer", args...)
+}
+
+func (this *BingxCore) SpotV3PrivateGetAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV3PrivateGetAssetTransfer", args...)
+}
+
+func (this *BingxCore) SpotV3PrivateGetCapitalDepositHisrec(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV3PrivateGetCapitalDepositHisrec", args...)
+}
+
+func (this *BingxCore) SpotV3PrivateGetCapitalWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV3PrivateGetCapitalWithdrawHistory", args...)
+}
+
+func (this *BingxCore) SpotV3PrivatePostPostAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV3PrivatePostPostAssetTransfer", args...)
+}
+
+func (this *BingxCore) SwapV1PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PublicGetTickerPrice", args...)
+}
+
+func (this *BingxCore) SwapV1PublicGetMarketHistoricalTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PublicGetMarketHistoricalTrades", args...)
+}
+
+func (this *BingxCore) SwapV1PublicGetMarketMarkPriceKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PublicGetMarketMarkPriceKlines", args...)
+}
+
+func (this *BingxCore) SwapV1PublicGetTradeMultiAssetsRules(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PublicGetTradeMultiAssetsRules", args...)
+}
+
+func (this *BingxCore) SwapV1PublicGetTradingRules(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PublicGetTradingRules", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetPositionSideDual", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetTradeBatchCancelReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetTradeBatchCancelReplace", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetTradeFullOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetTradeFullOrder", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetMaintMarginRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetMaintMarginRatio", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetTradePositionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetTradePositionHistory", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetPositionMarginHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetPositionMarginHistory", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetTwapOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetTwapOpenOrders", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetTwapHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetTwapHistoryOrders", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetTwapOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetTwapOrderDetail", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetTradeAssetMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetTradeAssetMode", args...)
+}
+
+func (this *BingxCore) SwapV1PrivateGetUserMarginAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivateGetUserMarginAssets", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeAmend(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeAmend", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeCancelReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeCancelReplace", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostPositionSideDual(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostPositionSideDual", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeBatchCancelReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeBatchCancelReplace", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeClosePosition", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeGetVst(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeGetVst", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTwapOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTwapOrder", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTwapCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTwapCancelOrder", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeAssetMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeAssetMode", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeReverse(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeReverse", args...)
+}
+
+func (this *BingxCore) SwapV1PrivatePostTradeAutoAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV1PrivatePostTradeAutoAddMargin", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetServerTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetServerTime", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuoteContracts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuoteContracts", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuotePrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuotePrice", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuoteDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuoteDepth", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuoteTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuoteTrades", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuotePremiumIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuotePremiumIndex", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuoteFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuoteFundingRate", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuoteKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuoteKlines", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuoteOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuoteOpenInterest", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuoteTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuoteTicker", args...)
+}
+
+func (this *BingxCore) SwapV2PublicGetQuoteBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PublicGetQuoteBookTicker", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetUserBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetUserBalance", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetUserPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetUserPositions", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetUserIncome(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetUserIncome", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeOpenOrders", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeOpenOrder", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeOrder", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeMarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeMarginType", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeLeverage", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeForceOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeForceOrders", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeAllOrders", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeAllFillOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeAllFillOrders", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetTradeFillHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetTradeFillHistory", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetUserIncomeExport(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetUserIncomeExport", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetUserCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetUserCommissionRate", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateGetQuoteBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateGetQuoteBookTicker", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeOrder", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradeBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeBatchOrders", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradeCloseAllPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeCloseAllPositions", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradeCancelAllAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeCancelAllAfter", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradeMarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeMarginType", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradeLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeLeverage", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradePositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradePositionMargin", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradeOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeOrderTest", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateDeleteTradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateDeleteTradeOrder", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateDeleteTradeBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateDeleteTradeBatchOrders", args...)
+}
+
+func (this *BingxCore) SwapV2PrivateDeleteTradeAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivateDeleteTradeAllOpenOrders", args...)
+}
+
+func (this *BingxCore) SwapV3PublicGetQuoteKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV3PublicGetQuoteKlines", args...)
+}
+
+func (this *BingxCore) SwapV3PrivateGetUserBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV3PrivateGetUserBalance", args...)
+}
+
+func (this *BingxCore) CswapV1PublicGetMarketContracts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PublicGetMarketContracts", args...)
+}
+
+func (this *BingxCore) CswapV1PublicGetMarketPremiumIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PublicGetMarketPremiumIndex", args...)
+}
+
+func (this *BingxCore) CswapV1PublicGetMarketOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PublicGetMarketOpenInterest", args...)
+}
+
+func (this *BingxCore) CswapV1PublicGetMarketKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PublicGetMarketKlines", args...)
+}
+
+func (this *BingxCore) CswapV1PublicGetMarketDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PublicGetMarketDepth", args...)
+}
+
+func (this *BingxCore) CswapV1PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PublicGetMarketTicker", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetTradeLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetTradeLeverage", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetTradeForceOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetTradeForceOrders", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetTradeAllFillOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetTradeAllFillOrders", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetTradeOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetTradeOpenOrders", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetTradeOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetTradeOrderDetail", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetTradeOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetTradeOrderHistory", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetTradeMarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetTradeMarginType", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetUserCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetUserCommissionRate", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetUserPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetUserPositions", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateGetUserBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateGetUserBalance", args...)
+}
+
+func (this *BingxCore) CswapV1PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivatePostTradeOrder", args...)
+}
+
+func (this *BingxCore) CswapV1PrivatePostTradeLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivatePostTradeLeverage", args...)
+}
+
+func (this *BingxCore) CswapV1PrivatePostTradeAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivatePostTradeAllOpenOrders", args...)
+}
+
+func (this *BingxCore) CswapV1PrivatePostTradeCloseAllPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivatePostTradeCloseAllPositions", args...)
+}
+
+func (this *BingxCore) CswapV1PrivatePostTradeMarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivatePostTradeMarginType", args...)
+}
+
+func (this *BingxCore) CswapV1PrivatePostTradePositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivatePostTradePositionMargin", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateDeleteTradeAllOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateDeleteTradeAllOpenOrders", args...)
+}
+
+func (this *BingxCore) CswapV1PrivateDeleteTradeCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("cswapV1PrivateDeleteTradeCancelOrder", args...)
+}
+
+func (this *BingxCore) ContractV1PrivateGetAllPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractV1PrivateGetAllPosition", args...)
+}
+
+func (this *BingxCore) ContractV1PrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractV1PrivateGetAllOrders", args...)
+}
+
+func (this *BingxCore) ContractV1PrivateGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractV1PrivateGetBalance", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivateGetCapitalConfigGetall(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivateGetCapitalConfigGetall", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivateGetCapitalDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositAddress", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivateGetCapitalInnerTransferRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivateGetCapitalInnerTransferRecords", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivateGetCapitalSubAccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivateGetCapitalSubAccountDepositAddress", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivateGetCapitalDepositSubHisrec(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositSubHisrec", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivateGetCapitalSubAccountInnerTransferRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivateGetCapitalSubAccountInnerTransferRecords", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivateGetCapitalDepositRiskRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositRiskRecords", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivatePostCapitalWithdrawApply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivatePostCapitalWithdrawApply", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivatePostCapitalInnerTransferApply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivatePostCapitalInnerTransferApply", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivatePostCapitalSubAccountInnerTransferApply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivatePostCapitalSubAccountInnerTransferApply", args...)
+}
+
+func (this *BingxCore) WalletsV1PrivatePostCapitalDepositCreateSubAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("walletsV1PrivatePostCapitalDepositCreateSubAddress", args...)
+}
+
+func (this *BingxCore) SubAccountV1PrivateGetList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("subAccountV1PrivateGetList", args...)
+}
+
+func (this *BingxCore) SubAccountV1PrivateGetAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("subAccountV1PrivateGetAssets", args...)
+}
+
+func (this *BingxCore) SubAccountV1PrivateGetAllAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("subAccountV1PrivateGetAllAccountBalance", args...)
+}
+
+func (this *BingxCore) SubAccountV1PrivatePostCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("subAccountV1PrivatePostCreate", args...)
+}
+
+func (this *BingxCore) SubAccountV1PrivatePostApiKeyCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyCreate", args...)
+}
+
+func (this *BingxCore) SubAccountV1PrivatePostApiKeyEdit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyEdit", args...)
+}
+
+func (this *BingxCore) SubAccountV1PrivatePostApiKeyDel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyDel", args...)
+}
+
+func (this *BingxCore) SubAccountV1PrivatePostUpdateStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("subAccountV1PrivatePostUpdateStatus", args...)
+}
+
+func (this *BingxCore) AccountV1PrivateGetUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountV1PrivateGetUid", args...)
+}
+
+func (this *BingxCore) AccountV1PrivateGetApiKeyQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountV1PrivateGetApiKeyQuery", args...)
+}
+
+func (this *BingxCore) AccountV1PrivateGetAccountApiPermissions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountV1PrivateGetAccountApiPermissions", args...)
+}
+
+func (this *BingxCore) AccountV1PrivateGetAllAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountV1PrivateGetAllAccountBalance", args...)
+}
+
+func (this *BingxCore) AccountV1PrivatePostInnerTransferAuthorizeSubAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountV1PrivatePostInnerTransferAuthorizeSubAccount", args...)
+}
+
+func (this *BingxCore) AccountTransferV1PrivateGetSubAccountAssetTransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountTransferV1PrivateGetSubAccountAssetTransferHistory", args...)
+}
+
+func (this *BingxCore) AccountTransferV1PrivatePostSubAccountTransferAssetSupportCoins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins", args...)
+}
+
+func (this *BingxCore) AccountTransferV1PrivatePostSubAccountTransferAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountTransferV1PrivatePostSubAccountTransferAsset", args...)
+}
+
+func (this *BingxCore) UserAuthPrivatePostUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("userAuthPrivatePostUserDataStream", args...)
+}
+
+func (this *BingxCore) UserAuthPrivatePutUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("userAuthPrivatePutUserDataStream", args...)
+}
+
+func (this *BingxCore) UserAuthPrivateDeleteUserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("userAuthPrivateDeleteUserDataStream", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSwapTraceCurrentTrack(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSwapTraceCurrentTrack", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTraderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTraderDetail", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitHistorySummarys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitHistorySummarys", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitDetail", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTradingPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTradingPairs", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSpotTraderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSpotTraderDetail", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitHistorySummarys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitHistorySummarys", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitDetail", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivateGetSpotHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivateGetSpotHistoryOrder", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceCloseTrackOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceCloseTrackOrder", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceSetTPSL(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceSetTPSL", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivatePostPFuturesSetCommission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivatePostPFuturesSetCommission", args...)
+}
+
+func (this *BingxCore) CopyTradingV1PrivatePostSpotTraderSellOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("copyTradingV1PrivatePostSpotTraderSellOrder", args...)
+}
+
+func (this *BingxCore) ApiV3PrivateGetAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("apiV3PrivateGetAssetTransfer", args...)
+}
+
+func (this *BingxCore) ApiV3PrivateGetAssetTransferRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("apiV3PrivateGetAssetTransferRecord", args...)
+}
+
+func (this *BingxCore) ApiV3PrivateGetCapitalDepositHisrec(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("apiV3PrivateGetCapitalDepositHisrec", args...)
+}
+
+func (this *BingxCore) ApiV3PrivateGetCapitalWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("apiV3PrivateGetCapitalWithdrawHistory", args...)
+}
+
+func (this *BingxCore) ApiV3PrivatePostPostAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("apiV3PrivatePostPostAssetTransfer", args...)
+}
+
+func (this *BingxCore) ApiAssetV1PrivatePostTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("apiAssetV1PrivatePostTransfer", args...)
+}
+
+func (this *BingxCore) ApiAssetV1PublicGetTransferSupportCoins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("apiAssetV1PublicGetTransferSupportCoins", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAccountInviteAccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAccountInviteAccountList", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetRewardCommissionDataList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetRewardCommissionDataList", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAccountInviteRelationCheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAccountInviteRelationCheck", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAssetDepositDetailList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAssetDepositDetailList", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetRewardThirdCommissionDataList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetRewardThirdCommissionDataList", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAssetPartnerData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAssetPartnerData", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetCommissionDataListReferralCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetCommissionDataListReferralCode", args...)
+}
+
+func (this *BingxCore) AgentV1PrivateGetAccountSuperiorCheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("agentV1PrivateGetAccountSuperiorCheck", args...)
 }

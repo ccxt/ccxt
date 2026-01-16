@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://openapi.digifinex.com/v3/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy",

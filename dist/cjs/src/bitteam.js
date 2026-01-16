@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitteam$1 = require('./abstract/bitteam.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var Precise = require('./base/Precise.js');
  * @class bitteam
  * @augments Exchange
  */
-class bitteam extends bitteam$1 {
+class bitteam extends bitteam$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitteam',
@@ -2416,4 +2418,4 @@ class bitteam extends bitteam$1 {
     }
 }
 
-module.exports = bitteam;
+exports["default"] = bitteam;

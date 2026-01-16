@@ -1,0 +1,224 @@
+{
+    "BTC": {
+        "info": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "imageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+            "stablecoin": false,
+            "featuredPair": "BTC_USDT",
+            "chains": [
+                {
+                    "symbol": "BTC",
+                    "assetSymbol": "BTC",
+                    "name": "Bitcoin",
+                    "type": "2",
+                    "confirmations": "3",
+                    "blockTime": "600000000"
+                }
+            ],
+            "status": "listed",
+            "minDeposit": "0.0001",
+            "minWithdrawal": "0.0001",
+            "withdrawalFee": "0.00005"
+        },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": null,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0.00005,
+        "fees": {},
+        "networks": {
+            "BTC": {
+                "info": {
+                    "symbol": "BTC",
+                    "assetSymbol": "BTC",
+                    "name": "Bitcoin",
+                    "type": "2",
+                    "confirmations": "3",
+                    "blockTime": "600000000"
+                },
+                "id": "BTC",
+                "network": "BTC",
+                "title": "Bitcoin",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0001,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.0001,
+                "max": null
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "symbol": "USDT",
+            "name": "Tether",
+            "imageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+            "stablecoin": true,
+            "featuredPair": "BTC_USDT",
+            "chains": [
+                {
+                    "symbol": "ETH",
+                    "assetSymbol": "ETH",
+                    "name": "Ethereum",
+                    "type": "1",
+                    "confirmations": "6",
+                    "blockTime": "12000000"
+                }
+            ],
+            "status": "listed",
+            "minDeposit": "5",
+            "minWithdrawal": "5",
+            "withdrawalFee": "2"
+        },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": null,
+        "type": "crypto",
+        "name": "Tether",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 2,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "symbol": "ETH",
+                    "assetSymbol": "ETH",
+                    "name": "Ethereum",
+                    "type": "1",
+                    "confirmations": "6",
+                    "blockTime": "12000000"
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "title": "Ethereum",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 5,
+                "max": null
+            },
+            "deposit": {
+                "min": 5,
+                "max": null
+            }
+        }
+    },
+    "SOL": {
+        "info": {
+            "symbol": "SOL",
+            "name": "Solana",
+            "imageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+            "stablecoin": false,
+            "featuredPair": "SOL_USDT",
+            "chains": [
+                {
+                    "symbol": "SOL",
+                    "assetSymbol": "SOL",
+                    "name": "Solana",
+                    "type": "4",
+                    "confirmations": "32",
+                    "blockTime": "400000"
+                }
+            ],
+            "status": "listed",
+            "minDeposit": "0.05",
+            "minWithdrawal": "0.05",
+            "withdrawalFee": "0.02"
+        },
+        "id": "SOL",
+        "numericId": null,
+        "code": "SOL",
+        "precision": null,
+        "type": "crypto",
+        "name": "Solana",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0.02,
+        "fees": {},
+        "networks": {
+            "SOL": {
+                "info": {
+                    "symbol": "SOL",
+                    "assetSymbol": "SOL",
+                    "name": "Solana",
+                    "type": "4",
+                    "confirmations": "32",
+                    "blockTime": "400000"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "title": "Solana",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.05,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.05,
+                "max": null
+            }
+        }
+    }
+}

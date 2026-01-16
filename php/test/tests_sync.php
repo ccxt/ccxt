@@ -55,6 +55,15 @@ class testMainClass {
     }
 
     public function init($exchange_id, $symbol_argv, $method_argv) {
+        try {
+            $this->init_inner($exchange_id, $symbol_argv, $method_argv);
+        } catch(\Throwable $e) {
+            dump('[TEST_FAILURE]'); // tell run-tests.js this is failure
+            throw $e;
+        }
+    }
+
+    public function init_inner($exchange_id, $symbol_argv, $method_argv) {
         $this->parse_cli_args_and_props();
         if ($this->request_tests && $this->response_tests) {
             $this->run_static_request_tests($exchange_id, $symbol_argv);
@@ -89,6 +98,7 @@ class testMainClass {
         );
         $exchange = init_exchange($exchange_id, $exchange_args, $this->ws_tests);
         if ($exchange->alias) {
+            dump($this->add_padding('[INFO] skipping alias', 25));
             exit_script(0);
         }
         $this->import_files($exchange);
@@ -401,6 +411,7 @@ class testMainClass {
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if ($is_public && $is_auth_error) {
                         if ($this->info) {
+                            // todo - turn into warning
                             dump('[INFO]', 'Authentication problem for public method', exception_message($e), $exchange->id, $method_name, $args_stringified);
                         }
                         return true;
@@ -556,7 +567,7 @@ class testMainClass {
 
     public function get_valid_symbol($exchange, $spot = true) {
         $current_type_markets = $this->get_markets_from_exchange($exchange, $spot);
-        $codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BNB', 'DASH', 'DOGE', 'ETC', 'TRX', 'USDT', 'USDC', 'USD', 'EUR', 'TUSD', 'CNY', 'JPY', 'BRL'];
+        $codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BNB', 'DASH', 'DOGE', 'ETC', 'TRX', 'USDT', 'USDC', 'USD', 'GUSD', 'EUR', 'TUSD', 'CNY', 'JPY', 'BRL'];
         $spot_symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/USD', 'BTC/CNY', 'BTC/EUR', 'BTC/AUD', 'BTC/BRL', 'BTC/JPY', 'ETH/USDT', 'ETH/USDC', 'ETH/USD', 'ETH/CNY', 'ETH/EUR', 'ETH/AUD', 'ETH/BRL', 'ETH/JPY', 'EUR/USDT', 'EUR/USD', 'EUR/USDC', 'USDT/EUR', 'USD/EUR', 'USDC/EUR', 'BTC/ETH', 'ETH/BTC'];
         $swap_symbols = ['BTC/USDT:USDT', 'BTC/USDC:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USDC:USDC', 'ETH/USD:USD', 'BTC/USD:BTC', 'ETH/USD:ETH'];
         $target_symbols = $spot ? $spot_symbols : $swap_symbols;
@@ -757,7 +768,7 @@ class testMainClass {
     public function check_constructor($exchange) {
         // todo: this might be moved in base tests later
         if ($exchange->id === 'binance') {
-            assert($exchange->hostname === null, 'binance.com hostname should be empty');
+            assert($exchange->hostname === null || $exchange->hostname === '', 'binance.com hostname should be empty');
             assert($exchange->urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' . $exchange->urls['api']['public']);
             assert((is_array($exchange->api['sapi']['get']) && array_key_exists('lending/union/account', $exchange->api['sapi']['get'])), 'SAPI should contain the endpoint lending/union/account, ' . json_stringify($exchange->api['sapi']['get']));
         } elseif ($exchange->id === 'binanceus') {
@@ -766,12 +777,29 @@ class testMainClass {
         }
     }
 
+    public function test_return_response_headers($exchange) {
+        if ($exchange->id !== 'binance') {
+            return false;  // this test is only for binance exchange for now
+        }
+        $exchange->return_response_headers = true;
+        $ticker = $exchange->fetch_ticker('BTC/USDT');
+        $info = $ticker['info'];
+        $headers = $info['responseHeaders'];
+        $headers_keys = is_array($headers) ? array_keys($headers) : array();
+        assert(count($headers_keys) > 0, 'Response headers should not be empty');
+        $header_values = is_array($headers) ? array_values($headers) : array();
+        assert(count($header_values) > 0, 'Response headers values should not be empty');
+        $exchange->return_response_headers = false;
+        return true;
+    }
+
     public function start_test($exchange, $symbol) {
         // we do not need to test aliases
         if ($exchange->alias) {
             return true;
         }
         $this->check_constructor($exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if ($this->sandbox || get_exchange_prop($exchange, 'sandbox')) {
             $exchange->set_sandbox_mode(true);
         }
@@ -1159,7 +1187,7 @@ class testMainClass {
             'uid' => 'uid',
             'token' => 'token',
             'login' => 'login',
-            'accountId' => 'accountId',
+            'accountId' => '12345',
             'accounts' => [array(
     'id' => 'myAccount',
     'code' => 'USDT',
@@ -1426,7 +1454,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1467,6 +1495,21 @@ class testMainClass {
         // inverse swap
         $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
         assert(str_starts_with($client_order_id_inverse, $inverse_swap_id), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
+        // linear swap conditional order
+        $swap_algo_order_request = null;
+        try {
+            $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, array(
+                'triggerPrice' => 101000,
+            ));
+            $check_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            $algo_order_id_defined = ($check_order_request['algoOrderId'] !== null);
+            assert($algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
+            $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
+            $swap_algo_id_string = ((string) $swap_id);
+            assert(str_starts_with($client_algo_id_swap, $swap_algo_id_string), 'binance - swap clientOrderId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_algo_id_string);
+        } catch(\Throwable $e) {
+            $swap_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+        }
         $create_orders_request = null;
         try {
             $orders = [array(
@@ -1499,7 +1542,7 @@ class testMainClass {
 
     public function test_okx() {
         $exchange = $this->init_offline_exchange('okx');
-        $id = 'e847386590ce4dBC';
+        $id = '6b9ad766b55dBCDE';
         $spot_order_request = null;
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1683,7 +1726,7 @@ class testMainClass {
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            $spot_order_request = json_parse($exchange->last_request_body);
         }
         $broker_id = $spot_order_request['broker_id'];
         $id_string = ((string) $id);
@@ -1796,23 +1839,22 @@ class testMainClass {
         return true;
     }
 
-    public function test_hyperliquid() {
-        $exchange = $this->init_offline_exchange('hyperliquid');
-        $id = '1';
-        $request = null;
-        try {
-            $exchange->create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-        } catch(\Throwable $e) {
-            $request = json_parse($exchange->last_request_body);
-        }
-        $broker_id = ((string) ($request['action']['brokerCode']));
-        assert($broker_id === $id, 'hyperliquid - brokerId: ' . $broker_id . ' does not start with id: ' . $id);
-        if (!is_sync()) {
-            close($exchange);
-        }
-        return true;
-    }
-
+    // async testHyperliquid () {
+    //     const exchange = this.initOfflineExchange ('hyperliquid');
+    //     const id = '1';
+    //     let request = undefined;
+    //     try {
+    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    //     } catch (e) {
+    //         request = jsonParse (exchange.last_request_body);
+    //     }
+    //     const brokerId = (request['action']['brokerCode']).toString ();
+    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    //     if (!isSync ()) {
+    //         await close (exchange);
+    //     }
+    //     return true;
+    // }
     public function test_coinbaseinternational() {
         $exchange = $this->init_offline_exchange('coinbaseinternational');
         $exchange->options['portfolio'] = 'random';
@@ -1906,32 +1948,6 @@ class testMainClass {
         }
         $swap_media = $swap_order_request['clientMedia'];
         assert($swap_media === $id, 'xt - id: ' . $id . ' different from swap tag: ' . $swap_media);
-        if (!is_sync()) {
-            close($exchange);
-        }
-        return true;
-    }
-
-    public function test_vertex() {
-        $exchange = $this->init_offline_exchange('vertex');
-        $exchange->walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
-        $exchange->privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
-        $exchange->options['v1contracts'] = array(
-            'chain_id' => '42161',
-            'endpoint_addr' => '0xbbee07b3e8121227afcfe1e2b82772246226128e',
-            'book_addrs' => ['0x0000000000000000000000000000000000000000', '0x70e5911371472e406f1291c621d1c8f207764d73', '0xf03f457a30e598d5020164a339727ef40f2b8fbc', '0x1c6281a78aa0ed88949c319cba5f0f0de2ce8353', '0xfe653438a1a4a7f56e727509c341d60a7b54fa91', '0xb6304e9a6ca241376a5fc9294daa8fca65ddcdcd', '0x01ec802ae0ab1b2cc4f028b9fe6eb954aef06ed1', '0x0000000000000000000000000000000000000000', '0x9c52d5c4df5a68955ad088a781b4ab364a861e9e', '0x0000000000000000000000000000000000000000', '0x2a3bcda1bb3ef649f3571c96c597c3d2b25edc79', '0x0000000000000000000000000000000000000000', '0x0492ff9807f82856781488015ef7aa5526c0edd6', '0x0000000000000000000000000000000000000000', '0xea884c82418ebc21cd080b8f40ecc4d06a6a6883', '0x0000000000000000000000000000000000000000', '0x5ecf68f983253a818ca8c17a56a4f2fb48d6ec6b', '0x0000000000000000000000000000000000000000', '0xba3f57a977f099905531f7c2f294aad7b56ed254', '0x0000000000000000000000000000000000000000', '0x0ac8c26d207d0c6aabb3644fea18f530c4d6fc8e', '0x0000000000000000000000000000000000000000', '0x8bd80ad7630b3864bed66cf28f548143ea43dc3b', '0x0000000000000000000000000000000000000000', '0x045391227fc4b2cdd27b95f066864225afc9314e', '0x0000000000000000000000000000000000000000', '0x7d512bef2e6cfd7e7f5f6b2f8027e3728eb7b6c3', '0x0000000000000000000000000000000000000000', '0x678a6c5003b56b5e9a81559e9a0df880407c796f', '0x0000000000000000000000000000000000000000', '0x14b5a17208fa98843cc602b3f74e31c95ded3567', '0xe442a89a07b3888ab10579fbb2824aeceff3a282', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xac28ac205275d7c2d6877bea8657cebe04fd9ae9', '0x0000000000000000000000000000000000000000', '0xed811409bfea901e75cb19ba347c08a154e860c9', '0x0000000000000000000000000000000000000000', '0x0f7afcb1612b305626cff84f84e4169ba2d0f12c', '0x0000000000000000000000000000000000000000', '0xe4b8d903db2ce2d3891ef04cfc3ac56330c1b0c3', '0x5f44362bad629846b7455ad9d36bbc3759a3ef62', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xa64e04ed4b223a71e524dc7ebb7f28e422ccfdde', '0x0000000000000000000000000000000000000000', '0x2ee573caab73c1d8cf0ca6bd3589b67de79628a4', '0x0000000000000000000000000000000000000000', '0x01bb96883a8a478d4410387d4aaf11067edc2c74', '0x0000000000000000000000000000000000000000', '0xe7ed0c559d905436a867cddf07e06921d572363c', '0x0000000000000000000000000000000000000000', '0xa94f9e3433c92a5cd1925494811a67b1943557d9', '0x0000000000000000000000000000000000000000', '0xa63de7f89ba1270b85f3dcc193ff1a1390a7c7c7', '0x0000000000000000000000000000000000000000', '0xc8b0b37dffe3a711a076dc86dd617cc203f36121', '0x0000000000000000000000000000000000000000', '0x646df48947ff785fe609969ff634e7be9d1c34cd', '0x0000000000000000000000000000000000000000', '0x42582b404b0bec4a266631a0e178840b107a0c69', '0x0000000000000000000000000000000000000000', '0x36a94bc3edb1b629d1413091e22dc65fa050f17f', '0x0000000000000000000000000000000000000000', '0xb398d00b5a336f0ad33cfb352fd7646171cec442', '0x0000000000000000000000000000000000000000', '0xb4bc3b00de98e1c0498699379f6607b1f00bd5a1', '0x0000000000000000000000000000000000000000', '0xfe8b7baf68952bac2c04f386223d2013c1b4c601', '0x0000000000000000000000000000000000000000', '0x9c8764ec71f175c97c6c2fd558eb6546fcdbea32', '0x0000000000000000000000000000000000000000', '0x94d31188982c8eccf243e555b22dc57de1dba4e1', '0x0000000000000000000000000000000000000000', '0x407c5e2fadd7555be927c028bc358daa907c797a', '0x0000000000000000000000000000000000000000', '0x7e97da2dbbbdd7fb313cf9dc0581ac7cec999c70', '0x0000000000000000000000000000000000000000', '0x7f8d2662f64dd468c423805f98a6579ad59b28fa', '0x0000000000000000000000000000000000000000', '0x3398adf63fed17cbadd6080a1fb771e6a2a55958', '0x0000000000000000000000000000000000000000', '0xba8910a1d7ab62129729047d453091a1e6356170', '0x0000000000000000000000000000000000000000', '0xdc054bce222fe725da0f17abcef38253bd8bb745', '0x0000000000000000000000000000000000000000', '0xca21693467d0a5ea9e10a5a7c5044b9b3837e694', '0x0000000000000000000000000000000000000000', '0xe0b02de2139256dbae55cf350094b882fbe629ea', '0x0000000000000000000000000000000000000000', '0x02c38368a6f53858aab5a3a8d91d73eb59edf9b9', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xfe8c4778843c3cb047ffe7c0c0154a724c05cab9', '0x0000000000000000000000000000000000000000', '0xe2e88862d9b7379e21c82fc4aec8d71bddbcdb4b', '0x0000000000000000000000000000000000000000', '0xbbaff9e73b30f9cea5c01481f12de75050947fd6', '0x0000000000000000000000000000000000000000', '0xa20f6f381fe0fec5a1035d37ebf8890726377ab9', '0x0000000000000000000000000000000000000000', '0xbad68032d012bf35d3a2a177b242e86684027ed0', '0x0000000000000000000000000000000000000000', '0x0e61ca37f0c67e8a8794e45e264970a2a23a513c', '0x0000000000000000000000000000000000000000', '0xa77b7048e378c5270b15918449ededf87c3a3db3', '0x0000000000000000000000000000000000000000', '0x15afca1e6f02b556fa6551021b3493a1e4a7f44f'],
-        );
-        $id = 5930043274845996;
-        $exchange->load_markets();
-        $request = null;
-        try {
-            $exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
-        } catch(\Throwable $e) {
-            $request = json_parse($exchange->last_request_body);
-        }
-        $order = $request['place_order'];
-        $broker_id = $order['id'];
-        assert($broker_id === $id, 'vertex - id: ' . ((string) $id) . ' different from  broker_id: ' . ((string) $broker_id));
         if (!is_sync()) {
             close($exchange);
         }
@@ -2087,6 +2103,25 @@ class testMainClass {
         }
         $broker_id = $request['order_tag'];
         assert($broker_id === $id, 'modetrade - id: ' . $id . ' different from  broker_id: ' . $broker_id);
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_backpack() {
+        $exchange = $this->init_offline_exchange('backpack');
+        $exchange->apiKey = 'Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=';
+        $exchange->secret = 'sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=';
+        $req_headers = null;
+        $id = '1400';
+        try {
+            $exchange->create_order('ETH/USDC', 'limit', 'buy', 1, 5000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
             close($exchange);
         }

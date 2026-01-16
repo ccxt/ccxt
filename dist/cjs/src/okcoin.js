@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okcoin$1 = require('./abstract/okcoin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class okcoin
  * @augments Exchange
  */
-class okcoin extends okcoin$1 {
+class okcoin extends okcoin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okcoin',
@@ -208,6 +210,9 @@ class okcoin extends okcoin$1 {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
@@ -822,7 +827,7 @@ class okcoin extends okcoin$1 {
             if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
                 throw new errors.ExchangeError(this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
             }
-            return undefined;
+            return {};
         }
         else {
             const response = await this.privateGetAssetCurrencies(params);
@@ -1722,7 +1727,7 @@ class okcoin extends okcoin$1 {
         const advanced = this.safeValue(params, 'advanced');
         if (trigger || advanced) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         const market = this.market(symbol);
         const request = {
@@ -3207,4 +3212,4 @@ class okcoin extends okcoin$1 {
     }
 }
 
-module.exports = okcoin;
+exports["default"] = okcoin;

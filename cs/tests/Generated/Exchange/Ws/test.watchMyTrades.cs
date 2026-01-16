@@ -8,13 +8,14 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchMyTrades(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testWatchMyTrades(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "watchMyTrades";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
+            object success = true;
             object response = null;
             try
             {
@@ -26,16 +27,21 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-            now = exchange.milliseconds();
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            if (isTrue(isEqual(success, true)))
             {
-                testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
+                now = exchange.milliseconds();
+                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                {
+                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                }
+                testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
             }
-            testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
         }
+        return true;
     }
 
 }

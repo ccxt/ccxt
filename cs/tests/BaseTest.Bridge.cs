@@ -1,6 +1,7 @@
 using System.Globalization;
 
 namespace Tests;
+
 using ccxt;
 
 using dict = System.Collections.Generic.Dictionary<string, object>;
@@ -187,8 +188,12 @@ public partial class BaseTest
 
 public partial class BaseTest
 {
-    public void testLanguageSpecific()
+    public async Task testLanguageSpecific()
     {
-
+        MultithreadTest().Wait();
+        
+        // Run throttler performance test
+        var baseTest = new BaseTest();
+        await baseTest.testThrottlerPerformance();
     }
 }

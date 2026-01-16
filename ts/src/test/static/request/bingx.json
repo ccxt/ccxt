@@ -8,6 +8,33 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetch leverage tiers for ETH/USDT:USDT market",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/maintMarginRatio?symbol=ETH-USDT&timestamp=1767791525563&signature=6590f427dcf03d921a844b67aa397c9a3e89eb93f231b90692ff9565d112f43b",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers from spot to swap",
+                "method": "fetchTransfers",
+                "url": "https://open-api.bingx.com/openApi/api/v3/asset/transferRecord?fromAccount=spot&timestamp=1752388736730&toAccount=USDTMPerp&signature=e918279c2b9e18bd94ac254a159e347ed0b1ee695ac96e862cc4f5cc4053bc60",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "fromAccount": "spot",
+                        "toAccount": "swap"
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -22,7 +49,7 @@
             {
                 "description": "sol",
                 "method": "withdraw",
-                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/withdraw/apply?address=eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ&amount=2.31157&coin=TRUMPSOL&network=SOL&timestamp=1738519816182&walletType=1&signature=b98a71c9cf4a30724f65223ed5c11f8990ba929c57731524e17cadabab8c5cea",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/withdraw/apply?address=eWA8obxPaabuRhNjc2LHVeZ8PpNx3juFe8LKQVzX4QJ&amount=2.31157&coin=TRUMPSOL&network=SOL&timestamp=1738519816182&walletType=15&signature=b98a71c9cf4a30724f65223ed5c11f8990ba929c57731524e17cadabab8c5cea",
                 "input": [
                     "TRUMPSOL",
                     2.31157,
@@ -1103,6 +1130,17 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetch funding balance",
+                "method": "fetchBalance",
+                "url": "https://open-api.bingx.com/openApi/fund/v1/account/balance?timestamp=1754906232985&signature=8bd3c224b5ec5252a51bb89b00c04a5ecc46e2dd88bb2a48eb6ea3ae4ae2c0a5",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/account/balance?timestamp=1699458295362&signature=1a1e94a11aafb72eaa8b1ee228d7f0330f043fdcfaaaffc41063a8d6304d9295",
@@ -1115,7 +1153,7 @@
             {
                 "description": "Linear swap fetch balance",
                 "method": "fetchBalance",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/user/balance?timestamp=1699458295585&signature=9ac6bdbb0f9dda6650951407abbf317de3c8c9eab00418dbdd285be82531dc9c",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/user/balance?timestamp=1699458295585&signature=9ac6bdbb0f9dda6650951407abbf317de3c8c9eab00418dbdd285be82531dc9c",
                 "input": [
                     {
                         "type": "swap"
@@ -1192,12 +1230,28 @@
         ],
         "transfer": [
             {
-                "description": "transfer from spot to swap",
+                "description": "transfer LTC from inverse swap to spot using the subType parameter",
+                "disabledGO": true,
                 "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/v3/get/asset/transfer?amount=1&asset=USDT&timestamp=1699460638047&type=FUND_PFUTURES&signature=602ba000bf84c64cb933a3d94ed44c0f9260416994d2b2fcf8ab3cf993800c2b",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=0.05&asset=LTC&fromAccount=USDTMPerp&timestamp=1752202170056&toAccount=spot&signature=1759012ec5ebbca1ad6a823da98ce4689dbf667aa5a01ee9ea553e23f2f1e010",       
+                "input": [
+                    "LTC",
+                    0.05,
+                    "swap",
+                    "spot",
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "transfer USDT from spot to linear swap",
+                "disabledGO": true,
+                "method": "transfer",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=10&asset=USDT&fromAccount=spot&timestamp=1752202545401&toAccount=USDTMPerp&signature=a0da8f16bac616605f88b75f7a3200625e35df8693b7ceca4d2872790fda7314",        
                 "input": [
                     "USDT",
-                    1,
+                    10,
                     "spot",
                     "swap"
                 ]
@@ -1435,7 +1489,7 @@
             {
                 "description": "Inverse swap set the margin mode",
                 "method": "setMarginMode",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",        
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",
                 "input": [
                   "cross",
                   "SOL/USD:SOL"

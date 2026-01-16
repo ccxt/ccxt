@@ -38,6 +38,7 @@ public partial class lbank : Exchange
                 { "fetchClosedOrders", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
@@ -112,7 +113,8 @@ public partial class lbank : Exchange
                             { "currencyPairs", 2.5 },
                             { "accuracy", 2.5 },
                             { "usdToCny", 2.5 },
-                            { "withdrawConfigs", 2.5 },
+                            { "assetConfigs", 2.5 },
+                            { "withdrawConfigs", multiply(2.5, 1.5) },
                             { "timestamp", 2.5 },
                             { "ticker/24hr", 2.5 },
                             { "ticker", 2.5 },
@@ -192,6 +194,7 @@ public partial class lbank : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "XBT" },
                 { "HIT", "Hiver" },
                 { "VET_ERC20", "VEN" },
                 { "PNT", "Penta" },
@@ -240,21 +243,12 @@ public partial class lbank : Exchange
                     { "BTCTRON", "btctron" },
                     { "XRP", "xrp" },
                 } },
-                { "inverse-networks", new Dictionary<string, object>() {
+                { "networksById", new Dictionary<string, object>() {
                     { "erc20", "ERC20" },
                     { "trc20", "TRC20" },
-                    { "omni", "OMNI" },
-                    { "asa", "ASA" },
-                    { "bep20(bsc)", "BSC" },
-                    { "bep20", "BSC" },
-                    { "heco", "HT" },
-                    { "bep2", "BNB" },
-                    { "btc", "BTC" },
-                    { "dogecoin", "DOGE" },
-                    { "matic", "MATIC" },
-                    { "oec", "OEC" },
-                    { "btctron", "BTCTRON" },
-                    { "xrp", "XRP" },
+                    { "TRX", "TRC20" },
+                    { "bep20(bsc)", "BEP20" },
+                    { "bep20", "BEP20" },
                 } },
                 { "defaultNetworks", new Dictionary<string, object>() {
                     { "USDT", "TRC20" },
@@ -382,6 +376,117 @@ public partial class lbank : Exchange
         //     }
         //
         return this.safeInteger(response, "data");
+    }
+
+    /**
+     * @method
+     * @name lbank#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    public async override Task<object> fetchCurrencies(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.spotPublicGetWithdrawConfigs(parameters);
+        //
+        //    {
+        //        "msg": "Success",
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "bep20(bsc)",
+        //                "assetCode": "usdt",
+        //                "min": "10",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "0.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "trc20",
+        //                "assetCode": "usdt",
+        //                "min": "1",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "1.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1747973911431"
+        //    }
+        //
+        object currenciesData = this.safeList(response, "data", new List<object>() {});
+        object grouped = this.groupBy(currenciesData, "assetCode");
+        object groupedKeys = new List<object>(((IDictionary<string,object>)grouped).Keys);
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(groupedKeys)); postFixIncrement(ref i))
+        {
+            object id = ((object)(getValue(groupedKeys, i))).ToString(); // some currencies are numeric
+            object code = this.safeCurrencyCode(id);
+            object networksRaw = getValue(grouped, id);
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(networksRaw)); postFixIncrement(ref j))
+            {
+                object networkEntry = getValue(networksRaw, j);
+                object networkId = this.safeString(networkEntry, "chain");
+                if (isTrue(isEqual(networkId, null)))
+                {
+                    networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
+                }
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEntry, "min") },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEntry, "minTransfer") },
+                            { "max", null },
+                        } },
+                    } },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", this.safeBool(networkEntry, "canWithDraw") },
+                    { "fee", this.safeNumber(networkEntry, "fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))) },
+                    { "info", networkEntry },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", id },
+                { "code", code },
+                { "precision", null },
+                { "type", null },
+                { "name", null },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "networks", networks },
+                { "info", networksRaw },
+            });
+        }
+        return result;
     }
 
     /**
@@ -551,7 +656,7 @@ public partial class lbank : Exchange
                 { "active", true },
                 { "contract", true },
                 { "linear", true },
-                { "inverse", null },
+                { "inverse", false },
                 { "contractSize", this.safeNumber(market, "volumeMultiple") },
                 { "expiry", null },
                 { "expiryDatetime", null },
@@ -655,7 +760,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/index.html#query-current-market-data-new
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -705,7 +810,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -794,7 +899,7 @@ public partial class lbank : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -876,7 +981,7 @@ public partial class lbank : Exchange
         {
             return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
         }
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 1, 0);
+        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks");
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1003,7 +1108,7 @@ public partial class lbank : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1330,7 +1435,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -1348,7 +1453,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -1394,7 +1499,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/index.html#account-information
      * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -1475,7 +1580,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -1493,7 +1598,7 @@ public partial class lbank : Exchange
      * @description fetch the trading fees for multiple markets
      * @see https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -1521,7 +1626,7 @@ public partial class lbank : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -1548,7 +1653,7 @@ public partial class lbank : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1831,7 +1936,7 @@ public partial class lbank : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1944,7 +2049,7 @@ public partial class lbank : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2003,7 +2108,7 @@ public partial class lbank : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2067,7 +2172,7 @@ public partial class lbank : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2128,7 +2233,7 @@ public partial class lbank : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2174,7 +2279,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -2228,7 +2333,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/index.html#the-user-obtains-the-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -2280,13 +2385,10 @@ public partial class lbank : Exchange
         object result = this.safeValue(response, "data");
         object address = this.safeString(result, "address");
         object tag = this.safeString(result, "memo");
-        object networkId = this.safeString(result, "netWork");
-        object inverseNetworks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
-        object networkCode = this.safeStringUpper(inverseNetworks, networkId, networkId);
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", networkCode },
+            { "network", this.networkIdToCode(this.safeString(result, "netWork")) },
             { "address", address },
             { "tag", tag },
         };
@@ -2325,12 +2427,10 @@ public partial class lbank : Exchange
         object result = this.safeValue(response, "data");
         object address = this.safeString(result, "address");
         object tag = this.safeString(result, "memo");
-        object inverseNetworks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
-        object networkCode = this.safeStringUpper(inverseNetworks, network, network);
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", networkCode },
+            { "network", null },
             { "address", address },
             { "tag", tag },
         };
@@ -2346,7 +2446,7 @@ public partial class lbank : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -2460,9 +2560,6 @@ public partial class lbank : Exchange
         }
         object txid = this.safeString(transaction, "txId");
         object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
-        object networks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
-        object networkId = this.safeString(transaction, "networkName");
-        object network = this.safeString(networks, networkId, networkId);
         object address = this.safeString(transaction, "address");
         object addressFrom = null;
         object addressTo = null;
@@ -2492,7 +2589,7 @@ public partial class lbank : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", network },
+            { "network", this.networkIdToCode(this.safeString(transaction, "networkName")) },
             { "address", address },
             { "addressTo", addressTo },
             { "addressFrom", addressFrom },
@@ -2519,7 +2616,7 @@ public partial class lbank : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2574,7 +2671,7 @@ public partial class lbank : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2630,7 +2727,7 @@ public partial class lbank : Exchange
      * @description please use fetchDepositWithdrawFees instead
      * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
     {
@@ -2708,11 +2805,10 @@ public partial class lbank : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
                 object networkEntry = getValue(networkList, j);
-                object networkId = this.safeString(networkEntry, "name");
-                object networkCode = this.safeString(getValue(this.options, "inverse-networks"), networkId, networkId);
                 object fee = this.safeNumber(networkEntry, "withdrawFee");
                 if (isTrue(!isEqual(fee, null)))
                 {
+                    object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
                     ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
                 }
             }
@@ -2770,8 +2866,7 @@ public partial class lbank : Exchange
             {
                 object currencyId = this.safeString(item, "assetCode");
                 object codeInner = this.safeCurrencyCode(currencyId);
-                object chain = this.safeString(item, "chain");
-                object network = this.safeString(getValue(this.options, "inverse-networks"), chain, chain);
+                object network = this.networkIdToCode(this.safeString(item, "chain"));
                 if (isTrue(isEqual(network, null)))
                 {
                     network = codeInner;
@@ -2799,7 +2894,7 @@ public partial class lbank : Exchange
      * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
      * @param {string[]} [codes] array of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -2942,8 +3037,7 @@ public partial class lbank : Exchange
                             object resultCodeInfo = getValue(getValue(result, code), "info");
                             ((IList<object>)resultCodeInfo).Add(fee);
                         }
-                        object chain = this.safeString(fee, "chain");
-                        object networkCode = this.safeString(getValue(this.options, "inverse-networks"), chain, chain);
+                        object networkCode = this.networkIdToCode(this.safeString(fee, "chain"));
                         if (isTrue(!isEqual(networkCode, null)))
                         {
                             ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
@@ -3003,8 +3097,7 @@ public partial class lbank : Exchange
         for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networkList, j);
-            object networkId = this.safeString(networkEntry, "name");
-            object networkCode = this.safeStringUpper(getValue(this.options, "inverse-networks"), networkId, networkId);
+            object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
             object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             object isDefault = this.safeValue(networkEntry, "isDefault");
             if (isTrue(!isEqual(withdrawFee, null)))

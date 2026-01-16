@@ -54,7 +54,7 @@
             "cross": true,
             "isolated": true
         },
-        "created": null,
+        "created": 1532454360000,
         "info": {
             "symbol": "BTCUSDT",
             "baseCoin": "BTC",
@@ -133,7 +133,7 @@
             "cross": true,
             "isolated": true
         },
-        "created": null,
+        "created": 1532450400000,
         "info": {
             "symbol": "ETHUSDT",
             "baseCoin": "ETH",
@@ -212,7 +212,7 @@
             "cross": true,
             "isolated": true
         },
-        "created": null,
+        "created": 1648021920000,
         "info": {
             "symbol": "ADAUSDT",
             "baseCoin": "ADA",
@@ -291,7 +291,7 @@
             "cross": true,
             "isolated": true
         },
-        "created": null,
+        "created": 1533518760000,
         "info": {
             "symbol": "LTCUSDT",
             "baseCoin": "LTC",
@@ -370,7 +370,7 @@
             "cross": true,
             "isolated": true
         },
-        "created": null,
+        "created": 1557133320000,
         "info": {
             "symbol": "XRPUSDT",
             "baseCoin": "XRP",
@@ -449,7 +449,7 @@
             "cross": true,
             "isolated": true
         },
-        "created": null,
+        "created": 1619322660000,
         "info": {
             "symbol": "DOGEUSDT",
             "baseCoin": "DOGE",
@@ -528,7 +528,7 @@
             "cross": true,
             "isolated": true
         },
-        "created": null,
+        "created": 1550736060000,
         "info": {
             "symbol": "TRXUSDT",
             "baseCoin": "TRX",
@@ -643,7 +643,9 @@
             "maxLever": "125",
             "posLimit": "0.1",
             "maintainTime": "",
-            "openTime": ""
+            "openTime": "",
+            "maxMarketOrderQty": "220",
+            "maxOrderQty": "1200"
         },
         "tierBased": null,
         "percentage": null
@@ -745,7 +747,9 @@
             "maxLever": "125",
             "posLimit": "0.1",
             "maintainTime": "",
-            "openTime": ""
+            "openTime": "",
+            "maxMarketOrderQty": "",
+            "maxOrderQty": ""
         },
         "tierBased": null,
         "percentage": null
@@ -841,7 +845,9 @@
             "maxLever": "100",
             "posLimit": "0.1",
             "maintainTime": "",
-            "openTime": ""
+            "openTime": "",
+            "maxMarketOrderQty": "1900",
+            "maxOrderQty": "9900"
         },
         "tierBased": null,
         "percentage": null
@@ -937,7 +943,9 @@
             "maxLever": "75",
             "posLimit": "0.1",
             "maintainTime": "",
-            "openTime": ""
+            "openTime": "",
+            "maxMarketOrderQty": "3700",
+            "maxOrderQty": "18500"
         },
         "tierBased": null,
         "percentage": null
@@ -1033,7 +1041,9 @@
             "maxLever": "75",
             "posLimit": "0.1",
             "maintainTime": "",
-            "openTime": ""
+            "openTime": "",
+            "maxMarketOrderQty": "460000",
+            "maxOrderQty": "4200000"
         },
         "tierBased": null,
         "percentage": null
@@ -1129,7 +1139,9 @@
             "maxLever": "125",
             "posLimit": "0.1",
             "maintainTime": "",
-            "openTime": ""
+            "openTime": "",
+            "maxMarketOrderQty": "1200000",
+            "maxOrderQty": "10000000"
         },
         "tierBased": null,
         "percentage": null
@@ -1225,7 +1237,9 @@
             "maxLever": "75",
             "posLimit": "0.1",
             "maintainTime": "",
-            "openTime": ""
+            "openTime": "",
+            "maxMarketOrderQty": "13000000",
+            "maxOrderQty": "65000000"
         },
         "tierBased": null,
         "percentage": null
@@ -1321,7 +1335,9 @@
             "maxLever": "75",
             "posLimit": "0.1",
             "maintainTime": "",
-            "openTime": ""
+            "openTime": "",
+            "maxMarketOrderQty": "1900000",
+            "maxOrderQty": "9500000"
         },
         "tierBased": null,
         "percentage": null

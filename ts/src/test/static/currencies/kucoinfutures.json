@@ -11,14 +11,28 @@
         }
     },
     "USDT": {
+        "info": null,
         "id": "USDT",
+        "numericId": null,
         "code": "USDT",
         "precision": 1e-10,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "USD": {
@@ -85,6 +99,31 @@
         "limits": {
             "deposit": {},
             "withdraw": {}
+        }
+    },
+    "OMNI": {
+        "info": null,
+        "id": "OMNI",
+        "numericId": null,
+        "code": "OMNI",
+        "precision": 1,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     }
 }

@@ -1,6 +1,8 @@
 {
     "exchange": "bitvavo",
-    "options": {},
+    "options": {
+        "operatorId": 123456
+    },
     "methods": {
         "createOrder": [
             {

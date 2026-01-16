@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         object withSymbol = testWatchBidsAsksHelper(exchange, skippedProperties, new List<object>() {symbol});
         await promiseAll(new List<object>() {withSymbol, withoutSymbol});
     }
-    async static public Task testWatchBidsAsksHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
+    async static public Task<object> testWatchBidsAsksHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
         object method = "watchBidsAsks";
@@ -22,6 +22,8 @@ public partial class testMainClass : BaseTest
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
+            object success = true;
+            object shouldReturn = false;
             object response = null;
             try
             {
@@ -34,29 +36,39 @@ public partial class testMainClass : BaseTest
                 if (isTrue(isTrue((e is ArgumentsRequired)) && isTrue((isTrue(isEqual(argSymbols, null)) || isTrue(isEqual(getArrayLength(argSymbols), 0))))))
                 {
                     // todo: provide random symbols to try
-                    return;
+                    // return false;
+                    shouldReturn = true;
                 } else if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
                 {
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
-            object values = new List<object>(((IDictionary<string,object>)response).Values);
-            object checkedSymbol = null;
-            if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
+            if (isTrue(shouldReturn))
             {
-                checkedSymbol = getValue(argSymbols, 0);
+                return false;
             }
-            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-            for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+            if (isTrue(isEqual(success, true)))
             {
-                object ticker = getValue(values, i);
-                testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
+                object values = new List<object>(((IDictionary<string,object>)response).Values);
+                object checkedSymbol = null;
+                if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
+                {
+                    checkedSymbol = getValue(argSymbols, 0);
+                }
+                testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
+                for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+                {
+                    object ticker = getValue(values, i);
+                    testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                }
+                now = exchange.milliseconds();
             }
-            now = exchange.milliseconds();
         }
+        return true;
     }
 
 }

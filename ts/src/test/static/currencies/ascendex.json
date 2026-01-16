@@ -735,5 +735,73 @@
             }
         },
         "networks": {}
+    },
+    "LINK": {
+        "info": {
+            "assetCode": "LINK",
+            "assetName": "ChainLink",
+            "precisionScale": 9,
+            "nativeScale": 4,
+            "blockChain": [
+                {
+                    "chainName": "ERC20",
+                    "withdrawFee": "0.67",
+                    "allowDeposit": true,
+                    "allowWithdraw": true,
+                    "minDepositAmt": "0.0",
+                    "minWithdrawal": "1.34",
+                    "numConfirmations": 64
+                }
+            ]
+        },
+        "id": "LINK",
+        "numericId": null,
+        "code": "LINK",
+        "precision": 0.0001,
+        "type": null,
+        "name": "ChainLink",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.67,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "fee": 0.67,
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 1.34,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1.34,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            }
+        },
+        "margin": null
     }
 }

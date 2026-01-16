@@ -7,834 +7,210 @@
 
 package ccxt
 
-func (this *latoken) PublicGetBookCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBookCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetBookCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBookCurrencyQuote", args...)
 }
 
-func (this *latoken) PublicGetChartWeek (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChartWeek", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetChartWeek(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetChartWeek", args...)
 }
 
-func (this *latoken) PublicGetChartWeekCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChartWeekCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetChartWeekCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetChartWeekCurrencyQuote", args...)
 }
 
-func (this *latoken) PublicGetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
-func (this *latoken) PublicGetCurrencyAvailable (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencyAvailable", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetCurrencyAvailable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencyAvailable", args...)
 }
 
-func (this *latoken) PublicGetCurrencyQuotes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencyQuotes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetCurrencyQuotes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencyQuotes", args...)
 }
 
-func (this *latoken) PublicGetCurrencyCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencyCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetCurrencyCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencyCurrency", args...)
 }
 
-func (this *latoken) PublicGetPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPair", args...)
 }
 
-func (this *latoken) PublicGetPairAvailable (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPairAvailable", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetPairAvailable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPairAvailable", args...)
 }
 
-func (this *latoken) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *latoken) PublicGetTickerBaseQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerBaseQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetTickerBaseQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerBaseQuote", args...)
 }
 
-func (this *latoken) PublicGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *latoken) PublicGetTradeHistoryCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradeHistoryCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetTradeHistoryCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradeHistoryCurrencyQuote", args...)
 }
 
-func (this *latoken) PublicGetTradeFeeCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradeFeeCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetTradeFeeCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradeFeeCurrencyQuote", args...)
 }
 
-func (this *latoken) PublicGetTradeFeeLevels (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradeFeeLevels", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetTradeFeeLevels(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradeFeeLevels", args...)
 }
 
-func (this *latoken) PublicGetTransactionBindings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTransactionBindings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PublicGetTransactionBindings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTransactionBindings", args...)
 }
 
-func (this *latoken) PrivateGetAuthAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthAccount", args...)
 }
 
-func (this *latoken) PrivateGetAuthAccountCurrencyCurrencyType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthAccountCurrencyCurrencyType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthAccountCurrencyCurrencyType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthAccountCurrencyCurrencyType", args...)
 }
 
-func (this *latoken) PrivateGetAuthOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthOrder", args...)
 }
 
-func (this *latoken) PrivateGetAuthOrderGetOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthOrderGetOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthOrderGetOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthOrderGetOrderId", args...)
 }
 
-func (this *latoken) PrivateGetAuthOrderPairCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthOrderPairCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthOrderPairCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthOrderPairCurrencyQuote", args...)
 }
 
-func (this *latoken) PrivateGetAuthOrderPairCurrencyQuoteActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthOrderPairCurrencyQuoteActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthOrderPairCurrencyQuoteActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthOrderPairCurrencyQuoteActive", args...)
 }
 
-func (this *latoken) PrivateGetAuthStopOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthStopOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthStopOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthStopOrder", args...)
 }
 
-func (this *latoken) PrivateGetAuthStopOrderGetOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthStopOrderGetOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthStopOrderGetOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthStopOrderGetOrderId", args...)
 }
 
-func (this *latoken) PrivateGetAuthStopOrderPairCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthStopOrderPairCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthStopOrderPairCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthStopOrderPairCurrencyQuote", args...)
 }
 
-func (this *latoken) PrivateGetAuthStopOrderPairCurrencyQuoteActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthStopOrderPairCurrencyQuoteActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthStopOrderPairCurrencyQuoteActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthStopOrderPairCurrencyQuoteActive", args...)
 }
 
-func (this *latoken) PrivateGetAuthTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthTrade", args...)
 }
 
-func (this *latoken) PrivateGetAuthTradePairCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthTradePairCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthTradePairCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthTradePairCurrencyQuote", args...)
 }
 
-func (this *latoken) PrivateGetAuthTradeFeeCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthTradeFeeCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthTradeFeeCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthTradeFeeCurrencyQuote", args...)
 }
 
-func (this *latoken) PrivateGetAuthTransaction (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthTransaction", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthTransaction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthTransaction", args...)
 }
 
-func (this *latoken) PrivateGetAuthTransactionBindings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthTransactionBindings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthTransactionBindings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthTransactionBindings", args...)
 }
 
-func (this *latoken) PrivateGetAuthTransactionBindingsCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthTransactionBindingsCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthTransactionBindingsCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthTransactionBindingsCurrency", args...)
 }
 
-func (this *latoken) PrivateGetAuthTransactionId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthTransactionId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthTransactionId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthTransactionId", args...)
 }
 
-func (this *latoken) PrivateGetAuthTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAuthTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivateGetAuthTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAuthTransfer", args...)
 }
 
-func (this *latoken) PrivatePostAuthOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthOrderCancel", args...)
 }
 
-func (this *latoken) PrivatePostAuthOrderCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthOrderCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthOrderCancelAll", args...)
 }
 
-func (this *latoken) PrivatePostAuthOrderCancelAllCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthOrderCancelAllCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthOrderCancelAllCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthOrderCancelAllCurrencyQuote", args...)
 }
 
-func (this *latoken) PrivatePostAuthOrderPlace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthOrderPlace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthOrderPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthOrderPlace", args...)
 }
 
-func (this *latoken) PrivatePostAuthSpotDeposit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthSpotDeposit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthSpotDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthSpotDeposit", args...)
 }
 
-func (this *latoken) PrivatePostAuthSpotWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthSpotWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthSpotWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthSpotWithdraw", args...)
 }
 
-func (this *latoken) PrivatePostAuthStopOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthStopOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthStopOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthStopOrderCancel", args...)
 }
 
-func (this *latoken) PrivatePostAuthStopOrderCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthStopOrderCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthStopOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthStopOrderCancelAll", args...)
 }
 
-func (this *latoken) PrivatePostAuthStopOrderCancelAllCurrencyQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthStopOrderCancelAllCurrencyQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthStopOrderCancelAllCurrencyQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthStopOrderCancelAllCurrencyQuote", args...)
 }
 
-func (this *latoken) PrivatePostAuthStopOrderPlace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthStopOrderPlace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthStopOrderPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthStopOrderPlace", args...)
 }
 
-func (this *latoken) PrivatePostAuthTransactionDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthTransactionDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthTransactionDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthTransactionDepositAddress", args...)
 }
 
-func (this *latoken) PrivatePostAuthTransactionWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthTransactionWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthTransactionWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthTransactionWithdraw", args...)
 }
 
-func (this *latoken) PrivatePostAuthTransactionWithdrawCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthTransactionWithdrawCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthTransactionWithdrawCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthTransactionWithdrawCancel", args...)
 }
 
-func (this *latoken) PrivatePostAuthTransactionWithdrawConfirm (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthTransactionWithdrawConfirm", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthTransactionWithdrawConfirm(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthTransactionWithdrawConfirm", args...)
 }
 
-func (this *latoken) PrivatePostAuthTransactionWithdrawResendCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthTransactionWithdrawResendCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthTransactionWithdrawResendCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthTransactionWithdrawResendCode", args...)
 }
 
-func (this *latoken) PrivatePostAuthTransferEmail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthTransferEmail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthTransferEmail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthTransferEmail", args...)
 }
 
-func (this *latoken) PrivatePostAuthTransferId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthTransferId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthTransferId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthTransferId", args...)
 }
 
-func (this *latoken) PrivatePostAuthTransferPhone (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuthTransferPhone", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LatokenCore) PrivatePostAuthTransferPhone(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAuthTransferPhone", args...)
 }

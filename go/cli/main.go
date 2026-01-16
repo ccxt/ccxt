@@ -7,10 +7,12 @@ import (
 	"log"
 	"math/rand/v2"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
 var Red = "\033[31m"
@@ -30,9 +32,7 @@ func getRandomKeyFromList(list []string) string {
 	return list[randomIndex]
 }
 
-func benchmarks() {
-	exchange := ccxt.NewBinanceCore()
-	exchange.Init(nil)
+func benchmarks(exchangeName string) {
 
 	dir := GetRootDir()
 
@@ -51,16 +51,30 @@ func benchmarks() {
 	orderBookContent := IoFileRead(orderBookFile, true)
 	tradesContent := IoFileRead(tradesFile, true)
 
-	exchange.Markets = marketsContent.(map[string]interface{})
+	var exchange ccxt.ICoreExchange
+	settings := make(map[string]interface{})
+	settings["markets"] = marketsContent.(map[string]interface{})
+	suc := true
+	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+		exchange, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, settings)
+	} else {
+		exchange, suc = ccxt.DynamicallyCreateInstance(exchangeName, settings)
+	}
+	if !suc {
+		panic(suc)
+	}
+	var derivedExchange ccxt.IDerivedExchange
+	derivedExchange = exchange.(ccxt.IDerivedExchange)
+	// exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]interface{}))
 
 	beforeTickerNs := time.Now().UnixNano()
-	_ = exchange.ParseTickers(tickersContent)
+	_ = derivedExchange.ParseTickers(tickersContent)
 	afterTickerNs := time.Now().UnixNano()
-	_ = exchange.ParseOHLCV(ohlcvContent)
+	_ = derivedExchange.ParseOHLCV(ohlcvContent, nil)
 	afterOHLCV := time.Now().UnixNano()
-	ob := exchange.ParseOrderBook(orderBookContent, "BTC/USDT")
+	ob := derivedExchange.ParseOrderBook(orderBookContent, "BTC/USDT", nil)
 	afterOrderBook := time.Now().UnixNano()
-	_ = exchange.ParseTrades(tradesContent)
+	_ = derivedExchange.ParseTrades(tradesContent, nil)
 	afterTrades := time.Now().UnixNano()
 
 	tickerNs := afterTickerNs - beforeTickerNs
@@ -364,7 +378,7 @@ func PrettyPrintData(data interface{}) {
 	}
 }
 
-func SetCredential(instance ccxt.IExchange, key string, value string) {
+func SetCredential(instance ccxt.ICoreExchange, key string, value string) {
 	switch key {
 	case "apiKey":
 		instance.SetApiKey(value)
@@ -381,7 +395,7 @@ func SetCredential(instance ccxt.IExchange, key string, value string) {
 	}
 }
 
-func SetCredentials(instance ccxt.IExchange) {
+func SetCredentials(instance ccxt.ICoreExchange) {
 	credentials := instance.GetRequiredCredentials()
 
 	for key, value := range credentials {
@@ -398,11 +412,6 @@ func SetCredentials(instance ccxt.IExchange) {
 }
 
 func main() {
-
-	if containsStr(os.Args, "--bench") {
-		benchmarks()
-		return
-	}
 
 	args := os.Args
 	if len(args) < 3 {
@@ -428,6 +437,11 @@ func main() {
 
 	if !contains(exchangeIdsList, exchangeName) {
 		panic(Red + "Exchange not found in exchanges.json" + Reset)
+	}
+
+	if containsStr(os.Args, "--bench") {
+		benchmarks(exchangeName)
+		return
 	}
 
 	var flags []string
@@ -475,7 +489,14 @@ func main() {
 
 	exchange := ccxt.Exchange{}
 	cmdSettings := InitOptions(flags)
-	instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	var instance ccxt.ICoreExchange
+	suc := true
+	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+		instance, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	} else {
+		instance, suc = ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	}
+	// instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 
 	if !suc {
 		panic(suc)
@@ -488,12 +509,15 @@ func main() {
 	<-instance.LoadMarkets()
 
 	before := time.Now().UnixMilli()
+	for true {
+		res := <-instance.CallInternal(method, parameters...)
+		PrettyPrintData(res)
 
-	res := <-instance.CallInternal(method, parameters...)
-
+		if !strings.HasPrefix(method, "watch") {
+			break
+		}
+	}
 	after := time.Now().UnixMilli()
-
-	PrettyPrintData(res)
 
 	fmt.Println("Execution time: ", Yellow, after-before, "ms", Reset)
 
