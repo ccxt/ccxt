@@ -1636,7 +1636,7 @@
                 "method": "fetchPositionADLRank",
                 "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A46%3A04&Signature=UNr71QNQEq3F5INgkbrXAw%2FqGsOoaVQ3j0L2tskX%2Bv0%3D",
                 "input": [
-                    "BTC/USDT:USDT-260123"
+                    "BTC/USDT:USDT-240329"
                 ],
                 "output": "{}"
             }
