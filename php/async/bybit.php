@@ -382,6 +382,13 @@ class bybit extends Exchange {
                         'v5/asset/withdraw/query-record' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount' => 5,
                         'v5/asset/withdraw/vasp/list' => 5,
+                        'v5/asset/convert/small-balance-list' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-history' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/fiat/query-coin-list' => 5,
+                        'v5/fiat/reference-price' => 5,
+                        'v5/fiat/trade-query' => 5,
+                        'v5/fiat/query-trade-history' => 5,
+                        'v5/fiat/balance-query' => 5,
                         // user
                         'v5/user/query-sub-members' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api' => 5, // 10/s => cost = 50 / 10 = 5
@@ -401,6 +408,7 @@ class bybit extends Exchange {
                         'v5/spot-margin-trade/position-tiers' => 5,
                         'v5/spot-margin-trade/coinstate' => 5,
                         'v5/spot-margin-trade/repayment-available-amount' => 5,
+                        'v5/spot-margin-trade/get-auto-repay-mode' => 5,
                         'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
@@ -549,6 +557,10 @@ class bybit extends Exchange {
                         'v5/asset/deposit/deposit-to-account' => 5,
                         'v5/asset/withdraw/create' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel' => 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/covert/get-quote' => 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/covert/small-balance-execute' => 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/fiat/quote-apply' => 10,
+                        'v5/fiat/trade-execute' => 10,
                         // user
                         'v5/user/create-sub-member' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/user/create-sub-api' => 10, // 5/s => cost = 50 / 5 = 10
@@ -563,6 +575,7 @@ class bybit extends Exchange {
                         // spot margin trade
                         'v5/spot-margin-trade/switch-mode' => 5,
                         'v5/spot-margin-trade/set-leverage' => 5,
+                        'v5/spot-margin-trade/set-auto-repay-mode' => 5,
                         'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
@@ -584,6 +597,7 @@ class bybit extends Exchange {
                         'v5/crypto-loan-fixed/repay-collateral' => 50, // 1/s => cost = 50 / 1 = 50
                         // institutional lending
                         'v5/ins-loan/association-uid' => 5,
+                        'v5/ins-loan/repay-loan' => 5,
                         // c2c lending
                         'v5/lending/purchase' => 5,
                         'v5/lending/redeem' => 5,
