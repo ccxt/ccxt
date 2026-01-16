@@ -1141,7 +1141,8 @@ export default class Exchange {
                     // for example, cloudflare can reject with html/200 response
                     if (isEmpty (currencies) && !isEmpty (currenciesFromOutside)) {
                         currencies = currenciesFromOutside;
-                    } else {
+                    }
+                    if (typeof fetchCurrenciesCallback === 'function' && !isEmpty(currencies)) {
                         fetchCurrenciesCallback (currencies);
                     }
                 }
