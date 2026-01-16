@@ -21,6 +21,7 @@ export default class aster extends asterRest {
                 'watchMarkPrices': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
@@ -1603,8 +1604,6 @@ export default class aster extends asterRest {
     }
 
     parseWsOrder (order, market = undefined) {
-        //
-        //
         const executionType = this.safeString (order, 'x');
         const marketId = this.safeString (order, 's');
         market = this.safeMarket (marketId, market);
