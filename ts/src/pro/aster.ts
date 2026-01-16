@@ -2,9 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import asterRest from '../aster.js';
+import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Balances, Strings, Tickers, Dict, Ticker, Int, Market, Trade, OrderBook, OHLCV } from '../base/types.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Balances, Strings, Tickers, Dict, Ticker, Int, Market, Trade, OrderBook, OHLCV, Position } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -14,10 +15,8 @@ export default class aster extends asterRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchBidsAsks': true,
-                'watchTicker': true,
-                'watchTickers': true,
                 'watchMarkPrice': true,
                 'watchMarkPrices': true,
                 'watchTrades': true,
@@ -26,6 +25,9 @@ export default class aster extends asterRest {
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
+                'watchPositions': true,
+                'watchTicker': true,
+                'watchTickers': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchMarkPrice': true,
@@ -66,10 +68,14 @@ export default class aster extends asterRest {
                     'swap': 3600000,
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true, // or true
+                    'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {},
             'exceptions': {},
@@ -1123,17 +1129,9 @@ export default class aster extends asterRest {
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
-    async watchPrivate (messageHashes, type = 'spot', params = {}) {
-        await this.authenticate (type, params);
-        const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
-        const listenKey = this.safeString (listenKeyOptions, type);
-        const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
-        return await this.watchMultiple (url, messageHashes, undefined, [ type ]);
-    }
-
     /**
      * @method
-     * @name bingx#watchBalance
+     * @name aster#watchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
@@ -1216,6 +1214,37 @@ export default class aster extends asterRest {
         //         "m": "ORDER"
         //     }
         //
+        // swap balance and position update
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "T": 1768551627708,
+        //         "E": 1768551627710,
+        //         "a": {
+        //             "B": [
+        //                 {
+        //                     "a": "USDT",
+        //                     "wb": "39.41184271",
+        //                     "cw": "39.41184271",
+        //                     "bc": "0"
+        //                 }
+        //             ],
+        //             "P": [
+        //                 {
+        //                     "s": "ETHUSDT",
+        //                     "pa": "0",
+        //                     "ep": "0.00000000",
+        //                     "cr": "-0.59070000",
+        //                     "up": "0",
+        //                     "mt": "isolated",
+        //                     "iw": "0",
+        //                     "ps": "BOTH",
+        //                     "ma": "USDT"
+        //                 }
+        //             ],
+        //             "m": "ORDER"
+        //         }
+        //     }
+        //
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
@@ -1244,6 +1273,198 @@ export default class aster extends asterRest {
         client.resolve (this.balance[accountType], messageHash);
     }
 
+    /**
+     * @method
+     * @name aster#watchPositions
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const type = 'swap';
+        await this.authenticate (type, params);
+        const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
+        const listenKey = this.safeString (listenKeyOptions, type);
+        const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+        const client = this.client (url);
+        this.setPositionsCache (client);
+        const messageHashes = [];
+        const messageHash = 'positions';
+        symbols = this.marketSymbols (symbols, 'swap', true, true);
+        if (symbols === undefined) {
+            messageHashes.push (messageHash);
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push (messageHash + '::' + symbol);
+            }
+        }
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        const cache = this.positions;
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.watchMultiple (url, messageHashes, undefined, [ type ]);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client) {
+        if (this.positions !== undefined) {
+            return;
+        }
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    handlePositions (client, message) {
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "T": 1768551627708,
+        //         "E": 1768551627710,
+        //         "a": {
+        //             "B": [
+        //                 {
+        //                     "a": "USDT",
+        //                     "wb": "39.41184271",
+        //                     "cw": "39.41184271",
+        //                     "bc": "0"
+        //                 }
+        //             ],
+        //             "P": [
+        //                 {
+        //                     "s": "ETHUSDT",
+        //                     "pa": "0",
+        //                     "ep": "0.00000000",
+        //                     "cr": "-0.59070000",
+        //                     "up": "0",
+        //                     "mt": "isolated",
+        //                     "iw": "0",
+        //                     "ps": "BOTH",
+        //                     "ma": "USDT"
+        //                 }
+        //             ],
+        //             "m": "ORDER"
+        //         }
+        //     }
+        //
+        const messageHash = 'positions';
+        const messageHashes = this.findMessageHashes (client, messageHash);
+        if (!this.isEmpty (messageHashes)) {
+            if (this.positions === undefined) {
+                this.positions = new ArrayCacheBySymbolBySide ();
+            }
+            const cache = this.positions;
+            const data = this.safeDict (message, 'a', {});
+            const rawPositions = this.safeList (data, 'P', []);
+            const newPositions = [];
+            for (let i = 0; i < rawPositions.length; i++) {
+                const rawPosition = rawPositions[i];
+                const position = this.parseWsPosition (rawPosition);
+                const timestamp = this.safeInteger (message, 'E');
+                position['timestamp'] = timestamp;
+                position['datetime'] = this.iso8601 (timestamp);
+                newPositions.push (position);
+                cache.append (position);
+                const symbol = position['symbol'];
+                const symbolMessageHash = messageHash + '::' + symbol;
+                client.resolve (position, symbolMessageHash);
+            }
+            client.resolve (newPositions, 'positions');
+        }
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        //     {
+        //         "s": "BTCUSDT", // Symbol
+        //         "pa": "0", // Position Amount
+        //         "ep": "0.00000", // Entry Price
+        //         "cr": "200", // (Pre-fee) Accumulated Realized
+        //         "up": "0", // Unrealized PnL
+        //         "mt": "isolated", // Margin Type
+        //         "iw": "0.00000000", // Isolated Wallet (if isolated position)
+        //         "ps": "BOTH" // Position Side
+        //     }
+        //
+        const marketId = this.safeString (position, 's');
+        const contracts = this.safeString (position, 'pa');
+        const contractsAbs = Precise.stringAbs (this.safeString (position, 'pa'));
+        let positionSide = this.safeStringLower (position, 'ps');
+        let hedged = true;
+        if (positionSide === 'both') {
+            hedged = false;
+            if (!Precise.stringEq (contracts, '0')) {
+                if (Precise.stringLt (contracts, '0')) {
+                    positionSide = 'short';
+                } else {
+                    positionSide = 'long';
+                }
+            }
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol (marketId, undefined, undefined, 'swap'),
+            'notional': undefined,
+            'marginMode': this.safeString (position, 'mt'),
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber (position, 'ep'),
+            'unrealizedPnl': this.safeNumber (position, 'up'),
+            'percentage': undefined,
+            'contracts': this.parseNumber (contractsAbs),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'side': positionSide,
+            'hedged': hedged,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        });
+    }
+
+    async loadPositionsSnapshot (client, messageHash) {
+        const positions = await this.fetchPositions ();
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (cache, 'positions');
+        }
+    }
+
     handleMessage (client: Client, message) {
         const stream = this.safeString (message, 'stream');
         if (stream !== undefined) {
@@ -1268,8 +1489,11 @@ export default class aster extends asterRest {
         } else {
             // private messages
             const event = this.safeString (message, 'e');
-            if (event === 'outboundAccountPosition' || event === 'balanceUpdate' || event === 'ACCOUNT_UPDATE') {
+            if (event === 'outboundAccountPosition') {
                 this.handleBalance (client, message);
+            } else if (event === 'ACCOUNT_UPDATE') {
+                this.handleBalance (client, message);
+                this.handlePositions (client, message);
             }
         }
     }
