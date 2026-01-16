@@ -670,6 +670,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapi_get_portfolio_earn_asset_balance($params = array()) {
         return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
     }
+    public function sapi_get_portfolio_delta_mode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -1098,6 +1101,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function sapi_post_portfolio_earn_asset_transfer($params = array()) {
         return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
+    public function sapi_post_portfolio_delta_mode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function sapi_post_lending_auto_invest_plan_add($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -3013,6 +3019,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapiGetPortfolioEarnAssetBalance($params = array()) {
         return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
     }
+    public function sapiGetPortfolioDeltaMode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3441,6 +3450,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function sapiPostPortfolioEarnAssetTransfer($params = array()) {
         return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
+    public function sapiPostPortfolioDeltaMode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function sapiPostLendingAutoInvestPlanAdd($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
