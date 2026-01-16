@@ -435,6 +435,10 @@ export default class coinex extends Exchange {
                             'futures/adjust-position-leverage': 20,
                             'futures/set-position-stop-loss': 20,
                             'futures/set-position-take-profit': 20,
+                            'futures/modify-position-stop-loss': 20,
+                            'futures/modify-position-take-profit': 20,
+                            'futures/cancel-position-stop-loss': 20,
+                            'futures/cancel-position-take-profit': 20,
                         },
                     },
                 },
@@ -2906,6 +2910,8 @@ export default class coinex extends Exchange {
      * @see https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order
      * @see https://docs.coinex.com/api/v2/futures/order/http/edit-order
      * @see https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order
+     * @see https://docs.coinex.com/api/v2/futures/position/http/modify-position-stop-loss
+     * @see https://docs.coinex.com/api/v2/futures/position/http/modify-position-take-profit
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -2914,6 +2920,8 @@ export default class coinex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price to trigger stop orders
+     * @param {float} [params.stopLossPrice] price to trigger stop loss orders
+     * @param {float} [params.takeProfitPrice] price to trigger take profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -2925,19 +2933,42 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
-        }
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
         let response = undefined;
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'trigger_price' ]);
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
         const isTriggerOrder = triggerPrice !== undefined;
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (amount !== undefined) {
+            if (isStopLossOrTakeProfitTrigger) {
+                if (isStopLossTriggerOrder) {
+                    request['stop_loss_amount'] = this.amountToPrecision (symbol, amount);
+                } else if (isTakeProfitTriggerOrder) {
+                    request['take_profit_amount'] = this.amountToPrecision (symbol, amount);
+                }
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        if (price !== undefined) {
+            if (!isStopLossOrTakeProfitTrigger) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
         if (isTriggerOrder) {
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['stop_id'] = this.parseToNumeric (id);
+        } else if (isStopLossOrTakeProfitTrigger) {
+            if (isStopLossTriggerOrder) {
+                request['stop_loss_price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                request['stop_loss_id'] = this.parseToNumeric (id);
+            } else if (isTakeProfitTriggerOrder) {
+                request['take_profit_price'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                request['take_profit_id'] = this.parseToNumeric (id);
+            }
         } else {
             request['order_id'] = this.parseToNumeric (id);
         }
@@ -3006,6 +3037,12 @@ export default class coinex extends Exchange {
                 //         "message": "OK"
                 //     }
                 //
+            } else if (isStopLossOrTakeProfitTrigger) {
+                if (isStopLossTriggerOrder) {
+                    response = await this.v2PrivatePostFuturesModifyPositionStopLoss (this.extend (request, params));
+                } else if (isTakeProfitTriggerOrder) {
+                    response = await this.v2PrivatePostFuturesModifyPositionTakeProfit (this.extend (request, params));
+                }
             } else {
                 response = await this.v2PrivatePostFuturesModifyOrder (this.extend (request, params));
                 //
