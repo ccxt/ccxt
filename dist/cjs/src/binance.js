@@ -500,6 +500,7 @@ class binance extends binance$1["default"] {
                         'portfolio/negative-balance-exchange-record': 2,
                         'portfolio/pmloan-history': 5,
                         'portfolio/earn-asset-balance': 150,
+                        'portfolio/delta-mode': 150,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -659,6 +660,7 @@ class binance extends binance$1["default"] {
                         'portfolio/mint': 20,
                         'portfolio/redeem': 20,
                         'portfolio/earn-asset-transfer': 150,
+                        'portfolio/delta-mode': 150,
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
