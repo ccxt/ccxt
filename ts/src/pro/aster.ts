@@ -3,7 +3,7 @@
 
 import asterRest from '../aster.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Strings, Tickers, Dict, Ticker, Int, Market, Trade, OrderBook, OHLCV } from '../base/types.js';
+import type { Balances, Strings, Tickers, Dict, Ticker, Int, Market, Trade, OrderBook, OHLCV } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -65,6 +65,11 @@ export default class aster extends asterRest {
                     'spot': 3600000, // 60 minutes
                     'swap': 3600000,
                 },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true, // or true
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
+                'wallet': 'wb', // wb = wallet balance, cw = cross balance
             },
             'streaming': {},
             'exceptions': {},
@@ -1071,17 +1076,22 @@ export default class aster extends asterRest {
         ];
     }
 
-    async authenticate (params = {}) {
+    async authenticate (type = 'spot', params = {}) {
         const time = this.milliseconds ();
-        const type = this.safeString (params, 'type', 'spot');
         const lastAuthenticatedTimeOptions = this.safeDict (this.options, 'lastAuthenticatedTime', {});
         const lastAuthenticatedTime = this.safeInteger (lastAuthenticatedTimeOptions, type, 0);
         const listenKeyRefreshRateOptions = this.safeDict (this.options, 'listenKeyRefreshRate', {});
         const listenKeyRefreshRate = this.safeInteger (listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.sapiPrivatePostV1ListenKey ();
+            let response = undefined;
+            if (type === 'spot') {
+                response = await this.sapiPrivatePostV1ListenKey (params);
+            } else {
+                response = await this.fapiPrivatePostV1ListenKey (params);
+            }
             this.options['listenKey'][type] = this.safeString (response, 'listenKey');
             this.options['lastAuthenticatedTime'][type] = time;
+            params = this.extend ({ 'type': type }, params);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
@@ -1113,15 +1123,125 @@ export default class aster extends asterRest {
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
-    async watchPrivate (type = 'spot', params = {}) {
-        params = this.extend ({ 'type': type }, params);
-        await this.authenticate (params);
+    async watchPrivate (messageHashes, type = 'spot', params = {}) {
+        await this.authenticate (type, params);
         const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
         const listenKey = this.safeString (listenKeyOptions, type);
         const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
-        const subHash = 'private::' + type;
-        const messageHashes = [ subHash ];
-        return await this.watchMultiple (url, messageHashes, undefined, [ subHash ]);
+        return await this.watchMultiple (url, messageHashes, undefined, [ type ]);
+    }
+
+    /**
+     * @method
+     * @name bingx#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
+        await this.authenticate (type, params);
+        const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
+        const listenKey = this.safeString (listenKeyOptions, type);
+        const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+        const client = this.client (url);
+        this.setBalanceCache (client, type);
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future (type + ':fetchBalanceSnapshot');
+        }
+        const messageHash = type + ':balance';
+        const message = undefined;
+        return await this.watch (url, messageHash, message, type);
+    }
+
+    setBalanceCache (client: Client, type) {
+        if ((type in client.subscriptions) && (type in this.balance)) {
+            return;
+        }
+        const options = this.safeValue (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        } else {
+            this.balance[type] = {};
+        }
+    }
+
+    async loadBalanceSnapshot (client, messageHash, type) {
+        const params: Dict = {
+            'type': type,
+        };
+        const response = await this.fetchBalance (params);
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve ();
+            client.resolve (this.balance[type], type + ':balance');
+        }
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        // spot balance update
+        //     {
+        //         "B": [
+        //             {
+        //                 "a": "USDT",
+        //                 "f": "16.29445191",
+        //                 "l": "0"
+        //             },
+        //             {
+        //                 "a": "ETH",
+        //                 "f": "0.00199920",
+        //                 "l": "0"
+        //             }
+        //         ],
+        //         "e": "outboundAccountPosition",
+        //         "T": 1768547778317,
+        //         "u": 1768547778317,
+        //         "E": 1768547778321,
+        //         "m": "ORDER"
+        //     }
+        //
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const messageHash = accountType + ':balance';
+        if (this.balance[accountType] === undefined) {
+            this.balance[accountType] = {};
+        }
+        this.balance[accountType]['info'] = message;
+        message = this.safeDict (message, 'a', message);
+        const B = this.safeList (message, 'B', []);
+        const wallet = this.safeString (this.options, 'wallet', 'wb');
+        for (let i = 0; i < B.length; i++) {
+            const entry = B[i];
+            const currencyId = this.safeString (entry, 'a');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (entry, 'f');
+            account['used'] = this.safeString (entry, 'l');
+            account['total'] = this.safeString (entry, wallet);
+            this.balance[accountType][code] = account;
+        }
+        const timestamp = this.safeInteger (message, 'E');
+        this.balance[accountType]['timestamp'] = timestamp;
+        this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
+        this.balance[accountType] = this.safeBalance (this.balance[accountType]);
+        client.resolve (this.balance[accountType], messageHash);
     }
 
     handleMessage (client: Client, message) {
@@ -1144,6 +1264,12 @@ export default class aster extends asterRest {
             const method = this.safeValue (methods, topic);
             if (method !== undefined) {
                 method.call (this, client, message);
+            }
+        } else {
+            // private messages
+            const event = this.safeString (message, 'e');
+            if (event === 'outboundAccountPosition' || event === 'balanceUpdate' || event === 'ACCOUNT_UPDATE') {
+                this.handleBalance (client, message);
             }
         }
     }
