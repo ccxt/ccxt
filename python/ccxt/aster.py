@@ -44,14 +44,15 @@ class aster(Exchange, ImplicitAPI):
         return self.deep_extend(super(aster, self).describe(), {
             'id': 'aster',
             'name': 'Aster',
-            'dex': True,
             'countries': ['US'],
             # 3 req/s for free
             # 150 req/s for subscribers: https://aster.markets/data
             # for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
             'hostname': 'aster.markets',
+            'certified': False,
             'pro': True,
+            'dex': True,
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
                 'www': 'https://www.asterdex.com/en',

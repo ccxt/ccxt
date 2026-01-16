@@ -6,22 +6,22 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\async\abstract\btcalpha as Exchange;
+use ccxt\async\abstract\alp as Exchange;
 use ccxt\ExchangeError;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use \React\Async;
 use \React\Promise\PromiseInterface;
 
-class btcalpha extends Exchange {
+class alp extends Exchange {
 
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
-            'id' => 'btcalpha',
-            'name' => 'BTC-Alpha',
+            'id' => 'alp',
+            'name' => 'Alp',
             'countries' => array( 'US' ),
             'version' => 'v1',
-            'rateLimit' => 10,  // https://btc-alpha.github.io/api-docs/?utm_source=chatgpt.com#http-api-v1
+            'rateLimit' => 10,  // https://alpcomdev.github.io/alp-api-docs/
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -140,12 +140,12 @@ class btcalpha extends Exchange {
             'urls' => array(
                 'logo' => 'https://github.com/user-attachments/assets/dce49f3a-61e5-4ba0-a2fe-41d192fd0e5d',
                 'api' => array(
-                    'rest' => 'https://btc-alpha.com/api',
+                    'rest' => 'https://alp.com/api',
                 ),
-                'www' => 'https://btc-alpha.com',
-                'doc' => 'https://btc-alpha.github.io/api-docs',
-                'fees' => 'https://btc-alpha.com/fees/',
-                'referral' => 'https://btc-alpha.com/?r=123788',
+                'www' => 'https://alp.com',
+                'doc' => 'https://alpcomdev.github.io/alp-api-docs/',
+                'fees' => 'https://alp.com/fees/',
+                'referral' => 'https://alp.com/?r=123788',
             ),
             'api' => array(
                 'public' => array(
@@ -276,9 +276,9 @@ class btcalpha extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves data on all markets for btcalpha
+             * retrieves data on all markets for alp
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-all-currencies
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-all-currencies
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
@@ -367,7 +367,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://btc-alpha.github.io/api-docs/#tickers
+             * @see https://alpcomdev.github.io/alp-api-docs/#tickers
              *
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -400,7 +400,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://btc-alpha.github.io/api-docs/#tickers
+             * @see https://alpcomdev.github.io/alp-api-docs/#tickers
              *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -477,7 +477,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://btc-alpha.github.io/api-docs/#get-orderbook
+             * @see https://alpcomdev.github.io/alp-api-docs/#get-orderbook
              *
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -565,7 +565,7 @@ class btcalpha extends Exchange {
             /**
              * get the list of most recent $trades for a particular $symbol
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-all-exchanges
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-all-exchanges
              *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -593,7 +593,7 @@ class btcalpha extends Exchange {
             /**
              * fetch all deposits made to an account
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-own-deposits
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-own-deposits
              *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -626,7 +626,7 @@ class btcalpha extends Exchange {
             /**
              * fetch all withdrawals made from an account
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-own-made-withdraws
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-own-made-withdraws
              *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -740,7 +740,7 @@ class btcalpha extends Exchange {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://btc-alpha.github.io/api-docs/#charts
+             * @see https://alpcomdev.github.io/alp-api-docs/#charts
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -792,7 +792,7 @@ class btcalpha extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-own-wallets
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-own-wallets
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -888,7 +888,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              *
-             * @see https://btc-alpha.github.io/api-docs/#create-$order
+             * @see https://alpcomdev.github.io/alp-api-docs/#create-$order
              *
              * create a trade $order
              * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -926,7 +926,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
-             * @see https://btc-alpha.github.io/api-docs/#cancel-order
+             * @see https://alpcomdev.github.io/alp-api-docs/#cancel-order
              *
              * cancels an open order
              * @param {string} $id order $id
@@ -951,11 +951,11 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
-             * @see https://btc-alpha.github.io/api-docs/#retrieve-single-$order
+             * @see https://alpcomdev.github.io/alp-api-docs/#retrieve-single-$order
              *
              * fetches information on an $order made by the user
              * @param {string} $id the $order $id
-             * @param {string} $symbol not used by btcalpha fetchOrder
+             * @param {string} $symbol not used by alp fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
@@ -972,7 +972,7 @@ class btcalpha extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-own-$orders
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-own-$orders
              *
              * fetches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
@@ -1001,7 +1001,7 @@ class btcalpha extends Exchange {
             /**
              * fetch all unfilled currently open orders
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-own-orders
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-own-orders
              *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1021,7 +1021,7 @@ class btcalpha extends Exchange {
             /**
              * fetches information on multiple closed orders made by the user
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-own-orders
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-own-orders
              *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1041,7 +1041,7 @@ class btcalpha extends Exchange {
             /**
              * fetch all $trades made by the user
              *
-             * @see https://btc-alpha.github.io/api-docs/#list-own-exchanges
+             * @see https://alpcomdev.github.io/alp-api-docs/#list-own-exchanges
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for

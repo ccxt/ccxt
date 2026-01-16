@@ -10,11 +10,12 @@ public partial class aster : Exchange
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "aster" },
             { "name", "Aster" },
-            { "dex", true },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 333 },
             { "hostname", "aster.markets" },
+            { "certified", false },
             { "pro", true },
+            { "dex", true },
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609" },
                 { "www", "https://www.asterdex.com/en" },

@@ -6729,7 +6729,14 @@ export default class bybit extends Exchange {
         market = this.safeMarket (contract, market, undefined, 'contract');
         const size = Precise.stringAbs (this.safeString2 (position, 'size', 'qty'));
         let side = this.safeString (position, 'side');
-        if (side !== undefined) {
+        const positionIdx = this.safeString (position, 'positionIdx');
+        let hedged = undefined;
+        if (positionIdx !== undefined) {
+            hedged = (positionIdx !== '0');
+        }
+        if ((hedged !== undefined) && hedged) {
+            side = (positionIdx === '1') ? 'long' : 'short';
+        } else if (side !== undefined) {
             if (side === 'Buy') {
                 side = isHistory ? 'short' : 'long';
             } else if (side === 'Sell') {
@@ -6796,8 +6803,6 @@ export default class bybit extends Exchange {
         }
         const maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notional);
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateralString, 4);
-        const positionIdx = this.safeString (position, 'positionIdx');
-        const hedged = (positionIdx !== undefined) && (positionIdx !== '0');
         return this.safePosition ({
             'info': position,
             'id': undefined,

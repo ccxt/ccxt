@@ -793,7 +793,7 @@ class aster extends \ccxt\async\aster {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . $limit;
+                $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@depth' . (string) $limit;
                 $messageHashes[] = 'orderbook:' . $market['symbol'];
             }
             $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), array( $type )));
