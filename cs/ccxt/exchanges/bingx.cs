@@ -300,6 +300,7 @@ public partial class bingx : Exchange
                                 { "quote/bookTicker", 1 },
                             } },
                             { "post", new Dictionary<string, object>() {
+                                { "trade/getVst", 5 },
                                 { "trade/order", 2 },
                                 { "trade/batchOrders", 2 },
                                 { "trade/closeAllPositions", 2 },
