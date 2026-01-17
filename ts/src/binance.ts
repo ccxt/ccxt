@@ -14525,17 +14525,17 @@ export default class binance extends Exchange {
         //     }
         //
         const adlQuantile = this.safeDict (info, 'adlQuantile', {});
-        const long = this.safeNumber (adlQuantile, 'LONG');
-        const short = this.safeNumber (adlQuantile, 'SHORT');
+        const longNum = this.safeNumber (adlQuantile, 'LONG');
+        const shortNum = this.safeNumber (adlQuantile, 'SHORT');
         const both = this.safeNumber (adlQuantile, 'BOTH');
         let rank = undefined;
         if (both !== undefined) {
             rank = both;
         } else {
-            if (long > short) {
-                rank = long;
+            if (longNum > shortNum) {
+                rank = longNum;
             } else {
-                rank = short;
+                rank = shortNum;
             }
         }
         const marketId = this.safeString (info, 'symbol');
