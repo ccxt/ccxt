@@ -1646,6 +1646,76 @@ public partial class huobi : htx
         return await this.callAsync ("contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo",parameters);
     }
 
+    public async Task<object> contractPrivateGetV5AccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5AccountBalance",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5AccountAssetMode (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5AccountAssetMode",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5TradePositionOpens (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5TradePositionOpens",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5TradeOrderOpens (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5TradeOrderOpens",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5TradeOrderDetails (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5TradeOrderDetails",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5TradeOrderHistory (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5TradeOrderHistory",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5TradeOrder (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5TradeOrder",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5PositionLever (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5PositionLever",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5PositionMode (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5PositionMode",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5PositionRiskLimit (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5PositionRiskLimit",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5PositionRiskLimitTier (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5PositionRiskLimitTier",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5MarketRiskLimit (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5MarketRiskLimit",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5MarketAssetsDeductionCurrency (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5MarketAssetsDeductionCurrency",parameters);
+    }
+
+    public async Task<object> contractPrivateGetV5MarketMultiAssetsMargin (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetV5MarketMultiAssetsMargin",parameters);
+    }
+
     public async Task<object> contractPrivatePostApiV1ContractBalanceValuation (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostApiV1ContractBalanceValuation",parameters);
@@ -2729,6 +2799,61 @@ public partial class huobi : htx
     public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5AccountAssetMode (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5AccountAssetMode",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5TradeOrder (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5TradeOrder",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5TradeBatchOrders (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5TradeBatchOrders",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5TradeCancelOrder (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5TradeCancelOrder",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5TradeCancelBatchOrders (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5TradeCancelBatchOrders",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5TradeCancelAllOrders (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5TradeCancelAllOrders",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5TradePosition (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5TradePosition",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5TradePositionAll (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5TradePositionAll",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5PositionLever (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5PositionLever",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5PositionMode (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5PositionMode",parameters);
+    }
+
+    public async Task<object> contractPrivatePostV5AccountFeeDeductionCurrency (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivatePostV5AccountFeeDeductionCurrency",parameters);
     }
 
 }
