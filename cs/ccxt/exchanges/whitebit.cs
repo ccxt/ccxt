@@ -3066,7 +3066,7 @@ public partial class whitebit : Exchange
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },
             { "tagFrom", null },
-            { "tag", null },
+            { "tag", this.safeString(transaction, "memo") },
             { "tagTo", null },
             { "comment", this.safeString(transaction, "description") },
             { "internal", null },
