@@ -3503,10 +3503,12 @@ class aster(Exchange, ImplicitAPI):
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            nonce = self.milliseconds()
+            timestamp = self.milliseconds()
+            # Nonce is in microseconds
+            nonce = self.microseconds()
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
-                'timestamp': nonce,
+                'timestamp': timestamp,
             }, params)
             if defaultRecvWindow is not None:
                 extendedParams['recvWindow'] = defaultRecvWindow
