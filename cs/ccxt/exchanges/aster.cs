@@ -3886,10 +3886,12 @@ public partial class aster : Exchange
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            object nonce = this.milliseconds();
+            object timestamp = this.milliseconds();
+            // Nonce is in microseconds
+            object nonce = this.microseconds();
             object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             object extendedParams = this.extend(new Dictionary<string, object>() {
-                { "timestamp", nonce },
+                { "timestamp", timestamp },
             }, parameters);
             if (isTrue(!isEqual(defaultRecvWindow, null)))
             {
