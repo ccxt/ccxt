@@ -2223,7 +2223,8 @@ type ADL struct {
 	Datetime   *string
 }
 
-func NewADL(adlObj map[string]interface{}) ADL {
+func NewADL(adlObj2 interface{}) ADL {
+	adlObj := adlObj2.(map[string]interface{})
 	return ADL{
 		Info:       GetInfo(adlObj),
 		Symbol:     SafeStringTyped(adlObj, "symbol"),
