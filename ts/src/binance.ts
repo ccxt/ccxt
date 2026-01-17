@@ -66,8 +66,8 @@ export default class binance extends Exchange {
                 'editOrder': true,
                 'editOrders': true,
                 'fetchAccounts': undefined,
-                'fetchAllGreeks': true,
                 'fetchADLRank': true,
+                'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': true,
@@ -137,10 +137,10 @@ export default class binance extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionADLRank': true,
-                'fetchPositionsADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': true,
@@ -14532,10 +14532,12 @@ export default class binance extends Exchange {
         if (both !== undefined) {
             rank = both;
         } else {
-            if (longNum > shortNum) {
-                rank = longNum;
-            } else {
-                rank = shortNum;
+            if (longNum !== undefined && shortNum !== undefined) {
+                if (longNum > shortNum) {
+                    rank = longNum;
+                } else {
+                    rank = shortNum;
+                }
             }
         }
         const marketId = this.safeString (info, 'symbol');
