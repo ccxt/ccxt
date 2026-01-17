@@ -674,11 +674,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         accounts = self.safe_list(response, 'accounts', [])
-        length = len(accounts)
-        lastIndex = length - 1
-        last = self.safe_dict(accounts, lastIndex)
+        accountsLength = len(accounts)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
+        if (accountsLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = accountsLength - 1
+            last = self.safe_dict(accounts, lastIndex)
             last['cursor'] = cursor
             accounts[lastIndex] = last
         return self.parse_accounts(accounts, params)
@@ -2159,7 +2159,8 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'trades', [])
-        ticker = self.parse_ticker(data[0], market)
+        first = self.safe_dict(data, 0, {})
+        ticker = self.parse_ticker(first, market)
         ticker['bid'] = self.safe_number(response, 'best_bid')
         ticker['ask'] = self.safe_number(response, 'best_ask')
         return ticker
