@@ -2211,6 +2211,30 @@ func NewAccountArray(orders2 interface{}) []Account {
 	return result
 }
 
+// ADL Type
+
+type ADL struct {
+	Info       map[string]interface{}
+	Symbol     *string
+	Rank       *int64
+	Rating     *string
+	Percentage *float64
+	Timestamp  *int64
+	Datetime   *string
+}
+
+func NewADL(adlObj map[string]interface{}) *ADL {
+	return &ADL{
+		Info:       GetInfo(adlObj),
+		Symbol:     SafeStringTyped(adlObj, "symbol"),
+		Rank:       SafeInt64Typed(adlObj, "rank"),
+		Rating:     SafeStringTyped(adlObj, "rating"),
+		Percentage: SafeFloatTyped(adlObj, "percentage"),
+		Timestamp:  SafeInt64Typed(adlObj, "timestamp"),
+		Datetime:   SafeStringTyped(adlObj, "datetime"),
+	}
+}
+
 // OrderBooks struct
 type OrderBooks struct {
 	Info       map[string]interface{}
