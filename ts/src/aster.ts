@@ -3718,7 +3718,7 @@ export default class aster extends Exchange {
             };
             const timestamp = this.milliseconds ();
             // Nonce is in microseconds
-            const nonce = timestamp * 1000;
+            const nonce = this.microseconds ();
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             let extendedParams = this.extend ({
                 'timestamp': timestamp,
