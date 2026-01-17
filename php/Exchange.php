@@ -1197,6 +1197,16 @@ class Exchange {
     }
 
     public static function underscore($camelcase) {
+        // handle edgecase: fetchADLRank -> fetch_adl_rank
+        if ($camelcase == 'fetchADLRank') {
+            return 'fetch_adl_rank';
+        }
+        if ($camelcase == 'fetchPositionADLRank') {
+            return 'fetch_position_adl_rank';
+        }
+        if ($camelcase == 'fetchPositionsADLRank') {
+            return 'fetch_positions_adl_rank';
+        }
         // conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
         $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
             return $x[0][0] . '_' . $x[0][1];
