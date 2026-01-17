@@ -2236,7 +2236,8 @@ func NewADL(adlObj2 interface{}) ADL {
 	}
 }
 
-func NewADLArray(data []interface{}) []ADL {
+func NewADLArray(data2 interface{}) []ADL {
+	data := data2.([]interface{})
 	result := make([]ADL, 0, len(data))
 
 	for _, item := range data {
