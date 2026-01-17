@@ -4314,10 +4314,12 @@ func (this *AsterCore) Sign(path interface{}, optionalArgs ...interface{}) inter
 		headers = map[string]interface{}{
 			"X-MBX-APIKEY": this.ApiKey,
 		}
-		var nonce interface{} = this.Milliseconds()
+		var timestamp interface{} = this.Milliseconds()
+		// Nonce is in microseconds
+		var nonce interface{} = this.Microseconds()
 		var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
 		var extendedParams interface{} = this.Extend(map[string]interface{}{
-			"timestamp": nonce,
+			"timestamp": timestamp,
 		}, params)
 		if IsTrue(!IsEqual(defaultRecvWindow, nil)) {
 			AddElementToObject(extendedParams, "recvWindow", defaultRecvWindow)
