@@ -3521,7 +3521,7 @@ func (this *WhitebitCore) ParseTransaction(transaction interface{}, optionalArgs
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
 		"tagFrom":     nil,
-		"tag":         nil,
+		"tag":         this.SafeString(transaction, "memo"),
 		"tagTo":       nil,
 		"comment":     this.SafeString(transaction, "description"),
 		"internal":    nil,
