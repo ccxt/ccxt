@@ -2223,8 +2223,8 @@ type ADL struct {
 	Datetime   *string
 }
 
-func NewADL(adlObj map[string]interface{}) *ADL {
-	return &ADL{
+func NewADL(adlObj map[string]interface{}) ADL {
+	return ADL{
 		Info:       GetInfo(adlObj),
 		Symbol:     SafeStringTyped(adlObj, "symbol"),
 		Rank:       SafeInt64Typed(adlObj, "rank"),
@@ -2233,6 +2233,20 @@ func NewADL(adlObj map[string]interface{}) *ADL {
 		Timestamp:  SafeInt64Typed(adlObj, "timestamp"),
 		Datetime:   SafeStringTyped(adlObj, "datetime"),
 	}
+}
+
+func NewADLArray(data []interface{}) []ADL {
+	result := make([]ADL, 0, len(data))
+
+	for _, item := range data {
+		obj, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		result = append(result, NewADL(obj))
+	}
+
+	return result
 }
 
 // OrderBooks struct
