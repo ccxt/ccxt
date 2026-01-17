@@ -405,6 +405,7 @@ type IDerivedExchange interface {
 	FetchOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
 	FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{}
+	ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{}
 }
 
 type Describer interface {
