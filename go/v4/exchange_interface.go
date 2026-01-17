@@ -404,6 +404,7 @@ type IDerivedExchange interface {
 	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{}
 }
 
 type Describer interface {
