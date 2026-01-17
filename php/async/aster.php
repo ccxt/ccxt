@@ -3801,10 +3801,12 @@ class aster extends Exchange {
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            $nonce = $this->milliseconds();
+            $timestamp = $this->milliseconds();
+            // Nonce is in microseconds
+            $nonce = $this->microseconds();
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = $this->extend(array(
-                'timestamp' => $nonce,
+                'timestamp' => $timestamp,
             ), $params);
             if ($defaultRecvWindow !== null) {
                 $extendedParams['recvWindow'] = $defaultRecvWindow;
