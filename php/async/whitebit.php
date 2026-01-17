@@ -3035,7 +3035,7 @@ class whitebit extends Exchange {
             'status' => $this->parse_transaction_status($status),
             'updated' => null,
             'tagFrom' => null,
-            'tag' => null,
+            'tag' => $this->safe_string($transaction, 'memo'),
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'description'),
             'internal' => null,
