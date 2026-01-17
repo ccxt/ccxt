@@ -671,11 +671,11 @@ export default class coinbase extends Exchange {
         //     }
         //
         const accounts = this.safeList(response, 'accounts', []);
-        const length = accounts.length;
-        const lastIndex = length - 1;
-        const last = this.safeDict(accounts, lastIndex);
+        const accountsLength = accounts.length;
         const cursor = this.safeString(response, 'cursor');
-        if ((cursor !== undefined) && (cursor !== '')) {
+        if ((accountsLength > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = accountsLength - 1;
+            const last = this.safeDict(accounts, lastIndex);
             last['cursor'] = cursor;
             accounts[lastIndex] = last;
         }
@@ -2215,7 +2215,8 @@ export default class coinbase extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'trades', []);
-        const ticker = this.parseTicker(data[0], market);
+        const first = this.safeDict(data, 0, {});
+        const ticker = this.parseTicker(first, market);
         ticker['bid'] = this.safeNumber(response, 'best_bid');
         ticker['ask'] = this.safeNumber(response, 'best_ask');
         return ticker;
