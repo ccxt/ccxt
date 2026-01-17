@@ -23,6 +23,8 @@
         "skipWs": "private endpoints, todo"
     },
     "arkham": {
+        "preferredSpotSymbol": "ETH/USDT",
+        "preferredSwapSymbol": "ETH/USDT:USDT",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
