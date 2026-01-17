@@ -914,8 +914,7 @@ export default class bitfinex extends Exchange {
                 };
             }
             result[code] = this.safeCurrencyStructure ({
-                'id': fid,
-                'uppercaseId': id,
+                'id': id,
                 'code': code,
                 'info': [ id, label, pool, feeValues, undl ],
                 'type': type,
@@ -2720,7 +2719,7 @@ export default class bitfinex extends Exchange {
         let response = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['uppercaseId'];
+            request['currency'] = currency['id'];
             response = await this.privatePostAuthRMovementsCurrencyHist (this.extend (request, params));
         } else {
             response = await this.privatePostAuthRMovementsHist (this.extend (request, params));
@@ -3134,7 +3133,7 @@ export default class bitfinex extends Exchange {
         let response = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['uppercaseId'];
+            request['currency'] = currency['id'];
             response = await this.privatePostAuthRLedgersCurrencyHist (this.extend (request, params));
         } else {
             response = await this.privatePostAuthRLedgersHist (this.extend (request, params));
