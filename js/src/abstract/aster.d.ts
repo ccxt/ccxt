@@ -19,9 +19,6 @@ interface Exchange {
     fapiPublicGetV1TickerBookTicker(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetV1AdlQuantile(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetV1ForceOrders(params?: {}): Promise<implicitReturnType>;
-    fapiPublicPostV1ListenKey(params?: {}): Promise<implicitReturnType>;
-    fapiPublicPutV1ListenKey(params?: {}): Promise<implicitReturnType>;
-    fapiPublicDeleteV1ListenKey(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV1PositionSideDual(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV1MultiAssetsMargin(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV1Order(params?: {}): Promise<implicitReturnType>;
@@ -49,9 +46,12 @@ interface Exchange {
     fapiPrivatePostV1Leverage(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostV1MarginType(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostV1PositionMargin(params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostV1ListenKey(params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePutV1ListenKey(params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteV1Order(params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteV1AllOpenOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteV1BatchOrders(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateDeleteV1ListenKey(params?: {}): Promise<implicitReturnType>;
     sapiPublicGetV1Ping(params?: {}): Promise<implicitReturnType>;
     sapiPublicGetV1Time(params?: {}): Promise<implicitReturnType>;
     sapiPublicGetV1ExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -64,11 +64,6 @@ interface Exchange {
     sapiPublicGetV1TickerPrice(params?: {}): Promise<implicitReturnType>;
     sapiPublicGetV1TickerBookTicker(params?: {}): Promise<implicitReturnType>;
     sapiPublicGetV1AsterWithdrawEstimateFee(params?: {}): Promise<implicitReturnType>;
-    sapiPublicPostV1GetNonce(params?: {}): Promise<implicitReturnType>;
-    sapiPublicPostV1CreateApiKey(params?: {}): Promise<implicitReturnType>;
-    sapiPublicPostV1ListenKey(params?: {}): Promise<implicitReturnType>;
-    sapiPublicPutV1ListenKey(params?: {}): Promise<implicitReturnType>;
-    sapiPublicDeleteV1ListenKey(params?: {}): Promise<implicitReturnType>;
     sapiPrivateGetV1CommissionRate(params?: {}): Promise<implicitReturnType>;
     sapiPrivateGetV1Order(params?: {}): Promise<implicitReturnType>;
     sapiPrivateGetV1OpenOrders(params?: {}): Promise<implicitReturnType>;
@@ -80,8 +75,11 @@ interface Exchange {
     sapiPrivatePostV1AssetWalletTransfer(params?: {}): Promise<implicitReturnType>;
     sapiPrivatePostV1AssetSendToAddress(params?: {}): Promise<implicitReturnType>;
     sapiPrivatePostV1AsterUserWithdraw(params?: {}): Promise<implicitReturnType>;
+    sapiPrivatePostV1ListenKey(params?: {}): Promise<implicitReturnType>;
+    sapiPrivatePutV1ListenKey(params?: {}): Promise<implicitReturnType>;
     sapiPrivateDeleteV1Order(params?: {}): Promise<implicitReturnType>;
     sapiPrivateDeleteV1AllOpenOrders(params?: {}): Promise<implicitReturnType>;
+    sapiPrivateDeleteV1ListenKey(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

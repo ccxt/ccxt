@@ -2988,6 +2988,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (entry === undefined) {
             entry = order;
         }
+        const filled = this.safeDict(order, 'filled', {});
         const coin = this.safeString(entry, 'coin');
         let marketId = undefined;
         if (coin !== undefined) {
@@ -3033,7 +3034,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString(entry, 'avgPx'),
-            'filled': Precise["default"].stringSub(totalAmount, remaining),
+            'filled': this.safeString(filled, 'totalSz', Precise["default"].stringSub(totalAmount, remaining)),
             'remaining': remaining,
             'status': this.parseOrderStatus(status),
             'fee': undefined,

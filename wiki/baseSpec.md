@@ -7094,6 +7094,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 ##### Supported exchanges
 * [arkham](/exchanges/arkham.md#watchbalance)
 * [ascendex](/exchanges/ascendex.md#watchbalance)
+* [aster](/exchanges/aster.md#watchbalance)
 * [binance](/exchanges/binance.md#watchbalance)
 * [bingx](/exchanges/bingx.md#watchbalance)
 * [bitfinex](/exchanges/bitfinex.md#watchbalance)
@@ -7370,6 +7371,7 @@ watches information on multiple trades made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchmytrades)
 * [apex](/exchanges/apex.md#watchmytrades)
+* [aster](/exchanges/aster.md#watchmytrades)
 * [binance](/exchanges/binance.md#watchmytrades)
 * [bingx](/exchanges/bingx.md#watchmytrades)
 * [bitfinex](/exchanges/bitfinex.md#watchmytrades)
@@ -7666,6 +7668,7 @@ watches information on multiple orders made by the user
 * [apex](/exchanges/apex.md#watchorders)
 * [arkham](/exchanges/arkham.md#watchorders)
 * [ascendex](/exchanges/ascendex.md#watchorders)
+* [aster](/exchanges/aster.md#watchorders)
 * [backpack](/exchanges/backpack.md#watchorders)
 * [binance](/exchanges/binance.md#watchorders)
 * [bingx](/exchanges/bingx.md#watchorders)
@@ -7776,6 +7779,7 @@ watch all open positions
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#watchpositions)
 * [arkham](/exchanges/arkham.md#watchpositions)
+* [aster](/exchanges/aster.md#watchpositions)
 * [backpack](/exchanges/backpack.md#watchpositions)
 * [binance](/exchanges/binance.md#watchpositions)
 * [bitget](/exchanges/bitget.md#watchpositions)

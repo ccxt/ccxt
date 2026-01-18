@@ -2989,6 +2989,7 @@ export default class hyperliquid extends Exchange {
         if (entry === undefined) {
             entry = order;
         }
+        const filled = this.safeDict(order, 'filled', {});
         const coin = this.safeString(entry, 'coin');
         let marketId = undefined;
         if (coin !== undefined) {
@@ -3034,7 +3035,7 @@ export default class hyperliquid extends Exchange {
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString(entry, 'avgPx'),
-            'filled': Precise.stringSub(totalAmount, remaining),
+            'filled': this.safeString(filled, 'totalSz', Precise.stringSub(totalAmount, remaining)),
             'remaining': remaining,
             'status': this.parseOrderStatus(status),
             'fee': undefined,
