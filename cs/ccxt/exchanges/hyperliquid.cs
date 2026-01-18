@@ -3307,6 +3307,7 @@ public partial class hyperliquid : Exchange
         {
             entry = order;
         }
+        object filled = this.safeDict(order, "filled", new Dictionary<string, object>() {});
         object coin = this.safeString(entry, "coin");
         object marketId = null;
         if (isTrue(!isEqual(coin, null)))
@@ -3356,7 +3357,7 @@ public partial class hyperliquid : Exchange
             { "amount", totalAmount },
             { "cost", null },
             { "average", this.safeString(entry, "avgPx") },
-            { "filled", Precise.stringSub(totalAmount, remaining) },
+            { "filled", this.safeString(filled, "totalSz", Precise.stringSub(totalAmount, remaining)) },
             { "remaining", remaining },
             { "status", this.parseOrderStatus(status) },
             { "fee", null },
