@@ -4,7 +4,7 @@
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Balances, Str, Strings, Tickers, Dict, Ticker, Int, Market, Trade, Order, OrderBook, OHLCV, Position } from '../base/types.js';
+import type { Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
