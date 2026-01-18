@@ -1675,6 +1675,10 @@ export default class aster extends asterRest {
 
     handleOrderUpdate (client: Client, message) {
         const rawOrder = this.safeDict (message, 'o', message);
+        const e = this.safeString (message, 'e');
+        if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
+            message = this.safeDict (message, 'o', message);
+        }
         this.handleOrder (client, rawOrder);
         this.handleMyTrade (client, message);
     }
