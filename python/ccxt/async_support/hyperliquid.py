@@ -2841,6 +2841,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         entry = self.safe_dict_n(order, ['order', 'resting', 'filled'])
         if entry is None:
             entry = order
+        filled = self.safe_dict(order, 'filled', {})
         coin = self.safe_string(entry, 'coin')
         marketId = None
         if coin is not None:
@@ -2881,7 +2882,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'amount': totalAmount,
             'cost': None,
             'average': self.safe_string(entry, 'avgPx'),
-            'filled': Precise.string_sub(totalAmount, remaining),
+            'filled': self.safe_string(filled, 'totalSz', Precise.string_sub(totalAmount, remaining)),
             'remaining': remaining,
             'status': self.parse_order_status(status),
             'fee': None,

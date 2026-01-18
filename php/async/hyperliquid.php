@@ -3083,6 +3083,7 @@ class hyperliquid extends Exchange {
         if ($entry === null) {
             $entry = $order;
         }
+        $filled = $this->safe_dict($order, 'filled', array());
         $coin = $this->safe_string($entry, 'coin');
         $marketId = null;
         if ($coin !== null) {
@@ -3127,7 +3128,7 @@ class hyperliquid extends Exchange {
             'amount' => $totalAmount,
             'cost' => null,
             'average' => $this->safe_string($entry, 'avgPx'),
-            'filled' => Precise::string_sub($totalAmount, $remaining),
+            'filled' => $this->safe_string($filled, 'totalSz', Precise::string_sub($totalAmount, $remaining)),
             'remaining' => $remaining,
             'status' => $this->parse_order_status($status),
             'fee' => null,
