@@ -1149,7 +1149,7 @@ export default class aster extends asterRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let type = 'spot';
+        let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
         await this.authenticate (type, params);
         const url = this.getPrivateUrl (type);
@@ -1491,7 +1491,7 @@ export default class aster extends asterRest {
             symbol = market['symbol'];
         }
         let messageHash = 'orders';
-        let type = 'spot';
+        let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, type);
         await this.authenticate (type, params);
         if (market !== undefined) {
