@@ -887,7 +887,6 @@ export default class bitfinex extends Exchange {
             const fee = this.safeNumber (fees, 1);
             const undl = this.safeList (indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
-            const fid = 'f' + id;
             const dwStatuses = this.safeList (indexed['statuses'], id, []);
             const depositEnabled = this.safeInteger (dwStatuses, 1) === 1;
             const withdrawEnabled = this.safeInteger (dwStatuses, 2) === 1;
