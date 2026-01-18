@@ -1683,7 +1683,10 @@ export default class aster extends asterRest {
         const messageHash = 'myTrades';
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
-            const trade = this.parseWsTrade (message);
+            const isSwap = client.url.indexOf ('fstream') >= 0;
+            const type = isSwap ? 'swap' : 'spot';
+            const fakeMarket = this.safeMarketStructure ({ 'type': type });
+            const trade = this.parseWsTrade (message, fakeMarket);
             const orderId = this.safeString (trade, 'order');
             let tradeFee = this.safeDict (trade, 'fee', {});
             tradeFee = this.extend ({}, tradeFee);
