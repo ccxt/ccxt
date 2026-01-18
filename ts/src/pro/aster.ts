@@ -1498,6 +1498,8 @@ export default class aster extends asterRest {
             messageHash += '::' + symbol;
         }
         const url = this.getPrivateUrl (type);
+        const client = this.client (url);
+        this.setBalanceCache (client, type);
         const orders = await this.watchMultiple (url, [ messageHash ], undefined, [ type ]);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
