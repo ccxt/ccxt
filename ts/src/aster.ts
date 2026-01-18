@@ -330,6 +330,7 @@ export default class aster extends Exchange {
                 },
             },
             'options': {
+                'defaultType': 'spot',
                 'recvWindow': 10 * 1000, // 10 sec
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
