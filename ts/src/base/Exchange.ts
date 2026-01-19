@@ -1240,17 +1240,24 @@ export default class Exchange {
         const result = {};
         // Get all exponent fields first
         const exponents = {};
-        for (const key in data) {
+        const keys = Object.keys (data);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
             if (key.endsWith ('Exponent')) {
                 exponents[key] = data[key];
             }
         }
         // Process all fields
-        for (const key in data) {
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
             const value = data[key];
             // Handle arrays recursively
             if (Array.isArray (value)) {
-                result[key] = value.map (item => this.applySbeExponents (item, exponentMap));
+                const mappedArray = [];
+                for (let j = 0; j < value.length; j++) {
+                    mappedArray.push (this.applySbeExponents (value[j], exponentMap));
+                }
+                result[key] = mappedArray;
             } else if (key.endsWith ('Mantissa')) {
                 // Find corresponding exponent
                 const baseFieldName = key.replace ('Mantissa', '');

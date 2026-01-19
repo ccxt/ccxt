@@ -2547,10 +2547,10 @@ export default class okx extends okxRest {
         try {
             // Define decoder registry for OKX WebSocket messages
             const decoderRegistry = {
-                1000: BboTbtChannelEventDecoder, // BboTbtChannelEvent
-                1001: BooksL2TbtChannelEventDecoder, // BooksL2TbtChannelEvent
-                1002: BooksL2TbtExponentUpdateEventDecoder, // BooksL2TbtExponentUpdateEvent
-                1005: TradesChannelEventDecoder, // TradesChannelEvent
+                '1000': BboTbtChannelEventDecoder, // BboTbtChannelEvent
+                '1001': BooksL2TbtChannelEventDecoder, // BooksL2TbtChannelEvent
+                '1002': BooksL2TbtExponentUpdateEventDecoder, // BooksL2TbtExponentUpdateEvent
+                '1005': TradesChannelEventDecoder, // TradesChannelEvent
             };
             // Decode message using registry
             const result = this.decodeSbeMessage (message, decoderRegistry);
@@ -2623,8 +2623,20 @@ export default class okx extends okxRest {
         }
         const orderbook = this.orderbooks[symbol];
         // Convert to standard format [price, size]
-        const bids = processed.bids ? processed.bids.map (bid => [ bid.px, bid.sz ]) : [];
-        const asks = processed.asks ? processed.asks.map (ask => [ ask.px, ask.sz ]) : [];
+        const bids = [];
+        if (processed.bids) {
+            for (let i = 0; i < processed.bids.length; i++) {
+                const bid = processed.bids[i];
+                bids.push ([ bid.px, bid.sz ]);
+            }
+        }
+        const asks = [];
+        if (processed.asks) {
+            for (let i = 0; i < processed.asks.length; i++) {
+                const ask = processed.asks[i];
+                asks.push ([ ask.px, ask.sz ]);
+            }
+        }
         const snapshot = {
             'bids': bids,
             'asks': asks,

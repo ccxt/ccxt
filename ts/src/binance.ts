@@ -5264,19 +5264,11 @@ export default class binance extends Exchange {
                 'X-MBX-SBE': sbeSchemaId + ':' + sbeSchemaVersion,
             };
             // Call request directly with headers as a separate parameter
+            // handleRestResponse will automatically call decodeSbeResponse for SBE responses
             response = await this.request ('trades', 'public', 'GET', this.extend (request, params), sbeHeaders, undefined);
-            // Decode SBE response
-            if (this.verbose) {
-                this.log ('fetchTrades SBE response type:', typeof response, 'is ArrayBuffer:', response instanceof ArrayBuffer, 'is View:', ArrayBuffer.isView (response));
-            }
-            if (response instanceof ArrayBuffer || ArrayBuffer.isView (response) || (response && response.byteLength !== undefined)) {
-                // Convert to ArrayBuffer if it's a typed array view
-                const buffer = response instanceof ArrayBuffer ? response : response.buffer;
-                const decodedTrades = this.decodeSbeTrades (buffer, market);
-                response = decodedTrades;
-            } else if (response && typeof response === 'object' && ('priceExponent' in response || 'qtyExponent' in response || 'trades' in response)) {
-                // Response is a decoded SBE object from generated decoders
-                // Extract exponents and trades
+            // Response is already decoded by decodeSbeResponse via handleRestResponse
+            // Extract exponents and trades from decoded SBE object
+            if (response && typeof response === 'object' && ('priceExponent' in response || 'qtyExponent' in response || 'trades' in response)) {
                 const priceExponent = response['priceExponent'] || 0;
                 const qtyExponent = response['qtyExponent'] || 0;
                 const sbeTradesArray = response['trades'] || response['trade'] || response['Trade'] || [];
@@ -5305,10 +5297,6 @@ export default class binance extends Exchange {
                     });
                 }
                 response = normalizedTrades;
-            } else {
-                if (this.verbose) {
-                    this.log ('fetchTrades: Response is not binary or decoded SBE, got:', response);
-                }
             }
         } else if (market['option'] || method === 'eapiPublicGetTrades') {
             response = await this.eapiPublicGetTrades (this.extend (request, params));
@@ -12207,49 +12195,49 @@ export default class binance extends Exchange {
         return this['sbeDecoder'];
     }
 
+    getSbeDecoderRegistry () {
+        // Registry mapping template IDs to decoder classes
+        return {
+            '100': ErrorResponseDecoder,
+            '103': ExchangeInfoResponseDecoder,
+            '200': DepthResponseDecoder,
+            '201': TradesResponseDecoder,
+            '211': BookTickerSymbolResponseDecoder,
+            '212': BookTickerResponseDecoder,
+        };
+    }
+
     decodeSbeResponse (buffer: ArrayBuffer, url: string) {
-        // Use generic SBE decoder that follows the spec
-        // The decoder automatically handles all message types defined in the schema
+        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
         if (this.verbose) {
             this.log ('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength);
         }
         // Extract endpoint from URL for special handling
         const urlParts = url.split ('/');
-        const endpoint = urlParts[urlParts.length - 1].split ('?')[0];
+        const ulrPartsLength = urlParts.length;
+        const path = this.safeString (urlParts, ulrPartsLength - 1, '');
+        const pathSplit = path.split ('?');
+        const pathSplitLength = pathSplit.length;
+        const endpoint = this.safeString (pathSplit, pathSplitLength - 1, '');
         try {
-            // Read template ID to determine which decoder to use
-            const bufferView = new Uint8Array (buffer);
-            const templateId = this.readSbeTemplateId (bufferView);
+            // Use global decodeSbeMessage with Binance decoder registry
+            const decoderRegistry = this.getSbeDecoderRegistry ();
+            const result = this.decodeSbeMessage (buffer, decoderRegistry);
+            const templateId = result['templateId'];
+            const decoded = result['data'];
             if (this.verbose) {
                 this.log ('decodeSbeResponse: Template ID:', templateId, 'Endpoint:', endpoint);
             }
-            let decoded: any;
-            // Route to appropriate decoder based on template ID
-            // SBE messages have an 8-byte header, message body starts at offset 8
-            const messageBodyOffset = 8;
-            if (templateId === 100) { // ErrorResponse
-                decoded = new ErrorResponseDecoder ().decode (buffer, messageBodyOffset);
-                // Convert error response to an exception
-                const errorMsg = new TextDecoder ().decode (decoded.msg);
+            // Handle ErrorResponse specially - convert to exception
+            if (templateId === 100) {
+                const errorMsg = this.decode (decoded.msg);
                 throw new ExchangeError (this.id + ' SBE error response: code=' + decoded.code + ', msg=' + errorMsg);
-            } else if (templateId === 103) { // ExchangeInfoResponse
-                decoded = new ExchangeInfoResponseDecoder ().decode (buffer, messageBodyOffset);
-            } else if (templateId === 200) { // DepthResponse
-                decoded = new DepthResponseDecoder ().decode (buffer, messageBodyOffset);
-            } else if (templateId === 201) { // TradesResponse
-                decoded = new TradesResponseDecoder ().decode (buffer, messageBodyOffset);
-            } else if (templateId === 211) { // BookTickerSymbolResponse
-                decoded = new BookTickerSymbolResponseDecoder ().decode (buffer, messageBodyOffset);
-            } else if (templateId === 212) { // BookTickerResponse
-                decoded = new BookTickerResponseDecoder ().decode (buffer, messageBodyOffset);
-            } else {
-                throw new NotSupported (this.id + ' decodeSbeResponse() unknown template ID: ' + templateId + ' for endpoint: ' + endpoint);
             }
             if (this.verbose) {
                 this.log ('decodeSbeResponse: Successfully decoded SBE message');
-                const decodedType = (decoded && decoded.constructor) ? decoded.constructor.name : typeof decoded;
+                const decodedType = (decoded && decoded.constructor) ? decoded.constructor.name : 'unknown';
                 this.log ('decodeSbeResponse: Message type:', decodedType);
-                if (decoded && typeof decoded === 'object') {
+                if (decoded && (typeof decoded === 'object') && !Array.isArray (decoded)) {
                     const allKeys = Object.keys (decoded);
                     this.log ('decodeSbeResponse: Message keys (total ' + allKeys.length + '):', allKeys);
                     // Show decoded object structure for debugging

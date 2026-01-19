@@ -240,21 +240,23 @@ export default class binance extends binanceRest {
             this.log ('decodeSbeNestedMessage: templateId:', templateId, 'buffer length:', buffer.byteLength);
         }
         // Create an ArrayBuffer from the Uint8Array for the decoder
-        const arrayBuffer = new Uint8Array (buffer).buffer;
+        const arrayBuffer = buffer.buffer.slice (buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
         // Decode based on template ID
         // Skip the 8-byte message header when decoding the message body
         const messageOffset = 8;
         try {
-            if (templateId === 200) { // DepthResponse
-                return new DepthResponseDecoder ().decode (arrayBuffer, messageOffset);
-            } else if (templateId === 201) { // TradesResponse
-                return new TradesResponseDecoder ().decode (arrayBuffer, messageOffset);
-            } else if (templateId === 400) { // AccountResponse
-                return new AccountResponseDecoder ().decode (arrayBuffer, messageOffset);
-            } else if (templateId === 403) { // OrderResponse
-                return new OrderResponseDecoder ().decode (arrayBuffer, messageOffset);
-            } else if (templateId === 404) { // OrdersResponse
-                return new OrdersResponseDecoder ().decode (arrayBuffer, messageOffset);
+            // Use decoder registry pattern for better transpilation
+            const decoderRegistry = {
+                '200': DepthResponseDecoder,
+                '201': TradesResponseDecoder,
+                '400': AccountResponseDecoder,
+                '403': OrderResponseDecoder,
+                '404': OrdersResponseDecoder,
+            };
+            const DecoderClass = decoderRegistry[templateId];
+            if (DecoderClass) {
+                const decoder = new DecoderClass ();
+                return decoder.decode (arrayBuffer, messageOffset);
             } else {
                 if (this.verbose) {
                     this.log ('decodeSbeNestedMessage: unknown template ID:', templateId);
@@ -295,7 +297,7 @@ export default class binance extends binanceRest {
                 }
             }
             // Convert Uint8Array ID to string
-            const idString = new TextDecoder ().decode (decoded.id);
+            const idString = this.decode (decoded.id);
             // Clean up the decoded structure to match expected JSON format
             const cleanMessage: any = {
                 'id': idString,

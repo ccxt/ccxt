@@ -2102,13 +2102,13 @@ export default class okx extends Exchange {
          * @returns {object} decoded orderbook data with bids, asks, and metadata
          */
         // Convert buffer to ArrayBuffer if needed
-        let arrayBuffer: ArrayBuffer;
+        let arrayBuffer: any;
         if (response instanceof Uint8Array) {
             arrayBuffer = response.buffer.slice (response.byteOffset, response.byteOffset + response.byteLength);
         } else if (Buffer.isBuffer (response)) {
-            const uint8Array = new Uint8Array (response.length);
-            uint8Array.set (new Uint8Array (response));
-            arrayBuffer = uint8Array.buffer;
+            // In JavaScript/TypeScript: convert Buffer to ArrayBuffer
+            // The transpiler will convert this to equivalent Python code
+            arrayBuffer = response.buffer.slice (response.byteOffset, response.byteOffset + response.byteLength);
         } else {
             arrayBuffer = response;
         }
@@ -2121,8 +2121,20 @@ export default class okx extends Exchange {
         // Auto-apply exponents to mantissas
         const processedData = this.applySbeExponents (decoded);
         // Convert bids/asks to standard format
-        const bids = processedData.bids ? processedData.bids.map ((bid) => [ bid.px, bid.sz ]) : [];
-        const asks = processedData.asks ? processedData.asks.map ((ask) => [ ask.px, ask.sz ]) : [];
+        const bids = [];
+        const asks = [];
+        if (processedData.bids) {
+            for (let i = 0; i < processedData.bids.length; i++) {
+                const bid = processedData.bids[i];
+                bids.push ([ bid.px, bid.sz ]);
+            }
+        }
+        if (processedData.asks) {
+            for (let i = 0; i < processedData.asks.length; i++) {
+                const ask = processedData.asks[i];
+                asks.push ([ ask.px, ask.sz ]);
+            }
+        }
         return {
             'instIdCode': Number (decoded.instIdCode),
             'timestamp': Number (decoded.tsUs) / 1000, // convert microseconds to milliseconds
@@ -2200,10 +2212,13 @@ export default class okx extends Exchange {
                 const size = szMantissa * Math.pow (10, szExponent);
                 orderbook['bids'].push ([ price, size, ordCount ]);
             }
-            return orderbook as OrderBook;
-        } finally {
             // Restore previous useSbe setting
             this.options['useSbe'] = previousUseSbe;
+            return orderbook as OrderBook;
+        } catch (e) {
+            // Restore previous useSbe setting on error
+            this.options['useSbe'] = previousUseSbe;
+            throw e;
         }
     }
 
@@ -6686,7 +6701,7 @@ export default class okx extends Exchange {
         }
     }
 
-    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
+    async handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
         const responseHeaders = this.getResponseHeaders (response);
         const contentType = this.safeString (responseHeaders, 'Content-Type', '');
         if (this.verbose) {
@@ -6699,19 +6714,18 @@ export default class okx extends Exchange {
                 if (this.verbose) {
                     this.log ('handleRestResponse: Detected SBE response, calling arrayBuffer()');
                 }
-                return response.arrayBuffer ().then ((responseBuffer) => {
-                    if (this.enableLastResponseHeaders) {
-                        this.last_response_headers = responseHeaders;
-                    }
-                    if (this.enableLastHttpResponse) {
-                        this.last_http_response = responseBuffer;
-                    }
-                    if (this.verbose) {
-                        this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', responseBuffer.byteLength, '\n');
-                    }
-                    // Automatically decode SBE response
-                    return this.decodeSbeResponse (responseBuffer, url);
-                });
+                const responseBuffer = await response.arrayBuffer ();
+                if (this.enableLastResponseHeaders) {
+                    this.last_response_headers = responseHeaders;
+                }
+                if (this.enableLastHttpResponse) {
+                    this.last_http_response = responseBuffer;
+                }
+                if (this.verbose) {
+                    this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', responseBuffer.byteLength, '\n');
+                }
+                // Automatically decode SBE response
+                return this.decodeSbeResponse (responseBuffer, url);
             }
         }
         // Fallback to parent implementation
