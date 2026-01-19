@@ -170,6 +170,20 @@ The list above is updated frequently, new crypto markets, exchanges, bug fixes, 
 
 The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
+### Builder Code Exchanges
+
+
+
+<!--- init builder codes list --->
+|logo                                                                                                                               |id           |name                                         |ver                                                                                                                               |type                                                                                                   |certified                                                                                                                    |pro                                                                           |
+|-----------------------------------------------------------------------------------------------------------------------------------|-------------|---------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------:|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [![hyperliquid](https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b)](https://app.hyperliquid.xyz/) | hyperliquid | [Hyperliquid](https://app.hyperliquid.xyz/) | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api) | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+<!--- end list -->
+
+
+CCXT participates in builder programs with the exchanges listed above, which means that in order to support the CCXT project users pay a small fee (1 bps) on top of the exchanges' fees when using the exchanges' API through CCXT. This is optional and can be disabled by setting `exchange.options['builderFee'] = False`. For all other exchanges no additional fee is charged and in some cases you receive discounts or special conditions by using CCXT.
+
+
 ---
 
 ## Install
