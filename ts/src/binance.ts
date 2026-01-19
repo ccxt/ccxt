@@ -10,12 +10,69 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { TradesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TradesResponse.js';
-import { BookTickerResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/BookTickerResponse.js';
-import { BookTickerSymbolResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/BookTickerSymbolResponse.js';
+// SBE Decoders - WebSocket (50-54)
+import { WebSocketResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketResponse.js';
+import { WebSocketSessionLogonResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketSessionLogonResponse.js';
+import { WebSocketSessionStatusResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketSessionStatusResponse.js';
+import { WebSocketSessionLogoutResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketSessionLogoutResponse.js';
+import { WebSocketSessionSubscriptionsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketSessionSubscriptionsResponse.js';
+// SBE Decoders - General (100-105)
 import { ErrorResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/ErrorResponse.js';
+import { PingResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/PingResponse.js';
+import { ServerTimeResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/ServerTimeResponse.js';
 import { ExchangeInfoResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/ExchangeInfoResponse.js';
+import { MyFiltersResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/MyFiltersResponse.js';
+// SBE Decoders - Market Data (200-216)
 import { DepthResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/DepthResponse.js';
+import { TradesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TradesResponse.js';
+import { AggTradesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AggTradesResponse.js';
+import { KlinesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/KlinesResponse.js';
+import { AveragePriceResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AveragePriceResponse.js';
+import { Ticker24hSymbolFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/Ticker24hSymbolFullResponse.js';
+import { Ticker24hFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/Ticker24hFullResponse.js';
+import { Ticker24hSymbolMiniResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/Ticker24hSymbolMiniResponse.js';
+import { Ticker24hMiniResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/Ticker24hMiniResponse.js';
+import { PriceTickerSymbolResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/PriceTickerSymbolResponse.js';
+import { PriceTickerResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/PriceTickerResponse.js';
+import { BookTickerSymbolResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/BookTickerSymbolResponse.js';
+import { BookTickerResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/BookTickerResponse.js';
+import { TickerSymbolFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TickerSymbolFullResponse.js';
+import { TickerFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TickerFullResponse.js';
+import { TickerSymbolMiniResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TickerSymbolMiniResponse.js';
+import { TickerMiniResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TickerMiniResponse.js';
+// SBE Decoders - Trading (300-317)
+import { NewOrderAckResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderAckResponse.js';
+import { NewOrderResultResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderResultResponse.js';
+import { NewOrderFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderFullResponse.js';
+import { OrderTestResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderTestResponse.js';
+import { OrderResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderResponse.js';
+import { CancelOrderResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/CancelOrderResponse.js';
+import { CancelOpenOrdersResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/CancelOpenOrdersResponse.js';
+import { CancelReplaceOrderResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/CancelReplaceOrderResponse.js';
+import { OrdersResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrdersResponse.js';
+import { NewOrderListAckResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderListAckResponse.js';
+import { NewOrderListResultResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderListResultResponse.js';
+import { NewOrderListFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderListFullResponse.js';
+import { CancelOrderListResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/CancelOrderListResponse.js';
+import { OrderListResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderListResponse.js';
+import { OrderListsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderListsResponse.js';
+import { OrderTestWithCommissionsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderTestWithCommissionsResponse.js';
+import { OrderAmendmentsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderAmendmentsResponse.js';
+import { OrderAmendKeepPriorityResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderAmendKeepPriorityResponse.js';
+// SBE Decoders - Account (400-405)
+import { AccountResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountResponse.js';
+import { AccountTradesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountTradesResponse.js';
+import { AccountOrderRateLimitResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountOrderRateLimitResponse.js';
+import { AccountPreventedMatchesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountPreventedMatchesResponse.js';
+import { AccountAllocationsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountAllocationsResponse.js';
+import { AccountCommissionResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountCommissionResponse.js';
+// SBE Decoders - User Data Stream (500-505)
+import { UserDataStreamStartResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamStartResponse.js';
+import { UserDataStreamPingResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamPingResponse.js';
+import { UserDataStreamStopResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamStopResponse.js';
+import { UserDataStreamSubscribeResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamSubscribeResponse.js';
+import { UserDataStreamUnsubscribeResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamUnsubscribeResponse.js';
+import { UserDataStreamSubscribeListenTokenResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamSubscribeListenTokenResponse.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -12198,12 +12255,69 @@ export default class binance extends Exchange {
     getSbeDecoderRegistry () {
         // Registry mapping template IDs to decoder classes
         return {
+            // WebSocket (50-54)
+            '50': WebSocketResponseDecoder,
+            '51': WebSocketSessionLogonResponseDecoder,
+            '52': WebSocketSessionStatusResponseDecoder,
+            '53': WebSocketSessionLogoutResponseDecoder,
+            '54': WebSocketSessionSubscriptionsResponseDecoder,
+            // General (100-105)
             '100': ErrorResponseDecoder,
+            '101': PingResponseDecoder,
+            '102': ServerTimeResponseDecoder,
             '103': ExchangeInfoResponseDecoder,
+            '105': MyFiltersResponseDecoder,
+            // Market Data (200-216)
             '200': DepthResponseDecoder,
             '201': TradesResponseDecoder,
+            '202': AggTradesResponseDecoder,
+            '203': KlinesResponseDecoder,
+            '204': AveragePriceResponseDecoder,
+            '205': Ticker24hSymbolFullResponseDecoder,
+            '206': Ticker24hFullResponseDecoder,
+            '207': Ticker24hSymbolMiniResponseDecoder,
+            '208': Ticker24hMiniResponseDecoder,
+            '209': PriceTickerSymbolResponseDecoder,
+            '210': PriceTickerResponseDecoder,
             '211': BookTickerSymbolResponseDecoder,
             '212': BookTickerResponseDecoder,
+            '213': TickerSymbolFullResponseDecoder,
+            '214': TickerFullResponseDecoder,
+            '215': TickerSymbolMiniResponseDecoder,
+            '216': TickerMiniResponseDecoder,
+            // Trading (300-317)
+            '300': NewOrderAckResponseDecoder,
+            '301': NewOrderResultResponseDecoder,
+            '302': NewOrderFullResponseDecoder,
+            '303': OrderTestResponseDecoder,
+            '304': OrderResponseDecoder,
+            '305': CancelOrderResponseDecoder,
+            '306': CancelOpenOrdersResponseDecoder,
+            '307': CancelReplaceOrderResponseDecoder,
+            '308': OrdersResponseDecoder,
+            '309': NewOrderListAckResponseDecoder,
+            '310': NewOrderListResultResponseDecoder,
+            '311': NewOrderListFullResponseDecoder,
+            '312': CancelOrderListResponseDecoder,
+            '313': OrderListResponseDecoder,
+            '314': OrderListsResponseDecoder,
+            '315': OrderTestWithCommissionsResponseDecoder,
+            '316': OrderAmendmentsResponseDecoder,
+            '317': OrderAmendKeepPriorityResponseDecoder,
+            // Account (400-405)
+            '400': AccountResponseDecoder,
+            '401': AccountTradesResponseDecoder,
+            '402': AccountOrderRateLimitResponseDecoder,
+            '403': AccountPreventedMatchesResponseDecoder,
+            '404': AccountAllocationsResponseDecoder,
+            '405': AccountCommissionResponseDecoder,
+            // User Data Stream (500-505)
+            '500': UserDataStreamStartResponseDecoder,
+            '501': UserDataStreamPingResponseDecoder,
+            '502': UserDataStreamStopResponseDecoder,
+            '503': UserDataStreamSubscribeResponseDecoder,
+            '504': UserDataStreamUnsubscribeResponseDecoder,
+            '505': UserDataStreamSubscribeListenTokenResponseDecoder,
         };
     }
 
