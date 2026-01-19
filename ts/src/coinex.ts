@@ -3470,9 +3470,13 @@ export default class coinex extends Exchange {
      * @description cancel all open orders in a market
      * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
      * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
+     * @see https://docs.coinex.com/api/v2/futures/position/http/cancel-position-stop-loss
+     * @see https://docs.coinex.com/api/v2/futures/position/http/cancel-position-take-profit
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' for canceling spot margin orders
+     * @param {boolean} [params.stopLoss] set to true for canceling all stop loss orders
+     * @param {boolean} [params.takeProfit] set to true for canceling all take profit orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -3481,16 +3485,28 @@ export default class coinex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const isStopLossTriggerOrder = this.safeBool (params, 'stopLoss');
+        const isTakeProfitTriggerOrder = this.safeBool (params, 'takeProfit');
+        const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
         const request: Dict = {
             'market': market['id'],
         };
         let response = undefined;
         if (market['swap']) {
             request['market_type'] = 'FUTURES';
-            response = await this.v2PrivatePostFuturesCancelAllOrder (this.extend (request, params));
-            //
-            // {"code":0,"data":{},"message":"OK"}
-            //
+            if (isStopLossOrTakeProfitTrigger) {
+                if (isStopLossTriggerOrder) {
+                    response = await this.v2PrivatePostFuturesCancelPositionStopLoss (this.extend (request, params));
+                } else if (isTakeProfitTriggerOrder) {
+                    response = await this.v2PrivatePostFuturesCancelPositionTakeProfit (this.extend (request, params));
+                }
+            } else {
+                response = await this.v2PrivatePostFuturesCancelAllOrder (this.extend (request, params));
+                //
+                // {"code":0,"data":{},"message":"OK"}
+                //
+            }
         } else {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
@@ -3504,11 +3520,12 @@ export default class coinex extends Exchange {
             // {"code":0,"data":{},"message":"OK"}
             //
         }
-        return [
-            this.safeOrder ({
-                'info': response,
-            }),
-        ];
+        const data = this.safeValue (response, 'data');
+        if (data !== undefined && Array.isArray (data)) {
+            return this.parseOrders (data, market, undefined, undefined, params);
+        } else {
+            return this.parseOrders ([ data ], market, undefined, undefined, params);
+        }
     }
 
     /**
