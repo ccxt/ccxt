@@ -3466,7 +3466,7 @@
                     "markPrice": 92805.3,
                     "lastPrice": null,
                     "collateral": 0.00000109,
-                    "marginMode": "cross",
+                    "marginMode": null,
                     "side": "long",
                     "percentage": null,
                     "stopLossPrice": 0,
