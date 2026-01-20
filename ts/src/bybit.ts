@@ -581,6 +581,7 @@ export default class bybit extends Exchange {
                         'v5/crypto-loan/adjust-ltv': 5,
                         // crypto loan (new)
                         'v5/crypto-loan-common/adjust-ltv': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/max-loan': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-flexible/borrow': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/crypto-loan-flexible/repay': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/crypto-loan-flexible/repay-collateral': 50, // 1/s => cost = 50 / 1 = 50
@@ -1085,6 +1086,7 @@ export default class bybit extends Exchange {
                 'enableDemoTrading': false,
                 'fetchMarkets': {
                     'types': [ 'spot', 'linear', 'inverse', 'option' ],
+                    'options': [ 'BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE' ],
                 },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
@@ -1802,25 +1804,33 @@ export default class bybit extends Exchange {
             } else if (marketType === 'inverse') {
                 promisesUnresolved.push (this.fetchFutureMarkets ({ 'category': 'inverse' }));
             } else if (marketType === 'option') {
-                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'BTC' }));
-                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'ETH' }));
-                promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': 'SOL' }));
+                const optionsCurrencies = this.safeList (fetchMarketsOptions, 'options', [ 'BTC', 'ETH', 'SOL' ]);
+                for (let j = 0; j < optionsCurrencies.length; j++) {
+                    const currency = optionsCurrencies[j];
+                    promisesUnresolved.push (this.fetchOptionMarkets ({ 'baseCoin': currency }));
+                }
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
         }
         const promises = await Promise.all (promisesUnresolved);
-        const spotMarkets = this.safeList (promises, 0, []);
-        const linearMarkets = this.safeList (promises, 1, []);
-        const inverseMarkets = this.safeList (promises, 2, []);
-        const btcOptionMarkets = this.safeList (promises, 3, []);
-        const ethOptionMarkets = this.safeList (promises, 4, []);
-        const solOptionMarkets = this.safeList (promises, 5, []);
-        const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
-        let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
-        optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
-        const derivativeMarkets = this.arrayConcat (futureMarkets, optionMarkets);
-        return this.arrayConcat (spotMarkets, derivativeMarkets);
+        let result = [];
+        for (let i = 0; i < promises.length; i++) {
+            const parsedMarket = promises[i];
+            result = this.arrayConcat (result, parsedMarket);
+        }
+        // const spotMarkets = this.safeList (promises, 0, []);
+        // const linearMarkets = this.safeList (promises, 1, []);
+        // const inverseMarkets = this.safeList (promises, 2, []);
+        // const btcOptionMarkets = this.safeList (promises, 3, []);
+        // const ethOptionMarkets = this.safeList (promises, 4, []);
+        // const solOptionMarkets = this.safeList (promises, 5, []);
+        // const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
+        // let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
+        // optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
+        // const derivativeMarkets = this.arrayConcat (futureMarkets, optionMarkets);
+        // return this.arrayConcat (spotMarkets, derivativeMarkets);
+        return result;
     }
 
     async fetchSpotMarkets (params): Promise<Market[]> {
