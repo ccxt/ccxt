@@ -1102,6 +1102,7 @@ class bybit(Exchange, ImplicitAPI):
                 'enableDemoTrading': False,
                 'fetchMarkets': {
                     'types': ['spot', 'linear', 'inverse', 'option'],
+                    'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
                 },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
@@ -1785,23 +1786,29 @@ class bybit(Exchange, ImplicitAPI):
             elif marketType == 'inverse':
                 promisesUnresolved.append(self.fetch_future_markets({'category': 'inverse'}))
             elif marketType == 'option':
-                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'BTC'}))
-                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'ETH'}))
-                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'SOL'}))
+                optionsCurrencies = self.safe_list(fetchMarketsOptions, 'options', ['BTC', 'ETH', 'SOL'])
+                for j in range(0, len(optionsCurrencies)):
+                    currency = optionsCurrencies[j]
+                    promisesUnresolved.append(self.fetch_option_markets({'baseCoin': currency}))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promisesUnresolved)
-        spotMarkets = self.safe_list(promises, 0, [])
-        linearMarkets = self.safe_list(promises, 1, [])
-        inverseMarkets = self.safe_list(promises, 2, [])
-        btcOptionMarkets = self.safe_list(promises, 3, [])
-        ethOptionMarkets = self.safe_list(promises, 4, [])
-        solOptionMarkets = self.safe_list(promises, 5, [])
-        futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
-        optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
-        optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)
-        derivativeMarkets = self.array_concat(futureMarkets, optionMarkets)
-        return self.array_concat(spotMarkets, derivativeMarkets)
+        result = []
+        for i in range(0, len(promises)):
+            parsedMarket = promises[i]
+            result = self.array_concat(result, parsedMarket)
+        # spotMarkets = self.safe_list(promises, 0, [])
+        # linearMarkets = self.safe_list(promises, 1, [])
+        # inverseMarkets = self.safe_list(promises, 2, [])
+        # btcOptionMarkets = self.safe_list(promises, 3, [])
+        # ethOptionMarkets = self.safe_list(promises, 4, [])
+        # solOptionMarkets = self.safe_list(promises, 5, [])
+        # futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
+        # optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
+        # optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)
+        # derivativeMarkets = self.array_concat(futureMarkets, optionMarkets)
+        # return self.array_concat(spotMarkets, derivativeMarkets)
+        return result
 
     async def fetch_spot_markets(self, params) -> List[Market]:
         request: dict = {
