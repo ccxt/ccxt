@@ -607,7 +607,6 @@ Below is a detailed description of each of the base exchange properties:
   ```
 - `returnResponseHeaders`: If set to `true`, the HTTP response headers from the exchange will be included in the `responseHeaders` property inside the `info` field of the returned result for REST API calls. This can be useful for accessing metadata such as rate limit information or exchange-specific headers. By default, this is `false` and headers are not included in the response. Note: it's only supported when response is an object and not a list or string
 
-
 - `markets`: An associative array of markets indexed by common trading pairs or symbols. Markets should be loaded prior to accessing this property. Markets are unavailable until you call the `loadMarkets() / load_markets()` method on exchange instance.
 
 - `symbols`: A non-associative array (a list) of symbols available with an exchange, sorted in alphabetical order. These are the keys of the `markets` property. Symbols are loaded and reloaded from markets. This property is a convenient shorthand for all market keys.
@@ -630,7 +629,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `precisionMode`: The exchange decimal precision counting mode, read more about [Precision And Limits](#precision-and-limits)
 
-- For proxies - `proxyUrl`, `httpUrl`, `httpsUrl`, `socksProxy`, `wsProxy`, `wssProxy`, `wsSocksProxy` : An url of specific proxy. Read details in [Proxy](#proxy) section.
+- For proxies - `proxyUrl`, `httpUrl`, `httpsUrl`, `socksProxy`, `wsProxy`, `wssProxy`, `wsSocksProxy` : An url of specific proxy. See the [Proxy](#proxy) section for more details.
 
 See this section on [Overriding exchange properties](#overriding-exchange-properties-upon-instantiation).
 
@@ -685,18 +684,18 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
 
 Exchanges usually impose what is called a *rate limit*. Exchanges will remember and track your user credentials and your IP address and will not allow you to query the API too frequently. They balance their load and control traffic congestion to protect API servers from (D)DoS and misuse.
 
-CCXT supports two different rate-limiting algorithms:
-
-- **leaky bucket (default)**: works by queueing requests and releasing them at a steady, fixed rate. Bursts of requests are smoothed out over time rather than executed immediately, which helps prevent hitting exchange rate limits while still allowing short spikes in activity to be handled gracefully.
-- **window-based rate limiter**:  If the user provides the `{ 'rateLimiterAlgorithm': 'rollingWindow' }` option, ccxt switches from the leaky bucket model to a window-based rate limiter (the size of the window can be customized by providing `rollingWindowSize: X0000`, CCXT uses 60s as the default windowSize). A window-based limiter enforces a maximum number of requests within a fixed time window (for example, N requests per X milliseconds). Once the limit is reached, further requests are delayed until the current window expires.
-
 **WARNING: Stay under the rate limit to avoid ban!**
 
 Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may temporarily restrict your access to their API or ban you for some period of time if you are too aggressive with your requests.
 
 **The `exchange.rateLimit` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the user to tweak `rateLimit` according to application-specific purposes.**
 
-The CCXT library has a built-in experimental rate-limiter that will do the necessary throttling in background transparently to the user. **WARNING: users are responsible for at least some type of rate-limiting: either by implementing a custom algorithm or by doing it with the built-in rate-limiter.**.
+The CCXT library has built-in experimental rate-limiter algorithms that will do the necessary throttling in background transparently to the user. **WARNING: users are responsible for at least some type of rate-limiting: either by implementing a custom algorithm or by doing it with the built-in rate-limiter.**
+
+CCXT has the following built-in rate-limiting algorithms:
+
+- **Leaky Bucket (default)**: Works by queueing requests and releasing them at a steady, fixed rate. Bursts of requests are smoothed out over time rather than executed immediately, which helps prevent hitting exchange rate limits while still allowing short spikes in activity to be handled gracefully.
+- **Window-Based (optional)**:  If the user provides the `{ 'rateLimiterAlgorithm': 'rollingWindow' }` option, ccxt switches from the leaky bucket model to a window-based rate limiter (the size of the window can be customized by providing `rollingWindowSize: X0000`, CCXT uses 60s as the default windowSize). A window-based limiter enforces a maximum number of requests within a fixed time window (for example, N requests per X milliseconds). Once the limit is reached, further requests are delayed until the current window expires.
 
 You can turn on/off the built-in rate-limiter with `.enableRateLimit` property, like so:
 
@@ -846,9 +845,9 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 
 ## Maximum Requests capacity
 
-In asynchronous programming, CCXT allows you to schedule an unlimited number of requests. However, there is a default queue limit of 1,000 concurrent requests. If you attempt to enqueue more than this limit, you will encounter the error: "throttle queue is over maxCapacity".
+In asynchronous programming, CCXT allows you to schedule an unlimited number of requests. However, there's a limit on the queue length which is by default set to 1000 concurrent requests max. If you attempt to enqueue more than that, you will encounter the error: "throttle queue is over maxCapacity".
 
-In most cases, having such a large number of pending tasks indicates suboptimal design, as new requests will be delayed until the existing tasks complete.
+In most cases, having so many pending tasks indicates suboptimal design, as new requests will be delayed until the existing tasks complete.
 
 That said, users who wish to bypass this restriction can increase the default maxCapacity during instantiation as shown below:
 
