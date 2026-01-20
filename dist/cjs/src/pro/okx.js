@@ -1860,7 +1860,7 @@ class okx extends okx$1["default"] {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrders(client, message, subscription = undefined) {
+    handleOrders(client, message) {
         //
         //     {
         //         "arg":{

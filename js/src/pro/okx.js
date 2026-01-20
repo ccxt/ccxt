@@ -1863,7 +1863,7 @@ export default class okx extends okxRest {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrders(client, message, subscription = undefined) {
+    handleOrders(client, message) {
         //
         //     {
         //         "arg":{

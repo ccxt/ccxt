@@ -341,6 +341,7 @@ interface Exchange {
     privatePostV5CryptoLoanRepay(params?: {}): Promise<implicitReturnType>;
     privatePostV5CryptoLoanAdjustLtv(params?: {}): Promise<implicitReturnType>;
     privatePostV5CryptoLoanCommonAdjustLtv(params?: {}): Promise<implicitReturnType>;
+    privatePostV5CryptoLoanCommonMaxLoan(params?: {}): Promise<implicitReturnType>;
     privatePostV5CryptoLoanFlexibleBorrow(params?: {}): Promise<implicitReturnType>;
     privatePostV5CryptoLoanFlexibleRepay(params?: {}): Promise<implicitReturnType>;
     privatePostV5CryptoLoanFlexibleRepayCollateral(params?: {}): Promise<implicitReturnType>;
