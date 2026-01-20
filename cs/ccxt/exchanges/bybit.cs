@@ -7196,7 +7196,16 @@ public partial class bybit : Exchange
                 side = null;
             }
         }
-        object notional = this.safeString2(position, "positionValue", "cumExitValue");
+        object notional = null;
+        object contractSize = this.safeString(market, "contractSize");
+        object markPrice = this.safeString(position, "markPrice");
+        if (isTrue(getValue(market, "inverse")))
+        {
+            notional = Precise.stringDiv(Precise.stringMul(size, contractSize), markPrice);
+        } else
+        {
+            notional = this.safeString2(position, "positionValue", "cumExitValue");
+        }
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         object initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         object maintenanceMarginString = this.safeString(position, "positionMM");
@@ -7208,7 +7217,6 @@ public partial class bybit : Exchange
         }
         object collateralString = this.safeString(position, "positionBalance");
         object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
-        object markPrice = this.safeString(position, "markPrice");
         object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         object leverage = this.safeString(position, "leverage");
         if (isTrue(!isEqual(liquidationPrice, null)))
