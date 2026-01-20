@@ -596,6 +596,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/crypto-loan/adjust-ltv': 5,
                         # crypto loan(new)
                         'v5/crypto-loan-common/adjust-ltv': 50,  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/max-loan': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-flexible/borrow': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/crypto-loan-flexible/repay': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/crypto-loan-flexible/repay-collateral': 50,  # 1/s => cost = 50 / 1 = 50
