@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var binance = require('./binance.js');
 var binanceus$1 = require('../binanceus.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class binanceus extends binance["default"] {
     describe() {

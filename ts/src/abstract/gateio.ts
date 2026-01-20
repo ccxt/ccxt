@@ -198,6 +198,7 @@ interface gate {
     privateFuturesGetSettleAccountBook (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePositions (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettlePositionsContract (params?: {}): Promise<implicitReturnType>;
+    privateFuturesGetSettleGetLeverageContract (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleDualCompPositionsContract (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleOrders (params?: {}): Promise<implicitReturnType>;
     privateFuturesGetSettleOrdersTimerange (params?: {}): Promise<implicitReturnType>;
@@ -213,10 +214,12 @@ interface gate {
     privateFuturesGetSettlePriceOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePositionsContractMargin (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePositionsContractLeverage (params?: {}): Promise<implicitReturnType>;
+    privateFuturesPostSettlePositionsContractSetLeverage (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePositionsContractRiskLimit (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettlePositionsCrossMode (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettleDualCompPositionsCrossMode (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettleDualMode (params?: {}): Promise<implicitReturnType>;
+    privateFuturesPostSettleSetPositionMode (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettleDualCompPositionsContractMargin (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettleDualCompPositionsContractLeverage (params?: {}): Promise<implicitReturnType>;
     privateFuturesPostSettleDualCompPositionsContractRiskLimit (params?: {}): Promise<implicitReturnType>;
@@ -279,6 +282,7 @@ interface gate {
     privateEarnGetUniRate (params?: {}): Promise<implicitReturnType>;
     privateEarnGetStakingEth2RateRecords (params?: {}): Promise<implicitReturnType>;
     privateEarnGetDualOrders (params?: {}): Promise<implicitReturnType>;
+    privateEarnGetDualBalance (params?: {}): Promise<implicitReturnType>;
     privateEarnGetStructuredOrders (params?: {}): Promise<implicitReturnType>;
     privateEarnGetStakingCoins (params?: {}): Promise<implicitReturnType>;
     privateEarnGetStakingOrderList (params?: {}): Promise<implicitReturnType>;
@@ -335,6 +339,15 @@ interface gate {
     privateRebateGetBrokerTransactionHistory (params?: {}): Promise<implicitReturnType>;
     privateRebateGetUserInfo (params?: {}): Promise<implicitReturnType>;
     privateRebateGetUserSubRelation (params?: {}): Promise<implicitReturnType>;
+    privateOtcGetGetUserDefBank (params?: {}): Promise<implicitReturnType>;
+    privateOtcGetOrderList (params?: {}): Promise<implicitReturnType>;
+    privateOtcGetStableCoinOrderList (params?: {}): Promise<implicitReturnType>;
+    privateOtcGetOrderDetail (params?: {}): Promise<implicitReturnType>;
+    privateOtcPostQuote (params?: {}): Promise<implicitReturnType>;
+    privateOtcPostOrderCreate (params?: {}): Promise<implicitReturnType>;
+    privateOtcPostStableCoinOrderCreate (params?: {}): Promise<implicitReturnType>;
+    privateOtcPostOrderPaid (params?: {}): Promise<implicitReturnType>;
+    privateOtcPostOrderCancel (params?: {}): Promise<implicitReturnType>;
 }
 abstract class gate extends _gate {}
 

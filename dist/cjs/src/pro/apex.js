@@ -7,7 +7,7 @@ var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class apex extends apex$1["default"] {
     describe() {

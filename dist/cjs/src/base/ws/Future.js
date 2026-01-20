@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var unpromise = require('../../static_dependencies/watchable/src/unpromise.js');
 
-// ----------------------------------------------------------------------------
+// @ts-nocheck
 function Future() {
     let resolve = undefined, reject = undefined;
     const p = new Promise((resolve_, reject_) => {
