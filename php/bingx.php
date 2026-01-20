@@ -5485,7 +5485,7 @@ class bingx extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
          * @param {array} [$params] parameters specific to the bingx api endpoint
-         * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         * @return {array} A ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         $type = $this->safe_integer($params, 'type'); // 1 increase margin 2 decrease margin
         if ($type === null) {
