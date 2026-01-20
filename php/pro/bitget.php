@@ -958,7 +958,20 @@ class bitget extends \ccxt\async\bitget {
             }
         } else {
             $orderbook = $this->order_book(array());
-            $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp);
+            $bidsKey = 'bids';
+            $asksKey = 'asks';
+            // bitget UTA has `a` and `b` instead of `$asks` and `$bids`
+            if (is_array($rawOrderBook) && array_key_exists('a', $rawOrderBook)) {
+                if (!(is_array($rawOrderBook) && array_key_exists('asks', $rawOrderBook))) {
+                    $asksKey = 'a';
+                }
+            }
+            if (is_array($rawOrderBook) && array_key_exists('b', $rawOrderBook)) {
+                if (!(is_array($rawOrderBook) && array_key_exists('bids', $rawOrderBook))) {
+                    $bidsKey = 'b';
+                }
+            }
+            $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp, $bidsKey, $asksKey);
             $orderbook->reset ($parsedOrderbook);
             $this->orderbooks[$symbol] = $orderbook;
         }

@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class
@@ -1470,7 +1470,7 @@ class zebpay extends zebpay$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
      * @param {string} [params.positionId] PositionId of the order to add margin.
      * @param {string} [params.timestamp] Tiemstamp.
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         await this.loadMarkets();
@@ -1514,7 +1514,7 @@ class zebpay extends zebpay$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
      * @param {string} [params.positionId] PositionId of the order to add margin.
      * @param {string} [params.timestamp] Tiemstamp.
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         await this.loadMarkets();

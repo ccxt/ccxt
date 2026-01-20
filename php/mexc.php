@@ -4244,7 +4244,7 @@ class mexc extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
@@ -4258,7 +4258,7 @@ class mexc extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
     }

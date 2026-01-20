@@ -69,6 +69,18 @@
         ],
         "createOrder": [
             {
+                "description": "order with non ascii symbol",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                    "人生K线/USDT:USDT",
+                    "market",
+                    "buy",
+                    100
+                ],
+                "output": "{\"contract\":\"人生K线_USDT\",\"size\":100,\"price\":\"0\",\"tif\":\"ioc\"}"
+            },
+            {
                 "description": "Spot limit buy order",
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/spot/orders",
@@ -569,6 +581,15 @@
             }
         ],
         "fetchClosedOrders": [
+            {
+                "description": "request with non ascii symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders?contract=%E4%BA%BA%E7%94%9FK%E7%BA%BF_USDT&status=finished",
+                "input": [
+                    "人生K线/USDT:USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "Spot closed orders",
                 "method": "fetchClosedOrders",

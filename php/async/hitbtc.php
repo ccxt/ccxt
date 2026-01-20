@@ -3566,7 +3566,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for reducing spot-margin
-             * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             if ($this->number_to_string($amount) !== '0') {
                 throw new BadRequest($this->id . ' reduceMargin() on hitbtc requires the $amount to be 0 and that will remove the entire margin amount');
@@ -3588,7 +3588,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for adding spot-margin
-             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
         }) ();

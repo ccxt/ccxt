@@ -3969,7 +3969,7 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: amount of margin to add
         :param dict params: extra parameters specific to the xt api endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
@@ -3983,7 +3983,7 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the xt api endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 

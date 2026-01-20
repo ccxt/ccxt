@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class okx
@@ -4998,7 +4998,7 @@ class okx extends okx$1["default"] {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -6181,7 +6181,7 @@ class okx extends okx$1["default"] {
             initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise["default"].stringMul(initialMarginPercentage, notionalString);
+            initialMarginString = Precise["default"].stringDiv(Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -7335,7 +7335,7 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
@@ -7348,7 +7348,7 @@ class okx extends okx$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'add', params);

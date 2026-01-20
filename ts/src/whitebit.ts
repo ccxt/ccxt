@@ -2962,7 +2962,7 @@ export default class whitebit extends Exchange {
             'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'tagFrom': undefined,
-            'tag': undefined,
+            'tag': this.safeString (transaction, 'memo'),
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'description'),
             'internal': undefined,

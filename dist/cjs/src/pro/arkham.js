@@ -7,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class arkham extends arkham$1["default"] {
     describe() {
@@ -120,7 +120,7 @@ class arkham extends arkham$1["default"] {
         //     volume24h: '32.89729',
         //     quoteVolume24h: '3924438.7146048',
         //     markPrice: '0',
-        //     indexPrice: '118963.080293501',
+        //     indexPrice: '118963.080293502',
         //     fundingRate: '0',
         //     nextFundingRate: '0',
         //     nextFundingTime: 0,

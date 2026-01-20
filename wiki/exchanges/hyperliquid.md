@@ -976,7 +976,7 @@ hyperliquid.setLeverage (leverage, symbol[, params])
 add margin
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin  
 
@@ -1000,7 +1000,7 @@ hyperliquid.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin  
 
@@ -1100,7 +1100,7 @@ hyperliquid.fetchTradingFee (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 
 | Param | Type | Required | Description |

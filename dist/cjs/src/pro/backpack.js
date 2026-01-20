@@ -8,7 +8,7 @@ var Cache = require('../base/ws/Cache.js');
 var crypto = require('../base/functions/crypto.js');
 var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class backpack extends backpack$1["default"] {
     describe() {

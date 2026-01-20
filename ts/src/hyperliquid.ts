@@ -3034,6 +3034,7 @@ export default class hyperliquid extends Exchange {
         if (entry === undefined) {
             entry = order;
         }
+        const filled = this.safeDict (order, 'filled', {});
         const coin = this.safeString (entry, 'coin');
         let marketId = undefined;
         if (coin !== undefined) {
@@ -3078,7 +3079,7 @@ export default class hyperliquid extends Exchange {
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString (entry, 'avgPx'),
-            'filled': Precise.stringSub (totalAmount, remaining),
+            'filled': this.safeString (filled, 'totalSz', Precise.stringSub (totalAmount, remaining)),
             'remaining': remaining,
             'status': this.parseOrderStatus (status),
             'fee': undefined,
@@ -3555,7 +3556,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
@@ -3571,7 +3572,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
@@ -4000,7 +4001,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();

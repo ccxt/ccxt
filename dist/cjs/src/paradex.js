@@ -10,7 +10,7 @@ var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
@@ -1843,7 +1843,7 @@ class paradex extends paradex$1["default"] {
         //         "prev": null,
         //         "results": [
         //             {
-        //                 "id": "1718947571560201703986670001",
+        //                 "id": "1718947571560201703986670002",
         //                 "side": "BUY",
         //                 "liquidity": "TAKER",
         //                 "market": "BTC-USD-PERP",

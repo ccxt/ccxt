@@ -331,7 +331,7 @@ export default class okx extends okxRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any, subscription?: any): void;
+    handleOrders(client: Client, message: any): void;
     handleMyTrades(client: Client, message: any): void;
     requestId(): string;
     /**

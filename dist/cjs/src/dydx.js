@@ -10,7 +10,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class dydx
@@ -1767,7 +1767,7 @@ class dydx extends dydx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] wallet address that made trades
      * @param {string} [params.subAccountNumber] sub account number
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

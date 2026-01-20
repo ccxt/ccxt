@@ -4398,7 +4398,7 @@ public partial class xt : Exchange
      * @param {float} amount amount of margin to add
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -4415,7 +4415,7 @@ public partial class xt : Exchange
      * @param {float} amount the amount of margin to remove
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {

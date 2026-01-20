@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class okx extends okx$1["default"] {
     describe() {
@@ -1860,7 +1860,7 @@ class okx extends okx$1["default"] {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrders(client, message, subscription = undefined) {
+    handleOrders(client, message) {
         //
         //     {
         //         "arg":{

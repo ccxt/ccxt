@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class ndax
@@ -1305,7 +1305,7 @@ class ndax extends ndax$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);

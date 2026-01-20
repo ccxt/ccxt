@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.32';
+$version = '4.5.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.32';
+    const VERSION = '4.5.34';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -341,6 +341,7 @@ class Exchange {
     public $quoteCurrencies = null;
 
     public static $exchanges = array(
+        'alp',
         'alpaca',
         'apex',
         'arkham',
@@ -372,7 +373,6 @@ class Exchange {
         'bitvavo',
         'blockchaincom',
         'blofin',
-        'btcalpha',
         'btcbox',
         'btcmarkets',
         'btcturk',

@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class coincatch
@@ -4896,7 +4896,7 @@ class coincatch extends coincatch$1["default"] {
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         params['methodName'] = 'reduceMargin';
@@ -4911,7 +4911,7 @@ class coincatch extends coincatch$1["default"] {
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         params['methodName'] = 'addMargin';
@@ -5193,7 +5193,7 @@ class coincatch extends coincatch$1["default"] {
      * @param {string} [params.business] *swap only*
      * @param {string} [params.lastEndId] *swap only*
      * @param {bool} [params.next] *swap only*
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchLedger';

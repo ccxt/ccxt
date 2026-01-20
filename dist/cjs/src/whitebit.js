@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class whitebit
@@ -2547,7 +2547,7 @@ class whitebit extends whitebit$1["default"] {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        return this.parseTransactions(this.safeList(response, 'records', []), currency, since, limit);
     }
     /**
      * @method
@@ -2941,7 +2941,7 @@ class whitebit extends whitebit$1["default"] {
             'status': this.parseTransactionStatus(status),
             'updated': undefined,
             'tagFrom': undefined,
-            'tag': undefined,
+            'tag': this.safeString(transaction, 'memo'),
             'tagTo': undefined,
             'comment': this.safeString(transaction, 'description'),
             'internal': undefined,

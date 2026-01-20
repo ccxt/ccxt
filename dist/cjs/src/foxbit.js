@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class foxbit
@@ -1542,7 +1542,7 @@ class foxbit extends foxbit$1["default"] {
         }
         const response = await this.v3PrivatePostWithdrawals(this.extend(request, params));
         // {
-        //     "amount": "1",
+        //     "amount": "2",
         //     "currency_symbol": "xrp",
         //     "network_code": "ripple",
         //     "destination_address": "0x1234567890123456789012345678",

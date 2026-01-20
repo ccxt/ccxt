@@ -1952,7 +1952,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function handle_orders(Client $client, $message, $subscription = null) {
+    public function handle_orders(Client $client, $message) {
         //
         //     {
         //         "arg":array(

@@ -11,7 +11,7 @@ var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class modetrade
@@ -2374,7 +2374,7 @@ class modetrade extends modetrade$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
