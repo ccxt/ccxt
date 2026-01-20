@@ -6745,7 +6745,14 @@ export default class bybit extends Exchange {
                 side = undefined;
             }
         }
-        const notional = this.safeString2 (position, 'positionValue', 'cumExitValue');
+        let notional = undefined;
+        const contractSize = this.safeString (market, 'contractSize');
+        const markPrice = this.safeString (position, 'markPrice');
+        if (market['inverse']) {
+            notional = Precise.stringDiv (Precise.stringMul (size, contractSize), markPrice);
+        } else {
+            notional = this.safeString2 (position, 'positionValue', 'cumExitValue');
+        }
         const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
         let initialMarginString = this.safeString2 (position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString (position, 'positionMM');
@@ -6764,7 +6771,6 @@ export default class bybit extends Exchange {
         }
         let collateralString = this.safeString (position, 'positionBalance');
         const entryPrice = this.omitZero (this.safeStringN (position, [ 'entryPrice', 'avgPrice', 'avgEntryPrice' ]));
-        const markPrice = this.safeString (position, 'markPrice');
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
         if (liquidationPrice !== undefined) {
