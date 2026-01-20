@@ -653,7 +653,16 @@ func BuildTypedDataFromJS(primaryType string, domain map[string]interface{}, raw
 
 // ComputeTypedDataDigest returns the EIP-712 digest keccak256("\x19\x01" || domainSeparator || hashStruct(message)).
 func ComputeTypedDataDigest(td apitypes.TypedData) ([32]byte, error) {
-	return td.ComputeTypedDataHash()
+	domainSeparator, err := td.HashStruct("EIP712Domain", td.Domain.Map())
+	if err != nil {
+		return [32]byte{}, err
+	}
+	typedDataHash, err := td.HashStruct(td.PrimaryType, td.Message)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
+	return crypto.Keccak256Hash(rawData), nil
 }
 
 func toTypedDataTypes(rawTypes map[string]interface{}) (map[string][]apitypes.Type, string, error) {
@@ -694,14 +703,14 @@ func toTypedDataDomain(domain map[string]interface{}) (apitypes.TypedDataDomain,
 		d.Version = v
 	}
 	if v, ok := domain["verifyingContract"].(string); ok {
-		d.VerifyingContract = common.HexToAddress(v)
+		d.VerifyingContract = v
 	}
 	if v, ok := domain["chainId"]; ok {
 		bi, err := toBigInt(v)
 		if err != nil {
 			return d, fmt.Errorf("chainId: %w", err)
 		}
-		d.ChainId = bi
+		d.ChainId = (*math.HexOrDecimal256)(bi)
 	}
 	return d, nil
 }
