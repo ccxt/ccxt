@@ -1080,6 +1080,7 @@ class bybit extends Exchange {
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'linear', 'inverse', 'option' ),
+                    'options' => array( 'BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE' ),
                 ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
@@ -1797,25 +1798,33 @@ class bybit extends Exchange {
             } elseif ($marketType === 'inverse') {
                 $promisesUnresolved[] = $this->fetch_future_markets(array( 'category' => 'inverse' ));
             } elseif ($marketType === 'option') {
-                $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'BTC' ));
-                $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'ETH' ));
-                $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'SOL' ));
+                $optionsCurrencies = $this->safe_list($fetchMarketsOptions, 'options', array( 'BTC', 'ETH', 'SOL' ));
+                for ($j = 0; $j < count($optionsCurrencies); $j++) {
+                    $currency = $optionsCurrencies[$j];
+                    $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => $currency ));
+                }
             } else {
                 throw new ExchangeError($this->id . ' fetchMarkets() $this->options fetchMarkets "' . $marketType . '" is not a supported market type');
             }
         }
         $promises = $promisesUnresolved;
-        $spotMarkets = $this->safe_list($promises, 0, array());
-        $linearMarkets = $this->safe_list($promises, 1, array());
-        $inverseMarkets = $this->safe_list($promises, 2, array());
-        $btcOptionMarkets = $this->safe_list($promises, 3, array());
-        $ethOptionMarkets = $this->safe_list($promises, 4, array());
-        $solOptionMarkets = $this->safe_list($promises, 5, array());
-        $futureMarkets = $this->array_concat($linearMarkets, $inverseMarkets);
-        $optionMarkets = $this->array_concat($btcOptionMarkets, $ethOptionMarkets);
-        $optionMarkets = $this->array_concat($optionMarkets, $solOptionMarkets);
-        $derivativeMarkets = $this->array_concat($futureMarkets, $optionMarkets);
-        return $this->array_concat($spotMarkets, $derivativeMarkets);
+        $result = array();
+        for ($i = 0; $i < count($promises); $i++) {
+            $parsedMarket = $promises[$i];
+            $result = $this->array_concat($result, $parsedMarket);
+        }
+        // $spotMarkets = $this->safe_list($promises, 0, array());
+        // $linearMarkets = $this->safe_list($promises, 1, array());
+        // $inverseMarkets = $this->safe_list($promises, 2, array());
+        // $btcOptionMarkets = $this->safe_list($promises, 3, array());
+        // $ethOptionMarkets = $this->safe_list($promises, 4, array());
+        // $solOptionMarkets = $this->safe_list($promises, 5, array());
+        // $futureMarkets = $this->array_concat($linearMarkets, $inverseMarkets);
+        // $optionMarkets = $this->array_concat($btcOptionMarkets, $ethOptionMarkets);
+        // $optionMarkets = $this->array_concat($optionMarkets, $solOptionMarkets);
+        // $derivativeMarkets = $this->array_concat($futureMarkets, $optionMarkets);
+        // return $this->array_concat($spotMarkets, $derivativeMarkets);
+        return $result;
     }
 
     public function fetch_spot_markets($params): array {
