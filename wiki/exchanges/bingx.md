@@ -1117,7 +1117,7 @@ bingx.setMarginMode (marginMode, symbol[, params])
 Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin  
 
