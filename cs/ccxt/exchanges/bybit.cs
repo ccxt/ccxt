@@ -521,6 +521,7 @@ public partial class bybit : Exchange
                         { "v5/crypto-loan/repay", 5 },
                         { "v5/crypto-loan/adjust-ltv", 5 },
                         { "v5/crypto-loan-common/adjust-ltv", 50 },
+                        { "v5/crypto-loan-common/max-loan", 10 },
                         { "v5/crypto-loan-flexible/borrow", 50 },
                         { "v5/crypto-loan-flexible/repay", 50 },
                         { "v5/crypto-loan-flexible/repay-collateral", 50 },
@@ -7198,16 +7199,6 @@ public partial class bybit : Exchange
         {
             lastUpdateTimestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt", "updatedTime"});
         }
-        object tradeMode = this.safeInteger(position, "tradeMode", 0);
-        object marginMode = null;
-        if (isTrue(isTrue((!isTrue(getValue(this.options, "enableUnifiedAccount")))) || isTrue((isTrue(getValue(this.options, "enableUnifiedAccount")) && isTrue(getValue(market, "inverse"))))))
-        {
-            // tradeMode would work for classic and UTA(inverse)
-            if (!isTrue(isHistory))
-            {
-                marginMode = ((bool) isTrue((isEqual(tradeMode, 1)))) ? "isolated" : "cross";
-            }
-        }
         object collateralString = this.safeString(position, "positionBalance");
         object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
         object markPrice = this.safeString(position, "markPrice");
@@ -7279,7 +7270,7 @@ public partial class bybit : Exchange
             { "markPrice", this.parseNumber(markPrice) },
             { "lastPrice", this.safeNumber(position, "avgExitPrice") },
             { "collateral", this.parseNumber(collateralString) },
-            { "marginMode", marginMode },
+            { "marginMode", null },
             { "side", side },
             { "percentage", null },
             { "stopLossPrice", this.safeNumber2(position, "stop_loss", "stopLoss") },

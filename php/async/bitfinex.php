@@ -555,10 +555,6 @@ class bitfinex extends Exchange {
         return (is_array($this->options['fiat']) && array_key_exists($code, $this->options['fiat']));
     }
 
-    public function get_currency_id($code) {
-        return 'f' . $code;
-    }
-
     public function get_currency_name($code) {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (is_array($this->options['currencyNames']) && array_key_exists($code, $this->options['currencyNames'])) {
@@ -675,8 +671,8 @@ class bitfinex extends Exchange {
                 $base = $this->safe_string($splitBase, 0);
                 $quote = $this->safe_string($splitQuote, 0);
                 $symbol = $base . '/' . $quote;
-                $baseId = $this->get_currency_id($baseId);
-                $quoteId = $this->get_currency_id($quoteId);
+                // $baseId = 'f' . $baseId;
+                // $quoteId = 'f' . $quoteId;
                 $settle = null;
                 $settleId = null;
                 if ($swap) {
@@ -899,7 +895,6 @@ class bitfinex extends Exchange {
                 $fee = $this->safe_number($fees, 1);
                 $undl = $this->safe_list($indexed['undl'], $id, array());
                 $precision = '8'; // default $precision, todo => fix "magic constants"
-                $fid = 'f' . $id;
                 $dwStatuses = $this->safe_list($indexed['statuses'], $id, array());
                 $depositEnabled = $this->safe_integer($dwStatuses, 1) === 1;
                 $withdrawEnabled = $this->safe_integer($dwStatuses, 2) === 1;
@@ -926,8 +921,7 @@ class bitfinex extends Exchange {
                     );
                 }
                 $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $fid,
-                    'uppercaseId' => $id,
+                    'id' => $id,
                     'code' => $code,
                     'info' => array( $id, $label, $pool, $feeValues, $undl ),
                     'type' => $type,
@@ -2774,7 +2768,7 @@ class bitfinex extends Exchange {
             $response = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
-                $request['currency'] = $currency['uppercaseId'];
+                $request['currency'] = $currency['id'];
                 $response = Async\await($this->privatePostAuthRMovementsCurrencyHist ($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privatePostAuthRMovementsHist ($this->extend($request, $params)));
@@ -3194,7 +3188,7 @@ class bitfinex extends Exchange {
             $response = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
-                $request['currency'] = $currency['uppercaseId'];
+                $request['currency'] = $currency['id'];
                 $response = Async\await($this->privatePostAuthRLedgersCurrencyHist ($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privatePostAuthRLedgersHist ($this->extend($request, $params)));

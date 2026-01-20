@@ -565,9 +565,6 @@ class bitfinex(Exchange, ImplicitAPI):
     def is_fiat(self, code):
         return(code in self.options['fiat'])
 
-    def get_currency_id(self, code):
-        return 'f' + code
-
     def get_currency_name(self, code):
         # temporary fix for transpiler recognition, even though self is in parent class
         if code in self.options['currencyNames']:
@@ -674,8 +671,8 @@ class bitfinex(Exchange, ImplicitAPI):
             base = self.safe_string(splitBase, 0)
             quote = self.safe_string(splitQuote, 0)
             symbol = base + '/' + quote
-            baseId = self.get_currency_id(baseId)
-            quoteId = self.get_currency_id(quoteId)
+            # baseId = 'f' + baseId
+            # quoteId = 'f' + quoteId
             settle = None
             settleId = None
             if swap:
@@ -889,7 +886,6 @@ class bitfinex(Exchange, ImplicitAPI):
             fee = self.safe_number(fees, 1)
             undl = self.safe_list(indexed['undl'], id, [])
             precision = '8'  # default precision, todo: fix "magic constants"
-            fid = 'f' + id
             dwStatuses = self.safe_list(indexed['statuses'], id, [])
             depositEnabled = self.safe_integer(dwStatuses, 1) == 1
             withdrawEnabled = self.safe_integer(dwStatuses, 2) == 1
@@ -915,8 +911,7 @@ class bitfinex(Exchange, ImplicitAPI):
                     },
                 }
             result[code] = self.safe_currency_structure({
-                'id': fid,
-                'uppercaseId': id,
+                'id': id,
                 'code': code,
                 'info': [id, label, pool, feeValues, undl],
                 'type': type,
@@ -2605,7 +2600,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['uppercaseId']
+            request['currency'] = currency['id']
             response = await self.privatePostAuthRMovementsCurrencyHist(self.extend(request, params))
         else:
             response = await self.privatePostAuthRMovementsHist(self.extend(request, params))
@@ -2990,7 +2985,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['uppercaseId']
+            request['currency'] = currency['id']
             response = await self.privatePostAuthRLedgersCurrencyHist(self.extend(request, params))
         else:
             response = await self.privatePostAuthRLedgersHist(self.extend(request, params))

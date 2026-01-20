@@ -1367,6 +1367,10 @@ func (this *BybitCore) PrivatePostV5CryptoLoanCommonAdjustLtv(args ...interface{
 	return this.callEndpointAsync("privatePostV5CryptoLoanCommonAdjustLtv", args...)
 }
 
+func (this *BybitCore) PrivatePostV5CryptoLoanCommonMaxLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanCommonMaxLoan", args...)
+}
+
 func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleBorrow(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleBorrow", args...)
 }

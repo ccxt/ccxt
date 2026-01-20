@@ -585,6 +585,7 @@ class bybit extends Exchange {
                         'v5/crypto-loan/adjust-ltv' => 5,
                         // crypto loan (new)
                         'v5/crypto-loan-common/adjust-ltv' => 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/max-loan' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-flexible/borrow' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/crypto-loan-flexible/repay' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/crypto-loan-flexible/repay-collateral' => 50, // 1/s => cost = 50 / 1 = 50
@@ -6852,14 +6853,6 @@ class bybit extends Exchange {
         if ($lastUpdateTimestamp === null) {
             $lastUpdateTimestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt', 'updatedTime' ));
         }
-        $tradeMode = $this->safe_integer($position, 'tradeMode', 0);
-        $marginMode = null;
-        if ((!$this->options['enableUnifiedAccount']) || ($this->options['enableUnifiedAccount'] && $market['inverse'])) {
-            // $tradeMode would work for classic and UTA(inverse)
-            if (!$isHistory) {     // cannot tell $marginMode for fetchPositionsHistory, and $closedSize will only be defined for fetchPositionsHistory response
-                $marginMode = ($tradeMode === 1) ? 'isolated' : 'cross';
-            }
-        }
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
         $markPrice = $this->safe_string($position, 'markPrice');
@@ -6924,7 +6917,7 @@ class bybit extends Exchange {
             'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => $this->safe_number($position, 'avgExitPrice'),
             'collateral' => $this->parse_number($collateralString),
-            'marginMode' => $marginMode,
+            'marginMode' => null, // tradeMode was deprecated
             'side' => $side,
             'percentage' => null,
             'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),

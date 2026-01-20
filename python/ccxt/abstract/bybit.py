@@ -342,6 +342,7 @@ class ImplicitAPI:
     private_post_v5_crypto_loan_repay = privatePostV5CryptoLoanRepay = Entry('v5/crypto-loan/repay', 'private', 'POST', {'cost': 5})
     private_post_v5_crypto_loan_adjust_ltv = privatePostV5CryptoLoanAdjustLtv = Entry('v5/crypto-loan/adjust-ltv', 'private', 'POST', {'cost': 5})
     private_post_v5_crypto_loan_common_adjust_ltv = privatePostV5CryptoLoanCommonAdjustLtv = Entry('v5/crypto-loan-common/adjust-ltv', 'private', 'POST', {'cost': 50})
+    private_post_v5_crypto_loan_common_max_loan = privatePostV5CryptoLoanCommonMaxLoan = Entry('v5/crypto-loan-common/max-loan', 'private', 'POST', {'cost': 10})
     private_post_v5_crypto_loan_flexible_borrow = privatePostV5CryptoLoanFlexibleBorrow = Entry('v5/crypto-loan-flexible/borrow', 'private', 'POST', {'cost': 50})
     private_post_v5_crypto_loan_flexible_repay = privatePostV5CryptoLoanFlexibleRepay = Entry('v5/crypto-loan-flexible/repay', 'private', 'POST', {'cost': 50})
     private_post_v5_crypto_loan_flexible_repay_collateral = privatePostV5CryptoLoanFlexibleRepayCollateral = Entry('v5/crypto-loan-flexible/repay-collateral', 'private', 'POST', {'cost': 50})

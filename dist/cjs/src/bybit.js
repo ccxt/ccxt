@@ -6764,14 +6764,6 @@ class bybit extends bybit$1["default"] {
         if (lastUpdateTimestamp === undefined) {
             lastUpdateTimestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt', 'updatedTime']);
         }
-        const tradeMode = this.safeInteger(position, 'tradeMode', 0);
-        let marginMode = undefined;
-        if ((!this.options['enableUnifiedAccount']) || (this.options['enableUnifiedAccount'] && market['inverse'])) {
-            // tradeMode would work for classic and UTA(inverse)
-            if (!isHistory) { // cannot tell marginMode for fetchPositionsHistory, and closedSize will only be defined for fetchPositionsHistory response
-                marginMode = (tradeMode === 1) ? 'isolated' : 'cross';
-            }
-        }
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
         const markPrice = this.safeString(position, 'markPrice');
@@ -6838,7 +6830,7 @@ class bybit extends bybit$1["default"] {
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': this.safeNumber(position, 'avgExitPrice'),
             'collateral': this.parseNumber(collateralString),
-            'marginMode': marginMode,
+            'marginMode': undefined,
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),
