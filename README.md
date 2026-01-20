@@ -388,7 +388,7 @@ exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
-Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
+Read the [Manual](https://github.com/ccxt/ccxt/wiki/) and see [examples](https://github.com/ccxt/ccxt/tree/master/examples) for more details.
 
 ### JavaScript
 
