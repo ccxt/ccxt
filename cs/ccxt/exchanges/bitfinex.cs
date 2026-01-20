@@ -496,11 +496,6 @@ public partial class bitfinex : Exchange
         return (inOp(getValue(this.options, "fiat"), code));
     }
 
-    public virtual object getCurrencyId(object code)
-    {
-        return add("f", code);
-    }
-
     public virtual object getCurrencyName(object code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
@@ -632,8 +627,8 @@ public partial class bitfinex : Exchange
             bs = this.safeString(splitBase, 0);
             quote = this.safeString(splitQuote, 0);
             object symbol = add(add(bs, "/"), quote);
-            baseId = this.getCurrencyId(baseId);
-            quoteId = this.getCurrencyId(quoteId);
+            // baseId = 'f' + baseId;
+            // quoteId = 'f' + quoteId;
             object settle = null;
             object settleId = null;
             if (isTrue(swap))
@@ -850,7 +845,6 @@ public partial class bitfinex : Exchange
             object fee = this.safeNumber(fees, 1);
             object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
             object precision = "8"; // default precision, todo: fix "magic constants"
-            object fid = add("f", id);
             object dwStatuses = this.safeList(getValue(indexed, "statuses"), id, new List<object>() {});
             object depositEnabled = isEqual(this.safeInteger(dwStatuses, 1), 1);
             object withdrawEnabled = isEqual(this.safeInteger(dwStatuses, 2), 1);
@@ -878,8 +872,7 @@ public partial class bitfinex : Exchange
                 };
             }
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", fid },
-                { "uppercaseId", id },
+                { "id", id },
                 { "code", code },
                 { "info", new List<object>() {id, label, pool, feeValues, undl} },
                 { "type", type },
@@ -2868,7 +2861,7 @@ public partial class bitfinex : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "uppercaseId");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             response = await this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters));
         } else
         {
@@ -3338,7 +3331,7 @@ public partial class bitfinex : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "uppercaseId");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             response = await this.privatePostAuthRLedgersCurrencyHist(this.extend(request, parameters));
         } else
         {
