@@ -1828,19 +1828,19 @@ export default class grvt extends Exchange {
             const market = this.market (leg['instrument']);
             const bigInt10 = this.convertToBigIntCustom ('10');
             const precisionValue = this.precisionFromString (this.safeString (market['precision'], 'base'));
-            const sizeMultiplier = bigInt10 ** this.convertToBigIntCustom (precisionValue.toString ());
+            const sizeMultiplier = Math.pow (bigInt10, this.convertToBigIntCustom (precisionValue.toString ()));
             const size = leg['size'];
             const sizeParts = size.split ('.');
             const sizeDec = this.safeString (sizeParts, 1, '');
             const sizeDecLength = sizeDec.length;
             const sizeDecLengthStr = sizeDecLength.toString ();
-            const size_int = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (bigInt10 ** this.convertToBigIntCustom (sizeDecLengthStr));
+            const size_int = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
             const price = leg['limit_price'];
             const limitParts = price.split ('.');
             const limitDec = this.safeString (limitParts, 1, '');
             const limitDecLength = limitDec.length;
             const limitDecLengthStr = limitDecLength.toString ();
-            const price_int = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (bigInt10 ** this.convertToBigIntCustom (limitDecLengthStr)));
+            const price_int = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, this.convertToBigIntCustom (limitDecLengthStr))));
             legs.push ({
                 'assetID': market['info']['instrument_hash'],
                 'contractSize': this.parseToInt (size_int),
@@ -2887,7 +2887,7 @@ export default class grvt extends Exchange {
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const privateKeyWithoutZero = this.remove0xPrefix (this.secret);
-        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1);
+        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
         request['signature']['r'] = this.formatSignatureRS (signature['r']);
         request['signature']['s'] = this.formatSignatureRS (signature['s']);
         request['signature']['v'] = this.sum (27, signature['v']);
