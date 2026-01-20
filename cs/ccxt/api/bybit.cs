@@ -1711,6 +1711,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privatePostV5CryptoLoanCommonAdjustLtv",parameters);
     }
 
+    public async Task<object> privatePostV5CryptoLoanCommonMaxLoan (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5CryptoLoanCommonMaxLoan",parameters);
+    }
+
     public async Task<object> privatePostV5CryptoLoanFlexibleBorrow (object parameters = null)
     {
         return await this.callAsync ("privatePostV5CryptoLoanFlexibleBorrow",parameters);

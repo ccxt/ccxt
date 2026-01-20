@@ -521,6 +521,7 @@ public partial class bybit : Exchange
                         { "v5/crypto-loan/repay", 5 },
                         { "v5/crypto-loan/adjust-ltv", 5 },
                         { "v5/crypto-loan-common/adjust-ltv", 50 },
+                        { "v5/crypto-loan-common/max-loan", 10 },
                         { "v5/crypto-loan-flexible/borrow", 50 },
                         { "v5/crypto-loan-flexible/repay", 50 },
                         { "v5/crypto-loan-flexible/repay-collateral", 50 },
