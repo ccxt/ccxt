@@ -3139,9 +3139,9 @@ export default class delta extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3151,6 +3151,7 @@ export default class delta extends Exchange {
             'product_id': market['numericId'],
             'leverage': leverage,
         };
+        const response = await this.privatePostProductsProductIdOrdersLeverage (this.extend (request, params));
         //
         //     {
         //         "result": {
@@ -3162,7 +3163,8 @@ export default class delta extends Exchange {
         //         "success": true
         //     }
         //
-        return await this.privatePostProductsProductIdOrdersLeverage (this.extend (request, params));
+        const data = this.safeDict (response, 'result', {});
+        return this.parseLeverage (data, market);
     }
 
     /**

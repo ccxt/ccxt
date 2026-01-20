@@ -3052,7 +3052,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
@@ -3108,7 +3108,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchMarginAdjustmentHistory() is not supported yet');
     }
 
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
 

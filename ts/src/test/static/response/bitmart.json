@@ -1402,6 +1402,42 @@
               }
             ]
           }
+        ],
+        "setLeverage": [
+          {
+            "description": "set the cross leverage",
+            "method": "setLeverage",
+            "input": [
+              10,
+              "BTC/USDT:USDT",
+              {
+                "marginMode": "cross"
+              }
+            ],
+            "httpResponse": {
+              "code": "1000",
+              "message": "Ok",
+              "data": {
+                "symbol": "BTCUSDT",
+                "leverage": "10",
+                "open_type": "cross",
+                "max_value": "200"
+              },
+              "trace": "25dd9383-6436-4226-9ced-46fd4f709b5d"
+            },
+            "parsedResponse": {
+              "info": {
+                "symbol": "BTCUSDT",
+                "leverage": "10",
+                "open_type": "cross",
+                "max_value": "200"
+              },
+              "symbol": "BTC/USDT:USDT",
+              "marginMode": "cross",
+              "longLeverage": 10,
+              "shortLeverage": 10
+            }
+          }
         ]
     }
 }

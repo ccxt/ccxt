@@ -5480,6 +5480,67 @@
                     }
                 }
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set isolated leverage",
+                "method": "setLeverage",
+                "input": [
+                    15,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1754262269777"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "OK",
+                        "result": {},
+                        "retExtInfo": {},
+                        "time": "1754262269777"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode to isolated for a symbol",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "Request accepted",
+                    "result": {
+                        "reasons": []
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "Request accepted",
+                        "result": {
+                            "reasons": []
+                        }
+                    },
+                    "symbol": null,
+                    "marginMode": null
+                }
+            }
         ]
     }
 }

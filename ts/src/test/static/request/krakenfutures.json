@@ -332,6 +332,17 @@
                 "url": "https://futures.kraken.com/derivatives/api/v3/instruments",
                 "input": []
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage",
+                "method": "setLeverage",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/leveragepreferences?maxLeverage=10&symbol=PF_XBTUSD",
+                "input": [
+                    10,
+                    "BTC/USD:USD"
+                ]
+            }
         ]
     }
 }

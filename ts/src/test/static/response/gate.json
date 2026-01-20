@@ -2761,6 +2761,97 @@
                   }
                 }
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage for an isolated swap symbol",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "value": "3607.64352",
+                    "leverage": "10",
+                    "mode": "single",
+                    "realised_point": "0",
+                    "contract": "BTC_USDT",
+                    "entry_price": "41784.262499999999",
+                    "mark_price": "115629.6",
+                    "history_point": "0",
+                    "realised_pnl": "-1005.91157293213",
+                    "close_order": null,
+                    "size": "312",
+                    "cross_leverage_limit": "100",
+                    "pending_orders": "0",
+                    "adl_ranking": "4",
+                    "maintenance_rate": "0.08",
+                    "unrealised_pnl": "2303.97453",
+                    "pnl_pnl": "0",
+                    "pnl_fee": "0",
+                    "pnl_fund": "-340.262410278336",
+                    "user": "10406147",
+                    "leverage_max": "125",
+                    "history_pnl": "-79.4853165514",
+                    "risk_limit": "40000000",
+                    "margin": "131.3446507425",
+                    "last_close_pnl": "-16.87533",
+                    "liq_price": "37753.83",
+                    "update_time": "1755941187",
+                    "update_id": "8",
+                    "initial_margin": "363.47008464",
+                    "maintenance_margin": "17.13630672",
+                    "open_time": "0",
+                    "trade_max_size": "0",
+                    "risk_limit_table": "COMM_100W5Y125X",
+                    "average_maintenance_rate": "0.004"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "value": "3607.64352",
+                        "leverage": "10",
+                        "mode": "single",
+                        "realised_point": "0",
+                        "contract": "BTC_USDT",
+                        "entry_price": "41784.262499999999",
+                        "mark_price": "115629.6",
+                        "history_point": "0",
+                        "realised_pnl": "-1005.91157293213",
+                        "close_order": null,
+                        "size": "312",
+                        "cross_leverage_limit": "100",
+                        "pending_orders": "0",
+                        "adl_ranking": "4",
+                        "maintenance_rate": "0.08",
+                        "unrealised_pnl": "2303.97453",
+                        "pnl_pnl": "0",
+                        "pnl_fee": "0",
+                        "pnl_fund": "-340.262410278336",
+                        "user": "10406147",
+                        "leverage_max": "125",
+                        "history_pnl": "-79.4853165514",
+                        "risk_limit": "40000000",
+                        "margin": "131.3446507425",
+                        "last_close_pnl": "-16.87533",
+                        "liq_price": "37753.83",
+                        "update_time": "1755941187",
+                        "update_id": "8",
+                        "initial_margin": "363.47008464",
+                        "maintenance_margin": "17.13630672",
+                        "open_time": "0",
+                        "trade_max_size": "0",
+                        "risk_limit_table": "COMM_100W5Y125X",
+                        "average_maintenance_rate": "0.004"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
         ]
     }
 }

@@ -902,6 +902,18 @@
                     5,
                     "BTC/USDT:USDT-240329"
                 ]
+            },
+            {
+                "description": "set isolated leverage",
+                "method": "setLeverage",
+                "url": "https://fx-api-testnet.gateio.ws/api/v4/futures/usdt/positions/BTC_USDT/leverage?leverage=10&marginMode=isolated",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ]
             }
         ],
         "fetchLeverageTiers": [

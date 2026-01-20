@@ -789,6 +789,81 @@
                     }
                 }
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode to isolated for a symbol",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": "XBTUSDTM",
+                        "marginMode": "ISOLATED"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "XBTUSDTM",
+                        "marginMode": "ISOLATED"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "isolated"
+                }
+            },
+            {
+                "description": "set the margin mode to cross for a symbol",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": "XBTUSDTM",
+                        "marginMode": "CROSS"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "XBTUSDTM",
+                        "marginMode": "CROSS"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage for a symbol with the marginMode param set to cross",
+                "method": "setLeverage",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": true
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
         ]
     }
 }

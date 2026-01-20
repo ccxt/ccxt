@@ -3126,7 +3126,7 @@
                 ]
             }
         ],
-        "fetchStatus":[
+      "fetchStatus":[
             {
                 "description": "fetch the server status",
                 "method": "fetchStatus",
@@ -3163,6 +3163,52 @@
                 ],
                 "httpResponse": {
                     "code": "200000",
+                    "data": {
+                        "tradeType": "SPOT",
+                        "serverStatus": "open",
+                        "msg": ""
+                    }
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "tradeType": "SPOT",
+                            "serverStatus": "open",
+                            "msg": ""
+                        }
+                    }
+                }
+            }
+        ],
+        "setLeverage":[
+            {
+                "description": "set the leverage for marginMode cross",
+                "method": "setLeverage",
+                "input": [
+                    5,
+                    null,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": null
+                    },
+                    "symbol": null,
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
                     "data": {
                         "tradeType": "SPOT",
                         "serverStatus": "open",

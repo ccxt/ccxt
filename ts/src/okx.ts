@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, MarginMode } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5817,32 +5817,28 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseLeverage (data, market);
+        const result = this.safeDict (data, 0, {});
+        return this.parseLeverage (result, market);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        let marketId = undefined;
-        let marginMode = undefined;
+        const marketId = this.safeString (leverage, 'instId');
+        const leverageValue = this.safeInteger (leverage, 'lever');
+        const positionSide = this.safeStringLower (leverage, 'posSide');
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        for (let i = 0; i < leverage.length; i++) {
-            const entry = leverage[i];
-            marginMode = this.safeStringLower (entry, 'mgnMode');
-            marketId = this.safeString (entry, 'instId');
-            const positionSide = this.safeStringLower (entry, 'posSide');
-            if (positionSide === 'long') {
-                longLeverage = this.safeInteger (entry, 'lever');
-            } else if (positionSide === 'short') {
-                shortLeverage = this.safeInteger (entry, 'lever');
-            } else {
-                longLeverage = this.safeInteger (entry, 'lever');
-                shortLeverage = this.safeInteger (entry, 'lever');
-            }
+        if (positionSide === 'long') {
+            longLeverage = leverageValue;
+        } else if (positionSide === 'short') {
+            shortLeverage = leverageValue;
+        } else {
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
         }
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),
-            'marginMode': marginMode,
+            'marginMode': this.safeStringLower (leverage, 'mgnMode'),
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         } as Leverage;
@@ -6832,9 +6828,9 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -6880,7 +6876,9 @@ export default class okx extends Exchange {
         //       "msg": ""
         //     }
         //
-        return response;
+        const data = this.safeList (response, 'data', []);
+        const result = this.safeDict (data, 0, {});
+        return this.parseLeverage (result, market);
     }
 
     /**
@@ -6962,9 +6960,9 @@ export default class okx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.leverage] leverage
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -7001,7 +6999,18 @@ export default class okx extends Exchange {
         //       "msg": ""
         //     }
         //
-        return response;
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseMarginMode (first, market);
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'instId');
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeString (marginMode, 'mgnMode'),
+        } as MarginMode;
     }
 
     /**

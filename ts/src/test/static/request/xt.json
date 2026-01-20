@@ -322,6 +322,21 @@
                 ],
                 "output": "{\"profitId\":\"484222823387497216\",\"triggerProfitPrice\":\"98000\"}"
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage with positionSide parameter",
+                "method": "setLeverage",
+                "url": "https://fapi.xt.com/future/user/v1/position/adjust-leverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "positionSide": "LONG"
+                    }
+                ],
+                "output": "{\"symbol\":\"btc_usdt\",\"positionSide\":\"LONG\",\"leverage\":10}"
+            }
         ]
     }
 }

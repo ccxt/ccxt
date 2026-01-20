@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, MarginMode, Leverage } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -4289,7 +4289,7 @@ export default class phemex extends Exchange {
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin modification structure]{@link https://docs.ccxt.com/#/?id=margin-modification-structure}
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
@@ -4340,7 +4340,7 @@ export default class phemex extends Exchange {
             'status': this.parseMarginStatus (this.safeString (data, 'code')),
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        } as MarginModification;
     }
 
     /**
@@ -4351,9 +4351,9 @@ export default class phemex extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -4369,15 +4369,6 @@ export default class phemex extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const isCross = marginMode === 'cross';
-        if (this.inArray (market['settle'], [ 'USDT', 'USDC' ])) {
-            const currentLeverage = this.safeString (params, 'leverage');
-            if (currentLeverage === undefined) {
-                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a "leverage" parameter for USDT markets');
-            }
-            request['leverageRr'] = isCross ? Precise.stringNeg (Precise.stringAbs (currentLeverage)) : Precise.stringAbs (currentLeverage);
-            return await this.privatePutGPositionsLeverage (this.extend (request, params));
-        }
         let leverage = this.safeInteger (params, 'leverage');
         if (marginMode === 'cross') {
             leverage = 0;
@@ -4385,8 +4376,31 @@ export default class phemex extends Exchange {
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
-        request['leverage'] = leverage;
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        const isCross = marginMode === 'cross';
+        if (this.inArray (market['settle'], [ 'USDT', 'USDC' ])) {
+            const currentLeverage = this.safeString (params, 'leverage');
+            request['leverageRr'] = isCross ? Precise.stringNeg (Precise.stringAbs (currentLeverage)) : Precise.stringAbs (currentLeverage);
+            return await this.privatePutGPositionsLeverage (this.extend (request, params));
+        } else {
+            request['leverage'] = leverage;
+        }
+        const response = await this.privatePutPositionsLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": "OK"
+        //     }
+        //
+        return this.parseMarginMode (response, market);
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (undefined, market),
+            'marginMode': undefined,
+        } as MarginMode;
     }
 
     /**
@@ -4609,9 +4623,9 @@ export default class phemex extends Exchange {
      * @param {bool} [params.hedged] set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
      * @param {float} [params.longLeverageRr] *hedged mode only* set the leverage for long positions
      * @param {float} [params.shortLeverageRr] *hedged mode only* set the leverage for short positions
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (symbol === undefined) {
@@ -4622,6 +4636,7 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const isHedged = this.safeBool (params, 'hedged', false);
+        params = this.omit (params, 'hedged');
         const longLeverageRr = this.safeInteger (params, 'longLeverageRr');
         const shortLeverageRr = this.safeInteger (params, 'shortLeverageRr');
         const market = this.market (symbol);
@@ -4643,7 +4658,28 @@ export default class phemex extends Exchange {
             request['leverage'] = leverage;
             response = await this.privatePutPositionsLeverage (this.extend (request, params));
         }
-        return response;
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": "OK"
+        //     }
+        //
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': leverage,
+            'symbol': symbol,
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined,
+        } as Leverage;
     }
 
     /**

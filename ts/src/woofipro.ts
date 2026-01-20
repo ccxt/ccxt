@@ -2721,17 +2721,22 @@ export default class woofipro extends Exchange {
      * @param {int} [leverage] the rate of leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         if ((leverage < 1) || (leverage > 50)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 50');
         }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request: Dict = {
             'leverage': leverage,
         };
-        return await this.v1PrivatePostClientLeverage (this.extend (request, params));
+        const response = await this.v1PrivatePostClientLeverage (this.extend (request, params));
+        return this.parseLeverage (response, market);
     }
 
     parsePosition (position: Dict, market: Market = undefined) {

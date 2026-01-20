@@ -919,11 +919,11 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#setMargin
      * @description Either adds or reduces margin in order to set the margin to a specific value
-     * @see https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
+     * @see https://docs.cdp.coinbase.com/api-reference/international-exchange-api/rest-api/portfolios/set-profile-margin
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+     * @returns {object} a [margin modification structure]{@link https://docs.ccxt.com/#/?id=margin-modification-structure}
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         let portfolio = undefined;
@@ -935,7 +935,35 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
             'margin_override': amount,
         };
-        return await this.v1PrivatePostPortfoliosMargin (this.extend (request, params));
+        const response = await this.v1PrivatePostPortfoliosMargin (this.extend (request, params));
+        //
+        //     {
+        //         "portfolio_id": "t4umaqa-1-1",
+        //         "margin_override": 0.2
+        //     }
+        //
+        return this.parseMarginModification (response, undefined);
+    }
+
+    parseMarginModification (data, market = undefined): MarginModification {
+        //
+        //     {
+        //         "portfolio_id": "t4umaqa-1-1",
+        //         "margin_override": 0.2
+        //     }
+        //
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (undefined, market),
+            'type': undefined,
+            'marginMode': undefined,
+            'amount': this.safeNumber (data, 'margin_override'),
+            'total': undefined,
+            'code': undefined,
+            'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        } as MarginModification;
     }
 
     /**

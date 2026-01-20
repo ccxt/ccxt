@@ -5444,9 +5444,9 @@ export default class bingx extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -5466,13 +5466,15 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
+        let response = undefined;
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
         if (subType === 'inverse') {
-            return await this.cswapV1PrivatePostTradeMarginType (this.extend (request, params));
+            response = await this.cswapV1PrivatePostTradeMarginType (this.extend (request, params));
         } else {
-            return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
+            response = await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
         }
+        return this.parseMarginMode (response, market);
     }
 
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
@@ -5497,7 +5499,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the bingx api endpoint
-     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin modification structure]{@link https://docs.ccxt.com/#/?id=margin-modification-structure}
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         const type = this.safeInteger (params, 'type'); // 1 increase margin 2 decrease margin
@@ -5547,7 +5549,7 @@ export default class bingx extends Exchange {
             'status': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        } as MarginModification;
     }
 
     /**
@@ -5659,9 +5661,9 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -5674,8 +5676,9 @@ export default class bingx extends Exchange {
             'side': side,
             'leverage': leverage,
         };
+        let response = undefined;
         if (market['inverse']) {
-            return await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
+            response = await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
             //
             //     {
             //         "code": 0,
@@ -5693,7 +5696,7 @@ export default class bingx extends Exchange {
             //     }
             //
         } else {
-            return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
+            response = await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
             //
             //     {
             //         "code": 0,
@@ -5711,6 +5714,8 @@ export default class bingx extends Exchange {
             //     }
             //
         }
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**
