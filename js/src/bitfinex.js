@@ -549,9 +549,6 @@ export default class bitfinex extends Exchange {
     isFiat(code) {
         return (code in this.options['fiat']);
     }
-    getCurrencyId(code) {
-        return 'f' + code;
-    }
     getCurrencyName(code) {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (code in this.options['currencyNames']) {
@@ -662,8 +659,8 @@ export default class bitfinex extends Exchange {
             base = this.safeString(splitBase, 0);
             quote = this.safeString(splitQuote, 0);
             let symbol = base + '/' + quote;
-            baseId = this.getCurrencyId(baseId);
-            quoteId = this.getCurrencyId(quoteId);
+            // baseId = 'f' + baseId;
+            // quoteId = 'f' + quoteId;
             let settle = undefined;
             let settleId = undefined;
             if (swap) {
@@ -883,7 +880,6 @@ export default class bitfinex extends Exchange {
             const fee = this.safeNumber(fees, 1);
             const undl = this.safeList(indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
-            const fid = 'f' + id;
             const dwStatuses = this.safeList(indexed['statuses'], id, []);
             const depositEnabled = this.safeInteger(dwStatuses, 1) === 1;
             const withdrawEnabled = this.safeInteger(dwStatuses, 2) === 1;
@@ -910,8 +906,7 @@ export default class bitfinex extends Exchange {
                 };
             }
             result[code] = this.safeCurrencyStructure({
-                'id': fid,
-                'uppercaseId': id,
+                'id': id,
                 'code': code,
                 'info': [id, label, pool, feeValues, undl],
                 'type': type,
@@ -2699,7 +2694,7 @@ export default class bitfinex extends Exchange {
         let response = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['currency'] = currency['uppercaseId'];
+            request['currency'] = currency['id'];
             response = await this.privatePostAuthRMovementsCurrencyHist(this.extend(request, params));
         }
         else {
@@ -3114,7 +3109,7 @@ export default class bitfinex extends Exchange {
         let response = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['currency'] = currency['uppercaseId'];
+            request['currency'] = currency['id'];
             response = await this.privatePostAuthRLedgersCurrencyHist(this.extend(request, params));
         }
         else {

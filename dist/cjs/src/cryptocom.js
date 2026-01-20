@@ -174,6 +174,7 @@ class cryptocom extends cryptocom$1["default"] {
                             'public/get-valuations': 1,
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
+                            'public/get-announcements': 1,
                             'public/get-risk-parameters': 1,
                         },
                         'post': {
@@ -228,6 +229,8 @@ class cryptocom extends cryptocom$1["default"] {
                             'private/staking/convert': 2,
                             'private/staking/get-open-convert': 2,
                             'private/staking/get-convert-history': 2,
+                            'private/create-isolated-margin-transfer': 10 / 3,
+                            'private/change-isolated-margin-leverage': 10 / 3,
                         },
                     },
                 },

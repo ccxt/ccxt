@@ -7,7 +7,6 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
 export default class bitfinex extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;
-    getCurrencyId(code: any): string;
     getCurrencyName(code: any): any;
     amountToPrecision(symbol: any, amount: any): string;
     priceToPrecision(symbol: any, price: any): string;
