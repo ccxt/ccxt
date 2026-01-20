@@ -4298,7 +4298,7 @@ func (this *HyperliquidCore) SetLeverage(leverage interface{}, optionalArgs ...i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *HyperliquidCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4327,7 +4327,7 @@ func (this *HyperliquidCore) AddMargin(symbol interface{}, amount interface{}, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.vaultAddress] the vault address
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *HyperliquidCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4847,7 +4847,7 @@ func (this *HyperliquidCore) ParseTradingFee(fee interface{}, optionalArgs ...in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *HyperliquidCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

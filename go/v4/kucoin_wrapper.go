@@ -1360,7 +1360,7 @@ func (this *Kucoin) Transfer(code string, amount float64, fromAccount string, to
  * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Kucoin) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

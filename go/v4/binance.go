@@ -12941,7 +12941,7 @@ func (this *BinanceCore) ParseSettlements(settlements interface{}, market interf
  * @param {string} id the identification number of the ledger entry
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *BinanceCore) FetchLedgerEntry(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -13008,7 +13008,7 @@ func (this *BinanceCore) FetchLedgerEntry(id interface{}, optionalArgs ...interf
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *BinanceCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -13687,7 +13687,7 @@ func (this *BinanceCore) ParseMarginModification(data interface{}, optionalArgs 
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *BinanceCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -13715,7 +13715,7 @@ func (this *BinanceCore) ReduceMargin(symbol interface{}, amount interface{}, op
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *BinanceCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

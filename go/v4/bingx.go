@@ -5724,7 +5724,7 @@ func (this *BingxCore) ReduceMargin(symbol interface{}, amount interface{}, opti
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
  * @param {object} [params] parameters specific to the bingx api endpoint
- * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *BingxCore) SetMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

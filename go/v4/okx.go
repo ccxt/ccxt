@@ -5455,7 +5455,7 @@ func (this *OkxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *OkxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6868,7 +6868,7 @@ func (this *OkxCore) ParsePosition(position interface{}, optionalArgs ...interfa
 	if IsTrue(IsEqual(initialMarginPercentage, nil)) {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
 	} else if IsTrue(IsEqual(initialMarginString, nil)) {
-		initialMarginString = Precise.StringMul(initialMarginPercentage, notionalString)
+		initialMarginString = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), entryPriceString), leverageString)
 	}
 	var rounder interface{} = "0.00005" // round to closest 0.01%
 	var maintenanceMarginPercentage interface{} = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4))
@@ -8236,7 +8236,7 @@ func (this *OkxCore) ParseMarginModification(data interface{}, optionalArgs ...i
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *OkxCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8263,7 +8263,7 @@ func (this *OkxCore) ReduceMargin(symbol interface{}, amount interface{}, option
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *OkxCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
