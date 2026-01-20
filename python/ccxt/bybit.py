@@ -6415,12 +6415,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if lastUpdateTimestamp is None:
             lastUpdateTimestamp = self.safe_integer_n(position, ['updatedTime', 'updatedAt', 'updatedTime'])
-        tradeMode = self.safe_integer(position, 'tradeMode', 0)
-        marginMode = None
-        if (not self.options['enableUnifiedAccount']) or (self.options['enableUnifiedAccount'] and market['inverse']):
-            # tradeMode would work for classic and UTA(inverse)
-            if not isHistory:     # cannot tell marginMode for fetchPositionsHistory, and closedSize will only be defined for fetchPositionsHistory response
-                marginMode = 'isolated' if (tradeMode == 1) else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string_n(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']))
         markPrice = self.safe_string(position, 'markPrice')
@@ -6480,7 +6474,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'markPrice': self.parse_number(markPrice),
             'lastPrice': self.safe_number(position, 'avgExitPrice'),
             'collateral': self.parse_number(collateralString),
-            'marginMode': marginMode,
+            'marginMode': None,  # tradeMode was deprecated
             'side': side,
             'percentage': None,
             'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
