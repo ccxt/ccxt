@@ -6415,7 +6415,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 side = 'long' if isHistory else 'short'
             else:
                 side = None
-        notional = self.safe_string_2(position, 'positionValue', 'cumExitValue')
+        notional = None
+        contractSize = self.safe_string(market, 'contractSize')
+        markPrice = self.safe_string(position, 'markPrice')
+        if market['inverse']:
+            notional = Precise.string_div(Precise.string_mul(size, contractSize), markPrice)
+        else:
+            notional = self.safe_string_2(position, 'positionValue', 'cumExitValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string_2(position, 'positionIM', 'cumEntryValue')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
@@ -6425,7 +6431,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
             lastUpdateTimestamp = self.safe_integer_n(position, ['updatedTime', 'updatedAt', 'updatedTime'])
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string_n(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']))
-        markPrice = self.safe_string(position, 'markPrice')
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
         leverage = self.safe_string(position, 'leverage')
         if liquidationPrice is not None:
