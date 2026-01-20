@@ -1014,6 +1014,7 @@ public partial class bybit : Exchange
                 { "enableDemoTrading", false },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "linear", "inverse", "option"} },
+                    { "options", new List<object>() {"BTC", "ETH", "SOL", "XRP", "MNT", "DOGE"} },
                 } },
                 { "enableUnifiedMargin", null },
                 { "enableUnifiedAccount", null },
@@ -1783,32 +1784,38 @@ public partial class bybit : Exchange
                 }));
             } else if (isTrue(isEqual(marketType, "option")))
             {
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "BTC" },
-                }));
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "ETH" },
-                }));
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "SOL" },
-                }));
+                object optionsCurrencies = this.safeList(fetchMarketsOptions, "options", new List<object>() {"BTC", "ETH", "SOL"});
+                for (object j = 0; isLessThan(j, getArrayLength(optionsCurrencies)); postFixIncrement(ref j))
+                {
+                    object currency = getValue(optionsCurrencies, j);
+                    ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
+                        { "baseCoin", currency },
+                    }));
+                }
             } else
             {
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
             }
         }
         object promises = await promiseAll(promisesUnresolved);
-        object spotMarkets = this.safeList(promises, 0, new List<object>() {});
-        object linearMarkets = this.safeList(promises, 1, new List<object>() {});
-        object inverseMarkets = this.safeList(promises, 2, new List<object>() {});
-        object btcOptionMarkets = this.safeList(promises, 3, new List<object>() {});
-        object ethOptionMarkets = this.safeList(promises, 4, new List<object>() {});
-        object solOptionMarkets = this.safeList(promises, 5, new List<object>() {});
-        object futureMarkets = this.arrayConcat(linearMarkets, inverseMarkets);
-        object optionMarkets = this.arrayConcat(btcOptionMarkets, ethOptionMarkets);
-        optionMarkets = this.arrayConcat(optionMarkets, solOptionMarkets);
-        object derivativeMarkets = this.arrayConcat(futureMarkets, optionMarkets);
-        return this.arrayConcat(spotMarkets, derivativeMarkets);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        {
+            object parsedMarket = getValue(promises, i);
+            result = this.arrayConcat(result, parsedMarket);
+        }
+        // const spotMarkets = this.safeList (promises, 0, []);
+        // const linearMarkets = this.safeList (promises, 1, []);
+        // const inverseMarkets = this.safeList (promises, 2, []);
+        // const btcOptionMarkets = this.safeList (promises, 3, []);
+        // const ethOptionMarkets = this.safeList (promises, 4, []);
+        // const solOptionMarkets = this.safeList (promises, 5, []);
+        // const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
+        // let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
+        // optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
+        // const derivativeMarkets = this.arrayConcat (futureMarkets, optionMarkets);
+        // return this.arrayConcat (spotMarkets, derivativeMarkets);
+        return result;
     }
 
     public async virtual Task<object> fetchSpotMarkets(object parameters)
