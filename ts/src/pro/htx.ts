@@ -2498,7 +2498,7 @@ export default class htx extends htxRest {
         }
         const isLinear = subtype === 'linear';
         const url = this.getUrlByMarketType (type, isLinear, true);
-        const hostname = new URL(url).hostname;
+        const hostname = url.split()[2];
         const authParams: Dict = {
             'type': type,
             'url': url,
