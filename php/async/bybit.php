@@ -6853,7 +6853,14 @@ class bybit extends Exchange {
                 $side = null;
             }
         }
-        $notional = $this->safe_string_2($position, 'positionValue', 'cumExitValue');
+        $notional = null;
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $markPrice = $this->safe_string($position, 'markPrice');
+        if ($market['inverse']) {
+            $notional = Precise::string_div(Precise::string_mul($size, $contractSize), $markPrice);
+        } else {
+            $notional = $this->safe_string_2($position, 'positionValue', 'cumExitValue');
+        }
         $unrealisedPnl = $this->omit_zero($this->safe_string($position, 'unrealisedPnl'));
         $initialMarginString = $this->safe_string_2($position, 'positionIM', 'cumEntryValue');
         $maintenanceMarginString = $this->safe_string($position, 'positionMM');
@@ -6864,7 +6871,6 @@ class bybit extends Exchange {
         }
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
-        $markPrice = $this->safe_string($position, 'markPrice');
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
         $leverage = $this->safe_string($position, 'leverage');
         if ($liquidationPrice !== null) {
