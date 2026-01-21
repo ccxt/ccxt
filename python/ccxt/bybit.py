@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -112,6 +112,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchLongShortRatio': False,
                 'fetchLongShortRatioHistory': True,
                 'fetchMarginAdjustmentHistory': False,
+                'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -8968,6 +8969,53 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'timeframe': None,
             'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
         }
+
+    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of the trading pair
+
+        https://bybit-exchange.github.io/docs/v5/account/account-info
+
+        :param str [symbol]: unified symbol of the market to fetch the margin mode for(not used by bybit)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetV5AccountInfo(params)
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "marginMode": "REGULAR_MARGIN",
+        #             "updatedTime": "1723481446000",
+        #             "unifiedMarginStatus": 5,
+        #             "dcpStatus": "OFF",
+        #             "timeWindow": 0,
+        #             "smpGroup": 0,
+        #             "isMasterTrader": False,
+        #             "spotHedgingStatus": "OFF"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_margin_mode(result)
+
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+        marginType = self.safe_string(marginMode, 'marginMode')
+        return {
+            'info': marginMode,
+            'symbol': self.safe_symbol(None, market),
+            'marginMode': self.parse_margin_mode_type(marginType),
+        }
+
+    def parse_margin_mode_type(self, marginMode: Str) -> Str:
+        marginModes: dict = {
+            'ISOLATED_MARGIN': 'isolated',
+            'REGULAR_MARGIN': 'cross',
+            'PORTFOLIO_MARGIN': 'portfolio',
+        }
+        return self.safe_string(marginModes, marginMode, marginMode)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
