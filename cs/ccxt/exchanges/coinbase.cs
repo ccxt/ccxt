@@ -635,12 +635,12 @@ public partial class coinbase : Exchange
         //     }
         //
         object accounts = this.safeList(response, "accounts", new List<object>() {});
-        object length = getArrayLength(accounts);
-        object lastIndex = subtract(length, 1);
-        object last = this.safeDict(accounts, lastIndex);
+        object accountsLength = getArrayLength(accounts);
         object cursor = this.safeString(response, "cursor");
-        if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
+        if (isTrue(isTrue(isTrue((isGreaterThan(accountsLength, 0))) && isTrue((!isEqual(cursor, null)))) && isTrue((!isEqual(cursor, "")))))
         {
+            object lastIndex = subtract(accountsLength, 1);
+            object last = this.safeDict(accounts, lastIndex);
             ((IDictionary<string,object>)last)["cursor"] = cursor;
             ((List<object>)accounts)[Convert.ToInt32(lastIndex)] = last;
         }
@@ -2302,7 +2302,8 @@ public partial class coinbase : Exchange
         //     }
         //
         object data = this.safeList(response, "trades", new List<object>() {});
-        object ticker = this.parseTicker(getValue(data, 0), market);
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object ticker = this.parseTicker(first, market);
         ((IDictionary<string,object>)ticker)["bid"] = this.safeNumber(response, "best_bid");
         ((IDictionary<string,object>)ticker)["ask"] = this.safeNumber(response, "best_ask");
         return ticker;
@@ -2632,7 +2633,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

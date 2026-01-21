@@ -1676,7 +1676,7 @@ public partial class foxbit : Exchange
         }
         object response = await this.v3PrivatePostWithdrawals(this.extend(request, parameters));
         // {
-        //     "amount": "1",
+        //     "amount": "2",
         //     "currency_symbol": "xrp",
         //     "network_code": "ripple",
         //     "destination_address": "0x1234567890123456789012345678",

@@ -220,6 +220,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "exchange":
 		itf := NewExchangeTyped(nil)
 		return itf
+	case "alp":
+		itf := NewAlp(options)
+		return itf
 	case "alpaca":
 		itf := NewAlpaca(options)
 		return itf
@@ -312,9 +315,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "blofin":
 		itf := NewBlofin(options)
-		return itf
-	case "btcalpha":
-		itf := NewBtcalpha(options)
 		return itf
 	case "btcbox":
 		itf := NewBtcbox(options)

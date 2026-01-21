@@ -1198,7 +1198,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param str [params.type]: 'spot' or 'swap', the market type for the ledger(default 'spot')
-        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         marketType = 'spot'

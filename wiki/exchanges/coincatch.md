@@ -1067,7 +1067,7 @@ coincatch.setLeverage (leverage, symbol[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#change-margin  
 
@@ -1090,7 +1090,7 @@ coincatch.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://coincatch.github.io/github.io/en/mix/#change-margin  
 
@@ -1179,7 +1179,7 @@ coincatch.fetchPositions ([symbols, params])
 fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>coincatch</code>](#coincatch)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 

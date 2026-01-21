@@ -8,6 +8,7 @@ var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
+var alp = require('./src/alp.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var arkham = require('./src/arkham.js');
@@ -39,7 +40,6 @@ var bittrade = require('./src/bittrade.js');
 var bitvavo = require('./src/bitvavo.js');
 var blockchaincom = require('./src/blockchaincom.js');
 var blofin = require('./src/blofin.js');
-var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
@@ -200,9 +200,10 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.32';
+const version = '4.5.34';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
+    'alp': alp["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'arkham': arkham["default"],
@@ -234,7 +235,6 @@ const exchanges = {
     'bitvavo': bitvavo["default"],
     'blockchaincom': blockchaincom["default"],
     'blofin': blofin["default"],
-    'btcalpha': btcalpha["default"],
     'btcbox': btcbox["default"],
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
@@ -446,6 +446,7 @@ exports.RequestTimeout = errors.RequestTimeout;
 exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
+exports.alp = alp["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.arkham = arkham["default"];
@@ -477,7 +478,6 @@ exports.bittrade = bittrade["default"];
 exports.bitvavo = bitvavo["default"];
 exports.blockchaincom = blockchaincom["default"];
 exports.blofin = blofin["default"];
-exports.btcalpha = btcalpha["default"];
 exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];

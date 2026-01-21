@@ -4,13 +4,13 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-public partial class btcalpha
+public partial class alp
 {
     /// <summary>
-    /// retrieves data on all markets for btcalpha
+    /// retrieves data on all markets for alp
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-all-currencies"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-all-currencies"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class btcalpha
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#tickers"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class btcalpha
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#tickers"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,7 +70,7 @@ public partial class btcalpha
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#get-orderbook"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#get-orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -97,7 +97,7 @@ public partial class btcalpha
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-all-exchanges"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-all-exchanges"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -131,7 +131,7 @@ public partial class btcalpha
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-own-deposits"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-own-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -165,7 +165,7 @@ public partial class btcalpha
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-own-made-withdraws"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-own-made-withdraws"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -199,7 +199,7 @@ public partial class btcalpha
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#charts"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#charts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -233,7 +233,7 @@ public partial class btcalpha
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-own-wallets"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-own-wallets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -253,7 +253,7 @@ public partial class btcalpha
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#create-order"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -280,7 +280,7 @@ public partial class btcalpha
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#cancel-order"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -300,7 +300,7 @@ public partial class btcalpha
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#retrieve-single-order"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#retrieve-single-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -320,7 +320,7 @@ public partial class btcalpha
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-own-orders"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-own-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -354,7 +354,7 @@ public partial class btcalpha
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-own-orders"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-own-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -388,7 +388,7 @@ public partial class btcalpha
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-own-orders"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-own-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -422,7 +422,7 @@ public partial class btcalpha
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://btc-alpha.github.io/api-docs/#list-own-exchanges"/>  <br/>
+    /// See <see href="https://alpcomdev.github.io/alp-api-docs/#list-own-exchanges"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

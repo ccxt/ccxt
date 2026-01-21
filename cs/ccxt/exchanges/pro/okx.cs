@@ -253,7 +253,7 @@ public partial class okx : ccxt.okx
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add(add("unsubscribe:", channel), symbol));
+            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:", channel), ":"), symbol));
             object marketId = this.marketId(symbol);
             object topic = new Dictionary<string, object>() {
                 { "channel", channel },
@@ -2084,7 +2084,7 @@ public partial class okx : ccxt.okx
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrders(WebSocketClient client, object message)
     {
         //
         //     {

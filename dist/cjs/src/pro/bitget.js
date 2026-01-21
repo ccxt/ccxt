@@ -922,7 +922,20 @@ class bitget extends bitget$1["default"] {
         }
         else {
             const orderbook = this.orderBook({});
-            const parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            let bidsKey = 'bids';
+            let asksKey = 'asks';
+            // bitget UTA has `a` and `b` instead of `asks` and `bids`
+            if ('a' in rawOrderBook) {
+                if (!('asks' in rawOrderBook)) {
+                    asksKey = 'a';
+                }
+            }
+            if ('b' in rawOrderBook) {
+                if (!('bids' in rawOrderBook)) {
+                    bidsKey = 'b';
+                }
+            }
+            const parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             orderbook.reset(parsedOrderbook);
             this.orderbooks[symbol] = orderbook;
         }

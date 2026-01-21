@@ -1248,7 +1248,7 @@ func (this *Hyperliquid) FetchTradingFee(symbol string, options ...FetchTradingF
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Hyperliquid) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

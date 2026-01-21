@@ -251,7 +251,7 @@ class okx extends okx$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            messageHashes.push('unsubscribe:' + channel + symbol);
+            messageHashes.push('unsubscribe:' + channel + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
                 'channel': channel,
@@ -1860,7 +1860,7 @@ class okx extends okx$1["default"] {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrders(client, message, subscription = undefined) {
+    handleOrders(client, message) {
         //
         //     {
         //         "arg":{

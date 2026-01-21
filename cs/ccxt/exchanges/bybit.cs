@@ -87,6 +87,7 @@ public partial class bybit : Exchange
                 { "fetchLongShortRatio", false },
                 { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", false },
+                { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -343,6 +344,13 @@ public partial class bybit : Exchange
                         { "v5/asset/withdraw/query-record", 10 },
                         { "v5/asset/withdraw/withdrawable-amount", 5 },
                         { "v5/asset/withdraw/vasp/list", 5 },
+                        { "v5/asset/convert/small-balance-list", 5 },
+                        { "v5/asset/convert/small-balance-history", 5 },
+                        { "v5/fiat/query-coin-list", 5 },
+                        { "v5/fiat/reference-price", 5 },
+                        { "v5/fiat/trade-query", 5 },
+                        { "v5/fiat/query-trade-history", 5 },
+                        { "v5/fiat/balance-query", 5 },
                         { "v5/user/query-sub-members", 5 },
                         { "v5/user/query-api", 5 },
                         { "v5/user/sub-apikeys", 5 },
@@ -358,6 +366,7 @@ public partial class bybit : Exchange
                         { "v5/spot-margin-trade/position-tiers", 5 },
                         { "v5/spot-margin-trade/coinstate", 5 },
                         { "v5/spot-margin-trade/repayment-available-amount", 5 },
+                        { "v5/spot-margin-trade/get-auto-repay-mode", 5 },
                         { "v5/spot-cross-margin-trade/loan-info", 1 },
                         { "v5/spot-cross-margin-trade/account", 1 },
                         { "v5/spot-cross-margin-trade/orders", 1 },
@@ -490,6 +499,10 @@ public partial class bybit : Exchange
                         { "v5/asset/deposit/deposit-to-account", 5 },
                         { "v5/asset/withdraw/create", 50 },
                         { "v5/asset/withdraw/cancel", 50 },
+                        { "v5/asset/covert/get-quote", 10 },
+                        { "v5/asset/covert/small-balance-execute", 10 },
+                        { "v5/fiat/quote-apply", 10 },
+                        { "v5/fiat/trade-execute", 10 },
                         { "v5/user/create-sub-member", 10 },
                         { "v5/user/create-sub-api", 10 },
                         { "v5/user/frozen-sub-member", 10 },
@@ -501,6 +514,7 @@ public partial class bybit : Exchange
                         { "v5/spot-lever-token/redeem", 2.5 },
                         { "v5/spot-margin-trade/switch-mode", 5 },
                         { "v5/spot-margin-trade/set-leverage", 5 },
+                        { "v5/spot-margin-trade/set-auto-repay-mode", 5 },
                         { "v5/spot-cross-margin-trade/loan", 2.5 },
                         { "v5/spot-cross-margin-trade/repay", 2.5 },
                         { "v5/spot-cross-margin-trade/switch", 2.5 },
@@ -508,6 +522,7 @@ public partial class bybit : Exchange
                         { "v5/crypto-loan/repay", 5 },
                         { "v5/crypto-loan/adjust-ltv", 5 },
                         { "v5/crypto-loan-common/adjust-ltv", 50 },
+                        { "v5/crypto-loan-common/max-loan", 10 },
                         { "v5/crypto-loan-flexible/borrow", 50 },
                         { "v5/crypto-loan-flexible/repay", 50 },
                         { "v5/crypto-loan-flexible/repay-collateral", 50 },
@@ -519,6 +534,7 @@ public partial class bybit : Exchange
                         { "v5/crypto-loan-fixed/fully-repay", 50 },
                         { "v5/crypto-loan-fixed/repay-collateral", 50 },
                         { "v5/ins-loan/association-uid", 5 },
+                        { "v5/ins-loan/repay-loan", 5 },
                         { "v5/lending/purchase", 5 },
                         { "v5/lending/redeem", 5 },
                         { "v5/lending/redeem-cancel", 5 },
@@ -999,6 +1015,7 @@ public partial class bybit : Exchange
                 { "enableDemoTrading", false },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "linear", "inverse", "option"} },
+                    { "options", new List<object>() {"BTC", "ETH", "SOL", "XRP", "MNT", "DOGE"} },
                 } },
                 { "enableUnifiedMargin", null },
                 { "enableUnifiedAccount", null },
@@ -1768,32 +1785,38 @@ public partial class bybit : Exchange
                 }));
             } else if (isTrue(isEqual(marketType, "option")))
             {
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "BTC" },
-                }));
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "ETH" },
-                }));
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "SOL" },
-                }));
+                object optionsCurrencies = this.safeList(fetchMarketsOptions, "options", new List<object>() {"BTC", "ETH", "SOL"});
+                for (object j = 0; isLessThan(j, getArrayLength(optionsCurrencies)); postFixIncrement(ref j))
+                {
+                    object currency = getValue(optionsCurrencies, j);
+                    ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
+                        { "baseCoin", currency },
+                    }));
+                }
             } else
             {
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
             }
         }
         object promises = await promiseAll(promisesUnresolved);
-        object spotMarkets = this.safeList(promises, 0, new List<object>() {});
-        object linearMarkets = this.safeList(promises, 1, new List<object>() {});
-        object inverseMarkets = this.safeList(promises, 2, new List<object>() {});
-        object btcOptionMarkets = this.safeList(promises, 3, new List<object>() {});
-        object ethOptionMarkets = this.safeList(promises, 4, new List<object>() {});
-        object solOptionMarkets = this.safeList(promises, 5, new List<object>() {});
-        object futureMarkets = this.arrayConcat(linearMarkets, inverseMarkets);
-        object optionMarkets = this.arrayConcat(btcOptionMarkets, ethOptionMarkets);
-        optionMarkets = this.arrayConcat(optionMarkets, solOptionMarkets);
-        object derivativeMarkets = this.arrayConcat(futureMarkets, optionMarkets);
-        return this.arrayConcat(spotMarkets, derivativeMarkets);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        {
+            object parsedMarket = getValue(promises, i);
+            result = this.arrayConcat(result, parsedMarket);
+        }
+        // const spotMarkets = this.safeList (promises, 0, []);
+        // const linearMarkets = this.safeList (promises, 1, []);
+        // const inverseMarkets = this.safeList (promises, 2, []);
+        // const btcOptionMarkets = this.safeList (promises, 3, []);
+        // const ethOptionMarkets = this.safeList (promises, 4, []);
+        // const solOptionMarkets = this.safeList (promises, 5, []);
+        // const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
+        // let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
+        // optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
+        // const derivativeMarkets = this.arrayConcat (futureMarkets, optionMarkets);
+        // return this.arrayConcat (spotMarkets, derivativeMarkets);
+        return result;
     }
 
     public async virtual Task<object> fetchSpotMarkets(object parameters)
@@ -6458,7 +6481,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7152,7 +7175,16 @@ public partial class bybit : Exchange
         market = this.safeMarket(contract, market, null, "contract");
         object size = Precise.stringAbs(this.safeString2(position, "size", "qty"));
         object side = this.safeString(position, "side");
-        if (isTrue(!isEqual(side, null)))
+        object positionIdx = this.safeString(position, "positionIdx");
+        object hedged = null;
+        if (isTrue(!isEqual(positionIdx, null)))
+        {
+            hedged = (!isEqual(positionIdx, "0"));
+        }
+        if (isTrue(isTrue((!isEqual(hedged, null))) && isTrue(hedged)))
+        {
+            side = ((bool) isTrue((isEqual(positionIdx, "1")))) ? "long" : "short";
+        } else if (isTrue(!isEqual(side, null)))
         {
             if (isTrue(isEqual(side, "Buy")))
             {
@@ -7165,7 +7197,16 @@ public partial class bybit : Exchange
                 side = null;
             }
         }
-        object notional = this.safeString2(position, "positionValue", "cumExitValue");
+        object notional = null;
+        object contractSize = this.safeString(market, "contractSize");
+        object markPrice = this.safeString(position, "markPrice");
+        if (isTrue(getValue(market, "inverse")))
+        {
+            notional = Precise.stringDiv(Precise.stringMul(size, contractSize), markPrice);
+        } else
+        {
+            notional = this.safeString2(position, "positionValue", "cumExitValue");
+        }
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         object initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         object maintenanceMarginString = this.safeString(position, "positionMM");
@@ -7175,19 +7216,8 @@ public partial class bybit : Exchange
         {
             lastUpdateTimestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt", "updatedTime"});
         }
-        object tradeMode = this.safeInteger(position, "tradeMode", 0);
-        object marginMode = null;
-        if (isTrue(isTrue((!isTrue(getValue(this.options, "enableUnifiedAccount")))) || isTrue((isTrue(getValue(this.options, "enableUnifiedAccount")) && isTrue(getValue(market, "inverse"))))))
-        {
-            // tradeMode would work for classic and UTA(inverse)
-            if (!isTrue(isHistory))
-            {
-                marginMode = ((bool) isTrue((isEqual(tradeMode, 1)))) ? "isolated" : "cross";
-            }
-        }
         object collateralString = this.safeString(position, "positionBalance");
         object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
-        object markPrice = this.safeString(position, "markPrice");
         object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         object leverage = this.safeString(position, "leverage");
         if (isTrue(!isEqual(liquidationPrice, null)))
@@ -7233,8 +7263,6 @@ public partial class bybit : Exchange
         }
         object maintenanceMarginPercentage = Precise.stringDiv(maintenanceMarginString, notional);
         object marginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
-        object positionIdx = this.safeString(position, "positionIdx");
-        object hedged = isTrue((!isEqual(positionIdx, null))) && isTrue((!isEqual(positionIdx, "0")));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -7258,7 +7286,7 @@ public partial class bybit : Exchange
             { "markPrice", this.parseNumber(markPrice) },
             { "lastPrice", this.safeNumber(position, "avgExitPrice") },
             { "collateral", this.parseNumber(collateralString) },
-            { "marginMode", marginMode },
+            { "marginMode", null },
             { "side", side },
             { "percentage", null },
             { "stopLossPrice", this.safeNumber2(position, "stop_loss", "stopLoss") },
@@ -10128,6 +10156,60 @@ public partial class bybit : Exchange
             { "timeframe", null },
             { "longShortRatio", this.parseToNumeric(Precise.stringDiv(longString, shortString)) },
         };
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchMarginMode
+     * @description fetches the margin mode of the trading pair
+     * @see https://bybit-exchange.github.io/docs/v5/account/account-info
+     * @param {string} [symbol] unified symbol of the market to fetch the margin mode for (not used by bybit)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.privateGetV5AccountInfo(parameters);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "marginMode": "REGULAR_MARGIN",
+        //             "updatedTime": "1723481446000",
+        //             "unifiedMarginStatus": 5,
+        //             "dcpStatus": "OFF",
+        //             "timeWindow": 0,
+        //             "smpGroup": 0,
+        //             "isMasterTrader": false,
+        //             "spotHedgingStatus": "OFF"
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseMarginMode(result);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marginType = this.safeString(marginMode, "marginMode");
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", this.safeSymbol(null, market) },
+            { "marginMode", this.parseMarginModeType(marginType) },
+        };
+    }
+
+    public virtual object parseMarginModeType(object marginMode)
+    {
+        object marginModes = new Dictionary<string, object>() {
+            { "ISOLATED_MARGIN", "isolated" },
+            { "REGULAR_MARGIN", "cross" },
+            { "PORTFOLIO_MARGIN", "portfolio" },
+        };
+        return this.safeString(marginModes, marginMode, marginMode);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

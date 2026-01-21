@@ -2401,7 +2401,7 @@ func  (this *OkxCore) WatchOrders(optionalArgs ...interface{}) <- chan interface
             }()
             return ch
         }
-func  (this *OkxCore) HandleOrders(client interface{}, message interface{}, optionalArgs ...interface{})  {
+func  (this *OkxCore) HandleOrders(client interface{}, message interface{})  {
     //
     //     {
     //         "arg":{
@@ -2456,8 +2456,6 @@ func  (this *OkxCore) HandleOrders(client interface{}, message interface{}, opti
     //         ]
     //     }
     //
-    subscription := ccxt.GetArg(optionalArgs, 0, nil)
-    _ = subscription
     this.HandleMyTrades(client, message)
     var arg interface{} = this.SafeValue(message, "arg", map[string]interface{} {})
     var channel interface{} = this.SafeString(arg, "channel")
