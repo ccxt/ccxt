@@ -9460,16 +9460,13 @@ export default class bybit extends Exchange {
      * @name bybit#fetchMarginMode
      * @description fetches the margin mode of the trading pair
      * @see https://bybit-exchange.github.io/docs/v5/account/account-info
-     * @param {string} [symbol] unified symbol of the market to fetch the margin mode for (not used by bybit)
+     * @param {string} [symbol] unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
+        const market = this.market (symbol);
         const response = await this.privateGetV5AccountInfo (params);
         //
         //     {
