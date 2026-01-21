@@ -9466,6 +9466,10 @@ export default class bybit extends Exchange {
      */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const response = await this.privateGetV5AccountInfo (params);
         //
         //     {
@@ -9484,7 +9488,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        return this.parseMarginMode (result);
+        return this.parseMarginMode (result, market);
     }
 
     parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
