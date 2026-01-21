@@ -2,6 +2,43 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "marginMode": "REGULAR_MARGIN",
+                        "updatedTime": "1723481446000",
+                        "unifiedMarginStatus": "5",
+                        "dcpStatus": "OFF",
+                        "timeWindow": "0",
+                        "smpGroup": "0",
+                        "isMasterTrader": false,
+                        "spotHedgingStatus": "OFF"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "marginMode": "REGULAR_MARGIN",
+                        "updatedTime": "1723481446000",
+                        "unifiedMarginStatus": "5",
+                        "dcpStatus": "OFF",
+                        "timeWindow": "0",
+                        "smpGroup": "0",
+                        "isMasterTrader": false,
+                        "spotHedgingStatus": "OFF"
+                    },
+                    "symbol": null,
+                    "marginMode": "cross"
+                }
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "fetch positions history",
