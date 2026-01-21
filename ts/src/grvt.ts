@@ -386,7 +386,7 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     async signIn (params = {}) {
-        await this.sleep (10); // temporary workaround for allowing promise-all to prioritize loadMarkets
+        // await this.sleep (10); // temporary workaround for allowing promise-all to prioritize loadMarkets
         this.checkRequiredCredentials ();
         const now = this.milliseconds ();
         // expires in 24 hours as CS suggested
