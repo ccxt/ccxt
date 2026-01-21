@@ -91,6 +91,7 @@ class bybit extends Exchange {
                 'fetchLongShortRatio' => false,
                 'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => false,
+                'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -9444,6 +9445,56 @@ class bybit extends Exchange {
             'timeframe' => null,
             'longShortRatio' => $this->parse_to_numeric(Precise::string_div($longString, $shortString)),
         );
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+        /**
+         * fetches the margin mode of the trading pair
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/account/account-info
+         *
+         * @param {string} [$symbol] unified $symbol of the market to fetch the margin mode for (not used by bybit)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
+         */
+        $this->load_markets();
+        $response = $this->privateGetV5AccountInfo ($params);
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "OK",
+        //         "result" => {
+        //             "marginMode" => "REGULAR_MARGIN",
+        //             "updatedTime" => "1723481446000",
+        //             "unifiedMarginStatus" => 5,
+        //             "dcpStatus" => "OFF",
+        //             "timeWindow" => 0,
+        //             "smpGroup" => 0,
+        //             "isMasterTrader" => false,
+        //             "spotHedgingStatus" => "OFF"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_margin_mode($result);
+    }
+
+    public function parse_margin_mode(array $marginMode, $market = null): array {
+        $marginType = $this->safe_string($marginMode, 'marginMode');
+        return array(
+            'info' => $marginMode,
+            'symbol' => $this->safe_symbol(null, $market),
+            'marginMode' => $this->parse_margin_mode_type($marginType),
+        );
+    }
+
+    public function parse_margin_mode_type(?string $marginMode): ?string {
+        $marginModes = array(
+            'ISOLATED_MARGIN' => 'isolated',
+            'REGULAR_MARGIN' => 'cross',
+            'PORTFOLIO_MARGIN' => 'portfolio',
+        );
+        return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
