@@ -87,6 +87,7 @@ public partial class bybit : Exchange
                 { "fetchLongShortRatio", false },
                 { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", false },
+                { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -10155,6 +10156,60 @@ public partial class bybit : Exchange
             { "timeframe", null },
             { "longShortRatio", this.parseToNumeric(Precise.stringDiv(longString, shortString)) },
         };
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchMarginMode
+     * @description fetches the margin mode of the trading pair
+     * @see https://bybit-exchange.github.io/docs/v5/account/account-info
+     * @param {string} [symbol] unified symbol of the market to fetch the margin mode for (not used by bybit)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.privateGetV5AccountInfo(parameters);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "marginMode": "REGULAR_MARGIN",
+        //             "updatedTime": "1723481446000",
+        //             "unifiedMarginStatus": 5,
+        //             "dcpStatus": "OFF",
+        //             "timeWindow": 0,
+        //             "smpGroup": 0,
+        //             "isMasterTrader": false,
+        //             "spotHedgingStatus": "OFF"
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseMarginMode(result);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marginType = this.safeString(marginMode, "marginMode");
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", this.safeSymbol(null, market) },
+            { "marginMode", this.parseMarginModeType(marginType) },
+        };
+    }
+
+    public virtual object parseMarginModeType(object marginMode)
+    {
+        object marginModes = new Dictionary<string, object>() {
+            { "ISOLATED_MARGIN", "isolated" },
+            { "REGULAR_MARGIN", "cross" },
+            { "PORTFOLIO_MARGIN", "portfolio" },
+        };
+        return this.safeString(marginModes, marginMode, marginMode);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
