@@ -49,7 +49,7 @@ if (platform === 'win32') {
 }
 
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
-const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
+const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
@@ -943,10 +943,11 @@ class NewTranspiler {
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
-                // const transpiled = transpiledFiles[i];
-                // const exchangeName = exchanges[i].replace('.ts','');
-                // const path = EXCHANGE_WRAPPER_FOLDER + this.capitalizeexchangeName + '.java';
-                // // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
+                const transpiled = transpiledFiles[i];
+                const exchangeName = exchanges[i].replace('.ts','');
+                const path = EXCHANGE_WRAPPER_FOLDER + this.capitalize(exchangeName) + '.java';
+                this.createJavaWrappers(exchangeName, path, transpiled.methodsTypes)
+                break;
             }
         } else {
             //
