@@ -2287,45 +2287,6 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    safeNetwork (network) {  // TODO: Move to exchange.ts
-        let withdrawEnabled = this.safeBool (network, 'withdraw');
-        let depositEnabled = this.safeBool (network, 'deposit');
-        const limits = this.safeDict (network, 'limits');
-        const withdraw = this.safeDict (limits, 'withdraw');
-        const withdrawMax = this.safeNumber (withdraw, 'max');
-        const deposit = this.safeDict (limits, 'deposit');
-        const depositMax = this.safeNumber (deposit, 'max');
-        if (withdrawEnabled === undefined && withdrawMax !== undefined) {
-            withdrawEnabled = (withdrawMax > 0);
-        }
-        if (depositEnabled === undefined && depositMax !== undefined) {
-            depositEnabled = (depositMax > 0);
-        }
-        const networkId = this.safeString (network, 'id');
-        const isEnabled = (withdrawEnabled && depositEnabled);
-        return {
-            'info': network['info'],
-            'id': networkId,
-            'name': this.safeString (network, 'name'),
-            'network': this.safeString (network, 'network'),
-            'active': this.safeBool (network, 'active', isEnabled),
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
-            'fee': this.safeNumber (network, 'fee'),
-            'precision': this.safeNumber (network, 'precision'),
-            'limits': {
-                'withdraw': {
-                    'min': this.safeNumber (withdraw, 'min'),
-                    'max': withdrawMax,
-                },
-                'deposit': {
-                    'min': this.safeNumber (deposit, 'min'),
-                    'max': depositMax,
-                },
-            },
-        };
-    }
-
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
