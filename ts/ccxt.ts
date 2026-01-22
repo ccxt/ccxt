@@ -67,6 +67,7 @@ import bitfinex from  './src/bitfinex.js'
 import bitflyer from  './src/bitflyer.js'
 import bitget from  './src/bitget.js'
 import bithumb from  './src/bithumb.js'
+import bithumb2 from  './src/bithumb2.js'
 import bitmart from  './src/bitmart.js'
 import bitmex from  './src/bitmex.js'
 import bitopro from  './src/bitopro.js'
@@ -261,6 +262,7 @@ const exchanges = {
     'bitflyer':               bitflyer,
     'bitget':                 bitget,
     'bithumb':                bithumb,
+    'bithumb2':               bithumb2,
     'bitmart':                bitmart,
     'bitmex':                 bitmex,
     'bitopro':                bitopro,
