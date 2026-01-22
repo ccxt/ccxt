@@ -141,9 +141,9 @@ export interface Order {
     stopLossPrice?: number;
     cost: number;
     trades: Trade[];
-    fee: Fee;
-    reduceOnly: Bool;
-    postOnly: Bool;
+    fee?: Fee;
+    reduceOnly?: Bool;
+    postOnly?: Bool;
     info: any;
 }
 
