@@ -6782,6 +6782,22 @@ export default class Exchange {
                     return market;
                 }
             }
+            // temporary support for old futures
+            if (symbol.indexOf ('-') >= 0) {
+                const futureTypes = [ 'W', 'BW', 'M', 'BM', 'Q', 'BQ' ]
+                for (let i = 0; i < futureTypes.length; i++) {
+                    // if requested symbol is correct format (i.e. A/B:C-Wxxxxxx) then skip
+                    if (symbol.indexOf ('-' + futureTypes[i]) < 0) {
+                        continue;
+                    }
+                    // replace  A/B:C-xxxxxx  into  A/B:C-Wxxxxxx
+                    const symbolToCheck = symbol.replace ('-', '-' + futureTypes[i]);
+                    // check if A/B:C-Wxxxxxx exist
+                    if (symbolToCheck in this.markets) {
+                        return this.markets[symbolToCheck];
+                    }
+                }
+            }
             return markets[0];
         } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
             return this.createExpiredOptionMarket (symbol);

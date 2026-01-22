@@ -3442,7 +3442,13 @@ export default class binance extends Exchange {
             if (swap) {
                 symbol = symbol + ':' + settle;
             } else if (future) {
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+                let deliveryPrefix = '';
+                if (contractType === 'CURRENT_QUARTER' || contractType === 'NEXT_QUARTER') {
+                    deliveryPrefix = 'Q';
+                } else if (contractType === 'CURRENT_MONTH' || contractType === 'NEXT_MONTH') {
+                    deliveryPrefix = 'M';
+                }
+                symbol = symbol + ':' + settle + '-' + deliveryPrefix + this.yymmdd (expiry);
             } else if (option) {
                 strike = this.numberToString (this.parseToNumeric (this.safeString (market, 'strikePrice')));
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + this.safeString (optionParts, 3);
