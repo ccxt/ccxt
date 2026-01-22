@@ -306,7 +306,8 @@ export const getNodeRequestOptions = request => {
 		method: request.method,
 		headers: headers[Symbol.for('nodejs.util.inspect.custom')](),
 		insecureHTTPParser: request.insecureHTTPParser,
-		agent
+		// FIXME: remove this; commented because http requests wouldn't work when testing against localhost
+		// agent
 	};
 
 	return {
