@@ -2074,7 +2074,7 @@ fetches the margin mode of the trading pair
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified symbol of the market to fetch the margin mode for (not used by bybit) |
+| symbol | <code>string</code> | No | unified symbol of the market to fetch the margin mode for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
