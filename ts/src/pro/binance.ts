@@ -154,6 +154,9 @@ export default class binance extends binanceRest {
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
                 },
+                'watchTradesForSymbols': {
+                    'name': 'trade', // 'trade' or 'aggTrade'
+                },
                 'watchTicker': {
                     'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
@@ -1121,6 +1124,10 @@ export default class binance extends binanceRest {
         }
         let name = undefined;
         [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
+        if (name === undefined) {
+            const options = this.safeValue (this.options, 'watchTradesForSymbols', {});
+            name = this.safeString (options, 'name', 'trade');
+        }
         params = this.omit (params, 'callerMethodName');
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
@@ -1136,7 +1143,7 @@ export default class binance extends binanceRest {
             const rawHash = market['lowercaseId'] + '@' + name;
             subParams.push (rawHash);
         }
-        const query = this.omit (params, 'type');
+        const query = this.omit (params, 'type', 'name');
         const subParamsLength = subParams.length;
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
@@ -1255,6 +1262,14 @@ export default class binance extends binanceRest {
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
+        let name = this.safeString (params, 'name', undefined);
+        if (name === undefined) {
+            const options = this.safeValue (this.options, 'watchTrades', {});
+            name = this.safeString (options, 'name', undefined);
+            if (name !== undefined) {
+                params['name'] = name;
+            }
+        }
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
