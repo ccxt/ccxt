@@ -643,7 +643,7 @@ export default class bitvavo extends Exchange {
                 'withdraw': withdrawal,
                 'networks': networks,
                 'fee': withdrawFee,
-                'precision': undefined,
+                'precision': precision,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'limits': {
                     'amount': {
@@ -661,6 +661,8 @@ export default class bitvavo extends Exchange {
                 },
             });
         }
+        // set currencies here to avoid calling publicGetAssets twice
+        this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, result));
         return result;
     }
 
