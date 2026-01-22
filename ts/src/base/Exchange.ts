@@ -5796,7 +5796,7 @@ export default class Exchange {
         return this.safeValue (res, 0);
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
+    handleMarketTypeAndParams (methodName: string, market: Partial<Market> = undefined, params = {}, defaultValue = undefined): any {
         /**
          * @ignore
          * @method
@@ -5838,7 +5838,7 @@ export default class Exchange {
         return [ defaultType, params ];
     }
 
-    handleSubTypeAndParams (methodName: string, market = undefined, params = {}, defaultValue = undefined) {
+    handleSubTypeAndParams (methodName: string, market: Partial<Market> = undefined, params = {}, defaultValue = undefined) {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
@@ -6767,9 +6767,23 @@ export default class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code);
     }
 
-    market (symbol: string): MarketInterface {
+    /**
+     * @method
+     * @description Retrieves a market by its symbol.
+     * @param {string} symbol - The symbol of the market to retrieve.
+     * @param {boolean} [silentBadSymbol] - Whether to throw an error if the market symbol is not found.
+     * @returns {MarketInterface} - The market object corresponding to the symbol.
+     * @throws {ExchangeError} - If the markets have not been loaded.
+     * @throws {BadSymbol} - If the market symbol is not found and `silentBadSymbol` is false. Additional to the
+     * silentBadSymbol argument the method use the this.options.allowNonMarketSymbol option to prevent throwing
+     * an error, if the market symbol is not found.
+     */
+    market (symbol: string, silentBadSymbol = undefined): MarketInterface {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (silentBadSymbol === undefined) {
+            silentBadSymbol = this.safeBool (this.options, 'allowNonMarketSymbol', false);
         }
         if (symbol in this.markets) {
             return this.markets[symbol];
@@ -6786,7 +6800,10 @@ export default class Exchange {
         } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
             return this.createExpiredOptionMarket (symbol);
         }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+        if (!silentBadSymbol) {
+            throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+        }
+        return undefined;
     }
 
     createExpiredOptionMarket (symbol: string): MarketInterface {
