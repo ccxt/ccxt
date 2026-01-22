@@ -5,71 +5,60 @@
             "name": "Bitcoin",
             "decimals": "8",
             "depositFee": "0",
-            "depositConfirmations": "2",
+            "depositConfirmations": "3",
             "depositStatus": "OK",
-            "withdrawalFee": "0.0000032",
-            "withdrawalMinAmount": "0.000011",
+            "withdrawalFee": "0.0002",
+            "withdrawalMinAmount": "0.00001",
             "withdrawalStatus": "OK",
             "networks": [
-                "BTC"
+                "Mainnet"
             ],
             "message": ""
         },
         "id": "BTC",
-        "numericId": null,
         "code": "BTC",
-        "precision": 8,
-        "type": "crypto",
         "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0000032,
-        "fees": {},
         "networks": {
-            "BTC": {
+            "Mainnet": {
                 "info": {
                     "symbol": "BTC",
                     "name": "Bitcoin",
                     "decimals": "8",
                     "depositFee": "0",
-                    "depositConfirmations": "2",
+                    "depositConfirmations": "3",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.0000032",
-                    "withdrawalMinAmount": "0.000011",
+                    "withdrawalFee": "0.0002",
+                    "withdrawalMinAmount": "0.00001",
                     "withdrawalStatus": "OK",
                     "networks": [
-                        "BTC"
+                        "Mainnet"
                     ],
                     "message": ""
                 },
-                "id": "BTC",
-                "network": "BTC",
+                "id": "Mainnet",
+                "network": "Mainnet",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0000032,
+                "fee": 0.0002,
                 "precision": 8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.000011,
-                        "max": null
+                        "min": 0.00001
                     }
                 }
             }
         },
+        "fee": 0.0002,
+        "precision": 8,
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
+            "amount": {},
+            "deposit": {},
             "withdraw": {
-                "min": 0.000011,
-                "max": null
+                "min": 0.00001
             }
         }
     },
@@ -79,27 +68,22 @@
             "name": "Tether",
             "decimals": "6",
             "depositFee": "0",
-            "depositConfirmations": "32",
-            "depositStatus": "DELISTED",
-            "withdrawalFee": "0.96",
-            "withdrawalMinAmount": "0.96",
-            "withdrawalStatus": "DELISTED",
+            "depositConfirmations": "64",
+            "depositStatus": "OK",
+            "withdrawalFee": "4.1",
+            "withdrawalMinAmount": "4.1",
+            "withdrawalStatus": "OK",
             "networks": [
                 "ETH"
             ],
             "message": ""
         },
         "id": "USDT",
-        "numericId": null,
         "code": "USDT",
-        "precision": 6,
-        "type": "crypto",
         "name": "Tether",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0.96,
-        "fees": {},
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
         "networks": {
             "ERC20": {
                 "info": {
@@ -107,11 +91,11 @@
                     "name": "Tether",
                     "decimals": "6",
                     "depositFee": "0",
-                    "depositConfirmations": "32",
-                    "depositStatus": "DELISTED",
-                    "withdrawalFee": "0.96",
-                    "withdrawalMinAmount": "0.96",
-                    "withdrawalStatus": "DELISTED",
+                    "depositConfirmations": "64",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "4.1",
+                    "withdrawalMinAmount": "4.1",
+                    "withdrawalStatus": "OK",
                     "networks": [
                         "ETH"
                     ],
@@ -119,31 +103,25 @@
                 },
                 "id": "ETH",
                 "network": "ERC20",
-                "active": false,
-                "deposit": false,
-                "withdraw": false,
-                "fee": 0.96,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 4.1,
                 "precision": 6,
                 "limits": {
                     "withdraw": {
-                        "min": 0.96,
-                        "max": null
+                        "min": 4.1
                     }
                 }
             }
         },
+        "fee": 4.1,
+        "precision": 6,
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
+            "amount": {},
+            "deposit": {},
             "withdraw": {
-                "min": 0.96,
-                "max": null
+                "min": 4.1
             }
         }
     },
@@ -164,16 +142,11 @@
             "message": ""
         },
         "id": "EUR",
-        "numericId": null,
         "code": "EUR",
-        "precision": 2,
-        "type": "fiat",
         "name": "Euro",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0,
-        "fees": {},
         "networks": {
             "SEPA": {
                 "info": {
@@ -200,24 +173,18 @@
                 "precision": 2,
                 "limits": {
                     "withdraw": {
-                        "min": 0,
-                        "max": null
+                        "min": 0
                     }
                 }
             }
         },
+        "fee": 0,
+        "precision": 2,
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
+            "amount": {},
+            "deposit": {},
             "withdraw": {
-                "min": 0,
-                "max": null
+                "min": 0
             }
         }
     },
@@ -229,27 +196,22 @@
             "depositFee": "0",
             "depositConfirmations": "10",
             "depositStatus": "OK",
-            "withdrawalFee": "0.000003",
-            "withdrawalMinAmount": "0.012",
+            "withdrawalFee": "0.001",
+            "withdrawalMinAmount": "0.001",
             "withdrawalStatus": "OK",
             "networks": [
-                "LTC"
+                "Mainnet"
             ],
             "message": ""
         },
         "id": "LTC",
-        "numericId": null,
         "code": "LTC",
-        "precision": 8,
-        "type": "crypto",
         "name": "Litecoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000003,
-        "fees": {},
         "networks": {
-            "LTC": {
+            "Mainnet": {
                 "info": {
                     "symbol": "LTC",
                     "name": "Litecoin",
@@ -257,41 +219,35 @@
                     "depositFee": "0",
                     "depositConfirmations": "10",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.000003",
-                    "withdrawalMinAmount": "0.012",
+                    "withdrawalFee": "0.001",
+                    "withdrawalMinAmount": "0.001",
                     "withdrawalStatus": "OK",
                     "networks": [
-                        "LTC"
+                        "Mainnet"
                     ],
                     "message": ""
                 },
-                "id": "LTC",
-                "network": "LTC",
+                "id": "Mainnet",
+                "network": "Mainnet",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000003,
+                "fee": 0.001,
                 "precision": 8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.012,
-                        "max": null
+                        "min": 0.001
                     }
                 }
             }
         },
+        "fee": 0.001,
+        "precision": 8,
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
+            "amount": {},
+            "deposit": {},
             "withdraw": {
-                "min": 0.012,
-                "max": null
+                "min": 0.001
             }
         }
     },
@@ -301,71 +257,60 @@
             "name": "Ethereum",
             "decimals": "8",
             "depositFee": "0",
-            "depositConfirmations": "32",
+            "depositConfirmations": "64",
             "depositStatus": "OK",
-            "withdrawalFee": "0.000035",
-            "withdrawalMinAmount": "0.00029",
+            "withdrawalFee": "0.002",
+            "withdrawalMinAmount": "0.002",
             "withdrawalStatus": "OK",
             "networks": [
-                "ETH"
+                "Mainnet"
             ],
             "message": ""
         },
         "id": "ETH",
-        "numericId": null,
         "code": "ETH",
-        "precision": 8,
-        "type": "crypto",
         "name": "Ethereum",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000035,
-        "fees": {},
         "networks": {
-            "ERC20": {
+            "Mainnet": {
                 "info": {
                     "symbol": "ETH",
                     "name": "Ethereum",
                     "decimals": "8",
                     "depositFee": "0",
-                    "depositConfirmations": "32",
+                    "depositConfirmations": "64",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.000035",
-                    "withdrawalMinAmount": "0.00029",
+                    "withdrawalFee": "0.002",
+                    "withdrawalMinAmount": "0.002",
                     "withdrawalStatus": "OK",
                     "networks": [
-                        "ETH"
+                        "Mainnet"
                     ],
                     "message": ""
                 },
-                "id": "ETH",
-                "network": "ERC20",
+                "id": "Mainnet",
+                "network": "Mainnet",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000035,
+                "fee": 0.002,
                 "precision": 8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.00029,
-                        "max": null
+                        "min": 0.002
                     }
                 }
             }
         },
+        "fee": 0.002,
+        "precision": 8,
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
+            "amount": {},
+            "deposit": {},
             "withdraw": {
-                "min": 0.00029,
-                "max": null
+                "min": 0.002
             }
         }
     },
@@ -375,46 +320,41 @@
             "name": "Cardano",
             "decimals": "6",
             "depositFee": "0",
-            "depositConfirmations": "10",
+            "depositConfirmations": "15",
             "depositStatus": "OK",
             "withdrawalFee": "0.2",
             "withdrawalMinAmount": "2",
             "withdrawalStatus": "OK",
             "networks": [
-                "ADA"
+                "Mainnet"
             ],
             "message": ""
         },
         "id": "ADA",
-        "numericId": null,
         "code": "ADA",
-        "precision": 6,
-        "type": "crypto",
         "name": "Cardano",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.2,
-        "fees": {},
         "networks": {
-            "ADA": {
+            "Mainnet": {
                 "info": {
                     "symbol": "ADA",
                     "name": "Cardano",
                     "decimals": "6",
                     "depositFee": "0",
-                    "depositConfirmations": "10",
+                    "depositConfirmations": "15",
                     "depositStatus": "OK",
                     "withdrawalFee": "0.2",
                     "withdrawalMinAmount": "2",
                     "withdrawalStatus": "OK",
                     "networks": [
-                        "ADA"
+                        "Mainnet"
                     ],
                     "message": ""
                 },
-                "id": "ADA",
-                "network": "ADA",
+                "id": "Mainnet",
+                "network": "Mainnet",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -422,73 +362,62 @@
                 "precision": 6,
                 "limits": {
                     "withdraw": {
-                        "min": 2,
-                        "max": null
+                        "min": 2
                     }
                 }
             }
         },
+        "fee": 0.2,
+        "precision": 6,
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
+            "amount": {},
+            "deposit": {},
             "withdraw": {
-                "min": 2,
-                "max": null
+                "min": 2
             }
         }
     },
     "XRP": {
         "info": {
             "symbol": "XRP",
-            "name": "XRP",
+            "name": "Ripple",
             "decimals": "6",
             "depositFee": "0",
             "depositConfirmations": "1",
             "depositStatus": "OK",
             "withdrawalFee": "0",
-            "withdrawalMinAmount": "10",
+            "withdrawalMinAmount": "1",
             "withdrawalStatus": "OK",
             "networks": [
-                "XRP"
+                "Mainnet"
             ],
             "message": ""
         },
         "id": "XRP",
-        "numericId": null,
         "code": "XRP",
-        "precision": 6,
-        "type": "crypto",
-        "name": "XRP",
+        "name": "Ripple",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0,
-        "fees": {},
         "networks": {
-            "XRP": {
+            "Mainnet": {
                 "info": {
                     "symbol": "XRP",
-                    "name": "XRP",
+                    "name": "Ripple",
                     "decimals": "6",
                     "depositFee": "0",
                     "depositConfirmations": "1",
                     "depositStatus": "OK",
                     "withdrawalFee": "0",
-                    "withdrawalMinAmount": "10",
+                    "withdrawalMinAmount": "1",
                     "withdrawalStatus": "OK",
                     "networks": [
-                        "XRP"
+                        "Mainnet"
                     ],
                     "message": ""
                 },
-                "id": "XRP",
-                "network": "XRP",
+                "id": "Mainnet",
+                "network": "Mainnet",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -496,24 +425,18 @@
                 "precision": 6,
                 "limits": {
                     "withdraw": {
-                        "min": 10,
-                        "max": null
+                        "min": 1
                     }
                 }
             }
         },
+        "fee": 0,
+        "precision": 6,
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
+            "amount": {},
+            "deposit": {},
             "withdraw": {
-                "min": 10,
-                "max": null
+                "min": 1
             }
         }
     },
@@ -523,10 +446,10 @@
             "name": "USD Coin",
             "decimals": "6",
             "depositFee": "0",
-            "depositConfirmations": "32",
+            "depositConfirmations": "64",
             "depositStatus": "OK",
-            "withdrawalFee": "0.52",
-            "withdrawalMinAmount": "1.2",
+            "withdrawalFee": "4.1",
+            "withdrawalMinAmount": "4.1",
             "withdrawalStatus": "OK",
             "networks": [
                 "ETH"
@@ -534,16 +457,11 @@
             "message": ""
         },
         "id": "USDC",
-        "numericId": null,
         "code": "USDC",
-        "precision": 6,
-        "type": "crypto",
         "name": "USD Coin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.52,
-        "fees": {},
         "networks": {
             "ERC20": {
                 "info": {
@@ -551,10 +469,10 @@
                     "name": "USD Coin",
                     "decimals": "6",
                     "depositFee": "0",
-                    "depositConfirmations": "32",
+                    "depositConfirmations": "64",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.52",
-                    "withdrawalMinAmount": "1.2",
+                    "withdrawalFee": "4.1",
+                    "withdrawalMinAmount": "4.1",
                     "withdrawalStatus": "OK",
                     "networks": [
                         "ETH"
@@ -566,28 +484,22 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.52,
+                "fee": 4.1,
                 "precision": 6,
                 "limits": {
                     "withdraw": {
-                        "min": 1.2,
-                        "max": null
+                        "min": 4.1
                     }
                 }
             }
         },
+        "fee": 4.1,
+        "precision": 6,
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
+            "amount": {},
+            "deposit": {},
             "withdraw": {
-                "min": 1.2,
-                "max": null
+                "min": 4.1
             }
         }
     }
