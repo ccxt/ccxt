@@ -6972,39 +6972,47 @@ export default class bybit extends Exchange {
      * @name bybit#setLeverage
      * @description set the level of leverage for a market
      * @see https://bybit-exchange.github.io/docs/v5/position/leverage
+     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/set-leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.buyLeverage] leverage for buy side
      * @param {string} [params.sellLeverage] leverage for sell side
+     * @param {string} [params.type] "margin"
+     * @param {string} [params.currency] currency code set leverage for margin account
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('setLeverage', undefined, params);
+        if (type !== 'margin' && symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         // engage in leverage setting
         // we reuse the code here instead of having two methods
         const leverageString = this.numberToString (leverage);
-        const request: Dict = {
-            'symbol': market['id'],
-            'buyLeverage': leverageString,
-            'sellLeverage': leverageString,
-        };
-        request['buyLeverage'] = leverageString;
-        request['sellLeverage'] = leverageString;
-        if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
+        const request: Dict = {};
+        let response = undefined;
+        if (type === 'margin') {
+            request['leverage'] = leverageString;
+            response = await this.privatePostV5SpotMarginTradeSetLeverage (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' setLeverage() only support linear and inverse market');
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            request['buyLeverage'] = leverageString;
+            request['sellLeverage'] = leverageString;
+            if (market['linear']) {
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else {
+                throw new NotSupported (this.id + ' setLeverage() only support linear and inverse market');
+            }
+            response = await this.privatePostV5PositionSetLeverage (this.extend (request, params));
         }
-        const response = await this.privatePostV5PositionSetLeverage (this.extend (request, params));
         return response;
     }
 

@@ -1243,6 +1243,20 @@
                     "BTC/USD:BTC"
                 ],
                 "output": "{\"symbol\":\"BTCUSD\",\"buyLeverage\":\"6\",\"sellLeverage\":\"6\",\"category\":\"inverse\"}"
+            },
+            {
+                "description": "Set leverage spot margin",
+                "method": "setLeverage",
+                "url": "https://api-testnet.bybit.com/v5/spot-margin-trade/set-leverage",
+                "input": [
+                    6,
+                    null,
+                    {
+                        "type": "margin",
+                        "currency": "BTC"
+                    }
+                ],
+                "output": "{\"currency\":\"BTC\",\"leverage\":\"6\"}"
             }
         ],
         "fetchDeposits": [
