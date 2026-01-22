@@ -1679,14 +1679,6 @@ export default class grvt extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    nonce () {
-        return 52345242342423; // todo remove
-    }
-
-    msReplacer () {
-        return 1800000000000;
-    }
-
     /**
      * @method
      * @name grvt#createOrder
@@ -2918,7 +2910,7 @@ export default class grvt extends Exchange {
     }
 
     defaultSignature () {
-        const expiration = this.msReplacer () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
+        const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
         return {
             'signer': '',
             'r': '',
