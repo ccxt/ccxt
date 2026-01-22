@@ -405,8 +405,10 @@ class Exchange(object):
     synchronous = True
 
     def __init__(self, config: ConstructorArgs = {}):
-        self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
-        self.requests_trust_env = self.requests_trust_env or self.trust_env
+        self.aiohttp_trust_env = self.aiohttp_trust_env or config.get('aiohttp_trust_env', False) or \
+            self.trust_env or config.get('trust_env', False)
+        self.requests_trust_env = self.requests_trust_env or config.get('requests_trust_env', False) or \
+            self.trust_env or config.get('trust_env', False)
 
         self.precision = dict() if self.precision is None else self.precision
         self.limits = dict() if self.limits is None else self.limits
