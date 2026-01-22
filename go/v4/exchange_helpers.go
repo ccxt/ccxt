@@ -537,6 +537,8 @@ func GetArrayLength(value interface{}) int {
 		return len(v)
 	case []int:
 		return len(v)
+	case []map[string]interface{}:
+        return len(v)
 	case string:
 		return len(v) // should we do it here?
 	}
