@@ -768,7 +768,7 @@ func normalizeStruct(types map[string][]apitypes.Type, typeName string, value in
 
 		conv, err := normalizeValue(types, f.Type, raw)
 		if err != nil {
-			return nil, fmt.Errorf("field %s (type %s): %w", f.Name, f.Type, err)
+			return nil, fmt.Errorf("field %s (type %s, value %v): %w", f.Name, f.Type, raw, err)
 		}
 		out[f.Name] = conv
 	}
@@ -867,6 +867,8 @@ func normalizeValue(types map[string][]apitypes.Type, typeName string, value int
 		if err != nil {
 			return nil, err
 		}
+		// For smaller integer types (not 256-bit), validate they fit in range
+		// and return the big.Int (the library will validate the range)
 		return bi, nil
 	case typeName == "address":
 		if s, ok := value.(string); ok {

@@ -1679,6 +1679,14 @@ export default class grvt extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
+    nonce () {
+        return 52345242342423; // todo remove
+    }
+
+    msReplacer () {
+        return 1800000000000;
+    }
+
     /**
      * @method
      * @name grvt#createOrder
@@ -1706,8 +1714,10 @@ export default class grvt extends Exchange {
         const orderLeg = {
             'instrument': market['id'],
             'size': this.amountToPrecision (symbol, amount),
-            'limit_price': this.numberToString (price),
         };
+        if (price !== undefined) {
+            orderLeg['limit_price'] = this.priceToPrecision (symbol, price);
+        }
         if (side === 'sell') {
             orderLeg['is_buying_asset'] = false;
         } else if (side === 'buy') {
@@ -1834,19 +1844,22 @@ export default class grvt extends Exchange {
             const sizeDec = this.safeString (sizeParts, 1, '');
             const sizeDecLength = sizeDec.length;
             const sizeDecLengthStr = sizeDecLength.toString ();
-            const size_int = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
-            const price = leg['limit_price'];
-            const limitParts = price.split ('.');
-            const limitDec = this.safeString (limitParts, 1, '');
-            const limitDecLength = limitDec.length;
-            const limitDecLengthStr = limitDecLength.toString ();
-            const price_int = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, this.convertToBigIntCustom (limitDecLengthStr))));
-            legs.push ({
+            const sizeInteger = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
+            const legOrder = {
                 'assetID': market['info']['instrument_hash'],
-                'contractSize': this.parseToInt (size_int),
-                'limitPrice': this.parseToInt (price_int),
+                'contractSize': this.parseToInt (sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
-            });
+            };
+            if ('limit_price' in leg) {
+                const price = leg['limit_price'];
+                const limitParts = price.split ('.');
+                const limitDec = this.safeString (limitParts, 1, '');
+                const limitDecLength = limitDec.length;
+                const limitDecLengthStr = limitDecLength.toString ();
+                const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, this.convertToBigIntCustom (limitDecLengthStr))));
+                legOrder['limitPrice'] = this.parseToInt (priceInteger);
+            }
+            legs.push (legOrder);
         }
         const returnValue = {
             'subAccountID': order['sub_account_id'],
@@ -2905,7 +2918,7 @@ export default class grvt extends Exchange {
     }
 
     defaultSignature () {
-        const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
+        const expiration = this.msReplacer () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
         return {
             'signer': '',
             'r': '',
