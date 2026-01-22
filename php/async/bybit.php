@@ -9634,11 +9634,12 @@ class bybit extends Exchange {
              *
              * @see https://bybit-exchange.github.io/docs/v5/account/account-info
              *
-             * @param {string} [$symbol] unified $symbol of the market to fetch the margin mode for (not used by bybit)
+             * @param {string} [$symbol] unified $symbol of the $market to fetch the margin mode for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
              */
             Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $response = Async\await($this->privateGetV5AccountInfo ($params));
             //
             //     {
@@ -9657,7 +9658,7 @@ class bybit extends Exchange {
             //     }
             //
             $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_margin_mode($result);
+            return $this->parse_margin_mode($result, $market);
         }) ();
     }
 
