@@ -34,7 +34,7 @@
                         "isMasterTrader": false,
                         "spotHedgingStatus": "OFF"
                     },
-                    "symbol": null,
+                    "symbol": "BTC/USDT",
                     "marginMode": "cross"
                 }
             }
