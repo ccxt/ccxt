@@ -591,26 +591,92 @@
         ],
         "fetchTicker": [
             {
-                "description": "public spot ticker",
+                "description": "swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "close": "84522.84",
+                            "high": "85410.39",
+                            "index_price": "84538.51",
+                            "last": "84522.84",
+                            "low": "84271",
+                            "mark_price": "84510.37",
+                            "market": "BTCUSDT",
+                            "open": "84884.25",
+                            "period": "86400",
+                            "value": "213445234.845454",
+                            "volume": "2517.3507",
+                            "volume_buy": "26.9913",
+                            "volume_sell": "8.1806"
+                        }
+                    ],
+                    "message": "OK"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 85410.39,
+                    "low": 84271,
+                    "bid": null,
+                    "bidVolume": 26.9913,
+                    "ask": null,
+                    "askVolume": 8.1806,
+                    "vwap": 84789.63016374873,
+                    "open": 84884.25,
+                    "close": 84522.84,
+                    "last": 84522.84,
+                    "previousClose": null,
+                    "change": -361.41,
+                    "percentage": -0.4257680311718605,
+                    "average": 84703.54,
+                    "baseVolume": 2517.3507,
+                    "quoteVolume": 213445234.845454,
+                    "markPrice": 84510.37,
+                    "indexPrice": 84538.51,
+                    "info": {
+                        "close": "84522.84",
+                        "high": "85410.39",
+                        "index_price": "84538.51",
+                        "last": "84522.84",
+                        "low": "84271",
+                        "mark_price": "84510.37",
+                        "market": "BTCUSDT",
+                        "open": "84884.25",
+                        "period": "86400",
+                        "value": "213445234.845454",
+                        "volume": "2517.3507",
+                        "volume_buy": "26.9913",
+                        "volume_sell": "8.1806"
+                    }
+                }
+            },
+            {
+                "description": "spot ticker",
                 "method": "fetchTicker",
                 "input": [
                     "BTC/USDT"
                 ],
                 "httpResponse": {
-                    "code": 0,
+                    "code": "0",
                     "data": [
                         {
-                            "close": "64291.34",
-                            "high": "65183.04",
-                            "last": "64291.34",
-                            "low": "59650.01",
+                            "close": "84501.1",
+                            "high": "85449.99",
+                            "last": "84501.1",
+                            "low": "84300",
                             "market": "BTCUSDT",
-                            "open": "61276.48",
-                            "period": 86400,
-                            "value": "35007188.7843427438",
-                            "volume": "558.59137629",
-                            "volume_buy": "9.28992397",
-                            "volume_sell": "10.84781116"
+                            "open": "84896.73",
+                            "period": "86400",
+                            "value": "22575379.6920150243",
+                            "volume": "266.27695068",
+                            "volume_buy": "3.73513828",
+                            "volume_sell": "5.29489806"
                         }
                     ],
                     "message": "OK"
@@ -619,36 +685,36 @@
                     "symbol": "BTC/USDT",
                     "timestamp": null,
                     "datetime": null,
-                    "high": 65183.04,
-                    "low": 59650.01,
+                    "high": 85449.99,
+                    "low": 84300,
                     "bid": null,
-                    "bidVolume": 9.28992397,
+                    "bidVolume": 3.73513828,
                     "ask": null,
-                    "askVolume": 10.84781116,
-                    "vwap": null,
-                    "open": 61276.48,
-                    "close": 64291.34,
-                    "last": 64291.34,
+                    "askVolume": 5.29489806,
+                    "vwap": 84781.57660422186,
+                    "open": 84896.73,
+                    "close": 84501.1,
+                    "last": 84501.1,
                     "previousClose": null,
-                    "change": 3014.86,
-                    "percentage": 4.920093321287385,
-                    "average": 62783.91,
-                    "baseVolume": 558.59137629,
-                    "quoteVolume": null,
-                    "markPrice":  null,
+                    "change": -395.63,
+                    "percentage": -0.4660132374945418,
+                    "average": 84698.91,
+                    "baseVolume": 266.27695068,
+                    "quoteVolume": 22575379.692015026,
+                    "markPrice": null,
                     "indexPrice": null,
                     "info": {
-                        "close": "64291.34",
-                        "high": "65183.04",
-                        "last": "64291.34",
-                        "low": "59650.01",
+                        "close": "84501.1",
+                        "high": "85449.99",
+                        "last": "84501.1",
+                        "low": "84300",
                         "market": "BTCUSDT",
-                        "open": "61276.48",
-                        "period": 86400,
-                        "value": "35007188.7843427438",
-                        "volume": "558.59137629",
-                        "volume_buy": "9.28992397",
-                        "volume_sell": "10.84781116"
+                        "open": "84896.73",
+                        "period": "86400",
+                        "value": "22575379.6920150243",
+                        "volume": "266.27695068",
+                        "volume_buy": "3.73513828",
+                        "volume_sell": "5.29489806"
                     }
                 }
             }
