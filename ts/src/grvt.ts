@@ -2922,6 +2922,15 @@ export default class grvt extends Exchange {
         };
     }
 
+    handleUntilOptionString (key: string, request, params, multiplier = 1) {
+        const until = this.safeInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request[key] = this.numberToString (this.parseToInt (until * multiplier));
+            params = this.omit (params, [ 'until', 'till' ]);
+        }
+        return [ request, params ];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
