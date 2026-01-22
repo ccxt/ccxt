@@ -1717,7 +1717,7 @@ export default class grvt extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
-        let request = {
+        const orderRequest = {
             'sub_account_id': this.getSubAccountId (params),
             'time_in_force': 'GOOD_TILL_TIME',
             'legs': [ orderLeg ],
@@ -1744,15 +1744,15 @@ export default class grvt extends Exchange {
         let eipType = 'EIP712_ORDER_TYPE';
         if (this.safeBool (this.options, 'builderFee', true)) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
-            request['builder'] = this.safeString (this.options, 'builder');
-            request['builder_fee'] = this.safeString (this.options, 'builderRate');
+            orderRequest['builder'] = this.safeString (this.options, 'builder');
+            orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
         }
         // @ts-ignore
-        request = this.createSignedRequest (request, eipType);
-        const fullRequest = {
-            'order': request,
+        const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
+        const request = {
+            'order': signedOrderRequest,
         };
-        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (fullRequest, params));
+        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
         //
         //    {
         //        "result": {
@@ -1863,7 +1863,7 @@ export default class grvt extends Exchange {
             'nonce': order['signature']['nonce'],
             'expiration': order['signature']['expiration'],
         };
-        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
+        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool (this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
             returnValue['builderFee'] = this.parseToInt (parseFloat (order['builder_fee']) * this.feeAmountMultiplier ());
         }
