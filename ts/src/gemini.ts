@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ export default class gemini extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -134,61 +134,102 @@ export default class gemini extends Exchange {
                     'get': {
                         'v1/symbols': 5,
                         'v1/symbols/details/{symbol}': 5,
-                        'v1/staking/rates': 5,
+                        'v1/network/{token}': 5,
                         'v1/pubticker/{symbol}': 5,
+                        'v1/feepromos': 5,
+                        'v1/book/{symbol}': 5,
+                        'v1/trades/{symbol}': 5,
+                        'v1/pricefeed': 5,
+                        'v1/fundingamount/{symbol}': 5,
+                        'v1/fundingamountreport/records.xlsx': 5,
                         'v2/ticker/{symbol}': 5,
                         'v2/candles/{symbol}/{timeframe}': 5,
-                        'v1/trades/{symbol}': 5,
-                        'v1/auction/{symbol}': 5,
-                        'v1/auction/{symbol}/history': 5,
-                        'v1/pricefeed': 5,
-                        'v1/book/{symbol}': 5,
-                        'v1/earn/rates': 5,
+                        'v2/derivatives/candles/{symbol}/{time_frame}': 5,
+                        'v2/fxrate/{symbol}/{timestamp}': 5,
+                        'v1/staking/rates': 5,
+                        'v1/riskstats/{symbol}': 5,
+                        'v1/auction/{symbol}': 5, // deprecated
+                        'v1/auction/{symbol}/history': 5, // deprecated
+                        'v1/earn/rates': 5, // deprecated
                     },
                 },
                 'private': {
+                    'get': {
+                        'v1/perpetuals/fundingpaymentreport/records.xlsx': 1,
+                    },
                     'post': {
-                        'v1/staking/unstake': 1,
-                        'v1/staking/stake': 1,
-                        'v1/staking/rewards': 1,
-                        'v1/staking/history': 1,
+                        // orders
                         'v1/order/new': 1,
                         'v1/order/cancel': 1,
-                        'v1/wrap/{symbol}': 1,
-                        'v1/order/cancel/session': 1,
                         'v1/order/cancel/all': 1,
+                        'v1/order/cancel/session': 1,
                         'v1/order/status': 1,
                         'v1/orders': 1,
+                        'v1/orders/history': 1,
                         'v1/mytrades': 1,
-                        'v1/notionalvolume': 1,
                         'v1/tradevolume': 1,
+                        'v1/notionalvolume': 1,
+                        'v1/wrap/{symbol}': 1,
+                        // fund management
+                        'v1/balances': 1,
+                        'v1/notionalbalances/{currency}': 1,
+                        'v1/addresses/{network}': 1,
+                        'v1/deposit/{network}/newAddress': 1,
+                        'v1/transfers': 1,
+                        'v1/custodyaccountfees': 1,
+                        'v1/withdraw/{currency}': 1,
+                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate': 1,
+                        'v1/payments/addbank': 1,
+                        'v1/payments/addbank/cad': 1,
+                        'v1/payments/methods': 1,
+                        'v1/approvedAddresses/account/{network}': 1,
+                        'v1/approvedAddresses/{network}/request': 1,
+                        'v1/approvedAddresses/{network}/remove': 1,
+                        'v1/account/transfer/{currency}': 1,
+                        'v1/transactions': 1,
+                        // margin
+                        'v1/margin/account': 1,
+                        'v1/margin/rates': 1,
+                        'v1/margin/order/preview': 1,
+                        // session
+                        'v1/heartbeat': 1,
+                        // clearing
                         'v1/clearing/new': 1,
                         'v1/clearing/status': 1,
                         'v1/clearing/cancel': 1,
                         'v1/clearing/confirm': 1,
-                        'v1/balances': 1,
+                        'v1/clearing/list': 1,
+                        'v1/clearing/broker/list': 1,
+                        'v1/clearing/broker/new': 1,
+                        'v1/clearing/trades': 1,
+                        // instant
+                        'v1/instant/quote': 1,
+                        'v1/instant/execute': 1,
+                        // account administration
+                        'v1/account': 1,
+                        'v1/account/create': 1,
+                        'v1/account/rename': 1,
+                        'v1/account/list': 1,
+                        'v1/roles': 1,
+                        // oauth
+                        'v1/oauth/revokeByToken': 1,
+                        // staking
                         'v1/balances/staking': 1,
-                        'v1/notionalbalances/{currency}': 1,
-                        'v1/transfers': 1,
-                        'v1/addresses/{network}': 1,
-                        'v1/deposit/{network}/newAddress': 1,
+                        'v1/staking/stake': 1,
+                        'v1/staking/history': 1,
+                        'v1/staking/rewards': 1,
+                        'v1/staking/unstake': 1,
+                        // derivatives
+                        'v1/margin': 1,
+                        'v1/perpetuals/fundingPayment': 1,
+                        'v1/perpetuals/fundingpaymentreport/records.json': 1,
+                        'v1/positions': 1,
+                        // not documented or deprecated
                         'v1/deposit/{currency}/newAddress': 1,
-                        'v1/withdraw/{currency}': 1,
-                        'v1/account/transfer/{currency}': 1,
-                        'v1/payments/addbank': 1,
-                        'v1/payments/methods': 1,
                         'v1/payments/sen/withdraw': 1,
                         'v1/balances/earn': 1,
                         'v1/earn/interest': 1,
                         'v1/earn/history': 1,
-                        'v1/approvedAddresses/{network}/request': 1,
-                        'v1/approvedAddresses/account/{network}': 1,
-                        'v1/approvedAddresses/{network}/remove': 1,
-                        'v1/account': 1,
-                        'v1/account/create': 1,
-                        'v1/account/list': 1,
-                        'v1/heartbeat': 1,
-                        'v1/roles': 1,
                     },
                 },
             },
@@ -1527,6 +1568,57 @@ export default class gemini extends Exchange {
 
     /**
      * @method
+     * @name gemini#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.gemini.com/rest/orders#list-past-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol); // throws on non-existent symbol
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit_orders'] = Math.min (limit, 500);
+        }
+        const response = await this.privatePostV1OrdersHistory (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "order_id":"106028543717",
+        //              "id":"106028543717",
+        //              "symbol":"etheur",
+        //              "exchange":"gemini",
+        //              "avg_execution_price":"0.00",
+        //              "side":"buy",
+        //              "type":"exchange limit",
+        //              "timestamp":"1650398446",
+        //              "timestampms":1650398446375,
+        //              "is_live":true,
+        //              "is_cancelled":false,
+        //              "is_hidden":false,
+        //              "was_forced":false,
+        //              "executed_amount":"0",
+        //              "client_order_id":"1650398445709",
+        //              "options":[],
+        //              "price":"2000.00",
+        //              "original_amount":"0.01",
+        //              "remaining_amount":"0.01"
+        //          }
+        //      ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name gemini#createOrder
      * @description create a trade order
      * @see https://docs.gemini.com/rest-api/#new-order
@@ -1909,6 +2001,104 @@ export default class gemini extends Exchange {
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
         const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network') as DepositAddress[];
+    }
+
+    /**
+     * @method
+     * @name gemini#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.gemini.com/rest/derivatives#get-open-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const response = await this.privatePostV1Positions (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "btcgusdperp",
+        //             "instrument_type": "perp",
+        //             "quantity": "0.2",
+        //             "notional_value": "4000.036",
+        //             "realised_pnl": "1234.5678",
+        //             "unrealised_pnl": "999.946",
+        //             "average_cost": "15000.45",
+        //             "mark_price": "20000.18"
+        //         }
+        //     ]
+        //
+        return this.parsePositions (response, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "btcgusdperp",
+        //         "instrument_type": "perp",
+        //         "quantity": "0.2",
+        //         "notional_value": "4000.036",
+        //         "realised_pnl": "1234.5678",
+        //         "unrealised_pnl": "999.946",
+        //         "average_cost": "15000.45",
+        //         "mark_price": "20000.18"
+        //     }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const rawQuantity = this.safeNumber (position, 'quantity');
+        let side = undefined;
+        let contracts = undefined;
+        if (rawQuantity !== undefined) {
+            if (rawQuantity > 0) {
+                side = 'long';
+            } else if (rawQuantity < 0) {
+                side = 'short';
+            }
+            contracts = Math.abs (rawQuantity);
+        }
+        const rawNotional = this.safeNumber (position, 'notional_value');
+        const notional = (rawNotional !== undefined) ? Math.abs (rawNotional) : undefined;
+        const entryPrice = this.safeNumber (position, 'average_cost');
+        const unrealizedPnl = this.safeNumber (position, 'unrealised_pnl');
+        let percentage = undefined;
+        if (unrealizedPnl !== undefined && contracts && entryPrice) {
+            const initialValue = contracts * entryPrice;
+            if (initialValue > 0) {
+                percentage = (unrealizedPnl / initialValue) * 100;
+            }
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'notional': notional,
+            'marginMode': undefined,
+            'liquidationPrice': undefined,
+            'entryPrice': entryPrice,
+            'unrealizedPnl': unrealizedPnl,
+            'realizedPnl': this.safeNumber (position, 'realised_pnl'),
+            'percentage': percentage,
+            'contracts': contracts,
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'markPrice': this.safeNumber (position, 'mark_price'),
+            'lastPrice': undefined,
+            'side': side,
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
