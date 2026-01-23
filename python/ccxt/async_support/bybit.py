@@ -8977,11 +8977,12 @@ classic accounts only/ spot not supported*  fetches information on an order made
 
         https://bybit-exchange.github.io/docs/v5/account/account-info
 
-        :param str [symbol]: unified symbol of the market to fetch the margin mode for(not used by bybit)
+        :param str [symbol]: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         response = await self.privateGetV5AccountInfo(params)
         #
         #     {
@@ -9000,7 +9001,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_margin_mode(result)
+        return self.parse_margin_mode(result, market)
 
     def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marginType = self.safe_string(marginMode, 'marginMode')

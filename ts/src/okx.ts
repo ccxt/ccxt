@@ -1785,8 +1785,10 @@ export default class okx extends Exchange {
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxSpotCost = this.safeNumber (market, 'maxMktSz');
         const status = this.safeString (market, 'state');
+        const instIdCode = this.safeInteger (market, 'instIdCode');
         return this.extend (fees, {
             'id': id,
+            'instIdCode': instIdCode,
             'symbol': symbol,
             'base': base,
             'quote': quote,

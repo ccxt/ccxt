@@ -602,6 +602,8 @@ func GetArrayLength(value interface{}) int {
 		return len(v)
 	case []int:
 		return len(v)
+	case []map[string]interface{}:
+		return len(v)
 	case string:
 		return len(v) // should we do it here?
 	case IOrderBookSide:
@@ -1701,6 +1703,8 @@ func IsArray(v interface{}) bool {
 	}
 	switch v.(type) {
 	case []interface{}, [][]interface{}:
+		return true
+	case []map[string]interface{}:
 		return true
 	case []string, []bool:
 		return true

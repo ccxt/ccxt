@@ -1737,8 +1737,10 @@ public partial class okx : Exchange
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
         object status = this.safeString(market, "state");
+        object instIdCode = this.safeInteger(market, "instIdCode");
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
+            { "instIdCode", instIdCode },
             { "symbol", symbol },
             { "base", bs },
             { "quote", quote },

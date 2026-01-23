@@ -2874,7 +2874,7 @@ func (this *Bybit) FetchLongShortRatioHistory(options ...FetchLongShortRatioHist
  * @name bybit#fetchMarginMode
  * @description fetches the margin mode of the trading pair
  * @see https://bybit-exchange.github.io/docs/v5/account/account-info
- * @param {string} [symbol] unified symbol of the market to fetch the margin mode for (not used by bybit)
+ * @param {string} [symbol] unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
