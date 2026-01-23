@@ -1781,8 +1781,10 @@ class okx extends okx$1["default"] {
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
         const status = this.safeString(market, 'state');
+        const instIdCode = this.safeInteger(market, 'instIdCode');
         return this.extend(fees, {
             'id': id,
+            'instIdCode': instIdCode,
             'symbol': symbol,
             'base': base,
             'quote': quote,
