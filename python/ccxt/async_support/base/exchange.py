@@ -416,6 +416,7 @@ class Exchange(BaseExchange):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
+        self.open()  # ensure self.asyncio_loop is set
         self.clients = self.clients or {}
         if url not in self.clients:
             on_message = self.handle_message
