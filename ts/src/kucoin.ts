@@ -742,7 +742,7 @@ export default class kucoin extends Exchange {
                             'margin/accounts': 'v3',
                             'isolated/accounts': 'v3',
                             // 'deposit-addresses': 'v2',
-                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
+                            'deposit-addresses': 'v3',
                             // spot trading
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
@@ -2476,19 +2476,11 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
+            request['chain'] = this.networkCodeToId (networkCode);
         }
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
-        this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
-        const response = await this.privateGetDepositAddresses (this.extend (request, params));
-        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
-        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const data = this.safeValue (response, 'data');
-        if (data === undefined) {
-            throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
-        }
-        return this.parseDepositAddress (data, currency);
+        const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, this.extend (request, params));
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, groupedByNetwork);
+        return groupedByNetwork[selectedNetworkCode] as DepositAddress;
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
@@ -2529,26 +2521,48 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
-        this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
         //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        //                 "memo": "",
-        //                 "chain": "BTC-Segwit",
-        //                 "contractAddress": ""
-        //             },
-        //             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
-        //             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
-        //         ]
-        //     }
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "address": "0xe....................2de",
+        //                "memo": "",
+        //                "chainId": "eth",
+        //                "to": "MAIN",
+        //                "expirationDate": 0,
+        //                "currency": "USDT",
+        //                "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //                "chainName": "ERC20"
+        //            },
+        //            {
+        //                "address": "TG...................aQ",
+        //                "memo": "",
+        //                "chainId": "trx",
+        //                "to": "MAIN",
+        //                "expirationDate": 0,
+        //                "currency": "USDT",
+        //                "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        //                "chainName": "TRC20"
+        //            },
+        //            {
+        //                "address": "Deposit temporarily blocked",
+        //                "memo": "1812345678",
+        //                "chainId": "eos",
+        //                "to": "MAIN",
+        //                "expirationDate": 0,
+        //                "currency": "USDT",
+        //                "contractAddress": "tethertether",
+        //                "chainName": "EOS"
+        //            }
+        //        ]
+        //    }
         //
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const chains = this.safeList (response, 'data', []);
+        const chains = this.safeList (response, 'data');
+        if (chains === undefined) {
+            throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
+        }
         const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
             'currency': currency['code'],
         });
