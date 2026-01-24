@@ -1003,16 +1003,33 @@ class Exchange(object):
         return {}
 
     @staticmethod
-    def deep_extend(*args):
+    def deep_extend(*args, _all_dicts=False):
+        # extra argument is just for internal use, no need to use that in implementations
         result = None
+        result_is_dict = False
+
         for arg in args:
-            if isinstance(arg, dict):
-                if not isinstance(result, dict):
+            if _all_dicts or (arg is not None and arg.__class__ is dict):
+                # This is a dict (even if empty) so set the return type.
+                if result is None or not result_is_dict:
                     result = {}
-                for key in arg:
-                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+                    result_is_dict = True
+
+                # Skip actual merging if dict is empty.
+                if not arg:
+                    continue
+
+                for key, value in arg.items():
+                    current = result.get(key)
+                    if current is not None and current.__class__ is dict and value.__class__ is dict:
+                        result[key] = Exchange.deep_extend(current, value, _all_dicts=True)
+                    else:
+                        result[key] = value
             else:
+                # arg is None or other non-dict.
                 result = arg
+                result_is_dict = False
+
         return result
 
     @staticmethod
