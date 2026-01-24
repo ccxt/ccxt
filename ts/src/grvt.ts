@@ -1848,7 +1848,8 @@ export default class grvt extends Exchange {
                 const limitDec = this.safeString (limitParts, 1, '');
                 const limitDecLength = limitDec.length;
                 const limitDecLengthStr = limitDecLength.toString ();
-                const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, this.convertToBigIntCustom (limitDecLengthStr))));
+                const powerNum = limitDecLengthStr === '0' ? 0 : this.convertToBigIntCustom (limitDecLengthStr);
+                const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, powerNum)));
                 legOrder['limitPrice'] = this.parseToInt (priceInteger);
             }
             legs.push (legOrder);
