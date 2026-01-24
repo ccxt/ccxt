@@ -10,6 +10,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { isNode } from "./base/functions/platform";
 
 //  ---------------------------------------------------------------------------
 
@@ -10570,21 +10571,32 @@ export default class binance extends Exchange {
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin = undefined;
             [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
+            let catched = undefined;
             let response = undefined;
-            if (this.isLinear (type, subType)) {
-                if (isPortfolioMargin) {
-                    response = await this.papiGetUmLeverageBracket (query);
-                } else {
-                    response = await this.fapiPrivateGetLeverageBracket (query);
+            try {
+                if (this.isLinear (type, subType)) {
+                    if (isPortfolioMargin) {
+                        response = await this.papiGetUmLeverageBracket (query);
+                    } else {
+                        response = await this.fapiPrivateGetLeverageBracket (query);
+                    }
+                } else if (this.isInverse (type, subType)) {
+                    if (isPortfolioMargin) {
+                        response = await this.papiGetCmLeverageBracket (query);
+                    } else {
+                        response = await this.dapiPrivateV2GetLeverageBracket (query);
+                    }
                 }
-            } else if (this.isInverse (type, subType)) {
-                if (isPortfolioMargin) {
-                    response = await this.papiGetCmLeverageBracket (query);
+            } catch (e) {
+                catched = e;
+            }
+            if (!response || catched) {
+                this.bootstrapped = false;
+                if (catched) {
+                    throw catched;
                 } else {
-                    response = await this.dapiPrivateV2GetLeverageBracket (query);
+                    throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
                 }
-            } else {
-                throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
             this.options['leverageBrackets'] = this.createSafeDictionary ();
             for (let i = 0; i < response.length; i++) {
@@ -12173,6 +12185,13 @@ export default class binance extends Exchange {
             return undefined; // fallback to default error handler
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+        if (isNode) {
+            if (process.env['EMULATE_AUTHENTICATION_FAIL']) {
+                response.code = '-2015';
+                response.msg = 'Invalid API-key, IP, or permissions for action.';
+                delete response.success;
+            }
+        }
         const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageNew = this.safeString (response, 'msg');
