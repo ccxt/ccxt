@@ -564,7 +564,7 @@ export default class pacifica extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] user address, will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -618,7 +618,7 @@ export default class pacifica extends Exchange {
      * @description fetch the set leverage for a market
      * @param symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] user address, will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
@@ -630,7 +630,8 @@ export default class pacifica extends Exchange {
             'account': userAccount,
         };
         const settings = this.safeDict (await this.fetchAccountSettings (this.extend (request, params)), symbol);
-        if (settings.length === 0) {
+        const settingsLen = settings.length;
+        if (settingsLen === 0) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return this.parseLeverageFromMarket (market);
@@ -680,7 +681,7 @@ export default class pacifica extends Exchange {
      * @description fetch account's market settings
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] user address, will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
     async fetchAccountSettings (params): Promise<Dict> {
@@ -708,7 +709,8 @@ export default class pacifica extends Exchange {
     }
 
     parseAccountSettings (settings: List): Dict {
-        if (settings.length === 0) {
+        const settingsLen = settings.length;
+        if (settingsLen === 0) {
             return {};
         }
         const settingsBySymbol = {};
@@ -726,7 +728,7 @@ export default class pacifica extends Exchange {
      * @description fetches the margin mode of the trading pair
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] user address, will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
@@ -746,7 +748,8 @@ export default class pacifica extends Exchange {
         //       "updated_at": 1758086074002
         //    },
         // }
-        if (settings.length === 0) {
+        const settingsLen = settings.length;
+        if (settingsLen === 0) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return {
@@ -785,7 +788,7 @@ export default class pacifica extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.aggLevel] Aggregation level for price grouping. Defaults to 1
+     * @param {int|undefined} [params.aggLevel] Aggregation level for price grouping. Defaults to 1
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -933,7 +936,7 @@ export default class pacifica extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest candle to fetch. 'limit' is priority
+     * @param {int|undefined} [params.until] timestamp in ms of the latest candle to fetch. 'limit' is priority
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string, since: Int, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1050,9 +1053,9 @@ export default class pacifica extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest trade
-     * @param {string} [params.account] wallet address that made trades
-     * @param {string} [params.cursor] pagination cursor from prev request
+     * @param {int|undefined} [params.until] timestamp in ms of the latest trade
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1185,6 +1188,7 @@ export default class pacifica extends Exchange {
      * @name pacifica#createOrder
      * @description create a trade order
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
      * @param {string} symbol unified symbol of the market to create an order in
@@ -1193,16 +1197,16 @@ export default class pacifica extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] alias for triggerPrice
-     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
-     * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-     * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-     * @param {string} [params.clientOrderId] a unique id for the order
-     * @param {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {float|undefined} [params.stopPrice] alias for triggerPrice
+     * @param {float|undefined} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float|undefined} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
+     * @param {float|undefined} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
+     * @param {string|undefined} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+     * @param {bool|undefined} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1238,9 +1242,10 @@ export default class pacifica extends Exchange {
             response = await this.privatePostOrdersCreate (this.extend (request, params));
         }
         // {
-        //   data: {
+        //   'success': true,
+        //   'data': {
         //    "order_id": 12345
-        //   }
+        //   },
         // }
         const error = this.safeString (response, 'error', undefined);
         const success = this.safeBool (response, 'success', false);
@@ -1262,6 +1267,7 @@ export default class pacifica extends Exchange {
          * @name pacifica#createOrderRequest
          * @description create a trade order
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
          * @param {string} symbol unified symbol of the market to create an order in
@@ -1270,16 +1276,16 @@ export default class pacifica extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.stopPrice] alias for triggerPrice
-         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
-         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
-         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-         * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-         * @param {string} [params.clientOrderId] a unique id for the order
-         * @param {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-         * @param {string} [params.agentAddress] Only if agent in use,
-         * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+         * @param {float|undefined} [params.stopPrice] alias for triggerPrice
+         * @param {float|undefined} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {float|undefined} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
+         * @param {float|undefined} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
+         * @param {string|undefined} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+         * @param {bool|undefined} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+         * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+         * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
          * @returns {object} an [order structure]
          */
         const market = this.market (symbol);
@@ -1504,9 +1510,9 @@ export default class pacifica extends Exchange {
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
-     * @param {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: string, params = {}) {
@@ -1572,9 +1578,9 @@ export default class pacifica extends Exchange {
      * @param {string} symbol (optional) unified market symbol of the market to cancel orders in.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
-     * @param {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1629,9 +1635,9 @@ export default class pacifica extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
-     * @param {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @param {bool} [params.isStopOrder] Required if order is stop order. (Another endpoint in use)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1703,9 +1709,9 @@ export default class pacifica extends Exchange {
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
-     * @param  {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, params = {}) {
@@ -1765,7 +1771,7 @@ export default class pacifica extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.cursor] timestamp in ms of the latest funding rate
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1905,7 +1911,7 @@ export default class pacifica extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1923,7 +1929,7 @@ export default class pacifica extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1941,7 +1947,7 @@ export default class pacifica extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1960,7 +1966,7 @@ export default class pacifica extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2012,8 +2018,8 @@ export default class pacifica extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
-     * @param {string} [params.cursor] pagination cursor from prev request
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2308,7 +2314,7 @@ export default class pacifica extends Exchange {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition (symbol: string, params = {}) {
@@ -2323,7 +2329,7 @@ export default class pacifica extends Exchange {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
@@ -2423,9 +2429,9 @@ export default class pacifica extends Exchange {
      * @param {string} marginMode margin mode must be either [isolated, cross]
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param  {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} response from the exchange
      */
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
@@ -2460,9 +2466,9 @@ export default class pacifica extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param  {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
@@ -2496,9 +2502,9 @@ export default class pacifica extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param  {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
@@ -2522,7 +2528,7 @@ export default class pacifica extends Exchange {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
@@ -2669,8 +2675,8 @@ export default class pacifica extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
-     * @param {string} [params.cursor] pagination cursor from prev request
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
@@ -2770,8 +2776,8 @@ export default class pacifica extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.account] (optional) will default to this.walletAddress if not provided
-     * @param {string} [params.cursor] pagination cursor from prev request
+     * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2856,9 +2862,9 @@ export default class pacifica extends Exchange {
      * @param {string} fromAccount account to transfer from *spot, swap*
      * @param {string} toAccount account to transfer to *swap, spot or address*
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param  {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
@@ -2924,9 +2930,9 @@ export default class pacifica extends Exchange {
      * @param {string} subAccountAddress address of subaccount
      * @param {string} subAccountPrivateKey private key of subaccount
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param  {int} [params.expiryWindow] Time to live in milliseconds (Optional)
-     * @param {string} [params.agentAddress] Only if agent in use,
-     * @param {string} [params.mainAddress] Agent's owner address. Only if agent in use. Optional (anyway) because default = credentials.walletAddress
+     * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
+     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} a response object
      */
     async createSubAccount (subAccountAddress: string, subAccountPrivateKey: string, params = {}) {
@@ -3026,7 +3032,8 @@ export default class pacifica extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
         let url = this.urls['api'][api] + '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if (method === 'GET' && Object.keys (params).length) {
+        const paramsLen = Object.keys (params).length;
+        if (method === 'GET' && paramsLen) {
             url += '?' + this.urlencode (params);
             headers['Accept'] = '*/*';
         }
