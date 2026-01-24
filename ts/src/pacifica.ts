@@ -596,9 +596,12 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         const data = this.safeValue (response, 'data', {});
-        const result: Balances = {
+        const result = {
             'info': data,
         };
+        result['free'] = {};
+        result['used'] = {};
+        result['total'] = {};
         const totalBalance = this.safeNumber (data, 'account_equity');
         const usedMargin = this.safeNumber (data, 'total_margin_used');
         const freeBalance = this.safeNumber (data, 'available_to_spend');
