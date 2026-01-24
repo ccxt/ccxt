@@ -5,7 +5,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Leverage, MarginMode, List, Tickers, Ticker } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Leverage, MarginMode, Tickers, Ticker } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 //  ---------------------------------------------------------------------------
@@ -618,7 +618,7 @@ export default class pacifica extends Exchange {
      * @method
      * @name pacifica#fetchLeverage
      * @description fetch the set leverage for a market
-     * @param symbol
+     * @param {string} symbol  unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -710,7 +710,7 @@ export default class pacifica extends Exchange {
         return this.parseAccountSettings (this.safeList (response, 'data', []));
     }
 
-    parseAccountSettings (settings: List): Dict {
+    parseAccountSettings (settings: any[]): Dict {
         const settingsLen = settings.length;
         if (settingsLen === 0) {
             return {};
@@ -1265,7 +1265,7 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': order_id, 'status': status, 'info': response });
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): List {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1389,7 +1389,7 @@ export default class pacifica extends Exchange {
         return [ request, operationType ];
     }
 
-    batchOrdersRequest (actions: List) {
+    batchOrdersRequest (actions: any[]) {
         // {
         // "actions":[
         //     {
@@ -1436,7 +1436,7 @@ export default class pacifica extends Exchange {
     }
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
-        const actions: List = [];
+        const actions = [];
         for (let i = 0; i < orders.length; i++) {
             const symbol = this.safeString (orders, 'symbol');
             const side = this.safeString (orders, 'side');
@@ -1560,7 +1560,7 @@ export default class pacifica extends Exchange {
     }
 
     cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}) {
-        const actions: List = [];
+        const actions = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const request = this.cancelOrderRequest (id, symbol, params);
@@ -2126,7 +2126,7 @@ export default class pacifica extends Exchange {
         //   "error": null,
         //   "code": null
         // }
-        const data: List = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         // return last state
         const sorted = this.sortBy (data, 'created_at');
         const lastIdx = sorted.length - 1;
