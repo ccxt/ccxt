@@ -650,7 +650,7 @@ exchange = ccxt.binance({
 
 Read the documentation for more information and details: [docs](https://github.com/ccxt/ccxt/tree/master/cli/README.md)
 
-CCXT also provides a command-line interface (CLI) that enables direct interaction with any supported exchange from the terminal. You can quickly check balances, place orders, or fetch trade data—without the need to write or execute custom code. This is especially useful for simple or time-sensitive tasks that don’t warrant the overhead of building a full application.
+CCXT also provides a command-line interface (CLI) that enables direct interaction with any supported exchange from the terminal. You can quickly check balances, place orders, or fetch trade data - all of that without the need to write or execute custom code and without the overhead of building an entire application from scratch. This is especially useful for simple or time-sensitive tasks (shell scripting, testing and debugging among other things).
 
 ### Installation
 

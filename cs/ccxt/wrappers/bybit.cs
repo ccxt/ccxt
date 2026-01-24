@@ -2874,7 +2874,7 @@ public partial class bybit
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : unified symbol of the market to fetch the margin mode for (not used by bybit)
+    /// string : unified symbol of the market to fetch the margin mode for
     /// </description>
     /// </item>
     /// <item>

@@ -11090,7 +11090,7 @@ func (this *BybitCore) ParseLongShortRatio(info interface{}, optionalArgs ...int
  * @name bybit#fetchMarginMode
  * @description fetches the margin mode of the trading pair
  * @see https://bybit-exchange.github.io/docs/v5/account/account-info
- * @param {string} [symbol] unified symbol of the market to fetch the margin mode for (not used by bybit)
+ * @param {string} [symbol] unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
@@ -11104,6 +11104,7 @@ func (this *BybitCore) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 
 		retRes94678 := (<-this.LoadMarkets())
 		PanicOnError(retRes94678)
+		var market interface{} = this.Market(symbol)
 
 		response := (<-this.PrivateGetV5AccountInfo(params))
 		PanicOnError(response)
@@ -11125,7 +11126,7 @@ func (this *BybitCore) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 		//
 		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
 
-		ch <- this.ParseMarginMode(result)
+		ch <- this.ParseMarginMode(result, market)
 		return nil
 
 	}()

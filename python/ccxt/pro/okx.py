@@ -1956,6 +1956,11 @@ class okx(ccxt.async_support.okx):
         op = None
         op, params = self.handle_option_and_params(params, 'createOrderWs', 'op', 'batch-orders')
         args = self.create_order_request(symbol, type, side, amount, price, params)
+        market = self.market(symbol)
+        instIdCode = self.safe_integer(market, 'instIdCode')
+        if instIdCode is not None:
+            del args['instId']
+            args['instIdCode'] = instIdCode
         ordType = self.safe_string(args, 'ordType')
         if (ordType == 'trigger') or (ordType == 'conditional') or (type == 'oco') or (type == 'move_order_stop') or (type == 'iceberg') or (type == 'twap'):
             raise BadRequest(self.id + ' createOrderWs() does not support algo trading. self.options["createOrderWs"]["op"] must be either order or batch-order')
@@ -2023,6 +2028,11 @@ class okx(ccxt.async_support.okx):
         op = None
         op, params = self.handle_option_and_params(params, 'editOrderWs', 'op', 'amend-order')
         args = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        market = self.market(symbol)
+        instIdCode = self.safe_integer(market, 'instIdCode')
+        if instIdCode is not None:
+            del args['instId']
+            args['instIdCode'] = instIdCode
         request: dict = {
             'id': messageHash,
             'op': op,
@@ -2050,8 +2060,10 @@ class okx(ccxt.async_support.okx):
         messageHash = self.request_id()
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         params = self.omit(params, ['clientOrderId', 'clOrdId'])
+        market = self.market(symbol)
+        instIdCode = self.safe_integer(market, 'instIdCode')
         arg: dict = {
-            'instId': self.market_id(symbol),
+            'instIdCode': instIdCode,
         }
         if clientOrderId is not None:
             arg['clOrdId'] = clientOrderId
@@ -2085,11 +2097,15 @@ class okx(ccxt.async_support.okx):
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
         args = []
+        market = self.market(symbol)
+        instIdCode = self.safe_integer(market, 'instIdCode')
+        instParams = {
+            'instIdCode': instIdCode,
+        }
         for i in range(0, idsLength):
-            arg: dict = {
-                'instId': self.market_id(symbol),
+            arg: dict = self.extend(instParams, {
                 'ordId': ids[i],
-            }
+            })
             args.append(arg)
         request: dict = {
             'id': messageHash,

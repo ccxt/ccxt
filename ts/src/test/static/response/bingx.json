@@ -3,6 +3,79 @@
     "skipKeys": [ "tranId", "timestamp", "id" ],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "funding",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "LTC-USDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.00056154",
+                            "asset": "USDT",
+                            "info": "Funding Fee",
+                            "time": "1769241660000",
+                            "tranId": "1769048666279853387_310_1941328",
+                            "tradeId": "1769048666279853387_310_1941312"
+                        },
+                        {
+                            "symbol": "LTC-USDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.00009521",
+                            "asset": "USDT",
+                            "info": "Funding Fee",
+                            "time": "1769212846000",
+                            "tranId": "1769048666279853387_310_1723487",
+                            "tradeId": "1769048666279853387_310_1723468"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTC-USDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.00009521",
+                            "asset": "USDT",
+                            "info": "Funding Fee",
+                            "time": "1769212846000",
+                            "tranId": "1769048666279853387_310_1723487",
+                            "tradeId": "1769048666279853387_310_1723468"
+                        },
+                        "symbol": "LTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1769212846000,
+                        "datetime": "2026-01-24T00:00:46.000Z",
+                        "id": "1769048666279853387_310_1723487",
+                        "amount": -0.00009521,
+                        "type": "funding"
+                    },
+                    {
+                        "info": {
+                            "symbol": "LTC-USDT",
+                            "incomeType": "FUNDING_FEE",
+                            "income": "-0.00056154",
+                            "asset": "USDT",
+                            "info": "Funding Fee",
+                            "time": "1769241660000",
+                            "tranId": "1769048666279853387_310_1941328",
+                            "tradeId": "1769048666279853387_310_1941312"
+                        },
+                        "symbol": "LTC/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1769241660000,
+                        "datetime": "2026-01-24T08:01:00.000Z",
+                        "id": "1769048666279853387_310_1941328",
+                        "amount": -0.00056154,
+                        "type": "funding"
+                    }
+                ]
+            }
+        ],
         "fetchMarketLeverageTiers": [
             {
                 "description": "fetch leverage tiers for ETH/USDT:USDT market",

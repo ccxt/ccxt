@@ -8,6 +8,17 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/user/income?incomeType=FUNDING_FEE&symbol=BTC-USDT&timestamp=1769192577322&signature=cb79b63f775ebb592910f320f38c5e2bbf36a8eaac8619e948b017710fb9e1d2",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchMarketLeverageTiers": [
             {
                 "description": "fetch leverage tiers for ETH/USDT:USDT market",

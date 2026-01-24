@@ -1788,8 +1788,10 @@ export default class okx extends Exchange {
         const quoteEqualSettle = (quoteId === settleId);
         const baseEqualSettle = (baseId === settleId);
         const status = this.safeString (market, 'state');
+        const instIdCode = this.safeInteger (market, 'instIdCode');
         return this.extend (fees, {
             'id': id,
+            'instIdCode': instIdCode,
             'symbol': symbol,
             'base': base,
             'quote': quote,

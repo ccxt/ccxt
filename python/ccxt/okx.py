@@ -1780,8 +1780,10 @@ class okx(Exchange, ImplicitAPI):
         maxLeverage = Precise.string_max(maxLeverage, '1')
         maxSpotCost = self.safe_number(market, 'maxMktSz')
         status = self.safe_string(market, 'state')
+        instIdCode = self.safe_integer(market, 'instIdCode')
         return self.extend(fees, {
             'id': id,
+            'instIdCode': instIdCode,
             'symbol': symbol,
             'base': base,
             'quote': quote,

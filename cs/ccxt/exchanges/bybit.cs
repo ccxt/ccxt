@@ -10163,7 +10163,7 @@ public partial class bybit : Exchange
      * @name bybit#fetchMarginMode
      * @description fetches the margin mode of the trading pair
      * @see https://bybit-exchange.github.io/docs/v5/account/account-info
-     * @param {string} [symbol] unified symbol of the market to fetch the margin mode for (not used by bybit)
+     * @param {string} [symbol] unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
@@ -10171,6 +10171,7 @@ public partial class bybit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object market = this.market(symbol);
         object response = await this.privateGetV5AccountInfo(parameters);
         //
         //     {
@@ -10189,7 +10190,7 @@ public partial class bybit : Exchange
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseMarginMode(result);
+        return this.parseMarginMode(result, market);
     }
 
     public override object parseMarginMode(object marginMode, object market = null)
