@@ -1003,7 +1003,21 @@ class Exchange(object):
         return {}
 
     @staticmethod
-    def deep_extend(*args, _all_dicts=False):
+    def deep_extend(*args):
+        result = None
+        for arg in args:
+            if isinstance(arg, dict):
+                if not isinstance(result, dict):
+                    result = {}
+                for key in arg:
+                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+            else:
+                result = arg
+        return result
+
+
+    @staticmethod
+    def deep_extend_new(*args, _all_dicts=False):
         # extra argument is just for internal use, no need to use that in implementations
         result = None
         result_is_dict = False
@@ -1022,7 +1036,7 @@ class Exchange(object):
                 for key, value in arg.items():
                     current = result.get(key)
                     if current is not None and current.__class__ is dict and value.__class__ is dict:
-                        result[key] = Exchange.deep_extend(current, value, _all_dicts=True)
+                        result[key] = Exchange.deep_extend_new(current, value, _all_dicts=True)
                     else:
                         result[key] = value
             else:
