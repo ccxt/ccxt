@@ -1516,7 +1516,7 @@ export default class pacifica extends Exchange {
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + 'cancelOrders() requires a "symbol" argument!')
+            throw new ArgumentsRequired (this.id + 'cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
         params = this.omit (params, [ 'mainAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId', 'client_order_id', 'cloid' ]);
