@@ -629,7 +629,7 @@ export default class pacifica extends Exchange {
         const request: Dict = {
             'account': userAccount,
         };
-        const settings = this.safeDict (await this.fetchAccountSettings (this.extend (request, params)), symbol);
+        const settings = await this.fetchAccountSettings (this.extend (request, params));
         const settingsLen = settings.length;
         if (settingsLen === 0) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -738,7 +738,7 @@ export default class pacifica extends Exchange {
         const request: Dict = {
             'account': userAccount,
         };
-        const settings = this.safeDict (await this.fetchAccountSettings (this.extend (request, params)), symbol);
+        const settings = await this.fetchAccountSettings (this.extend (request, params));
         // {
         //   "WLFI/USDC:USDC": {
         //       "symbol": "WLFI",
@@ -1373,7 +1373,7 @@ export default class pacifica extends Exchange {
         if (price !== undefined && operationType === 'create_order') {
             sigPayload['price'] = this.priceToPrecision (symbol, price);
         }
-        if (amount !== undefined && (operationType !== 'create_stop_order' && operationType! !== 'set_position_tpsl')) {
+        if (amount !== undefined && (operationType !== 'create_stop_order' && operationType !== 'set_position_tpsl')) {
             sigPayload['amount'] = this.amountToPrecision (symbol, amount);
         }
         const clientOrderId = this.safeStringN (params, [ 'clientOrderId', 'cloid', 'client_order_id' ]);
@@ -2169,7 +2169,7 @@ export default class pacifica extends Exchange {
         };
         let tif = undefined;
         if (tifRaw !== undefined) {
-            tif = tifRaw.toUpperCase;
+            tif = tifRaw.toUpperCase ();
         }
         return this.safeString (tifMap, tif, undefined);
     }
@@ -2185,7 +2185,7 @@ export default class pacifica extends Exchange {
         };
         let side = undefined;
         if (sideRaw !== undefined) {
-            side = sideRaw.toUpperCase;
+            side = sideRaw.toUpperCase ();
         }
         return this.safeString (sideMap, side, undefined);
     }
@@ -3072,10 +3072,11 @@ export default class pacifica extends Exchange {
             return result;
         }
         if (isObject (value)) {
-            const keys = Object.keys (value).sort ();
+            const keys = Object.keys (value);
+            const keysSort = this.sort (keys);
             const result: Dict = {};
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
+            for (let i = 0; i < keysSort.length; i++) {
+                const key = keysSort[i];
                 result[key] = this.sortJsonKeys (value[key]);
             }
             return result;
