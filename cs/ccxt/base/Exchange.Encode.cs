@@ -220,7 +220,11 @@ public partial class Exchange
 
     public string binaryToBase64(byte[] buff) => BinaryToBase64(buff);
 
-    public static string BinaryToBase64(byte[] buff) => Convert.ToBase64String(buff);
+    public static string BinaryToBase64(object buff2)
+    {
+        var buff = (byte[])buff2;
+        return Convert.ToBase64String(buff);
+    }
 
     public byte[] stringToBinary(string buff) => StringToBinary(buff);
 

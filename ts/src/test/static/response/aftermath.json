@@ -1,0 +1,1724 @@
+{
+    "exchange": "aftermath",
+    "skipKeys": [
+        "precision"
+    ],
+    "options": {},
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "USDC": {
+                        "id": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
+                        "code": "USDC",
+                        "precision": "1e-9",
+                        "name": "USDC",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "limits": {
+                            "amount": {},
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "networks": {
+                            "string": [
+                                "Sui"
+                            ]
+                        },
+                        "fee": null
+                    }
+                },
+                "parsedResponse": {
+                    "USDC": {
+                        "info": {
+                            "id": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
+                            "code": "USDC",
+                            "precision": "1e-9",
+                            "name": "USDC",
+                            "active": true,
+                            "deposit": true,
+                            "withdraw": true,
+                            "limits": {
+                                "amount": {},
+                                "withdraw": {
+                                    "min": null,
+                                    "max": null
+                                },
+                                "deposit": {
+                                    "min": null,
+                                    "max": null
+                                }
+                            },
+                            "networks": {
+                                "string": [
+                                    "Sui"
+                                ]
+                            },
+                            "fee": null
+                        },
+                        "id": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": 1e-9,
+                        "type": null,
+                        "name": "USDC",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "0x7fd0bdac5a03416db3c8cc59c99b84143c01d49c767dcca376e92778c6e19528",
+                        "symbol": "BTC/USD:USDC",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "active": true,
+                        "type": "swap",
+                        "subType": "linear",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "contract": true,
+                        "settle": "USDC",
+                        "settleId": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
+                        "contractSize": "0.001",
+                        "linear": true,
+                        "inverse": false,
+                        "taker": "0.001",
+                        "maker": "0.001",
+                        "percentage": true,
+                        "tierBased": false,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.001
+                        },
+                        "marginModes": {
+                            "isolated": true,
+                            "cross": false
+                        },
+                        "limits": {
+                            "cost": {
+                                "min": 1
+                            },
+                            "leverage": {
+                                "max": 10
+                            }
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "0x7fd0bdac5a03416db3c8cc59c99b84143c01d49c767dcca376e92778c6e19528",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD:USDC",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": "linear",
+                        "taker": 0.001,
+                        "maker": 0.001,
+                        "contractSize": 0.001,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": 10
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 1,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "isolated": true,
+                            "cross": false
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "0x7fd0bdac5a03416db3c8cc59c99b84143c01d49c767dcca376e92778c6e19528",
+                            "symbol": "BTC/USD:USDC",
+                            "base": "BTC",
+                            "quote": "USD",
+                            "baseId": "BTC",
+                            "quoteId": "USD",
+                            "active": true,
+                            "type": "swap",
+                            "subType": "linear",
+                            "spot": false,
+                            "margin": false,
+                            "swap": true,
+                            "future": false,
+                            "option": false,
+                            "contract": true,
+                            "settle": "USDC",
+                            "settleId": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
+                            "contractSize": "0.001",
+                            "linear": true,
+                            "inverse": false,
+                            "taker": "0.001",
+                            "maker": "0.001",
+                            "percentage": true,
+                            "tierBased": false,
+                            "precision": {
+                                "amount": 0.001,
+                                "price": 0.001
+                            },
+                            "marginModes": {
+                                "isolated": true,
+                                "cross": false
+                            },
+                            "limits": {
+                                "cost": {
+                                    "min": 1
+                                },
+                                "leverage": {
+                                    "max": 10
+                                }
+                            }
+                        },
+                        "percentage": true,
+                        "tierBased": false
+                    }
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "id": "0xf746edca6bf0b2da7886815ded79ec15f72c4434d151c9ab0c72ffd4f341baf6",
+                        "symbol": "BTC/USD:USDC",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "active": true,
+                        "type": "swap",
+                        "subType": "linear",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "contract": true,
+                        "settle": "USDC",
+                        "settleId": "0xc3f32265b3257ba069c464f5c6bcdcfd09f3f404744a88b94e9b3e061c8ba1fb::usdc::USDC",
+                        "contractSize": "0.001",
+                        "linear": true,
+                        "inverse": false,
+                        "taker": "0.001",
+                        "maker": "0.0",
+                        "percentage": true,
+                        "tierBased": false,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.001
+                        },
+                        "marginModes": {
+                            "isolated": true,
+                            "cross": false
+                        },
+                        "limits": {
+                            "cost": {
+                                "min": 1
+                            },
+                            "leverage": {
+                                "max": 10
+                            }
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "id": "0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD:USDC",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "0x457049371f5b5dc2bda857bb804ca6e93c5a3cae1636d0cd17bb6b6070d19458::usdc::USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": "linear",
+                        "taker": 0.001,
+                        "maker": 0.0,
+                        "contractSize": 0.00001,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.00001,
+                            "price": 0.0001,
+                            "cost": null,
+                            "base": null,
+                            "quote": null
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": 50
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 1,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": false,
+                            "isolated": true
+                        },
+                        "created": null,
+                        "info": null,
+                        "tierBased": false,
+                        "percentage": true
+                    },
+                    "symbol": "BTC/USD:USDC",
+                    "maker": 0.0,
+                    "taker": 0.001,
+                    "percentage": true,
+                    "tierBased": null
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "timestamp": "1740440462532",
+                    "bid": "91915.877",
+                    "ask": "91928.508",
+                    "change": "-2790.1630000000005",
+                    "baseVolume": "0.0",
+                    "quoteVolume": "0.0",
+                    "indexPrice": "91943.48492847"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "timestamp": 1740440462532,
+                    "bid": 91915.877,
+                    "ask": 91928.508,
+                    "change": -2790.1630000000005,
+                    "baseVolume": 0,
+                    "quoteVolume": 0,
+                    "indexPrice": 91943.48492847,
+                    "bidVolume": null,
+                    "askVolume": null,
+                    "high": null,
+                    "low": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "percentage": null,
+                    "average": null,
+                    "vwap": null,
+                    "previousClose": null,
+                    "markPrice": null,
+                    "info": {
+                        "symbol": "BTC/USD:USDC",
+                        "timestamp": "1740440462532",
+                        "bid": "91915.877",
+                        "ask": "91928.508",
+                        "change": "-2790.1630000000005",
+                        "baseVolume": "0.0",
+                        "quoteVolume": "0.0",
+                        "indexPrice": "91943.48492847"
+                    },
+                    "datetime": "2025-02-24T23:41:02.532Z"
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "asks": [
+                        [
+                            92083.122,
+                            6.361
+                        ],
+                        [
+                            92095.581,
+                            8.265
+                        ],
+                        [
+                            92107.215,
+                            5.971
+                        ],
+                        [
+                            92113.425,
+                            6.958
+                        ],
+                        [
+                            92120.658,
+                            6.963
+                        ],
+                        [
+                            92125.722,
+                            9.338
+                        ],
+                        [
+                            92128.598,
+                            9.313
+                        ],
+                        [
+                            92130.91,
+                            8.15
+                        ],
+                        [
+                            92142.723,
+                            8.719
+                        ],
+                        [
+                            92145.596,
+                            8.724
+                        ],
+                        [
+                            92147.657,
+                            9.602
+                        ],
+                        [
+                            92148.966,
+                            7.107
+                        ],
+                        [
+                            92150.534,
+                            8.562
+                        ],
+                        [
+                            92154.728,
+                            5.735
+                        ],
+                        [
+                            92159.716,
+                            10.348
+                        ]
+                    ],
+                    "bids": [
+                        [
+                            92065.769,
+                            9.016
+                        ],
+                        [
+                            92058.5,
+                            8.379
+                        ],
+                        [
+                            92051.033,
+                            9.498
+                        ],
+                        [
+                            92048.769,
+                            8.706
+                        ],
+                        [
+                            92047.128,
+                            8.294
+                        ],
+                        [
+                            92038.068,
+                            6.421
+                        ],
+                        [
+                            92037.576,
+                            7.924
+                        ],
+                        [
+                            92035.031,
+                            7.714
+                        ],
+                        [
+                            92033.069,
+                            6.403
+                        ],
+                        [
+                            92016.543,
+                            6.828
+                        ],
+                        [
+                            92009.502,
+                            8.789
+                        ],
+                        [
+                            92009.259,
+                            6.59
+                        ],
+                        [
+                            92005.295,
+                            7.709
+                        ],
+                        [
+                            91993.91,
+                            8.095
+                        ],
+                        [
+                            91987.18,
+                            7.288
+                        ]
+                    ],
+                    "timestamp": "1740440592717",
+                    "symbol": "BTC/USD:USDC"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "bids": [
+                        [
+                            92065.769,
+                            9.016
+                        ],
+                        [
+                            92058.5,
+                            8.379
+                        ],
+                        [
+                            92051.033,
+                            9.498
+                        ],
+                        [
+                            92048.769,
+                            8.706
+                        ],
+                        [
+                            92047.128,
+                            8.294
+                        ],
+                        [
+                            92038.068,
+                            6.421
+                        ],
+                        [
+                            92037.576,
+                            7.924
+                        ],
+                        [
+                            92035.031,
+                            7.714
+                        ],
+                        [
+                            92033.069,
+                            6.403
+                        ],
+                        [
+                            92016.543,
+                            6.828
+                        ],
+                        [
+                            92009.502,
+                            8.789
+                        ],
+                        [
+                            92009.259,
+                            6.59
+                        ],
+                        [
+                            92005.295,
+                            7.709
+                        ],
+                        [
+                            91993.91,
+                            8.095
+                        ],
+                        [
+                            91987.18,
+                            7.288
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            92083.122,
+                            6.361
+                        ],
+                        [
+                            92095.581,
+                            8.265
+                        ],
+                        [
+                            92107.215,
+                            5.971
+                        ],
+                        [
+                            92113.425,
+                            6.958
+                        ],
+                        [
+                            92120.658,
+                            6.963
+                        ],
+                        [
+                            92125.722,
+                            9.338
+                        ],
+                        [
+                            92128.598,
+                            9.313
+                        ],
+                        [
+                            92130.91,
+                            8.15
+                        ],
+                        [
+                            92142.723,
+                            8.719
+                        ],
+                        [
+                            92145.596,
+                            8.724
+                        ],
+                        [
+                            92147.657,
+                            9.602
+                        ],
+                        [
+                            92148.966,
+                            7.107
+                        ],
+                        [
+                            92150.534,
+                            8.562
+                        ],
+                        [
+                            92154.728,
+                            5.735
+                        ],
+                        [
+                            92159.716,
+                            10.348
+                        ]
+                    ],
+                    "timestamp": 1740440592717,
+                    "datetime": "2025-02-24T23:43:12.717Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "trades": [
+                        {
+                            "amount": 0.03378,
+                            "datetime": "2025-12-29 22:43:54.639 UTC",
+                            "price": 87239.09499000001,
+                            "timestamp": 1767048234639,
+                            "side": "buy",
+                            "symbol": "BTC/USD:USDC"
+                        }
+                    ],
+                    "nextCursor": 592
+                },
+                "parsedResponse": [
+                    {
+                        "amount": 0.03378,
+                        "datetime": "2025-12-29 22:43:54.639 UTC",
+                        "price": 87239.09499000001,
+                        "timestamp": 1767048234639,
+                        "side": "buy",
+                        "symbol": "BTC/USD:USDC",
+                        "nextCursor": "592",
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "cost": 2946.9366287622,
+                        "id": ""
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USD:USDC",
+                    "10m"
+                ],
+                "httpResponse": [
+                    [
+                        1740413400000,
+                        94712.355,
+                        94777.908,
+                        94456.401,
+                        94456.401,
+                        0
+                    ],
+                    [
+                        1740414000000,
+                        94456.401,
+                        94884.608,
+                        94434.483,
+                        94811.19,
+                        0
+                    ],
+                    [
+                        1740414600000,
+                        94811.19,
+                        94814.32,
+                        94549.091,
+                        94563.5,
+                        0
+                    ],
+                    [
+                        1740415200000,
+                        94563.5,
+                        94859.94,
+                        94493.807,
+                        94574.663,
+                        0
+                    ],
+                    [
+                        1740415800000,
+                        94574.663,
+                        94574.663,
+                        94300.811,
+                        94395.903,
+                        0
+                    ],
+                    [
+                        1740416400000,
+                        94395.903,
+                        94464.151,
+                        94314.387,
+                        94464.151,
+                        0
+                    ],
+                    [
+                        1740417000000,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        0
+                    ],
+                    [
+                        1740417600000,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        0
+                    ],
+                    [
+                        1740418200000,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        0
+                    ],
+                    [
+                        1740418800000,
+                        94464.151,
+                        94993.91,
+                        94464.151,
+                        94969.862,
+                        0
+                    ],
+                    [
+                        1740419400000,
+                        94969.862,
+                        94969.862,
+                        94579.097,
+                        94604.61,
+                        0
+                    ],
+                    [
+                        1740420000000,
+                        94604.61,
+                        94742.001,
+                        94531.788,
+                        94707.759,
+                        0
+                    ],
+                    [
+                        1740420600000,
+                        94707.759,
+                        94838.37,
+                        94647.897,
+                        94809.801,
+                        0
+                    ],
+                    [
+                        1740421200000,
+                        94809.801,
+                        94824.529,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740421800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740422400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740423000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740423600000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740424200000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740424800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740425400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740426000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740426600000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740427200000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740427800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740428400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740429000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740429600000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740430200000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740430800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740431400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740432000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740432600000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740433200000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740433800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740434400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740435000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740435600000,
+                        94575.664,
+                        94575.664,
+                        93381.054,
+                        93498.046,
+                        0
+                    ],
+                    [
+                        1740436200000,
+                        93498.046,
+                        93587.983,
+                        93134.183,
+                        93207.83,
+                        0
+                    ],
+                    [
+                        1740436800000,
+                        93207.83,
+                        93224.036,
+                        92641.026,
+                        92641.026,
+                        0
+                    ],
+                    [
+                        1740437400000,
+                        92641.026,
+                        92934.605,
+                        92394.382,
+                        92462.507,
+                        0
+                    ],
+                    [
+                        1740438000000,
+                        92462.507,
+                        92847.186,
+                        92292.196,
+                        92847.186,
+                        0
+                    ],
+                    [
+                        1740438600000,
+                        92847.186,
+                        92847.186,
+                        92330.404,
+                        92566.917,
+                        0
+                    ],
+                    [
+                        1740439200000,
+                        92566.917,
+                        92690.966,
+                        92007.124,
+                        92015.916,
+                        0
+                    ],
+                    [
+                        1740439800000,
+                        92015.916,
+                        92141.605,
+                        91609.315,
+                        91943.115,
+                        0
+                    ],
+                    [
+                        1740440400000,
+                        91943.115,
+                        92188.832,
+                        91673.139,
+                        91673.139,
+                        2759.9568
+                    ],
+                    [
+                        1740441000000,
+                        91673.139,
+                        91673.139,
+                        91336.82,
+                        91544.462,
+                        0
+                    ],
+                    [
+                        1740441600000,
+                        91544.462,
+                        91926.725,
+                        91477.731,
+                        91760.33,
+                        0
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1740413400000,
+                        94712.355,
+                        94777.908,
+                        94456.401,
+                        94456.401,
+                        0
+                    ],
+                    [
+                        1740414000000,
+                        94456.401,
+                        94884.608,
+                        94434.483,
+                        94811.19,
+                        0
+                    ],
+                    [
+                        1740414600000,
+                        94811.19,
+                        94814.32,
+                        94549.091,
+                        94563.5,
+                        0
+                    ],
+                    [
+                        1740415200000,
+                        94563.5,
+                        94859.94,
+                        94493.807,
+                        94574.663,
+                        0
+                    ],
+                    [
+                        1740415800000,
+                        94574.663,
+                        94574.663,
+                        94300.811,
+                        94395.903,
+                        0
+                    ],
+                    [
+                        1740416400000,
+                        94395.903,
+                        94464.151,
+                        94314.387,
+                        94464.151,
+                        0
+                    ],
+                    [
+                        1740417000000,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        0
+                    ],
+                    [
+                        1740417600000,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        0
+                    ],
+                    [
+                        1740418200000,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        94464.151,
+                        0
+                    ],
+                    [
+                        1740418800000,
+                        94464.151,
+                        94993.91,
+                        94464.151,
+                        94969.862,
+                        0
+                    ],
+                    [
+                        1740419400000,
+                        94969.862,
+                        94969.862,
+                        94579.097,
+                        94604.61,
+                        0
+                    ],
+                    [
+                        1740420000000,
+                        94604.61,
+                        94742.001,
+                        94531.788,
+                        94707.759,
+                        0
+                    ],
+                    [
+                        1740420600000,
+                        94707.759,
+                        94838.37,
+                        94647.897,
+                        94809.801,
+                        0
+                    ],
+                    [
+                        1740421200000,
+                        94809.801,
+                        94824.529,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740421800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740422400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740423000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740423600000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740424200000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740424800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740425400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740426000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740426600000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740427200000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740427800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740428400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740429000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740429600000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740430200000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740430800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740431400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740432000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740432600000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740433200000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740433800000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740434400000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740435000000,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        94575.664,
+                        0
+                    ],
+                    [
+                        1740435600000,
+                        94575.664,
+                        94575.664,
+                        93381.054,
+                        93498.046,
+                        0
+                    ],
+                    [
+                        1740436200000,
+                        93498.046,
+                        93587.983,
+                        93134.183,
+                        93207.83,
+                        0
+                    ],
+                    [
+                        1740436800000,
+                        93207.83,
+                        93224.036,
+                        92641.026,
+                        92641.026,
+                        0
+                    ],
+                    [
+                        1740437400000,
+                        92641.026,
+                        92934.605,
+                        92394.382,
+                        92462.507,
+                        0
+                    ],
+                    [
+                        1740438000000,
+                        92462.507,
+                        92847.186,
+                        92292.196,
+                        92847.186,
+                        0
+                    ],
+                    [
+                        1740438600000,
+                        92847.186,
+                        92847.186,
+                        92330.404,
+                        92566.917,
+                        0
+                    ],
+                    [
+                        1740439200000,
+                        92566.917,
+                        92690.966,
+                        92007.124,
+                        92015.916,
+                        0
+                    ],
+                    [
+                        1740439800000,
+                        92015.916,
+                        92141.605,
+                        91609.315,
+                        91943.115,
+                        0
+                    ],
+                    [
+                        1740440400000,
+                        91943.115,
+                        92188.832,
+                        91673.139,
+                        91673.139,
+                        2759.9568
+                    ],
+                    [
+                        1740441000000,
+                        91673.139,
+                        91673.139,
+                        91336.82,
+                        91544.462,
+                        0
+                    ],
+                    [
+                        1740441600000,
+                        91544.462,
+                        91926.725,
+                        91477.731,
+                        91760.33,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "account": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824"
+                    }
+                ],
+                "httpResponse": {
+                    "timestamp": 1740442548050,
+                    "balances": {
+                        "USDC": {
+                            "free": 0,
+                            "used": 96.74101276197834,
+                            "total": 96.74101276197834
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "timestamp": 1740442548050,
+                        "balances": {
+                            "USDC": {
+                                "free": 0,
+                                "used": 96.74101276197834,
+                                "total": 96.74101276197834
+                            }
+                        }
+                    },
+                    "USDC": {
+                        "free": 0.0,
+                        "used": 96.74101276197834,
+                        "total": 96.74101276197834
+                    },
+                    "timestamp": 1740442548050,
+                    "datetime": "2025-02-25T00:15:48.050Z",
+                    "free": {
+                        "USDC": 0.0
+                    },
+                    "used": {
+                        "USDC": 96.74101276197834
+                    },
+                    "total": {
+                        "USDC": 96.74101276197834
+                    }
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824",
+                        "type": "capability",
+                        "code": "USDC",
+                        "accountNumber": 12345
+                    },
+                    {
+                        "id": "0x5e83d5ce9012f27369ea4e92b24cbb0e617bd347ead7945a1dcbd88069fcafb3",
+                        "type": "account",
+                        "code": "USDC",
+                        "accountNumber": 12345
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824",
+                        "type": "capability",
+                        "code": "USDC",
+                        "info": {
+                            "id": "0x14ace79e6020323b4e5042be9299d974abfe8b126ad18c656edcbb5855be9824",
+                            "type": "capability",
+                            "code": "USDC",
+                            "accountNumber": 12345
+                        }
+                    },
+                    {
+                        "id": "0x5e83d5ce9012f27369ea4e92b24cbb0e617bd347ead7945a1dcbd88069fcafb3",
+                        "type": "account",
+                        "code": "USDC",
+                        "info": {
+                            "id": "0x5e83d5ce9012f27369ea4e92b24cbb0e617bd347ead7945a1dcbd88069fcafb3",
+                            "type": "account",
+                            "code": "USDC",
+                            "accountNumber": 12345
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    null,
+                    {
+                        "accountNumber": 12345
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "id": "340280688285674499949440358974059529368",
+                        "datetime": "2025-12-05 01:47:31.447 UTC",
+                        "timestamp": 1764899251447,
+                        "status": "open",
+                        "symbol": "BTC/USD:USDC",
+                        "type": "limit",
+                        "side": "buy",
+                        "price": 90999.0,
+                        "amount": 0.001,
+                        "filled": 0.0,
+                        "remaining": 0.001,
+                        "cost": 0.0,
+                        "trades": [],
+                        "fee": {}
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "340280688285674499949440358974059529368",
+                        "datetime": "2025-12-05 01:47:31.447 UTC",
+                        "timestamp": 1764899251447,
+                        "status": "open",
+                        "symbol": "BTC/USD:USDC",
+                        "type": "limit",
+                        "side": "buy",
+                        "price": 90999,
+                        "amount": 0.001,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {},
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "clientOrderId": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "average": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    null,
+                    {
+                        "accountNumber": 12345
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "id": "0x6473476da45d98364ceef21796e53020b930108155555a1c6111e52344193557:141",
+                        "symbol": "BTC/USD:USDC",
+                        "marginMode": "isolated",
+                        "contracts": 0.0,
+                        "contractSize": 0.999877468125,
+                        "notional": 0.0,
+                        "leverage": 0.0,
+                        "collateral": 86.29741500000002,
+                        "initialMargin": 0.0,
+                        "maintenanceMargin": 0.0,
+                        "initialMarginPercentage": 0.025,
+                        "maintenanceMarginPercentage": 0.0125,
+                        "unrealizedPnl": 0.0,
+                        "timestamp": 1764838387056,
+                        "datetime": "2025-12-04 08:53:07.056 UTC"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "0x6473476da45d98364ceef21796e53020b930108155555a1c6111e52344193557:141",
+                        "symbol": "BTC/USD:USDC",
+                        "marginMode": "isolated",
+                        "contracts": 0,
+                        "contractSize": 0.999877468125,
+                        "notional": 0,
+                        "leverage": 0,
+                        "collateral": 86.29741500000002,
+                        "initialMargin": 0,
+                        "maintenanceMargin": 0,
+                        "initialMarginPercentage": 0.025,
+                        "maintenanceMarginPercentage": 0.0125,
+                        "unrealizedPnl": 0,
+                        "timestamp": 1764838387056,
+                        "datetime": "2025-12-04 08:53:07.056 UTC"
+                    }
+                ]
+            }
+        ]
+    }
+}
