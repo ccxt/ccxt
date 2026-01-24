@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -43,6 +43,10 @@ class htx(ccxt.async_support.htx):
                 'watchMyTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
+                'unwatchTicker': True,
+                'unwatchOHLCV': True,
+                'unwatchTrades': True,
+                'unwatchOrderBook': True,
             },
             'urls': {
                 'api': {
@@ -112,6 +116,7 @@ class htx(ccxt.async_support.htx):
                 'watchOrderBook': {
                     'maxRetries': 3,
                     'checksum': True,
+                    'depth': 150,  # 150 or 20
                 },
                 'ws': {
                     'gunzip': True,
@@ -136,8 +141,10 @@ class htx(ccxt.async_support.htx):
         })
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return str(requestId)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -149,18 +156,39 @@ class htx(ccxt.async_support.htx):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        options = self.safe_value(self.options, 'watchTicker', {})
+        options = self.safe_dict(self.options, 'watchTicker', {})
         topic = self.safe_string(options, 'name', 'market.{marketId}.detail')
         if topic == 'market.{marketId}.ticker' and market['type'] != 'spot':
             raise BadRequest(self.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead')
         messageHash = self.implode_params(topic, {'marketId': market['id']})
         url = self.get_url_by_market_type(market['type'], market['linear'])
         return await self.subscribe_public(url, symbol, messageHash, None, params)
+
+    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        topic = 'ticker'
+        options = self.safe_dict(self.options, 'watchTicker', {})
+        channel = self.safe_string(options, 'name', 'market.{marketId}.detail')
+        if channel == 'market.{marketId}.ticker' and market['type'] != 'spot':
+            raise BadRequest(self.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead')
+        subMessageHash = self.implode_params(channel, {'marketId': market['id']})
+        return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -221,7 +249,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -232,6 +260,26 @@ class htx(ccxt.async_support.htx):
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        topic = 'trades'
+        options = self.safe_dict(self.options, 'watchTrades', {})
+        channel = self.safe_string(options, 'name', 'market.{marketId}.trade.detail')
+        subMessageHash = self.implode_params(channel, {'marketId': market['id']})
+        return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
     def handle_trades(self, client: Client, message):
         #
@@ -272,7 +320,7 @@ class htx(ccxt.async_support.htx):
         client.resolve(tradesCache, ch)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -297,6 +345,28 @@ class htx(ccxt.async_support.htx):
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+
+        :param str symbol: unified symbol of the market
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
+        subMessageHash = 'market.' + market['id'] + '.kline.' + interval
+        topic = 'ohlcv'
+        params['symbolsAndTimeframes'] = [[market['symbol'], timeframe]]
+        return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -344,25 +414,26 @@ class htx(ccxt.async_support.htx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        allowedLimits = [20, 150]
+        allowedLimits = [5, 20, 150, 400]
         # 2) 5-level/20-level incremental MBP is a tick by tick feed,
         # which means whenever there is an order book change at that level, it pushes an update
         # 150-levels/400-level incremental MBP feed is based on the gap
         # between two snapshots at 100ms interval.
+        options = self.safe_dict(self.options, 'watchOrderBook', {})
         if limit is None:
-            limit = 150 if market['spot'] else 20
+            limit = self.safe_integer(options, 'depth', 150)
         if not self.in_array(limit, allowedLimits):
-            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 20 and 150 only')
+            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
         messageHash = None
         if market['spot']:
-            messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
+            messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(limit)
         else:
-            messageHash = 'market.' + market['id'] + '.depth.size_' + str(limit) + '.high_freq'
+            messageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(limit) + '.high_freq'
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         method = self.handle_order_book_subscription
         if not market['spot']:
@@ -371,6 +442,33 @@ class htx(ccxt.async_support.htx):
             method = None
         orderbook = await self.subscribe_public(url, symbol, messageHash, method, params)
         return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        unsubscribe from the orderbook channel
+
+        https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.limit]: orderbook limit, default is None
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        topic = 'orderbook'
+        options = self.safe_dict(self.options, 'watchOrderBook', {})
+        depth = self.safe_integer(options, 'depth', 150)
+        subMessageHash = None
+        if market['spot']:
+            subMessageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(depth)
+        else:
+            subMessageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(depth) + '.high_freq'
+        if not (market['spot']):
+            params['data_type'] = 'incremental'
+        return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
     def handle_order_book_snapshot(self, client: Client, message, subscription):
         #
@@ -665,7 +763,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -754,7 +852,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         type = None
@@ -791,23 +889,39 @@ class htx(ccxt.async_support.htx):
         #
         # spot
         #
+        #     for new order creation
+        #
         #     {
         #         "action":"push",
         #         "ch":"orders#btcusdt",  # or "orders#*" for global subscriptions
         #         "data": {
+        #             "orderStatus": "submitted",
+        #             "eventType": "creation",
+        #             "totalTradeAmount": 0  # for "submitted" order status
+        #             "orderCreateTime": 1645116048355,  # only when `submitted` status
         #             "orderSource": "spot-web",
-        #             "orderCreateTime": 1645116048355,
         #             "accountId": 44234548,
         #             "orderPrice": "100",
         #             "orderSize": "0.05",
         #             "symbol": "ethusdt",
         #             "type": "buy-limit",
         #             "orderId": "478861479986886",
-        #             "eventType": "creation",
         #             "clientOrderId": '',
-        #             "orderStatus": "submitted"
         #         }
         #     }
+        #
+        #     for filled order, additional fields are present:
+        #
+        #             "orderStatus": "filled",
+        #             "eventType": "trade",
+        #             "totalTradeAmount": "5.9892649859",
+        #             "tradePrice": "0.676669",
+        #             "tradeVolume": "8.8511",
+        #             "tradeTime": 1760427775894,
+        #             "aggressor": False,
+        #             "execAmt": "8.8511",
+        #             "tradeId": 100599712781,
+        #             "remainAmt": "0",
         #
         # spot wrapped trade
         #
@@ -919,6 +1033,9 @@ class htx(ccxt.async_support.htx):
                     'symbol': market['symbol'],
                     'filled': self.parse_number(filled),
                     'remaining': self.parse_number(remaining),
+                    'price': self.safe_number(data, 'orderPrice'),
+                    'amount': self.safe_number(data, 'orderSize'),
+                    'info': data,
                 }
                 parsedOrder = order
             else:
@@ -1302,7 +1419,7 @@ class htx(ccxt.async_support.htx):
         https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
@@ -1614,17 +1731,36 @@ class htx(ccxt.async_support.htx):
         #         "ts": 1583414229143
         #     }
         #
+        # unsubscribe
+        #     {
+        #         "id": "2",
+        #         "status": "ok",
+        #         "unsubbed": "market.BTC-USDT-251003.detail",
+        #         "ts": 1759329276980
+        #     }
+        #
         id = self.safe_string(message, 'id')
         subscriptionsById = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_value(subscriptionsById, id)
+        subscription = self.safe_dict(subscriptionsById, id)
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:
                 method(client, message, subscription)
-                return
+                # return; commented out to clean up
             # clean up
             if id in client.subscriptions:
                 del client.subscriptions[id]
+        if 'unsubbed' in message:
+            self.handle_un_subscription(client, subscription)
+
+    def handle_un_subscription(self, client: Client, subscription: dict):
+        messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+        for i in range(0, len(messageHashes)):
+            unsubHash = messageHashes[i]
+            subHash = subMessageHashes[i]
+            self.clean_unsubscription(client, subHash, unsubHash)
+        self.clean_cache(subscription)
 
     def handle_system_status(self, client: Client, message):
         #
@@ -1781,7 +1917,7 @@ class htx(ccxt.async_support.htx):
                 pingTs = self.safe_integer(message, 'ts')
                 await client.send({'op': 'pong', 'ts': pingTs})
         except Exception as e:
-            error = NetworkError(self.id + ' pong failed ' + self.json(e))
+            error = NetworkError(self.id + ' pong failed ' + self.exception_message(e))
             client.reset(error)
 
     def handle_ping(self, client: Client, message):
@@ -2153,6 +2289,29 @@ class htx(ccxt.async_support.htx):
             subscription['method'] = method
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
+    async def unsubscribe_public(self, market: Market, subMessageHash: str, topic: str, params={}):
+        requestId = self.request_id()
+        request: dict = {
+            'unsub': subMessageHash,
+            'id': requestId,
+        }
+        messageHash = 'unsubscribe::' + subMessageHash
+        isFeed = (topic == 'orderbook')
+        url = self.get_url_by_market_type(market['type'], market['linear'], False, isFeed)
+        subscription: dict = {
+            'unsubscribe': True,
+            'id': requestId,
+            'subMessageHashes': [subMessageHash],
+            'messageHashes': [messageHash],
+            'symbols': [market['symbol']],
+            'topic': topic,
+        }
+        symbolsAndTimeframes = self.safe_list(params, 'symbolsAndTimeframes')
+        if symbolsAndTimeframes is not None:
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes
+            params = self.omit(params, 'symbolsAndTimeframes')
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+
     async def subscribe_private(self, channel, messageHash, type, subtype, params={}, subscriptionParams={}):
         requestId = self.request_id()
         subscription: dict = {
@@ -2194,7 +2353,7 @@ class htx(ccxt.async_support.htx):
         messageHash = 'auth'
         relativePath = url.replace('wss://' + hostname, '')
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = self.ymdhms(self.milliseconds(), 'T')
@@ -2214,7 +2373,7 @@ class htx(ccxt.async_support.htx):
                     'Timestamp': timestamp,
                 }
             signatureParams = self.keysort(signatureParams)
-            auth = self.urlencode(signatureParams)
+            auth = self.urlencode(signatureParams, True)  # True required in go
             payload = "\n".join(['GET', hostname, relativePath, auth])  # eslint-disable-line quotes
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None

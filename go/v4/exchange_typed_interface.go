@@ -11,10 +11,28 @@ type IExchange interface {
 	FetchMarkets(params ...interface{}) ([]MarketInterface, error)
 	FetchAccounts(params ...interface{}) ([]Account, error)
 	FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error)
+	FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error)
+	WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error)
+	WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error)
+	WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error)
+	WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error)
+	UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error)
+	UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error)
+	WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error)
+	UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error)
+	WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error)
+	WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error)
+	UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error)
+	WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error)
+	UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error)
+	UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error)
 	FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error)
 	FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error)
+	FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error)
 	FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error)
 	FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error)
+	WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error)
+	UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error)
 	FetchTime(params ...interface{}) (int64, error)
 	FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error)
 	FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error)
@@ -40,19 +58,30 @@ type IExchange interface {
 	FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error)
 	FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error)
 	FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error)
+	FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error)
+	WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error)
 	EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error)
 	EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error)
 	EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error)
 	EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error)
+	EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error)
+	EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error)
 	FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error)
+	FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error)
+	WatchPosition(options ...WatchPositionOptions) (Position, error)
+	WatchPositions(options ...WatchPositionsOptions) ([]Position, error)
 	FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error)
+	FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error)
 	FetchPositions(options ...FetchPositionsOptions) ([]Position, error)
+	FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error)
 	FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error)
 	FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error)
 	FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error)
 	FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error)
 	FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error)
 	FetchBalance(params ...interface{}) (Balances, error)
+	FetchBalanceWs(params ...interface{}) (Balances, error)
+	WatchBalance(params ...interface{}) (Balances, error)
 	FetchFreeBalance(params ...interface{}) (Balance, error)
 	FetchStatus(params ...interface{}) (map[string]interface{}, error)
 	FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error)
@@ -63,10 +92,18 @@ type IExchange interface {
 	FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error)
 	FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error)
 	FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error)
+	FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error)
+	WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error)
 	FetchTickers(options ...FetchTickersOptions) (Tickers, error)
 	FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error)
+	FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error)
 	FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error)
+	WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error)
+	WatchTickers(options ...WatchTickersOptions) (Tickers, error)
+	UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error)
 	FetchOrder(id string, options ...FetchOrderOptions) (Order, error)
+	FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error)
+	FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error)
 	FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error)
 	CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error)
 	CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error)
@@ -74,28 +111,48 @@ type IExchange interface {
 	FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error)
 	FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error)
 	CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error)
+	CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error)
 	CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error)
+	CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error)
 	CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error)
 	CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error)
 	CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error)
+	CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error)
 	CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error)
+	CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error)
 	CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error)
+	CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error)
 	CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error)
+	CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error)
 	CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error)
+	CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error)
 	CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error)
 	EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error)
+	CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error)
 	CancelOrder(id string, options ...CancelOrderOptions) (Order, error)
+	CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error)
+	CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error)
+	CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error)
+	CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error)
+	CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error)
 	CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error)
 	CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error)
 	CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error)
+	CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error)
 	FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
+	FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error)
 	FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error)
+	WatchOrders(options ...WatchOrdersOptions) ([]Order, error)
 	FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error)
+	FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error)
 	FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error)
 	FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error)
+	FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error)
 	FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
 	FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error)
 	FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error)
+	FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error)
+	WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error)
 	FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error)
 	FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error)
 	FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error)
@@ -104,23 +161,37 @@ type IExchange interface {
 	FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error)
 	FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error)
 	FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error)
+	FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error)
+	FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error)
 	FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error)
 	FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error)
 	FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error)
 	CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error)
+	CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error)
 	CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error)
+	CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error)
 	CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error)
+	CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error)
 	CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error)
+	CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error)
 	CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error)
+	CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error)
 	CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error)
+	CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error)
 	FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error)
 	CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error)
+	CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error)
 	CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error)
+	CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error)
 	CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error)
+	CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error)
 	CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error)
+	CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error)
 	CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error)
+	CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error)
 	FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error)
 	FetchTradingFees(params ...interface{}) (TradingFees, error)
+	FetchTradingFeesWs(params ...interface{}) (TradingFees, error)
 	FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error)
 	FetchConvertCurrencies(params ...interface{}) (Currencies, error)
 	FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error)
@@ -133,6 +204,14 @@ type IExchange interface {
 	FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error)
 	FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error)
 	FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error)
+	UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error)
+	WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error)
+	WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error)
+	WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error)
+	UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error)
+	CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error)
+	FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error)
+	UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error)
 }
 
 func CreateExchange(exchangeId string, options map[string]interface{}) IExchange {
@@ -141,14 +220,23 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "exchange":
 		itf := NewExchangeTyped(nil)
 		return itf
+	case "alp":
+		itf := NewAlp(options)
+		return itf
 	case "alpaca":
 		itf := NewAlpaca(options)
 		return itf
 	case "apex":
 		itf := NewApex(options)
 		return itf
+	case "arkham":
+		itf := NewArkham(options)
+		return itf
 	case "ascendex":
 		itf := NewAscendex(options)
+		return itf
+	case "aster":
+		itf := NewAster(options)
 		return itf
 	case "backpack":
 		itf := NewBackpack(options)
@@ -228,9 +316,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "blofin":
 		itf := NewBlofin(options)
 		return itf
-	case "btcalpha":
-		itf := NewBtcalpha(options)
-		return itf
 	case "btcbox":
 		itf := NewBtcbox(options)
 		return itf
@@ -240,8 +325,14 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "btcturk":
 		itf := NewBtcturk(options)
 		return itf
+	case "bullish":
+		itf := NewBullish(options)
+		return itf
 	case "bybit":
 		itf := NewBybit(options)
+		return itf
+	case "bydfi":
+		itf := NewBydfi(options)
 		return itf
 	case "cex":
 		itf := NewCex(options)
@@ -288,6 +379,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "cryptomus":
 		itf := NewCryptomus(options)
 		return itf
+	case "deepcoin":
+		itf := NewDeepcoin(options)
+		return itf
 	case "defx":
 		itf := NewDefx(options)
 		return itf
@@ -302,6 +396,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "digifinex":
 		itf := NewDigifinex(options)
+		return itf
+	case "dydx":
+		itf := NewDydx(options)
 		return itf
 	case "exmo":
 		itf := NewExmo(options)
@@ -387,12 +484,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "novadax":
 		itf := NewNovadax(options)
 		return itf
-	case "oceanex":
-		itf := NewOceanex(options)
-		return itf
-	case "okcoin":
-		itf := NewOkcoin(options)
-		return itf
 	case "okx":
 		itf := NewOkx(options)
 		return itf
@@ -455,6 +546,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "zaif":
 		itf := NewZaif(options)
+		return itf
+	case "zebpay":
+		itf := NewZebpay(options)
 		return itf
 	case "zonda":
 		itf := NewZonda(options)

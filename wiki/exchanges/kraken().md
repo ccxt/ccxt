@@ -19,6 +19,7 @@
 * [createMarketOrderWithCost](#createmarketorderwithcost)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
 * [createOrder](#createorder)
+* [createOrders](#createorders)
 * [editOrder](#editorder)
 * [fetchOrder](#fetchorder)
 * [fetchOrderTrades](#fetchordertrades)
@@ -371,6 +372,27 @@ kraken.createOrder (symbol, type, side, amount[, price, params])
 ```
 
 
+<a name="createOrders" id="createorders"></a>
+
+### createOrders{docsify-ignore}
+create a list of trade orders
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://docs.kraken.com/api/docs/rest-api/add-order-batch/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.createOrders (orders[, params])
+```
+
+
 <a name="editOrder" id="editorder"></a>
 
 ### editOrder{docsify-ignore}
@@ -557,7 +579,7 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | Yes | unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

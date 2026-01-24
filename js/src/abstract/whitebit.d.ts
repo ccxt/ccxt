@@ -63,8 +63,8 @@ interface Exchange {
     v4PrivatePostMainAccountSmartInterestPaymentHistory(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountBalance(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountExecutedHistory(params?: {}): Promise<implicitReturnType>;
-    v4PrivatePostTradeAccountOrder(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountOrderHistory(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostTradeAccountOrder(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralLimit(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralMarket(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralStopLimit(params?: {}): Promise<implicitReturnType>;

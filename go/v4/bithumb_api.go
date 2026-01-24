@@ -7,114 +7,114 @@
 
 package ccxt
 
-func (this *bithumb) PublicGetTickerALLQuoteId(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetTickerALLQuoteId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTickerALLQuoteId", args...)
 }
 
-func (this *bithumb) PublicGetTickerBaseIdQuoteId(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetTickerBaseIdQuoteId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTickerBaseIdQuoteId", args...)
 }
 
-func (this *bithumb) PublicGetOrderbookALLQuoteId(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetOrderbookALLQuoteId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetOrderbookALLQuoteId", args...)
 }
 
-func (this *bithumb) PublicGetOrderbookBaseIdQuoteId(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetOrderbookBaseIdQuoteId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetOrderbookBaseIdQuoteId", args...)
 }
 
-func (this *bithumb) PublicGetTransactionHistoryBaseIdQuoteId(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetTransactionHistoryBaseIdQuoteId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTransactionHistoryBaseIdQuoteId", args...)
 }
 
-func (this *bithumb) PublicGetNetworkInfo(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetNetworkInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetNetworkInfo", args...)
 }
 
-func (this *bithumb) PublicGetAssetsstatusMultichainALL(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetAssetsstatusMultichainALL(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetAssetsstatusMultichainALL", args...)
 }
 
-func (this *bithumb) PublicGetAssetsstatusMultichainCurrency(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetAssetsstatusMultichainCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetAssetsstatusMultichainCurrency", args...)
 }
 
-func (this *bithumb) PublicGetWithdrawMinimumALL(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetWithdrawMinimumALL(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetWithdrawMinimumALL", args...)
 }
 
-func (this *bithumb) PublicGetWithdrawMinimumCurrency(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetWithdrawMinimumCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetWithdrawMinimumCurrency", args...)
 }
 
-func (this *bithumb) PublicGetAssetsstatusALL(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetAssetsstatusALL(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetAssetsstatusALL", args...)
 }
 
-func (this *bithumb) PublicGetAssetsstatusBaseId(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetAssetsstatusBaseId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetAssetsstatusBaseId", args...)
 }
 
-func (this *bithumb) PublicGetCandlestickBaseIdQuoteIdInterval(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PublicGetCandlestickBaseIdQuoteIdInterval(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCandlestickBaseIdQuoteIdInterval", args...)
 }
 
-func (this *bithumb) PrivatePostInfoAccount(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostInfoAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostInfoAccount", args...)
 }
 
-func (this *bithumb) PrivatePostInfoBalance(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostInfoBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostInfoBalance", args...)
 }
 
-func (this *bithumb) PrivatePostInfoWalletAddress(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostInfoWalletAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostInfoWalletAddress", args...)
 }
 
-func (this *bithumb) PrivatePostInfoTicker(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostInfoTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostInfoTicker", args...)
 }
 
-func (this *bithumb) PrivatePostInfoOrders(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostInfoOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostInfoOrders", args...)
 }
 
-func (this *bithumb) PrivatePostInfoUserTransactions(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostInfoUserTransactions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostInfoUserTransactions", args...)
 }
 
-func (this *bithumb) PrivatePostInfoOrderDetail(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostInfoOrderDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostInfoOrderDetail", args...)
 }
 
-func (this *bithumb) PrivatePostTradePlace(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostTradePlace(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradePlace", args...)
 }
 
-func (this *bithumb) PrivatePostTradeCancel(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostTradeCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeCancel", args...)
 }
 
-func (this *bithumb) PrivatePostTradeBtcWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostTradeBtcWithdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeBtcWithdrawal", args...)
 }
 
-func (this *bithumb) PrivatePostTradeKrwDeposit(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostTradeKrwDeposit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeKrwDeposit", args...)
 }
 
-func (this *bithumb) PrivatePostTradeKrwWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostTradeKrwWithdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeKrwWithdrawal", args...)
 }
 
-func (this *bithumb) PrivatePostTradeMarketBuy(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostTradeMarketBuy(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeMarketBuy", args...)
 }
 
-func (this *bithumb) PrivatePostTradeMarketSell(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostTradeMarketSell(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeMarketSell", args...)
 }
 
-func (this *bithumb) PrivatePostTradeStopLimit(args ...interface{}) <-chan interface{} {
+func (this *BithumbCore) PrivatePostTradeStopLimit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeStopLimit", args...)
 }

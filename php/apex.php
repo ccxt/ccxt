@@ -30,6 +30,7 @@ class apex extends Exchange {
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => false,
                 'cancelOrder' => true,
@@ -48,10 +49,14 @@ class apex extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledAndClosedOrders' => false,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrders' => false,
@@ -67,6 +72,7 @@ class apex extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -85,6 +91,8 @@ class apex extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -102,6 +110,7 @@ class apex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
@@ -349,7 +358,7 @@ class apex extends Exchange {
          * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetV3AccountBalance ($params);
@@ -374,7 +383,7 @@ class apex extends Exchange {
          * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetV3Account ($params);
@@ -760,7 +769,7 @@ class apex extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -781,7 +790,7 @@ class apex extends Exchange {
          *
          * @param {string} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $response = $this->publicGetV3DataAllTickerInfo ($params);
@@ -789,7 +798,7 @@ class apex extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -856,7 +865,7 @@ class apex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -913,7 +922,7 @@ class apex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -996,7 +1005,7 @@ class apex extends Exchange {
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1050,11 +1059,11 @@ class apex extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -1239,14 +1248,14 @@ class apex extends Exchange {
 
     public function parse_order_type(?string $type) {
         $types = array(
-            'LIMIT' => 'LIMIT',
-            'MARKET' => 'MARKET',
-            'STOP_LIMIT' => 'STOP_LIMIT',
-            'STOP_MARKET' => 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT' => 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET' => 'TAKE_PROFIT_MARKET',
+            'LIMIT' => 'limit',
+            'MARKET' => 'market',
+            'STOP_LIMIT' => 'limit',
+            'STOP_MARKET' => 'market',
+            'TAKE_PROFIT_LIMIT' => 'limit',
+            'TAKE_PROFIT_MARKET' => 'market',
         );
-        return $this->safe_string_upper($types, $type, $type);
+        return $this->safe_string($types, $type, $type);
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
@@ -1316,11 +1325,13 @@ class apex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] The $price a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price a take profit order is triggered at
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
          * @param {string} [$params->clientOrderId] a unique id for the order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1332,11 +1343,20 @@ class apex extends Exchange {
             $orderPrice = $this->price_to_precision($symbol, $price);
         }
         $fees = $this->safe_dict($this->fees, 'swap', array());
-        $taker = $this->safe_number($fees, 'taker', 0.0005);
-        $maker = $this->safe_number($fees, 'maker', 0.0002);
-        $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), (string) $taker), (string) $market['precision']['price']), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $taker = $this->safe_string($fees, 'taker', '0.0005');
+        $maker = $this->safe_string($fees, 'maker', '0.0002');
+        $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($market['precision']['price'])), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
         $timeNow = $this->milliseconds();
-        // $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        if ($stopLossPrice !== null) {
+            $orderType = ($orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+            $triggerPrice = $stopLossPrice;
+        } elseif ($takeProfitPrice !== null) {
+            $orderType = ($orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            $triggerPrice = $takeProfitPrice;
+        }
         $isMarket = $orderType === 'MARKET';
         if ($isMarket && ($price === null)) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
@@ -1360,7 +1380,7 @@ class apex extends Exchange {
         if ($clientOrderId === null) {
             $clientOrderId = $this->generate_random_client_id_omni($accountId);
         }
-        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         $orderToSign = array(
             'accountId' => $accountId,
             'slotId' => $clientOrderId,
@@ -1369,9 +1389,12 @@ class apex extends Exchange {
             'size' => $orderSize,
             'price' => $orderPrice,
             'direction' => $orderSide,
-            'makerFeeRate' => (string) $maker,
-            'takerFeeRate' => (string) $taker,
+            'makerFeeRate' => $maker,
+            'takerFeeRate' => $taker,
         );
+        if ($triggerPrice !== null) {
+            $orderToSign['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
         $signature = $this->get_zk_contract_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign);
         $request = array(
             'symbol' => $market['id'],
@@ -1385,6 +1408,9 @@ class apex extends Exchange {
             'clientId' => $clientOrderId,
             'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
         );
+        if ($triggerPrice !== null) {
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
         $request['signature'] = $signature;
         $response = $this->privatePostV3Order ($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
@@ -1400,7 +1426,7 @@ class apex extends Exchange {
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->transferId] UUID, which is unique across the platform
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $configResponse = $this->publicGetV3Symbols ($params);
@@ -1549,7 +1575,7 @@ class apex extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1572,7 +1598,7 @@ class apex extends Exchange {
          * @param {string} $id order $id
          * @param $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
@@ -1600,7 +1626,7 @@ class apex extends Exchange {
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique $id for the order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array();
@@ -1628,7 +1654,7 @@ class apex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $response = $this->privateGetV3OpenOrders ($params);
@@ -1652,7 +1678,7 @@ class apex extends Exchange {
          * @param {string} [$params->type] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
          * @param {string} [$params->orderType] "ACTIVE","CONDITION","HISTORY"
          * @param {boolean} [$params->page] Page numbers start from 0
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -1689,7 +1715,7 @@ class apex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -1720,7 +1746,7 @@ class apex extends Exchange {
          * @param {boolean} [$params->side] BUY or SELL
          * @param {string} [$params->orderType] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
          * @param {boolean} [$params->page] Page numbers start from 0
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -1759,7 +1785,7 @@ class apex extends Exchange {
          * @param {array} [$params->until] end time, ms
          * @param {boolean} [$params->side] BUY or SELL
          * @param {boolean} [$params->page] Page numbers start from 0
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -1851,7 +1877,7 @@ class apex extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $response = $this->privateGetV3Account ($params);

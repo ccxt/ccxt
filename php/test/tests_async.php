@@ -56,6 +56,18 @@ class testMainClass {
 
     public function init($exchange_id, $symbol_argv, $method_argv) {
         return Async\async(function () use ($exchange_id, $symbol_argv, $method_argv) {
+            try {
+                Async\await($this->init_inner($exchange_id, $symbol_argv, $method_argv));
+            } catch(\Throwable $e) {
+                dump('[TEST_FAILURE]'); // tell run-tests.js this is failure
+                throw $e;
+            }
+
+        }) ();
+    }
+
+    public function init_inner($exchange_id, $symbol_argv, $method_argv) {
+        return Async\async(function () use ($exchange_id, $symbol_argv, $method_argv) {
             $this->parse_cli_args_and_props();
             if ($this->request_tests && $this->response_tests) {
                 Async\await($this->run_static_request_tests($exchange_id, $symbol_argv));
@@ -90,6 +102,7 @@ class testMainClass {
             );
             $exchange = init_exchange($exchange_id, $exchange_args, $this->ws_tests);
             if ($exchange->alias) {
+                dump($this->add_padding('[INFO] skipping alias', 25));
                 exit_script(0);
             }
             Async\await($this->import_files($exchange));
@@ -408,6 +421,7 @@ class testMainClass {
                         // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                         if ($is_public && $is_auth_error) {
                             if ($this->info) {
+                                // todo - turn into warning
                                 dump('[INFO]', 'Authentication problem for public method', exception_message($e), $exchange->id, $method_name, $args_stringified);
                             }
                             return true;
@@ -1525,6 +1539,21 @@ class testMainClass {
             // inverse swap
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
             assert(str_starts_with($client_order_id_inverse, $inverse_swap_id), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
+            // linear swap conditional order
+            $swap_algo_order_request = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, array(
+                    'triggerPrice' => 101000,
+                )));
+                $check_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                $algo_order_id_defined = ($check_order_request['algoOrderId'] !== null);
+                assert($algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
+                $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
+                $swap_algo_id_string = ((string) $swap_id);
+                assert(str_starts_with($client_algo_id_swap, $swap_algo_id_string), 'binance - swap clientOrderId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_algo_id_string);
+            } catch(\Throwable $e) {
+                $swap_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
             $create_orders_request = null;
             try {
                 $orders = [array(

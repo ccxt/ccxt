@@ -124,7 +124,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#status-get-status  
 
@@ -164,7 +164,7 @@ okx.fetchTime ([params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration  
 
@@ -224,7 +224,7 @@ okx.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book  
 
@@ -247,7 +247,7 @@ okx.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker  
 
@@ -268,7 +268,7 @@ okx.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers  
 
@@ -289,7 +289,7 @@ okx.fetchTickers ([symbols, params])
 fetches mark price for the market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price  
 
@@ -310,7 +310,7 @@ okx.fetchMarkPrice (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price  
 
@@ -331,7 +331,7 @@ okx.fetchMarkPrices ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -397,7 +397,7 @@ okx.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history  
 
@@ -405,7 +405,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
@@ -421,7 +421,7 @@ okx.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates  
 
@@ -442,7 +442,7 @@ okx.fetchTradingFee (symbol[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -467,7 +467,7 @@ okx.fetchBalance ([params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order  
 
@@ -489,7 +489,7 @@ okx.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order  
 
@@ -511,7 +511,7 @@ okx.createMarketSellOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -556,7 +556,7 @@ okx.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders  
 
@@ -577,7 +577,7 @@ okx.createOrders (orders[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -623,7 +623,7 @@ okx.editOrder (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -651,7 +651,7 @@ okx.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -679,7 +679,7 @@ okx.cancelOrders (ids, symbol[, params])
 cancel multiple orders for multiple symbols
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -727,7 +727,7 @@ okx.cancelAllOrdersAfter (timeout[, params])
 fetch an order by the id
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: [an order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: [an order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -754,7 +754,7 @@ okx.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -786,7 +786,7 @@ okx.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -818,7 +818,7 @@ okx.fetchCanceledOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -853,7 +853,7 @@ okx.fetchClosedOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months  
 
@@ -878,7 +878,7 @@ okx.fetchMyTrades (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months  
 
@@ -902,7 +902,7 @@ okx.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -933,7 +933,7 @@ okx.fetchLedger ([code, since, limit, params])
 fetch a dictionary of addresses for a currency, indexed by network
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by the network
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
 **See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address  
 
@@ -954,7 +954,7 @@ okx.fetchDepositAddressesByNetwork (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address  
 
@@ -976,7 +976,7 @@ okx.fetchDepositAddress (code[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal  
 
@@ -1000,7 +1000,7 @@ okx.withdraw (code, amount, address, tag[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history  
 
@@ -1025,7 +1025,7 @@ okx.fetchDeposits (code[, since, limit, params])
 fetch data on a currency deposit via the deposit id
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history  
 
@@ -1047,7 +1047,7 @@ okx.fetchDeposit (id, code[, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history  
 
@@ -1072,7 +1072,7 @@ okx.fetchWithdrawals (code[, since, limit, params])
 fetch data on a currency withdrawal via the withdrawal id
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history  
 
@@ -1094,7 +1094,7 @@ okx.fetchWithdrawal (id, code[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage  
 
@@ -1116,7 +1116,7 @@ okx.fetchLeverage (symbol[, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions  
 
@@ -1138,7 +1138,7 @@ okx.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1164,7 +1164,7 @@ okx.fetchPositions (symbols[, params])
 fetch all open positions for specific symbol
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions  
 
@@ -1186,7 +1186,7 @@ okx.fetchPositionsForSymbol (symbol[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer  
 
@@ -1210,7 +1210,7 @@ okx.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months  
 
@@ -1233,7 +1233,7 @@ okx.fetchTransfers (code[, since, limit, params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate  
 
@@ -1254,7 +1254,7 @@ okx.fetchFundingInterval (symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate  
 
@@ -1275,7 +1275,7 @@ okx.fetchFundingRate (symbol[, params])
 fetches the current funding rates for multiple symbols
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a dictionary of [funding rates structure](https://docs.ccxt.com/#/?id=funding-rates-structure)
+**Returns**: <code>object</code> - a dictionary of [funding rates structure](https://docs.ccxt.com/?id=funding-rates-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate  
 
@@ -1296,7 +1296,7 @@ okx.fetchFundingRates (symbols[, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months  
 
@@ -1410,7 +1410,7 @@ okx.setMarginMode (marginMode, symbol[, params])
 fetch the borrow interest rates of all currencies
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a list of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>object</code> - a list of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate  
 
@@ -1430,7 +1430,7 @@ okx.fetchCrossBorrowRates ([params])
 fetch the rate of interest to borrow a currency for margin trading
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate  
 
@@ -1451,7 +1451,7 @@ okx.fetchCrossBorrowRate (code[, params])
 retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a dictionary of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) indexed by the market symbol
+**Returns**: <code>object</code> - a dictionary of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure) indexed by the market symbol
 
 **See**: https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public  
 
@@ -1474,7 +1474,7 @@ okx.fetchBorrowRateHistories (codes[, since, limit, params])
 retrieves a history of a currencies borrow interest rate at specific time slots
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public  
 
@@ -1482,7 +1482,7 @@ retrieves a history of a currencies borrow interest rate at specific time slots
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | timestamp for the earliest borrow rate |
-| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) to retrieve |
+| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure) to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1497,7 +1497,7 @@ okx.fetchBorrowRateHistory (code[, since, limit, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin  
 
@@ -1519,7 +1519,7 @@ okx.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin  
 
@@ -1541,7 +1541,7 @@ okx.addMargin (symbol, amount[, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers  
 
@@ -1563,7 +1563,7 @@ okx.fetchMarketLeverageTiers (symbol[, params])
 fetch the interest owed b the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - An list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - An list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data  
 
@@ -1572,7 +1572,7 @@ fetch the interest owed b the user for borrowing currency for margin trading
 | code | <code>string</code> | Yes | the unified currency code for the currency of the interest |
 | symbol | <code>string</code> | Yes | the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned |
 | since | <code>int</code> | No | timestamp in ms of the earliest time to receive interest records for |
-| limit | <code>int</code> | No | the number of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure) to retrieve |
+| limit | <code>int</code> | No | the number of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure) to retrieve |
 | params | <code>object</code> | No | exchange specific parameters |
 | params.type | <code>int</code> | No | Loan type 1 - VIP loans 2 - Market loans *Default is Market loans* |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
@@ -1589,7 +1589,7 @@ okx.fetchBorrowInterest (code, symbol[, since, limit, params])
 create a loan to borrow margin (need to be VIP 5 and above)
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay  
 
@@ -1611,7 +1611,7 @@ okx.borrowCrossMargin (code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay  
 
@@ -1634,7 +1634,7 @@ okx.repayCrossMargin (code, amount[, params])
 Retrieves the open interest of a currency
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest  
 
@@ -1655,7 +1655,7 @@ okx.fetchOpenInterest (symbol[, params])
 Retrieves the open interests of some currencies
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an dictionary of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an dictionary of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest  
 
@@ -1679,7 +1679,7 @@ okx.fetchOpenInterests (symbols[, params])
 Retrieves the open interest history of a currency
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: An array of [open interest structures](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: An array of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
@@ -1708,7 +1708,7 @@ okx.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies  
 
@@ -1729,7 +1729,7 @@ okx.fetchDepositWithdrawFees (codes[, params])
 fetches historical settlement records
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/#/?id=settlement-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history  
 
@@ -1752,7 +1752,7 @@ okx.fetchSettlementHistory (symbol[, since, limit, params])
 fetches the market ids of underlying assets for a specific contract market type
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [underlying assets](https://docs.ccxt.com/#/?id=underlying-assets-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [underlying assets](https://docs.ccxt.com/?id=underlying-assets-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying  
 
@@ -1773,7 +1773,7 @@ okx.fetchUnderlyingAssets ([params])
 fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data  
 
@@ -1794,7 +1794,7 @@ okx.fetchGreeks (symbol[, params])
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data  
 
@@ -1817,7 +1817,7 @@ okx.fetchAllGreeks ([symbols, params])
 closes open positions for a market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions  
 
@@ -1844,7 +1844,7 @@ okx.closePosition (symbol[, side, params])
 fetches option data that is commonly found in an option chain
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker  
 
@@ -1865,7 +1865,7 @@ okx.fetchOption (symbol[, params])
 fetches data for an underlying asset that is commonly found in an option chain
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers  
 
@@ -1887,7 +1887,7 @@ okx.fetchOptionChain (code[, params])
 fetch a quote for converting from one currency to another
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote  
 
@@ -1910,7 +1910,7 @@ okx.fetchConvertQuote (fromCode, toCode[, amount, params])
 convert from one currency to another
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade  
 
@@ -1934,7 +1934,7 @@ okx.createConvertTrade (id, fromCode, toCode[, amount, params])
 fetch the data for a conversion trade
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history  
 
@@ -1956,7 +1956,7 @@ okx.fetchConvertTrade (id[, code, params])
 fetch the users history of conversion trades
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history  
 
@@ -2000,7 +2000,7 @@ okx.fetchConvertCurrencies ([params])
 fetches the history of margin added or reduced from contract isolated positions
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**
 
@@ -2029,7 +2029,7 @@ okx.fetchMarginAdjustmentHistory ([symbol, type, since, limit, params])
 fetches historical positions
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history  
 
@@ -2058,7 +2058,7 @@ okx.fetchPositionsHistory ([symbols, since, limit, params])
 fetches the long short ratio history for a unified market symbol
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/?id=long-short-ratio-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio  
 
@@ -2083,7 +2083,7 @@ okx.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -2110,7 +2110,7 @@ okx.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -2138,7 +2138,7 @@ okx.watchTradesForSymbols (symbols[, since, limit, params])
 unWatches from the stream channel
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -2159,7 +2159,7 @@ okx.unWatchTradesForSymbols (symbols[, params])
 unWatches from the stream channel
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -2179,7 +2179,7 @@ okx.unWatchTrades (symbol[, params])
 watch the current funding rate
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel  
 
@@ -2200,7 +2200,7 @@ okx.watchFundingRate (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
 
@@ -2222,7 +2222,7 @@ okx.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
 
@@ -2244,7 +2244,7 @@ okx.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
 
@@ -2266,7 +2266,7 @@ okx.watchTickers ([symbols, params])
 watches a mark price
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel  
 
@@ -2288,7 +2288,7 @@ okx.watchMarkPrice (symbol[, params])
 watches mark prices
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel  
 
@@ -2310,7 +2310,7 @@ okx.watchMarkPrices ([symbols, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
 
@@ -2332,7 +2332,7 @@ okx.unWatchTickers ([symbols, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
 
@@ -2485,7 +2485,7 @@ okx.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2508,7 +2508,7 @@ okx.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2531,7 +2531,7 @@ okx.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2554,7 +2554,7 @@ okx.unWatchOrderBookForSymbols (symbols[, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2577,7 +2577,7 @@ okx.unWatchOrderBook (symbol[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -2596,7 +2596,7 @@ okx.watchBalance ([params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel  
 
@@ -2645,7 +2645,7 @@ okx.watchPositions (symbols, since, limit, params[])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel  
 
@@ -2671,7 +2671,7 @@ okx.watchOrders ([symbol, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#websocket-api-trade-place-order  
 
@@ -2697,7 +2697,7 @@ okx.createOrderWs (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -2727,7 +2727,7 @@ okx.editOrderWs (id, symbol, type, side, amount[, price, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade  
 
@@ -2750,7 +2750,7 @@ okx.cancelOrderWs (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order  
 
@@ -2772,7 +2772,7 @@ okx.cancelOrdersWs (ids, symbol[, params])
 cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.okx.com/websockets/#message-cancelAll  
 

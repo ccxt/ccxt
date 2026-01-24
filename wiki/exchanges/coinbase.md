@@ -47,6 +47,7 @@
 * [fetchPosition](#fetchposition)
 * [fetchTradingFees](#fetchtradingfees)
 * [fetchPortfolioDetails](#fetchportfoliodetails)
+* [fetchDepositAddresses](#fetchdepositaddresses)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -75,7 +76,7 @@ coinbase.fetchTime ([params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**
 
@@ -100,7 +101,7 @@ coinbase.fetchAccounts ([params])
 fetch all the portfolios
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios  
 
@@ -120,7 +121,7 @@ coinbase.fetchPortfolios ([params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address  
 
@@ -141,7 +142,7 @@ coinbase.createDepositAddress (code[, params])
 Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals  
 
@@ -165,7 +166,7 @@ coinbase.fetchWithdrawals (code[, since, limit, params])
 Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits  
 
@@ -189,7 +190,7 @@ coinbase.fetchDeposits (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions  
 
@@ -262,7 +263,7 @@ coinbase.fetchCurrencies ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -288,7 +289,7 @@ coinbase.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -316,7 +317,7 @@ coinbase.fetchTicker (symbol[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -344,7 +345,7 @@ coinbase.fetchBalance ([params])
 Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions  
 
@@ -368,7 +369,7 @@ coinbase.fetchLedger ([code, since, limit, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder  
 
@@ -390,7 +391,7 @@ coinbase.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder  
 
@@ -430,7 +431,7 @@ coinbase.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders  
 
@@ -452,7 +453,7 @@ coinbase.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders  
 
@@ -474,7 +475,7 @@ coinbase.cancelOrders (ids, symbol[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder  
 
@@ -501,7 +502,7 @@ coinbase.editOrder (id, symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder  
 
@@ -523,7 +524,7 @@ coinbase.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders  
 
@@ -548,7 +549,7 @@ coinbase.fetchOrders (symbol[, since, limit, params])
 fetches information on all currently open orders
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders  
 
@@ -573,7 +574,7 @@ coinbase.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders  
 
@@ -598,7 +599,7 @@ coinbase.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders  
 
@@ -648,7 +649,7 @@ coinbase.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades  
 
@@ -672,7 +673,7 @@ coinbase.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills  
 
@@ -697,7 +698,7 @@ coinbase.fetchMyTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook  
 
@@ -720,7 +721,7 @@ coinbase.fetchOrderBook (symbol[, limit, params])
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask  
 
@@ -741,7 +742,7 @@ coinbase.fetchBidsAsks ([symbols, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money  
 
@@ -765,7 +766,7 @@ coinbase.withdraw (code, amount, address[, tag, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses  
 
@@ -786,7 +787,7 @@ coinbase.fetchDepositAddress (code[, params])
 make a deposit
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds  
 
@@ -810,7 +811,7 @@ coinbase.deposit (code, amount, id[, params])
 fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit  
 
@@ -833,7 +834,7 @@ coinbase.fetchDeposit (id[, code, params])
 fetch the deposit id for a fiat currency associated with this account
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - an array of [deposit id structures](https://docs.ccxt.com/#/?id=deposit-id-structure)
+**Returns**: <code>object</code> - an array of [deposit id structures](https://docs.ccxt.com/?id=deposit-id-structure)
 
 **See**: https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods  
 
@@ -853,7 +854,7 @@ coinbase.fetchDepositMethodIds ([params])
 fetch the deposit id for a fiat currency associated with this account
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [deposit id structure](https://docs.ccxt.com/#/?id=deposit-id-structure)
+**Returns**: <code>object</code> - a [deposit id structure](https://docs.ccxt.com/?id=deposit-id-structure)
 
 **See**: https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod  
 
@@ -874,7 +875,7 @@ coinbase.fetchDepositMethodId (id[, params])
 fetch a quote for converting from one currency to another
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote  
 
@@ -900,7 +901,7 @@ coinbase.fetchConvertQuote (fromCode, toCode[, amount, params])
 convert from one currency to another
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade  
 
@@ -924,7 +925,7 @@ coinbase.createConvertTrade (id, fromCode, toCode[, amount, params])
 fetch the data for a conversion trade
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade  
 
@@ -947,7 +948,7 @@ coinbase.fetchConvertTrade (id, code[, params])
 *futures only* closes open positions for a market
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition  
 
@@ -971,7 +972,7 @@ coinbase.closePosition (symbol[, side, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -997,7 +998,7 @@ coinbase.fetchPositions ([symbols, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1024,7 +1025,7 @@ coinbase.fetchPosition (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/  
 
@@ -1045,7 +1046,7 @@ coinbase.fetchTradingFees ([params])
 Fetch details for a specific portfolio by UUID
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>Array&lt;any&gt;</code> - An account structure <https://docs.ccxt.com/#/?id=account-structure>
+**Returns**: <code>Array&lt;any&gt;</code> - An account structure <https://docs.ccxt.com/?id=account-structure>
 
 **See**: https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios  
 
@@ -1057,5 +1058,27 @@ Fetch details for a specific portfolio by UUID
 
 ```javascript
 coinbase.fetchPortfolioDetails (portfolioUuid[, params])
+```
+
+
+<a name="fetchDepositAddresses" id="fetchdepositaddresses"></a>
+
+### fetchDepositAddresses{docsify-ignore}
+fetch deposit addresses for multiple currencies (when available)
+
+**Kind**: instance method of [<code>coinbase</code>](#coinbase)  
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by currency code
+
+**See**: https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes, default is undefined (all currencies) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountId | <code>string</code> | No | account ID to fetch deposit addresses for |
+
+
+```javascript
+coinbase.fetchDepositAddresses ([codes, params])
 ```
 

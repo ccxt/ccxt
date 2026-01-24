@@ -18,7 +18,7 @@
         "id": "BTC",
         "numericId": null,
         "code": "BTC",
-        "precision": 8,
+        "precision": 1e-8,
         "type": "crypto",
         "name": "Bitcoin",
         "active": true,
@@ -49,7 +49,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0000032,
-                "precision": 8,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.000011,
@@ -92,7 +92,7 @@
         "id": "USDT",
         "numericId": null,
         "code": "USDT",
-        "precision": 6,
+        "precision": 0.000001,
         "type": "crypto",
         "name": "Tether",
         "active": false,
@@ -123,7 +123,7 @@
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0.96,
-                "precision": 6,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 0.96,
@@ -166,7 +166,7 @@
         "id": "EUR",
         "numericId": null,
         "code": "EUR",
-        "precision": 2,
+        "precision": 0.01,
         "type": "fiat",
         "name": "Euro",
         "active": true,
@@ -197,7 +197,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
-                "precision": 2,
+                "precision": 0.01,
                 "limits": {
                     "withdraw": {
                         "min": 0,
@@ -240,7 +240,7 @@
         "id": "LTC",
         "numericId": null,
         "code": "LTC",
-        "precision": 8,
+        "precision": 1e-8,
         "type": "crypto",
         "name": "Litecoin",
         "active": true,
@@ -271,7 +271,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.000003,
-                "precision": 8,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.012,
@@ -314,7 +314,7 @@
         "id": "ETH",
         "numericId": null,
         "code": "ETH",
-        "precision": 8,
+        "precision": 1e-8,
         "type": "crypto",
         "name": "Ethereum",
         "active": true,
@@ -345,7 +345,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.000035,
-                "precision": 8,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.00029,
@@ -388,7 +388,7 @@
         "id": "ADA",
         "numericId": null,
         "code": "ADA",
-        "precision": 6,
+        "precision": 0.000001,
         "type": "crypto",
         "name": "Cardano",
         "active": true,
@@ -419,7 +419,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.2,
-                "precision": 6,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 2,
@@ -462,7 +462,7 @@
         "id": "XRP",
         "numericId": null,
         "code": "XRP",
-        "precision": 6,
+        "precision": 0.000001,
         "type": "crypto",
         "name": "XRP",
         "active": true,
@@ -493,7 +493,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
-                "precision": 6,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -536,7 +536,7 @@
         "id": "USDC",
         "numericId": null,
         "code": "USDC",
-        "precision": 6,
+        "precision": 0.000001,
         "type": "crypto",
         "name": "USD Coin",
         "active": true,
@@ -567,7 +567,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.52,
-                "precision": 6,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 1.2,

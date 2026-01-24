@@ -761,7 +761,7 @@
                     "estimatedSettlePrice": null,
                     "timestamp": null,
                     "datetime": null,
-                    "fundingRate": 0.01,
+                    "fundingRate": 0.0001,
                     "fundingTimestamp": 1730275200000,
                     "fundingDatetime": "2024-10-30T08:00:00.000Z",
                     "nextFundingRate": null,

@@ -95,6 +95,24 @@
         ],
         "createOrder": [
             {
+                "description": "order with closeFraction shouldn't send sz",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0,
+                    null,
+                    {
+                        "takeProfitPrice": 120,
+                        "closeFraction": "1",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"120\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"6b9ad766b55dBCDEef9e317e9453a3db\",\"tag\":\"6b9ad766b55dBCDE\",\"closeFraction\":\"1\",\"reduceOnly\":true}"
+            },
+            {
                 "description": "type2 & type3 together",
                 "method": "createOrder",
                 "url": "https://www.okx.com/api/v5/trade/batch-orders",
@@ -1045,7 +1063,7 @@
                 "method": "cancelOrders",
                 "url": "https://www.okx.com/api/v5/trade/cancel-algos",
                 "input": [
-                    null,
+                    [],
                     "BTC/USDT:USDT",
                     {
                         "trigger": true,
@@ -1159,6 +1177,14 @@
                 "url": "https://www.okx.com/api/v5/account/positions?instId=LTC-USDT-SWAP&instType=SWAP",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://www.okx.com/api/v5/account/positions?instId=BTC-USD-SWAP&instType=SWAP",
+                "input": [
+                    "BTC/USD:BTC"
                 ]
             }
         ],

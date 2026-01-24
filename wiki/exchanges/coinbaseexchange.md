@@ -87,7 +87,7 @@ coinbaseexchange.fetchMarkets ([params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts  
 
@@ -107,7 +107,7 @@ coinbaseexchange.fetchAccounts ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts  
 
@@ -127,7 +127,7 @@ coinbaseexchange.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook  
 
@@ -149,7 +149,7 @@ coinbaseexchange.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct  
 
@@ -170,7 +170,7 @@ coinbaseexchange.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker  
 
@@ -191,7 +191,7 @@ coinbaseexchange.fetchTicker (symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills  
 
@@ -216,7 +216,7 @@ coinbaseexchange.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades  
 
@@ -239,7 +239,7 @@ coinbaseexchange.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees  
 
@@ -304,7 +304,7 @@ coinbaseexchange.fetchTime ([params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder  
 
@@ -326,7 +326,7 @@ coinbaseexchange.fetchOrder (id, symbol[, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -349,7 +349,7 @@ coinbaseexchange.fetchOrderTrades (id, symbol[, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders  
 
@@ -373,7 +373,7 @@ coinbaseexchange.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders  
 
@@ -398,7 +398,7 @@ coinbaseexchange.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders  
 
@@ -422,7 +422,7 @@ coinbaseexchange.fetchClosedOrders (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders  
 
@@ -447,7 +447,7 @@ coinbaseexchange.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder  
 
@@ -469,7 +469,7 @@ coinbaseexchange.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders  
 
@@ -490,7 +490,7 @@ coinbaseexchange.cancelAllOrders (symbol[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -518,7 +518,7 @@ coinbaseexchange.withdraw (code, amount, address, tag[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger  
 
@@ -542,7 +542,7 @@ coinbaseexchange.fetchLedger (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -570,7 +570,7 @@ coinbaseexchange.fetchDepositsWithdrawals ([code, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -597,7 +597,7 @@ coinbaseexchange.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -624,7 +624,7 @@ coinbaseexchange.fetchWithdrawals (code[, since, limit, params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses  
 
@@ -645,7 +645,7 @@ coinbaseexchange.createDepositAddress (code[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -665,7 +665,7 @@ coinbaseexchange.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -686,7 +686,7 @@ coinbaseexchange.watchTickers ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -708,7 +708,7 @@ coinbaseexchange.watchTrades (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -730,7 +730,7 @@ coinbaseexchange.watchMyTrades (symbol[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -752,7 +752,7 @@ coinbaseexchange.watchMyTradesForSymbols (symbols[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -774,7 +774,7 @@ coinbaseexchange.watchOrdersForSymbols (symbols[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -796,7 +796,7 @@ coinbaseexchange.watchOrders (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -817,7 +817,7 @@ coinbaseexchange.watchOrderBookForSymbols (symbols[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |

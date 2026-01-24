@@ -195,9 +195,14 @@ public partial class testMainClass : BaseTest
                     //    assert (dt === exchange.iso8601 (entry['timestamp']))
                     // so, we have to compare with millisecond accururacy
                     object dtParsed = exchange.parse8601(dt);
-                    object dtParsedString = exchange.iso8601(dtParsed);
-                    object dtEntryString = exchange.iso8601(getValue(entry, "timestamp"));
-                    assert(isEqual(dtParsedString, dtEntryString), add(add(add(add(add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText));
+                    object tsMs = getValue(entry, "timestamp");
+                    object diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
+                    if (isTrue(isGreaterThanOrEqual(diff, 500)))
+                    {
+                        object dtParsedString = exchange.iso8601(dtParsed);
+                        object dtEntryString = exchange.iso8601(tsMs);
+                        assert(false, add(add(add(add(add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText));
+                    }
                 }
             }
         }

@@ -222,6 +222,22 @@
                     0.001
                 ],
                 "output": "{\"orderType\":\"Market\",\"quantity\":\"0.001\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC\"}"
+            },
+            {
+                "description": "spot createOrder with a selfTradePrevention param",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ETH/USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    3500,
+                    {
+                        "selfTradePrevention": "EXPIRE_BOTH"
+                    }
+                ],
+                "output": "{\"orderType\":\"Limit\",\"price\":\"3500\",\"quantity\":\"0.001\",\"selfTradePrevention\":\"RejectBoth\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC\"}"
             }
         ],
         "fetchDepositAddress": [

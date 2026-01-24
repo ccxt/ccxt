@@ -2,7 +2,7 @@ package ccxt
 
 import "sync"
 
-func (this *Exchange) SetRateLimit(rateLimit bool) {
+func (this *Exchange) SetEnableRateLimit(rateLimit bool) {
 	this.EnableRateLimit = rateLimit
 }
 

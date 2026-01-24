@@ -7,614 +7,614 @@
 
 package ccxt
 
-func (this *xt) PublicSpotGetCurrencies(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetCurrencies(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetCurrencies", args...)
 }
 
-func (this *xt) PublicSpotGetDepth(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetDepth(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetDepth", args...)
 }
 
-func (this *xt) PublicSpotGetKline(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetKline(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetKline", args...)
 }
 
-func (this *xt) PublicSpotGetSymbol(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetSymbol", args...)
 }
 
-func (this *xt) PublicSpotGetTicker(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetTicker", args...)
 }
 
-func (this *xt) PublicSpotGetTickerBook(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetTickerBook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetTickerBook", args...)
 }
 
-func (this *xt) PublicSpotGetTickerPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetTickerPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetTickerPrice", args...)
 }
 
-func (this *xt) PublicSpotGetTicker24h(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetTicker24h(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetTicker24h", args...)
 }
 
-func (this *xt) PublicSpotGetTime(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetTime(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetTime", args...)
 }
 
-func (this *xt) PublicSpotGetTradeHistory(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetTradeHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetTradeHistory", args...)
 }
 
-func (this *xt) PublicSpotGetTradeRecent(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetTradeRecent(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetTradeRecent", args...)
 }
 
-func (this *xt) PublicSpotGetWalletSupportCurrency(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicSpotGetWalletSupportCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetWalletSupportCurrency", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicContractRiskBalance(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicContractRiskBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicContractRiskBalance", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicContractOpenInterest(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicContractOpenInterest(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicContractOpenInterest", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicLeverageBracketDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicLeverageBracketDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicLeverageBracketDetail", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicLeverageBracketList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicLeverageBracketList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicLeverageBracketList", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQAggTicker(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQAggTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQAggTicker", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQAggTickers(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQAggTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQAggTickers", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQDeal(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQDeal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQDeal", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQDepth(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQDepth(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQDepth", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQFundingRate(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQFundingRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQFundingRate", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQFundingRateRecord(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQFundingRateRecord(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQFundingRateRecord", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQIndexPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQIndexPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQIndexPrice", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQKline(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQKline(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQKline", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQMarkPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQMarkPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQMarkPrice", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQSymbolIndexPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQSymbolIndexPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQSymbolIndexPrice", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQSymbolMarkPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQSymbolMarkPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQSymbolMarkPrice", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQTicker(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQTicker", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicQTickers(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicQTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicQTickers", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicSymbolCoins(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicSymbolCoins(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolCoins", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicSymbolDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicSymbolDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolDetail", args...)
 }
 
-func (this *xt) PublicLinearGetFutureMarketV1PublicSymbolList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicLinearGetFutureMarketV1PublicSymbolList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicLinearGetFutureMarketV1PublicSymbolList", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicContractRiskBalance(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicContractRiskBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicContractRiskBalance", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicContractOpenInterest(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicContractOpenInterest(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicContractOpenInterest", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicLeverageBracketDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicLeverageBracketDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicLeverageBracketDetail", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicLeverageBracketList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicLeverageBracketList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicLeverageBracketList", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQAggTicker(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQAggTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQAggTicker", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQAggTickers(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQAggTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQAggTickers", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQDeal(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQDeal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQDeal", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQDepth(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQDepth(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQDepth", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQFundingRate(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQFundingRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQFundingRate", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQFundingRateRecord(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQFundingRateRecord(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQFundingRateRecord", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQIndexPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQIndexPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQIndexPrice", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQKline(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQKline(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQKline", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQMarkPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQMarkPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQMarkPrice", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQSymbolIndexPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQSymbolIndexPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQSymbolIndexPrice", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQSymbolMarkPrice(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQSymbolMarkPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQSymbolMarkPrice", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQTicker(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQTicker", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicQTickers(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicQTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicQTickers", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicSymbolCoins(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicSymbolCoins(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolCoins", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicSymbolDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicSymbolDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolDetail", args...)
 }
 
-func (this *xt) PublicInverseGetFutureMarketV1PublicSymbolList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PublicInverseGetFutureMarketV1PublicSymbolList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicInverseGetFutureMarketV1PublicSymbolList", args...)
 }
 
-func (this *xt) PrivateSpotGetBalance(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetBalance", args...)
 }
 
-func (this *xt) PrivateSpotGetBalances(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetBalances", args...)
 }
 
-func (this *xt) PrivateSpotGetBatchOrder(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetBatchOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetBatchOrder", args...)
 }
 
-func (this *xt) PrivateSpotGetDepositAddress(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetDepositAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetDepositAddress", args...)
 }
 
-func (this *xt) PrivateSpotGetDepositHistory(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetDepositHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetDepositHistory", args...)
 }
 
-func (this *xt) PrivateSpotGetHistoryOrder(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetHistoryOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetHistoryOrder", args...)
 }
 
-func (this *xt) PrivateSpotGetOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetOpenOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetOpenOrder", args...)
 }
 
-func (this *xt) PrivateSpotGetOrder(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetOrder", args...)
 }
 
-func (this *xt) PrivateSpotGetOrderOrderId(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetOrderOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetOrderOrderId", args...)
 }
 
-func (this *xt) PrivateSpotGetTrade(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetTrade(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetTrade", args...)
 }
 
-func (this *xt) PrivateSpotGetWithdrawHistory(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotGetWithdrawHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetWithdrawHistory", args...)
 }
 
-func (this *xt) PrivateSpotPostOrder(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotPostOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPostOrder", args...)
 }
 
-func (this *xt) PrivateSpotPostWithdraw(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotPostWithdraw(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPostWithdraw", args...)
 }
 
-func (this *xt) PrivateSpotPostBalanceTransfer(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotPostBalanceTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPostBalanceTransfer", args...)
 }
 
-func (this *xt) PrivateSpotPostBalanceAccountTransfer(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotPostBalanceAccountTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPostBalanceAccountTransfer", args...)
 }
 
-func (this *xt) PrivateSpotPostWsToken(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotPostWsToken(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPostWsToken", args...)
 }
 
-func (this *xt) PrivateSpotDeleteBatchOrder(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotDeleteBatchOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotDeleteBatchOrder", args...)
 }
 
-func (this *xt) PrivateSpotDeleteOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotDeleteOpenOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotDeleteOpenOrder", args...)
 }
 
-func (this *xt) PrivateSpotDeleteOrderOrderId(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotDeleteOrderOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotDeleteOrderOrderId", args...)
 }
 
-func (this *xt) PrivateSpotPutOrderOrderId(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateSpotPutOrderOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPutOrderOrderId", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1EntrustPlanDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustPlanDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustPlanDetail", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1EntrustPlanList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustPlanList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustPlanList", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1EntrustPlanListHistory(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustPlanListHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustPlanListHistory", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1EntrustProfitDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustProfitDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustProfitDetail", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1EntrustProfitList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustProfitList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustProfitList", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1OrderDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1OrderDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderDetail", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1OrderList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1OrderList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderList", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1OrderListHistory(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1OrderListHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderListHistory", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureTradeV1OrderTradeList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureTradeV1OrderTradeList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderTradeList", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1AccountInfo(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1AccountInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1AccountInfo", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1BalanceBills(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1BalanceBills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1BalanceBills", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1BalanceDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1BalanceDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1BalanceDetail", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1BalanceFundingRateList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1BalanceFundingRateList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1BalanceFundingRateList", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1BalanceList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1BalanceList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1BalanceList", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1PositionAdl(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1PositionAdl(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionAdl", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1PositionList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1PositionList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionList", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1UserCollectionList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1UserCollectionList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1UserCollectionList", args...)
 }
 
-func (this *xt) PrivateLinearGetFutureUserV1UserListenKey(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearGetFutureUserV1UserListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1UserListenKey", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1EntrustCancelAllPlan(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelAllPlan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelAllPlan", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelAllProfitStop", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1EntrustCancelPlan(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelPlan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelPlan", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1EntrustCancelProfitStop(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelProfitStop(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelProfitStop", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1EntrustCreatePlan(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCreatePlan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCreatePlan", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1EntrustCreateProfit(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCreateProfit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCreateProfit", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1EntrustUpdateProfitStop(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustUpdateProfitStop(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustUpdateProfitStop", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1OrderCancel(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1OrderCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderCancel", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1OrderCancelAll(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1OrderCancelAll(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderCancelAll", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1OrderCreate(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1OrderCreate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderCreate", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1OrderCreateBatch(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1OrderCreateBatch(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderCreateBatch", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureTradeV1OrderUpdate(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureTradeV1OrderUpdate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1OrderUpdate", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureUserV1AccountOpen(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureUserV1AccountOpen(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureUserV1AccountOpen", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureUserV1PositionAdjustLeverage(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureUserV1PositionAdjustLeverage(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionAdjustLeverage", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureUserV1PositionAutoMargin(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureUserV1PositionAutoMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionAutoMargin", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureUserV1PositionCloseAll(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureUserV1PositionCloseAll(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionCloseAll", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureUserV1PositionMargin(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureUserV1PositionMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionMargin", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureUserV1UserCollectionAdd(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureUserV1UserCollectionAdd(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureUserV1UserCollectionAdd", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureUserV1UserCollectionCancel(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureUserV1UserCollectionCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureUserV1UserCollectionCancel", args...)
 }
 
-func (this *xt) PrivateLinearPostFutureUserV1PositionChangeType(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateLinearPostFutureUserV1PositionChangeType(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLinearPostFutureUserV1PositionChangeType", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1EntrustPlanDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustPlanDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustPlanDetail", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1EntrustPlanList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustPlanList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustPlanList", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1EntrustPlanListHistory(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustPlanListHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustPlanListHistory", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1EntrustProfitDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustProfitDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustProfitDetail", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1EntrustProfitList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustProfitList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustProfitList", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1OrderDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1OrderDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderDetail", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1OrderList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1OrderList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderList", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1OrderListHistory(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1OrderListHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderListHistory", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureTradeV1OrderTradeList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureTradeV1OrderTradeList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderTradeList", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1AccountInfo(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1AccountInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1AccountInfo", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1BalanceBills(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1BalanceBills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1BalanceBills", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1BalanceDetail(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1BalanceDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1BalanceDetail", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1BalanceFundingRateList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1BalanceFundingRateList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1BalanceFundingRateList", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1BalanceList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1BalanceList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1BalanceList", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1PositionAdl(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1PositionAdl(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionAdl", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1PositionList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1PositionList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionList", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1UserCollectionList(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1UserCollectionList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1UserCollectionList", args...)
 }
 
-func (this *xt) PrivateInverseGetFutureUserV1UserListenKey(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInverseGetFutureUserV1UserListenKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1UserListenKey", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1EntrustCancelAllPlan(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelAllPlan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelAllPlan", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelAllProfitStop", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1EntrustCancelPlan(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelPlan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelPlan", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1EntrustCancelProfitStop(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelProfitStop(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelProfitStop", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1EntrustCreatePlan(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCreatePlan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCreatePlan", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1EntrustCreateProfit(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCreateProfit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCreateProfit", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1EntrustUpdateProfitStop(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustUpdateProfitStop(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustUpdateProfitStop", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1OrderCancel(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1OrderCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderCancel", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1OrderCancelAll(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1OrderCancelAll(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderCancelAll", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1OrderCreate(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1OrderCreate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderCreate", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1OrderCreateBatch(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1OrderCreateBatch(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderCreateBatch", args...)
 }
 
-func (this *xt) PrivateInversePostFutureTradeV1OrderUpdate(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureTradeV1OrderUpdate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1OrderUpdate", args...)
 }
 
-func (this *xt) PrivateInversePostFutureUserV1AccountOpen(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureUserV1AccountOpen(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureUserV1AccountOpen", args...)
 }
 
-func (this *xt) PrivateInversePostFutureUserV1PositionAdjustLeverage(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureUserV1PositionAdjustLeverage(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureUserV1PositionAdjustLeverage", args...)
 }
 
-func (this *xt) PrivateInversePostFutureUserV1PositionAutoMargin(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureUserV1PositionAutoMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureUserV1PositionAutoMargin", args...)
 }
 
-func (this *xt) PrivateInversePostFutureUserV1PositionCloseAll(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureUserV1PositionCloseAll(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureUserV1PositionCloseAll", args...)
 }
 
-func (this *xt) PrivateInversePostFutureUserV1PositionMargin(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureUserV1PositionMargin(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureUserV1PositionMargin", args...)
 }
 
-func (this *xt) PrivateInversePostFutureUserV1UserCollectionAdd(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureUserV1UserCollectionAdd(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureUserV1UserCollectionAdd", args...)
 }
 
-func (this *xt) PrivateInversePostFutureUserV1UserCollectionCancel(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateInversePostFutureUserV1UserCollectionCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateInversePostFutureUserV1UserCollectionCancel", args...)
 }
 
-func (this *xt) PrivateUserGetUserAccount(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateUserGetUserAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUserGetUserAccount", args...)
 }
 
-func (this *xt) PrivateUserGetUserAccountApiKey(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateUserGetUserAccountApiKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUserGetUserAccountApiKey", args...)
 }
 
-func (this *xt) PrivateUserPostUserAccount(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateUserPostUserAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUserPostUserAccount", args...)
 }
 
-func (this *xt) PrivateUserPostUserAccountApiKey(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateUserPostUserAccountApiKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUserPostUserAccountApiKey", args...)
 }
 
-func (this *xt) PrivateUserPutUserAccountApiKey(args ...interface{}) <-chan interface{} {
+func (this *XtCore) PrivateUserPutUserAccountApiKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUserPutUserAccountApiKey", args...)
 }
 
-func (this *xt) PrivateUserDeleteUserAccountApikeyId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUserDeleteUserAccountApikeyId", args...)
+func (this *XtCore) PrivateUserDeleteUserAccountApiKeyId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUserDeleteUserAccountApiKeyId", args...)
 }

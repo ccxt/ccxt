@@ -5,6 +5,8 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [setSandboxMode](#setsandboxmode)
+* [enableDemoTrading](#enabledemotrading)
 * [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
@@ -41,6 +43,7 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingIntervals](#fetchfundingintervals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reduceMargin](#reducemargin)
 * [addMargin](#addmargin)
@@ -86,6 +89,42 @@
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
+
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+### setSandboxMode{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.setSandboxMode (enabled, [undefined])
+```
+
+
+<a name="enableDemoTrading" id="enabledemotrading"></a>
+
+### enableDemoTrading{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.enableDemoTrading (enabled, [undefined])
+```
+
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -160,7 +199,7 @@ bitget.fetchCurrencies ([params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**
 
@@ -191,7 +230,7 @@ bitget.fetchMarketLeverageTiers (symbol[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record  
 
@@ -217,7 +256,7 @@ bitget.fetchDeposits (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal  
 
@@ -242,7 +281,7 @@ bitget.withdraw (code, amount, address, tag[, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record  
 
@@ -268,7 +307,7 @@ bitget.fetchWithdrawals (code[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address  
 
@@ -289,7 +328,7 @@ bitget.fetchDepositAddress (code[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -317,7 +356,7 @@ bitget.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -344,7 +383,7 @@ bitget.fetchTicker (symbol[, params])
 fetches the mark price for a specific market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price  
 
@@ -365,7 +404,7 @@ bitget.fetchMarkPrice (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -394,7 +433,7 @@ bitget.fetchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -427,7 +466,7 @@ bitget.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.bitget.com/api-doc/common/public/Get-Trade-Rate  
 
@@ -449,7 +488,7 @@ bitget.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**
 
@@ -515,7 +554,7 @@ bitget.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -546,7 +585,7 @@ bitget.fetchBalance ([params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -573,7 +612,7 @@ bitget.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -633,7 +672,7 @@ bitget.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders (all orders should be of the same symbol)
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -662,11 +701,12 @@ bitget.createOrders (orders[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+- https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
 - https://www.bitget.com/api-doc/contract/trade/Modify-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -711,7 +751,7 @@ bitget.editOrder (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -749,7 +789,7 @@ bitget.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an array of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -782,16 +822,15 @@ bitget.cancelOrders (ids, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
 - https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
 - https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-- https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+- https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+- https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
 
 | Param | Type | Required | Description |
@@ -814,7 +853,7 @@ bitget.cancelAllOrders (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -843,7 +882,7 @@ bitget.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -882,7 +921,7 @@ bitget.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -920,7 +959,7 @@ bitget.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -958,7 +997,7 @@ bitget.fetchCanceledOrders (symbol[, since, limit, params])
 fetches information on multiple canceled and closed orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -998,7 +1037,7 @@ bitget.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -1029,7 +1068,7 @@ bitget.fetchLedger ([code, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -1062,7 +1101,7 @@ bitget.fetchMyTrades (symbol[, since, limit, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1088,7 +1127,7 @@ bitget.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1120,7 +1159,7 @@ bitget.fetchPositions ([symbols, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**
 
@@ -1149,7 +1188,7 @@ bitget.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**
 
@@ -1177,7 +1216,7 @@ bitget.fetchFundingRate (symbol[, params])
 fetch the current funding rates for all markets
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
 
@@ -1187,10 +1226,33 @@ fetch the current funding rates for all markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+| params.method | <code>string</code> | No | either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate' |
 
 
 ```javascript
 bitget.fetchFundingRates ([symbols, params])
+```
+
+
+<a name="fetchFundingIntervals" id="fetchfundingintervals"></a>
+
+### fetchFundingIntervals{docsify-ignore}
+fetch the funding rate interval for multiple markets
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.productType | <code>string</code> | No | 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+
+
+```javascript
+bitget.fetchFundingIntervals ([symbols, params])
 ```
 
 
@@ -1200,7 +1262,7 @@ bitget.fetchFundingRates ([symbols, params])
 fetch the funding history
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Get-Account-Bill  
 
@@ -1225,7 +1287,7 @@ bitget.fetchFundingHistory (symbol[, since, limit, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Change-Margin  
 
@@ -1247,7 +1309,7 @@ bitget.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Change-Margin  
 
@@ -1269,7 +1331,7 @@ bitget.addMargin (symbol, amount[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Get-Single-Account  
 
@@ -1369,7 +1431,7 @@ bitget.setPositionMode (hedged, symbol[, params])
 retrieves the open interest of a contract trading pair
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
@@ -1395,7 +1457,7 @@ bitget.fetchOpenInterest (symbol[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords  
 
@@ -1419,7 +1481,7 @@ bitget.fetchTransfers (code[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer  
 
@@ -1445,7 +1507,7 @@ bitget.transfer (code, amount, fromAccount, toAccount[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/market/Get-Coin-List  
 
@@ -1466,7 +1528,7 @@ bitget.fetchDepositWithdrawFees (codes[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow  
 
@@ -1488,7 +1550,7 @@ bitget.borrowCrossMargin (code, amount[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow  
 
@@ -1511,7 +1573,7 @@ bitget.borrowIsolatedMargin (symbol, code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Repay  
 
@@ -1534,7 +1596,7 @@ bitget.repayIsolatedMargin (symbol, code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/cross/account/Cross-Repay  
 
@@ -1556,7 +1618,7 @@ bitget.repayCrossMargin (code, amount[, params])
 retrieves the users liquidated positions
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**
 
@@ -1586,7 +1648,7 @@ bitget.fetchMyLiquidations ([symbol, since, limit, params])
 fetch the rate of interest to borrow a currency for margin trading
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [isolated borrow rate structure](https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure)
+**Returns**: <code>object</code> - an [isolated borrow rate structure](https://docs.ccxt.com/?id=isolated-borrow-rate-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount  
 
@@ -1633,7 +1695,7 @@ bitget.fetchCrossBorrowRate (code[, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**
 
@@ -1662,7 +1724,7 @@ bitget.fetchBorrowInterest ([code, symbol, since, limit, params])
 closes an open position for a market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1689,7 +1751,7 @@ bitget.closePosition (symbol[, side, params])
 closes all open positions for a market type
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1715,7 +1777,7 @@ bitget.closeAllPositions ([params])
 fetches the margin mode of a trading pair
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Get-Single-Account  
 
@@ -1736,7 +1798,7 @@ bitget.fetchMarginMode (symbol[, params])
 fetches historical positions
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1766,7 +1828,7 @@ bitget.fetchPositionsHistory ([symbols, since, limit, params])
 fetch a quote for converting from one currency to another
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price  
 
@@ -1789,7 +1851,7 @@ bitget.fetchConvertQuote (fromCode, toCode[, amount, params])
 convert from one currency to another
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.bitget.com/api-doc/common/convert/Trade  
 
@@ -1815,7 +1877,7 @@ bitget.createConvertTrade (id, fromCode, toCode, amount[, params])
 fetch the users history of conversion trades
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.bitget.com/api-doc/common/convert/Get-Convert-Record  
 
@@ -1858,7 +1920,7 @@ bitget.fetchConvertCurrencies ([params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**
 
@@ -1884,7 +1946,7 @@ bitget.fetchFundingInterval (symbol[, params])
 fetches the long short ratio history for a unified market symbol
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/?id=long-short-ratio-structure)
 
 **See**
 
@@ -1924,7 +1986,7 @@ bitget.bitget ()
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1976,7 +2038,7 @@ bitget.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2003,7 +2065,7 @@ bitget.watchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2060,7 +2122,7 @@ bitget.watchOHLCV (symbol, timeframe[, since, limit, params])
 unsubscribe from the ohlcv channel
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -2088,7 +2150,7 @@ bitget.unWatchOHLCV (symbol[, timeframe, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -2116,7 +2178,7 @@ bitget.watchOrderBook (symbol[, limit, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -2144,7 +2206,7 @@ bitget.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -2172,7 +2234,7 @@ bitget.watchOrderBookForSymbols (symbols[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -2201,7 +2263,7 @@ bitget.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -2286,11 +2348,12 @@ bitget.watchPositions (symbols[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+- https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
 - https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
 - https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
 - https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -2322,7 +2385,7 @@ bitget.watchOrders (symbol[, since, limit, params])
 watches trades made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -2350,7 +2413,7 @@ bitget.watchMyTrades (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -2381,6 +2444,8 @@ bitget.watchBalance ([params])
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [setSandboxMode](#setsandboxmode)
+* [enableDemoTrading](#enabledemotrading)
 * [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
@@ -2417,6 +2482,7 @@ bitget.watchBalance ([params])
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingIntervals](#fetchfundingintervals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reduceMargin](#reducemargin)
 * [addMargin](#addmargin)
@@ -2462,6 +2528,42 @@ bitget.watchBalance ([params])
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
+
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+### setSandboxMode{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.setSandboxMode (enabled, [undefined])
+```
+
+
+<a name="enableDemoTrading" id="enabledemotrading"></a>
+
+### enableDemoTrading{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.enableDemoTrading (enabled, [undefined])
+```
+
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -2536,7 +2638,7 @@ bitget.fetchCurrencies ([params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**
 
@@ -2567,7 +2669,7 @@ bitget.fetchMarketLeverageTiers (symbol[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record  
 
@@ -2593,7 +2695,7 @@ bitget.fetchDeposits (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal  
 
@@ -2618,7 +2720,7 @@ bitget.withdraw (code, amount, address, tag[, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record  
 
@@ -2644,7 +2746,7 @@ bitget.fetchWithdrawals (code[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address  
 
@@ -2665,7 +2767,7 @@ bitget.fetchDepositAddress (code[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -2693,7 +2795,7 @@ bitget.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2720,7 +2822,7 @@ bitget.fetchTicker (symbol[, params])
 fetches the mark price for a specific market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price  
 
@@ -2741,7 +2843,7 @@ bitget.fetchMarkPrice (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2770,7 +2872,7 @@ bitget.fetchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -2803,7 +2905,7 @@ bitget.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.bitget.com/api-doc/common/public/Get-Trade-Rate  
 
@@ -2825,7 +2927,7 @@ bitget.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**
 
@@ -2891,7 +2993,7 @@ bitget.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -2922,7 +3024,7 @@ bitget.fetchBalance ([params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -2949,7 +3051,7 @@ bitget.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3009,7 +3111,7 @@ bitget.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders (all orders should be of the same symbol)
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3038,11 +3140,12 @@ bitget.createOrders (orders[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+- https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
 - https://www.bitget.com/api-doc/contract/trade/Modify-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
 - https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
@@ -3087,7 +3190,7 @@ bitget.editOrder (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3125,7 +3228,7 @@ bitget.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an array of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3158,16 +3261,15 @@ bitget.cancelOrders (ids, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
 - https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
 - https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-- https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
-- https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
+- https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+- https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
 
 
 | Param | Type | Required | Description |
@@ -3190,7 +3292,7 @@ bitget.cancelAllOrders (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3219,7 +3321,7 @@ bitget.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3258,7 +3360,7 @@ bitget.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3296,7 +3398,7 @@ bitget.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3334,7 +3436,7 @@ bitget.fetchCanceledOrders (symbol[, since, limit, params])
 fetches information on multiple canceled and closed orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -3374,7 +3476,7 @@ bitget.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -3405,7 +3507,7 @@ bitget.fetchLedger ([code, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -3438,7 +3540,7 @@ bitget.fetchMyTrades (symbol[, since, limit, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -3464,7 +3566,7 @@ bitget.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -3496,7 +3598,7 @@ bitget.fetchPositions ([symbols, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**
 
@@ -3525,7 +3627,7 @@ bitget.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**
 
@@ -3553,7 +3655,7 @@ bitget.fetchFundingRate (symbol[, params])
 fetch the current funding rates for all markets
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
 
@@ -3563,10 +3665,33 @@ fetch the current funding rates for all markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+| params.method | <code>string</code> | No | either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate' |
 
 
 ```javascript
 bitget.fetchFundingRates ([symbols, params])
+```
+
+
+<a name="fetchFundingIntervals" id="fetchfundingintervals"></a>
+
+### fetchFundingIntervals{docsify-ignore}
+fetch the funding rate interval for multiple markets
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.productType | <code>string</code> | No | 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+
+
+```javascript
+bitget.fetchFundingIntervals ([symbols, params])
 ```
 
 
@@ -3576,7 +3701,7 @@ bitget.fetchFundingRates ([symbols, params])
 fetch the funding history
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Get-Account-Bill  
 
@@ -3601,7 +3726,7 @@ bitget.fetchFundingHistory (symbol[, since, limit, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Change-Margin  
 
@@ -3623,7 +3748,7 @@ bitget.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Change-Margin  
 
@@ -3645,7 +3770,7 @@ bitget.addMargin (symbol, amount[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Get-Single-Account  
 
@@ -3745,7 +3870,7 @@ bitget.setPositionMode (hedged, symbol[, params])
 retrieves the open interest of a contract trading pair
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
@@ -3771,7 +3896,7 @@ bitget.fetchOpenInterest (symbol[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords  
 
@@ -3795,7 +3920,7 @@ bitget.fetchTransfers (code[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer  
 
@@ -3821,7 +3946,7 @@ bitget.transfer (code, amount, fromAccount, toAccount[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.bitget.com/api-doc/spot/market/Get-Coin-List  
 
@@ -3842,7 +3967,7 @@ bitget.fetchDepositWithdrawFees (codes[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow  
 
@@ -3864,7 +3989,7 @@ bitget.borrowCrossMargin (code, amount[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow  
 
@@ -3887,7 +4012,7 @@ bitget.borrowIsolatedMargin (symbol, code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Repay  
 
@@ -3910,7 +4035,7 @@ bitget.repayIsolatedMargin (symbol, code, amount[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/cross/account/Cross-Repay  
 
@@ -3932,7 +4057,7 @@ bitget.repayCrossMargin (code, amount[, params])
 retrieves the users liquidated positions
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**
 
@@ -3962,7 +4087,7 @@ bitget.fetchMyLiquidations ([symbol, since, limit, params])
 fetch the rate of interest to borrow a currency for margin trading
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - an [isolated borrow rate structure](https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure)
+**Returns**: <code>object</code> - an [isolated borrow rate structure](https://docs.ccxt.com/?id=isolated-borrow-rate-structure)
 
 **See**: https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount  
 
@@ -4009,7 +4134,7 @@ bitget.fetchCrossBorrowRate (code[, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**
 
@@ -4038,7 +4163,7 @@ bitget.fetchBorrowInterest ([code, symbol, since, limit, params])
 closes an open position for a market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -4065,7 +4190,7 @@ bitget.closePosition (symbol[, side, params])
 closes all open positions for a market type
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -4091,7 +4216,7 @@ bitget.closeAllPositions ([params])
 fetches the margin mode of a trading pair
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
 **See**: https://www.bitget.com/api-doc/contract/account/Get-Single-Account  
 
@@ -4112,7 +4237,7 @@ bitget.fetchMarginMode (symbol[, params])
 fetches historical positions
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -4142,7 +4267,7 @@ bitget.fetchPositionsHistory ([symbols, since, limit, params])
 fetch a quote for converting from one currency to another
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price  
 
@@ -4165,7 +4290,7 @@ bitget.fetchConvertQuote (fromCode, toCode[, amount, params])
 convert from one currency to another
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.bitget.com/api-doc/common/convert/Trade  
 
@@ -4191,7 +4316,7 @@ bitget.createConvertTrade (id, fromCode, toCode, amount[, params])
 fetch the users history of conversion trades
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://www.bitget.com/api-doc/common/convert/Get-Convert-Record  
 
@@ -4234,7 +4359,7 @@ bitget.fetchConvertCurrencies ([params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**
 
@@ -4260,7 +4385,7 @@ bitget.fetchFundingInterval (symbol[, params])
 fetches the long short ratio history for a unified market symbol
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/#/?id=long-short-ratio-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [long short ratio structures](https://docs.ccxt.com/?id=long-short-ratio-structure)
 
 **See**
 
@@ -4300,7 +4425,7 @@ bitget.bitget ()
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -4352,7 +4477,7 @@ bitget.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -4379,7 +4504,7 @@ bitget.watchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -4436,7 +4561,7 @@ bitget.watchOHLCV (symbol, timeframe[, since, limit, params])
 unsubscribe from the ohlcv channel
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -4464,7 +4589,7 @@ bitget.unWatchOHLCV (symbol[, timeframe, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -4492,7 +4617,7 @@ bitget.watchOrderBook (symbol[, limit, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -4520,7 +4645,7 @@ bitget.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -4548,7 +4673,7 @@ bitget.watchOrderBookForSymbols (symbols[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -4577,7 +4702,7 @@ bitget.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -4662,11 +4787,12 @@ bitget.watchPositions (symbols[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
 - https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+- https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
 - https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
 - https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
 - https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -4698,7 +4824,7 @@ bitget.watchOrders (symbol[, since, limit, params])
 watches trades made by the user
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -4726,7 +4852,7 @@ bitget.watchMyTrades (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 

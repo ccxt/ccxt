@@ -36,8 +36,10 @@ public partial class Exchange
                 { "cancelAllOrders", null },
                 { "cancelAllOrdersWs", null },
                 { "cancelOrder", true },
+                { "cancelOrderWithClientOrderId", null },
                 { "cancelOrderWs", null },
                 { "cancelOrders", null },
+                { "cancelOrdersWithClientOrderId", null },
                 { "cancelOrdersWs", null },
                 { "closeAllPositions", null },
                 { "closePosition", null },
@@ -87,6 +89,7 @@ public partial class Exchange
                 { "createTriggerOrderWs", null },
                 { "deposit", null },
                 { "editOrder", "emulated" },
+                { "editOrderWithClientOrderId", null },
                 { "editOrders", null },
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
@@ -165,6 +168,7 @@ public partial class Exchange
                 { "fetchOption", null },
                 { "fetchOptionChain", null },
                 { "fetchOrder", null },
+                { "fetchOrderWithClientOrderId", null },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", null },
                 { "fetchOrderBookWs", null },
@@ -348,6 +352,7 @@ public partial class Exchange
                     { "max", null },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         };
     }
 
@@ -386,7 +391,12 @@ public partial class Exchange
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, new List<object>() {key}, defaultValue);
+        object value = this.safeValue(dictionary, key, defaultValue);
+        if (isTrue((value is bool)))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public virtual object safeDictN(object dictionaryOrList, object keys, object defaultValue = null)
@@ -402,12 +412,9 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue(((value is IDictionary<string, object>))))
+        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
-            if (!isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-            {
-                return value;
-            }
+            return value;
         }
         return defaultValue;
     }
@@ -420,7 +427,16 @@ public partial class Exchange
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, new List<object>() {key}, defaultValue);
+        object value = this.safeValue(dictionary, key, defaultValue);
+        if (isTrue(isEqual(value, null)))
+        {
+            return defaultValue;
+        }
+        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public virtual object safeDict2(object dictionary, object key1, object key2, object defaultValue = null)
@@ -473,7 +489,16 @@ public partial class Exchange
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, new List<object>() {key}, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key, defaultValue);
+        if (isTrue(isEqual(value, null)))
+        {
+            return defaultValue;
+        }
+        if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public virtual void handleDeltas(object orderbook, object deltas)
@@ -503,7 +528,7 @@ public partial class Exchange
 
     public virtual object getCacheIndex(object orderbook, object deltas)
     {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
 
@@ -1044,6 +1069,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " unWatchTicker() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchMarkPrice() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchMarkPrices() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1499,12 +1536,16 @@ public partial class Exchange
         {
             refillRate = divide(1, this.rateLimit);
         }
+        object useLeaky = isTrue((isEqual(this.rollingWindowSize, 0))) || isTrue((isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
+        object algorithm = ((bool) isTrue(useLeaky)) ? "leakyBucket" : "rollingWindow";
         object defaultBucket = new Dictionary<string, object>() {
             { "delay", 0.001 },
             { "capacity", 1 },
             { "cost", 1 },
-            { "maxCapacity", 1000 },
             { "refillRate", refillRate },
+            { "algorithm", algorithm },
+            { "windowSize", this.rollingWindowSize },
+            { "rateLimit", this.rateLimit },
         };
         object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);
@@ -1620,7 +1661,7 @@ public partial class Exchange
         return featuresObj;
     }
 
-    public virtual object featureValue(object symbol, object methodName = null, object paramName = null, object subParamName = null, object defaultValue = null)
+    public virtual object featureValue(object symbol, object methodName = null, object paramName = null, object defaultValue = null)
     {
         /**
          * @method
@@ -1628,16 +1669,15 @@ public partial class Exchange
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-         * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
         object market = this.market(symbol);
-        return this.featureValueByType(getValue(market, "type"), getValue(market, "subType"), methodName, paramName, subParamName, defaultValue);
+        return this.featureValueByType(getValue(market, "type"), getValue(market, "subType"), methodName, paramName, defaultValue);
     }
 
-    public virtual object featureValueByType(object marketType, object subType, object methodName = null, object paramName = null, object subParamName = null, object defaultValue = null)
+    public virtual object featureValueByType(object marketType, object subType, object methodName = null, object paramName = null, object defaultValue = null)
     {
         /**
          * @method
@@ -1647,7 +1687,6 @@ public partial class Exchange
          * @param {string} [subType] supported only: "linear", "inverse"
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
@@ -1655,6 +1694,10 @@ public partial class Exchange
         if (isTrue(isEqual(this.features, null)))
         {
             return defaultValue;
+        }
+        if (isTrue(isEqual(marketType, null)))
+        {
+            return defaultValue;  // marketType is required
         }
         // if marketType (e.g. 'option') does not exist in features
         if (!isTrue((inOp(this.features, marketType))))
@@ -1689,7 +1732,7 @@ public partial class Exchange
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (isTrue(isEqual(methodName, null)))
         {
-            return methodsContainer;
+            return ((bool) isTrue((!isEqual(defaultValue, null)))) ? defaultValue : methodsContainer;
         }
         if (!isTrue((inOp(methodsContainer, methodName))))
         {
@@ -1703,30 +1746,33 @@ public partial class Exchange
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (isTrue(isEqual(paramName, null)))
         {
-            return methodDict;
+            return ((bool) isTrue((!isEqual(defaultValue, null)))) ? defaultValue : methodDict;
         }
-        if (!isTrue((inOp(methodDict, paramName))))
+        object splited = ((string)paramName).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        object parentKey = getValue(splited, 0);
+        object subKey = this.safeString(splited, 1);
+        if (!isTrue((inOp(methodDict, parentKey))))
         {
             return defaultValue;  // unsupported paramName, check "exchange.features" for details');
         }
-        object dictionary = this.safeDict(methodDict, paramName);
+        object dictionary = this.safeDict(methodDict, parentKey);
         if (isTrue(isEqual(dictionary, null)))
         {
             // if the value is not dictionary but a scalar value (or undefined), return as is
-            return getValue(methodDict, paramName);
+            return getValue(methodDict, parentKey);
         } else
         {
-            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
-            if (isTrue(isEqual(subParamName, null)))
+            // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
+            if (isTrue(isEqual(subKey, null)))
             {
-                return getValue(methodDict, paramName);
+                return getValue(methodDict, parentKey);
             }
-            // throw an exception for unsupported subParamName
-            if (!isTrue((inOp(getValue(methodDict, paramName), subParamName))))
+            // throw an exception for unsupported subKey
+            if (!isTrue((inOp(getValue(methodDict, parentKey), subKey))))
             {
-                return defaultValue;  // unsupported subParamName, check "exchange.features" for details
+                return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
-            return getValue(getValue(methodDict, paramName), subParamName);
+            return getValue(getValue(methodDict, parentKey), subKey);
         }
     }
 
@@ -2181,6 +2227,7 @@ public partial class Exchange
         this.symbols = sourceExchange.symbols;
         this.ids = sourceExchange.ids;
         this.currencies = sourceExchange.currencies;
+        this.currencies_by_id = sourceExchange.currencies_by_id;
         this.baseCurrencies = sourceExchange.baseCurrencies;
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
@@ -2802,7 +2849,7 @@ public partial class Exchange
             }
             if (!isTrue(feesDefined))
             {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 fees = new List<object>() {fee};
             }
             // 'fees' were set, so reparse them
@@ -4128,7 +4175,8 @@ public partial class Exchange
                     {
                         if (isTrue(this.verbose))
                         {
-                            this.log(add(add(add(add(add(add("Request failed with the error: ", ((object)e).ToString()), ", retrying "), ((object)(add(i, 1))).ToString()), " of "), ((object)retries).ToString()), "..."));
+                            object index = add(i, 1);
+                            this.log(add(add(add(add(add(add("Request failed with the error: ", ((object)e).ToString()), ", retrying "), ((object)index).ToString()), " of "), ((object)retries).ToString()), "..."));
                         }
                         if (isTrue(isTrue((!isEqual(retryDelay, null))) && isTrue((!isEqual(retryDelay, 0)))))
                         {
@@ -4195,10 +4243,13 @@ public partial class Exchange
         object i_count = 6;
         object tradesLength = getArrayLength(trades);
         object oldest = mathMin(tradesLength, limit);
+        object options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
+        object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (object i = 0; isLessThan(i, oldest); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             object ts = getValue(trade, "timestamp");
+            object price = getValue(trade, "price");
             if (isTrue(isLessThan(ts, since)))
             {
                 continue;
@@ -4210,16 +4261,21 @@ public partial class Exchange
             }
             object ohlcv_length = getArrayLength(ohlcvs);
             object candle = subtract(ohlcv_length, 1);
-            if (isTrue(isTrue((isEqual(candle, -1))) || isTrue((isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms))))))
+            if (isTrue(isTrue(isTrue(skipZeroPrices) && !isTrue((isGreaterThan(price, 0)))) && !isTrue((isLessThan(price, 0)))))
+            {
+                continue;
+            }
+            object isFirstCandle = isEqual(candle, -1);
+            if (isTrue(isTrue(isFirstCandle) || isTrue(isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms)))))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
-                ((IList<object>)ohlcvs).Add(new List<object>() {openingTime, getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "amount"), 1});
+                ((IList<object>)ohlcvs).Add(new List<object>() {openingTime, price, price, price, price, getValue(trade, "amount"), 1});
             } else
             {
                 // still processing the same timeframe -> update opening trade
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_high)] = mathMax(getValue(getValue(ohlcvs, candle), i_high), getValue(trade, "price"));
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_low)] = mathMin(getValue(getValue(ohlcvs, candle), i_low), getValue(trade, "price"));
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_close)] = getValue(trade, "price");
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_high)] = mathMax(getValue(getValue(ohlcvs, candle), i_high), price);
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_low)] = mathMin(getValue(getValue(ohlcvs, candle), i_low), price);
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_close)] = price;
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_volume)] = this.sum(getValue(getValue(ohlcvs, candle), i_volume), getValue(trade, "amount"));
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_count)] = this.sum(getValue(getValue(ohlcvs, candle), i_count), 1);
             }
@@ -4257,6 +4313,14 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, parameters);
+    }
+
+    public async virtual Task<object> editOrderWithClientOrderId(object clientOrderId, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.editOrder("", symbol, type, side, amount, price, this.extend(new Dictionary<string, object>() {
+            { "clientOrderId", clientOrderId },
+        }, parameters));
     }
 
     public async virtual Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -4355,8 +4419,8 @@ public partial class Exchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        object price = this.safeNumber(bidask, priceKey);
-        object amount = this.safeNumber(bidask, amountKey);
+        object price = this.safeFloat(bidask, priceKey);
+        object amount = this.safeFloat(bidask, amountKey);
         object countOrId = this.safeInteger(bidask, countOrIdKey);
         object bidAsk = new List<object>() {price, amount};
         if (isTrue(!isEqual(countOrId, null)))
@@ -4390,10 +4454,6 @@ public partial class Exchange
 
     public virtual object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        object result = this.safeMarketStructure(new Dictionary<string, object>() {
-            { "symbol", marketId },
-            { "marketId", marketId },
-        });
         if (isTrue(!isEqual(marketId, null)))
         {
             if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
@@ -4428,6 +4488,10 @@ public partial class Exchange
             {
                 object parts = ((string)marketId).Split(new [] {((string)delimiter)}, StringSplitOptions.None).ToList<object>();
                 object partsLength = getArrayLength(parts);
+                object result = this.safeMarketStructure(new Dictionary<string, object>() {
+                    { "symbol", marketId },
+                    { "marketId", marketId },
+                });
                 if (isTrue(isEqual(partsLength, 2)))
                 {
                     ((IDictionary<string,object>)result)["baseId"] = this.safeString(parts, 0);
@@ -4435,21 +4499,21 @@ public partial class Exchange
                     ((IDictionary<string,object>)result)["base"] = this.safeCurrencyCode(getValue(result, "baseId"));
                     ((IDictionary<string,object>)result)["quote"] = this.safeCurrencyCode(getValue(result, "quoteId"));
                     ((IDictionary<string,object>)result)["symbol"] = add(add(getValue(result, "base"), "/"), getValue(result, "quote"));
-                    return result;
-                } else
-                {
-                    return result;
                 }
+                return result;
             }
         }
         if (isTrue(!isEqual(market, null)))
         {
             return market;
         }
-        return result;
+        return this.safeMarketStructure(new Dictionary<string, object>() {
+            { "symbol", marketId },
+            { "marketId", marketId },
+        });
     }
 
-    public virtual object marketOrNull(object symbol)
+    public virtual object marketOrNull(object symbol = null)
     {
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4960,6 +5024,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchOrder() is not supported yet")) ;
     }
 
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async virtual Task<object> fetchOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "clientOrderId", clientOrderId },
+        });
+        return await this.fetchOrder("", symbol, extendedParams);
+    }
+
     public async virtual Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5025,7 +5107,7 @@ public partial class Exchange
         * @param {float} trailingAmount the quote amount to trail away from the current market price
         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(trailingAmount, null)))
@@ -5058,7 +5140,7 @@ public partial class Exchange
         * @param {float} trailingAmount the quote amount to trail away from the current market price
         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(trailingAmount, null)))
@@ -5091,7 +5173,7 @@ public partial class Exchange
         * @param {float} trailingPercent the percent to trail away from the current market price
         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(trailingPercent, null)))
@@ -5124,7 +5206,7 @@ public partial class Exchange
         * @param {float} trailingPercent the percent to trail away from the current market price
         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(trailingPercent, null)))
@@ -5153,7 +5235,7 @@ public partial class Exchange
         * @param {string} side 'buy' or 'sell'
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(getValue(this.has, "createMarketOrderWithCost")) || isTrue((isTrue(getValue(this.has, "createMarketBuyOrderWithCost")) && isTrue(getValue(this.has, "createMarketSellOrderWithCost"))))))
@@ -5172,7 +5254,7 @@ public partial class Exchange
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(getValue(this.options, "createMarketBuyOrderRequiresPrice")) || isTrue(getValue(this.has, "createMarketBuyOrderWithCost"))))
@@ -5191,7 +5273,7 @@ public partial class Exchange
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(getValue(this.options, "createMarketSellOrderRequiresPrice")) || isTrue(getValue(this.has, "createMarketSellOrderWithCost"))))
@@ -5211,7 +5293,7 @@ public partial class Exchange
         * @param {string} side 'buy' or 'sell'
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(getValue(this.has, "createMarketOrderWithCostWs")) || isTrue((isTrue(getValue(this.has, "createMarketBuyOrderWithCostWs")) && isTrue(getValue(this.has, "createMarketSellOrderWithCostWs"))))))
@@ -5234,7 +5316,7 @@ public partial class Exchange
         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(triggerPrice, null)))
@@ -5262,7 +5344,7 @@ public partial class Exchange
         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(triggerPrice, null)))
@@ -5290,7 +5372,7 @@ public partial class Exchange
         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(stopLossPrice, null)))
@@ -5318,7 +5400,7 @@ public partial class Exchange
         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(stopLossPrice, null)))
@@ -5346,7 +5428,7 @@ public partial class Exchange
         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(takeProfitPrice, null)))
@@ -5374,7 +5456,7 @@ public partial class Exchange
         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(takeProfitPrice, null)))
@@ -5411,7 +5493,7 @@ public partial class Exchange
         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
@@ -5507,7 +5589,7 @@ public partial class Exchange
         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
@@ -5542,10 +5624,52 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " cancelOrder() is not supported yet")) ;
     }
 
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async virtual Task<object> cancelOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "clientOrderId", clientOrderId },
+        });
+        return await this.cancelOrder("", symbol, extendedParams);
+    }
+
     public async virtual Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrders() is not supported yet")) ;
+    }
+
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async virtual Task<object> cancelOrdersWithClientOrderIds(object clientOrderIds, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+            { "clientOrderIds", clientOrderIds },
+        });
+        return await this.cancelOrders(new List<object>() {}, symbol, extendedParams);
     }
 
     public async virtual Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
@@ -5643,6 +5767,12 @@ public partial class Exchange
             return this.filterBy(orders, "status", "closed");
         }
         throw new NotSupported ((string)add(this.id, " fetchClosedOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchCanceledOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -6351,6 +6481,12 @@ public partial class Exchange
             { "stopPrice", triggerPrice },
         });
         return await this.createOrderWs(symbol, "market", side, amount, null, query);
+    }
+
+    public async virtual Task<object> createSubAccount(object name, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createSubAccount() is not supported yet")) ;
     }
 
     public virtual object safeCurrencyCode(object currencyId, object currency = null)
@@ -7139,7 +7275,7 @@ public partial class Exchange
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(incomes)); postFixIncrement(ref i))
@@ -7186,7 +7322,7 @@ public partial class Exchange
         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchDepositsWithdrawals")))
@@ -7729,7 +7865,7 @@ public partial class Exchange
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
          */
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(liquidations)); postFixIncrement(ref i))
@@ -7992,7 +8128,7 @@ public partial class Exchange
         * @param {int} [since] timestamp in ms of the position
         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
         * @param {object} params extra parameters specific to the exchange api endpoint
-        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchPositionsHistory")))
@@ -8003,6 +8139,11 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchPositionHistory () is not supported yet")) ;
         }
+    }
+
+    public async virtual Task loadMarketsAndSignIn()
+    {
+        await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
     }
 
     public async virtual Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
@@ -8042,6 +8183,55 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOHLCV () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchMarkPrice () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchMarkPrices () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> withdrawWs(object code, object amount, object address, object tag = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " withdrawWs () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchMyTrades () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createOrdersWs () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrdersByStatusWs () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchBidsAsks () is not supported yet")) ;
     }
 
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, object subHashIsPrefix = null)
@@ -8094,10 +8284,10 @@ public partial class Exchange
         object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(topic, "ohlcv")))
         {
-            object symbolsAndTimeFrames = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeFrames)); postFixIncrement(ref i))
+            object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
             {
-                object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
+                object symbolAndTimeFrame = getValue(symbolsAndTimeframes, i);
                 object symbol = this.safeString(symbolAndTimeFrame, 0);
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (isTrue(isTrue((!isEqual(this.ohlcvs, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
@@ -8131,6 +8321,12 @@ public partial class Exchange
                     {
                         ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
                     }
+                } else if (isTrue(isEqual(topic, "bidsasks")))
+                {
+                    if (isTrue(inOp(this.bidsasks, symbol)))
+                    {
+                        ((IDictionary<string,object>)this.bidsasks).Remove((string)symbol);
+                    }
                 }
             }
         } else
@@ -8154,7 +8350,7 @@ public partial class Exchange
                         ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
                     }
                 }
-            } else if (isTrue(isTrue(isEqual(topic, "ticker")) && isTrue((!isEqual(this.tickers, null)))))
+            } else if (isTrue(isTrue((isTrue(isEqual(topic, "ticker")) || isTrue(isEqual(topic, "markPrice")))) && isTrue((!isEqual(this.tickers, null)))))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
@@ -8163,6 +8359,17 @@ public partial class Exchange
                     if (isTrue(inOp(this.tickers, tickerSymbol)))
                     {
                         ((IDictionary<string,object>)this.tickers).Remove((string)tickerSymbol);
+                    }
+                }
+            } else if (isTrue(isTrue(isEqual(topic, "bidsasks")) && isTrue((!isEqual(this.bidsasks, null)))))
+            {
+                object bidsaskSymbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(bidsaskSymbols)); postFixIncrement(ref i))
+                {
+                    object bidsaskSymbol = getValue(bidsaskSymbols, i);
+                    if (isTrue(inOp(this.bidsasks, bidsaskSymbol)))
+                    {
+                        ((IDictionary<string,object>)this.bidsasks).Remove((string)bidsaskSymbol);
                     }
                 }
             }

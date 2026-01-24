@@ -226,19 +226,9 @@ public partial class woo : Exchange
         return await this.callAsync ("v1PrivatePostOrderCancelAllAfter",parameters);
     }
 
-    public async Task<object> v1PrivatePostAssetMainSubTransfer (object parameters = null)
-    {
-        return await this.callAsync ("v1PrivatePostAssetMainSubTransfer",parameters);
-    }
-
     public async Task<object> v1PrivatePostAssetLtv (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostAssetLtv",parameters);
-    }
-
-    public async Task<object> v1PrivatePostAssetWithdraw (object parameters = null)
-    {
-        return await this.callAsync ("v1PrivatePostAssetWithdraw",parameters);
     }
 
     public async Task<object> v1PrivatePostAssetInternalWithdraw (object parameters = null)
@@ -514,11 +504,6 @@ public partial class woo : Exchange
     public async Task<object> v3PrivateGetAlgoOrders (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetAlgoOrders",parameters);
-    }
-
-    public async Task<object> v3PrivateGetBalances (object parameters = null)
-    {
-        return await this.callAsync ("v3PrivateGetBalances",parameters);
     }
 
     public async Task<object> v3PrivateGetPositions (object parameters = null)
