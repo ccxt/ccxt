@@ -6514,7 +6514,6 @@ export default class okx extends Exchange {
     }
 
     getSbeDecoderRegistry () {
-        // Registry mapping template IDs to decoder classes
         return {
             '1000': BboTbtChannelEventDecoder,
             '1001': BooksL2TbtChannelEventDecoder,

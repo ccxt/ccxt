@@ -2644,10 +2644,8 @@ export default class okx extends okxRest {
         const instIdCode = this.safeInteger (message, 'instIdCode');
         const pxExponent = this.safeInteger (message, 'pxExponent');
         const szExponent = this.safeInteger (message, 'szExponent');
-        if (this['sbeExponents'] === undefined) {
-            this['sbeExponents'] = {};
-        }
-        this['sbeExponents'][instIdCode] = {
+        const sbeExponents = this.safeDict (this, 'sbeExponents', {});
+        sbeExponents[instIdCode] = {
             'pxExponent': pxExponent,
             'szExponent': szExponent,
         };

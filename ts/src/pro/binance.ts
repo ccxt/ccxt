@@ -12,7 +12,6 @@ import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 import { WebSocketResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketResponse.js';
 import Client from '../base/ws/Client.js';
-import WsClient from '../base/ws/WsClient.js';
 
 // -----------------------------------------------------------------------------
 
@@ -265,13 +264,6 @@ export default class binance extends binanceRest {
             }
             throw e;
         }
-    }
-
-    client (url: string): WsClient {
-        const client = super.client (url);
-        // Setup binary decoder for SBE WebSocket connections
-        this.setupSbeBinaryDecoder (client, url, this.decodeSbeWebSocketMessage.bind (this));
-        return client;
     }
 
     isSpotUrl (client: Client) {
@@ -4913,10 +4905,10 @@ export default class binance extends binanceRest {
                                 normalized['commission'] = String (this.applyExponent (commissionMantissa, commissionExponent));
                             }
                             normalized['commissionAsset'] = this.safeString (trade, 'commissionAsset');
-                            normalized['isBuyer'] = trade.isBuyer === 1;
-                            normalized['isMaker'] = trade.isMaker === 1;
+                            normalized['isBuyer'] = this.safeBool (trade, 'isBuyer', false);
+                            normalized['isMaker'] = this.safeBool (trade, 'isMaker', false);
                         }
-                        normalizedTrades.push (normalized);
+                        normalizedTrades.push (normalized); 
                     }
                     trades = this.parseTrades (normalizedTrades);
                 }
