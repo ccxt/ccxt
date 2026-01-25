@@ -5248,17 +5248,17 @@ export default class binance extends Exchange {
                     const priceNum = this.safeInteger (trade, 'price', 0);
                     const qtyNum = this.safeInteger (trade, 'qty', 0);
                     const quoteQtyNum = this.safeInteger (trade, 'quoteQty', 0);
-                    const idNum = this.safeInteger (trade, 'id', 0);
+                    const idNum = this.safeString (trade, 'id');
                     const timeNum = this.safeInteger (trade, 'time', 0);
                     const price = this.applyExponent (priceNum, priceExponent);
                     const qty = this.applyExponent (qtyNum, qtyExponent);
                     const quoteQty = this.applyExponent (quoteQtyNum, priceExponent);
                     const timestamp = Math.floor (timeNum / 1000); // microseconds to milliseconds
                     normalizedTrades.push ({
-                        'id': String (idNum),
-                        'price': String (price),
-                        'qty': String (qty),
-                        'quoteQty': String (quoteQty),
+                        'id': idNum.toString (),
+                        'price': price.toString (),
+                        'qty': qty.toString (),
+                        'quoteQty': quoteQty.toString (),
                         'time': timestamp,
                         'isBuyerMaker': this.safeInteger (trade, 'isBuyerMaker') === 1,
                         'isBestMatch': this.safeInteger (trade, 'isBestMatch') === 1,
