@@ -953,11 +953,14 @@ export default class pacifica extends Exchange {
             'interval': timeframe,
             'start_time': since,
         };
+        const nowMillis = this.milliseconds ();
         if (limit !== undefined) {
             until = since + (limit * (this.parseTimeframe (timeframe) * 1000));
         }
         if (until !== undefined) {
-            params['end_time'] = until;
+            if (until <= nowMillis) {
+                request['end_time'] = until;
+            }
         }
         const response = await this.publicGetKline (this.extend (request, params));
         // {
