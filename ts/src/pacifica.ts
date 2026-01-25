@@ -141,8 +141,8 @@ export default class pacifica extends Exchange {
                     'private': 'https://api.{hostname}',
                 },
                 'test': {
-                    'public': ' https://test-api.pacifica.fi',
-                    'private': ' https://test-api.pacifica.fi',
+                    'public': 'https://test-api.{hostname}',
+                    'private': 'https://test-api.{hostname}',
                 },
                 'www': 'https://www.pacifica.fi',
                 'doc': 'https://docs.pacifica.fi/api-documentation/api/rest-api',
@@ -1185,7 +1185,7 @@ export default class pacifica extends Exchange {
             'cost': undefined,
             'fee': {
                 'cost': fee,
-                'currency': "USDC",
+                'currency': 'USDC',
                 'rate': undefined,
             },
         }, market);
@@ -3025,8 +3025,9 @@ export default class pacifica extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
-        const urlKey = (isTestnet) ? 'test' : 'api' 
-        let url = this.implodeHostname (this.urls[urlKey][api]) + '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
+        const urlKey = (isTestnet) ? 'test' : 'api';
+        const host = this.implodeHostname (this.urls[urlKey][api]);
+        let url = host + '/api/' + this.version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         const paramsLen = Object.keys (params).length;
         headers = {
@@ -3096,7 +3097,7 @@ export default class pacifica extends Exchange {
         const message = this.prepareMessage (header, payload);
         const messageBytes = this.encode (message);
         const secretBytes = this.base58ToBinary (privateKey);
-        const seed = this.arraySlice(secretBytes, 0, 32);
+        const seed = this.arraySlice (secretBytes, 0, 32);
         const signatureBase64 = eddsa (messageBytes, seed, ed25519);
         const signatureBinary = this.base64ToBinary (signatureBase64);
         const signatureBase58 = this.binaryToBase58 (signatureBinary);
