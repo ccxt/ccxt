@@ -449,6 +449,7 @@ class Transpiler {
 
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
+            [ /(\w+)\.byteLength/g, 'strlen($1)' ], // Convert ArrayBuffer.byteLength to strlen() for strings in PHP
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
@@ -484,6 +485,8 @@ class Transpiler {
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
+            // Remove .bind(this) from method references before converting this. to $this->
+            [ /\.bind\s*\(\s*this\s*\)/g, '' ],
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'property_exists($this, $1)$2' ],
             [ /\(this,/g, '($this,' ],
             [ /this\./g, '$this->' ],
@@ -1626,6 +1629,7 @@ class Transpiler {
                 const phpTypes: dict = {
                     'any': 'mixed',
                     'string': 'string',
+                    'ArrayBuffer': 'string',
                     'MarketType': 'string',
                     'SubType': 'string',
                     'Str': '?string',
