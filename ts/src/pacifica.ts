@@ -1068,11 +1068,11 @@ export default class pacifica extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleMainAddress ('fetchTrades', params);
+        [ userAddress, params ] = this.handleMainAddress ('fetchMyTrades', params);
         let until = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'until');
         let cursor = undefined;
-        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'cursor');
+        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'cursor');
         const request: Dict = { };
         await this.loadMarkets ();
         let market = undefined;
@@ -1140,7 +1140,7 @@ export default class pacifica extends Exchange {
         //       "created_at": 1759215599188,
         //       "cause": "normal"
         //     },
-        // recent trades:
+        // recent public trades:
         //     {
         //       "event_type": "fulfill_taker",
         //       "price": "104721",
@@ -1169,6 +1169,9 @@ export default class pacifica extends Exchange {
         let takerOrMaker = undefined;
         if (eventType !== undefined) {
             takerOrMaker = (eventType === 'fulfill_maker') ? 'maker' : 'taker';
+        }
+        if (id === undefined) {
+            takerOrMaker = undefined;
         }
         return this.safeTrade ({
             'info': trade,
@@ -2916,8 +2919,8 @@ export default class pacifica extends Exchange {
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
      * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-     * @param {string} [params.subAccountAddress] - The public key (address) of the sub-account to be used for creation
-     * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to be used for creation
+     * @param {string} [params.subAccountAddress] - The public key (address) of the sub-account to use for creation
+     * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
     async createSubAccount (name: string, params = {}) {
@@ -3025,7 +3028,7 @@ export default class pacifica extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
-        let url = this.urls['api'][api] + '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.implodeHostname (this.urls['api'][api]) + '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         const paramsLen = Object.keys (params).length;
         if (method === 'GET' && paramsLen) {
