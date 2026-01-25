@@ -1170,6 +1170,7 @@ export default class pacifica extends Exchange {
         if (eventType !== undefined) {
             takerOrMaker = (eventType === 'fulfill_maker') ? 'maker' : 'taker';
         }
+        // public trades have no history_id
         if (id === undefined) {
             takerOrMaker = undefined;
         }
@@ -1805,7 +1806,7 @@ export default class pacifica extends Exchange {
         //   "next_cursor": "11114Lz77", // todo pagination
         //   "has_more": true            // todo pagination
         // }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -3027,15 +3028,17 @@ export default class pacifica extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         const paramsLen = Object.keys (params).length;
+        headers = {
+            'Content-Type': 'application/json',
+        };
         if (method === 'GET' && paramsLen) {
             url += '?' + this.urlencode (params);
             headers['Accept'] = '*/*';
         }
-        headers['Content-Type'] = 'application/json';
         if (method === 'POST') {
             body = this.json (params);
         }
