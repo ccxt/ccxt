@@ -209,7 +209,7 @@ export default class pacifica extends Exchange {
                 'apiKey': undefined, // We will use it for option. Rate Limit Api Key
                 'secret': false,
                 'walletAddress': undefined,
-                'privateKey': true,
+                'privateKey': true, // base58 solana private key
             },
             'exceptions': {
                 'exact': {
@@ -296,7 +296,7 @@ export default class pacifica extends Exchange {
                         'iceberg': false,
                     },
                     'createOrders': {
-                        'max': 10,
+                        'max': 10, // todo pagination
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
@@ -3018,11 +3018,12 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
     }
 
-    async fetchBuilderApprovals (address: string, params = {}) {
+    async fetchBuilderApprovals (address: string) {
+        
         const request = {
             'account': address,
         };
-        return await this.privatePostAgentBind (this.extend (request, params));
+        return await this.privatePostAgentBind (this.extend (request));
     }
 
     async revokeBuilderCode (builderCode: string, params = {}) {
