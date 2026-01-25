@@ -267,10 +267,10 @@ export default class pacifica extends Exchange {
                             'type': true,
                             'price': true,
                         },
-                        'timeInForce': { // default = undefined = GTC
+                        'timeInForce': {
                             'IOC': true,
                             'FOK': false,
-                            'PO': true, // PO = "AOC"
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -1423,10 +1423,10 @@ export default class pacifica extends Exchange {
         // }
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
-        const len = actions.length;
+        const lenActions = actions.length;
         const maxLen = this.safeInteger (this.options, 'batchOrdersMax');
         if (maxLen !== undefined) {
-            if (len > maxLen) {
+            if (lenActions > maxLen) {
                 throw new ExchangeError (this.id + 'batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
             }
         }
@@ -2911,25 +2911,36 @@ export default class pacifica extends Exchange {
      * @method
      * @name pacifica#createSubAccount
      * @description creates a sub-account under the main account
-     * @param {string} subAccountAddress address of subaccount
-     * @param {string} subAccountPrivateKey private key of subaccount
+     * @param {string} name unused argument
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
      * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string} [params.subAccountAddress] - The public key (address) of the sub-account to be used for creation
+     * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to be used for creation
      * @returns {object} a response object
      */
-    async createSubAccount (subAccountAddress: string, subAccountPrivateKey: string, params = {}) {
+    async createSubAccount (name: string, params = {}) {
         const finalHeaders = { };
         let agentAddress = undefined;
         [ agentAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
         let mainAddress = undefined;
         [ mainAddress, params ] = this.handleMainAddress ('createSubAccount', params);
         if (mainAddress === undefined) {
-            throw new ArgumentsRequired (this.id + 'action:' + 'createSubAccount() requires "mainAddress" in params or "walletAddress" in requiredCredentials');
+            throw new ArgumentsRequired (this.id + 'createSubAccount() requires "mainAddress" in params or "walletAddress" in requiredCredentials');
         }
         if (agentAddress !== undefined) {
             finalHeaders['agent_wallet'] = agentAddress;
+        }
+        let subAccountAddress = undefined;
+        [ subAccountAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountAddress');
+        let subAccountPrivateKey = undefined;
+        [ subAccountPrivateKey, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountPrivateKey');
+        if (subAccountAddress === undefined) {
+            throw new ArgumentsRequired (this.id + 'createSubAccount() requires a "subAccountAddress"!');
+        }
+        if (subAccountPrivateKey === undefined) {
+            throw new ArgumentsRequired (this.id + 'createSubAccount() requires a "subAccountPrivateKey"!');
         }
         const timestamp = this.milliseconds ();
         let expiryWindow = undefined;
@@ -3031,8 +3042,8 @@ export default class pacifica extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    calculateRateLimiterCost (api, method, path, params, config: int) {
-        const cost = config;
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
+        const cost = this.safeValue (config, 'cost', 1);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (cost > 1) {
             if (this.apiKey) {
@@ -3092,7 +3103,7 @@ export default class pacifica extends Exchange {
     postActionRequest (operationType: Str, sigPayload: Dict, params: Dict): Dict {
         this.checkRequiredCredentials (); // check credentials every post action
         if (operationType === 'undefined') {
-            throw new ArgumentsRequired (this.id + ' postActionRequest() requires "operationType"');
+            throw new ArgumentsRequired (this.id + 'action:' + operationType + ' postActionRequest() requires "operationType"');
         }
         let expiryWindow = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000); // Hardcoded but 5000 default by exchange.
