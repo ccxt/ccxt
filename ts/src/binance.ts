@@ -3164,6 +3164,10 @@ export default class binance extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        const originalUseSbe = this.safeBool (this.options, 'useSbe', false);
+        if (originalUseSbe) {
+            this.options['useSbe'] = false;
+        }
         const promisesRaw = [];
         let rawFetchMarkets = undefined;
         const defaultTypes = [ 'spot', 'linear', 'inverse' ];
@@ -3212,6 +3216,10 @@ export default class binance extends Exchange {
             }
         }
         const results = await Promise.all (promisesRaw);
+        // Restore original useSbe setting
+        if (originalUseSbe) {
+            this.options['useSbe'] = true;
+        }
         let markets = [];
         this.options['crossMarginPairsData'] = [];
         this.options['isolatedMarginPairsData'] = [];
@@ -5133,117 +5141,6 @@ export default class binance extends Exchange {
         }, market);
     }
 
-    decodeSbeTrades (buffer: ArrayBuffer, market: Market = undefined): Trade[] {
-        const decoder = new TradesResponseDecoder ();
-        const decoded = decoder.decode (buffer, 0);
-        // Get exponents from message level
-        const priceExponent = decoded.priceExponent;
-        const qtyExponent = decoded.qtyExponent;
-        if (this.verbose) {
-            this.log ('decodeSbeTrades: priceExponent:', priceExponent, 'qtyExponent:', qtyExponent);
-            this.log ('decodeSbeTrades: trades count:', decoded.trades.length);
-        }
-        // Iterate through trades and convert to standard format
-        const normalizedTrades = [];
-        for (let i = 0; i < decoded.trades.length; i++) {
-            const trade = decoded.trades[i];
-            // Convert mantissa to decimal using exponents
-            const price = this.applyExponent (Number (trade.price), priceExponent);
-            const qty = this.applyExponent (Number (trade.qty), qtyExponent);
-            const quoteQty = this.applyExponent (Number (trade.quoteQty), priceExponent);
-            const timestamp = Math.floor (Number (trade.time) / 1000); // microseconds to milliseconds
-            normalizedTrades.push ({
-                'id': String (trade.id),
-                'price': String (price),
-                'qty': String (qty),
-                'quoteQty': String (quoteQty),
-                'time': timestamp,
-                'isBuyerMaker': trade.isBuyerMaker === 1,
-                'isBestMatch': trade.isBestMatch === 1,
-            });
-        }
-        if (this.verbose && normalizedTrades.length > 0) {
-            this.log ('decodeSbeTrades: first trade:', normalizedTrades[0]);
-        }
-        return normalizedTrades;
-    }
-
-    decodeSbeBookTicker (buffer: ArrayBuffer, symbols: Strings = undefined): Tickers {
-        // Determine which decoder to use based on template ID
-        const bufferView = new Uint8Array (buffer);
-        const templateId = this.readSbeTemplateId (bufferView);
-        let tickers = [];
-        let priceExponent = 0;
-        let qtyExponent = 0;
-        if (templateId === 211) {
-            // BookTickerSymbolResponse - single symbol
-            const decoder = new BookTickerSymbolResponseDecoder ();
-            const decoded = decoder.decode (buffer, 0);
-            if (this.verbose) {
-                this.log ('decodeSbeBookTicker: Single symbol response, template ID:', templateId);
-            }
-            priceExponent = decoded.priceExponent;
-            qtyExponent = decoded.qtyExponent;
-            // Decode symbol from Uint8Array
-            const symbolStr = this.decode (decoded.symbol);
-            // Wrap single ticker in array
-            tickers = [ {
-                'symbol': symbolStr,
-                'priceExponent': decoded.priceExponent,
-                'qtyExponent': decoded.qtyExponent,
-                'bidPrice': decoded.bidPrice,
-                'bidQty': decoded.bidQty,
-                'askPrice': decoded.askPrice,
-                'askQty': decoded.askQty,
-            } ];
-        } else if (templateId === 212) {
-            // BookTickerResponse - multiple symbols
-            const decoder = new BookTickerResponseDecoder ();
-            const decoded = decoder.decode (buffer, 0);
-            if (this.verbose) {
-                this.log ('decodeSbeBookTicker: Multiple symbols response, template ID:', templateId);
-                this.log ('decodeSbeBookTicker: tickers count:', decoded.tickers.length);
-            }
-            // In BookTickerResponse, each ticker has its own exponents
-            // Use the first ticker's exponents (they should be the same for all)
-            if (decoded.tickers.length > 0) {
-                priceExponent = decoded.tickers[0].priceExponent;
-                qtyExponent = decoded.tickers[0].qtyExponent;
-            }
-            // Note: BookTickerResponse doesn't include symbol field
-            // Symbols must be matched externally if needed
-            tickers = decoded.tickers;
-        } else {
-            throw new ExchangeError (this.id + ' decodeSbeBookTicker() unknown template ID: ' + templateId);
-        }
-        if (this.verbose) {
-            this.log ('decodeSbeBookTicker: priceExponent:', priceExponent, 'qtyExponent:', qtyExponent);
-            if (tickers.length > 0) {
-                this.log ('decodeSbeBookTicker: first ticker raw:', tickers[0]);
-            }
-        }
-        // Convert SBE tickers to standard format
-        const normalizedTickers = [];
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const tickerPriceExp = ticker.priceExponent !== undefined ? ticker.priceExponent : priceExponent;
-            const tickerQtyExp = ticker.qtyExponent !== undefined ? ticker.qtyExponent : qtyExponent;
-            const bidPrice = this.applyExponent (Number (ticker.bidPrice), tickerPriceExp);
-            const bidQty = this.applyExponent (Number (ticker.bidQty), tickerQtyExp);
-            const askPrice = this.applyExponent (Number (ticker.askPrice), tickerPriceExp);
-            const askQty = this.applyExponent (Number (ticker.askQty), tickerQtyExp);
-            normalizedTickers.push ({
-                'symbol': this.safeString (ticker, 'symbol'),
-                'bidPrice': String (bidPrice),
-                'bidQty': String (bidQty),
-                'askPrice': String (askPrice),
-                'askQty': String (askQty),
-            });
-        }
-        // Reuse existing parseTickers function to ensure consistent ticker structure
-        return this.parseTickers (normalizedTickers, symbols);
-    }
-
     /**
      * @method
      * @name binance#fetchTrades
@@ -5288,7 +5185,8 @@ export default class binance extends Exchange {
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        if (!market['option']) {
+        const isOption = this.safeBool (market, 'option', false);
+        if (!isOption) {
             if (since !== undefined) {
                 request['startTime'] = since;
                 // https://github.com/ccxt/ccxt/issues/6400
@@ -5324,33 +5222,38 @@ export default class binance extends Exchange {
             // handleRestResponse will automatically call decodeSbeResponse for SBE responses
             response = await this.request ('trades', 'public', 'GET', this.extend (request, params), sbeHeaders, undefined);
             // Response is already decoded by decodeSbeResponse via handleRestResponse
-            // Extract exponents and trades from decoded SBE object
-            if (response && typeof response === 'object' && ('priceExponent' in response || 'qtyExponent' in response || 'trades' in response)) {
-                const priceExponent = response['priceExponent'] || 0;
-                const qtyExponent = response['qtyExponent'] || 0;
-                const sbeTradesArray = response['trades'] || response['trade'] || response['Trade'] || [];
+            // Extract exponents and trades from decoded SBE object using safe functions
+            const priceExponent = this.safeInteger (response, 'priceExponent', 0);
+            const qtyExponent = this.safeInteger (response, 'qtyExponent', 0);
+            const sbeTradesArray = this.safeList (response, 'trades', this.safeList (response, 'trade', this.safeList (response, 'Trade', [])));
+            // Check if we got SBE trades data
+            if (sbeTradesArray.length > 0) {
                 if (this.verbose) {
                     this.log ('fetchTrades: Using decoded SBE response, trades count:', sbeTradesArray.length);
-                    if (sbeTradesArray.length > 0) {
-                        this.log ('fetchTrades: First trade raw:', sbeTradesArray[0]);
-                    }
+                    this.log ('fetchTrades: First trade raw:', sbeTradesArray[0]);
                 }
                 // Normalize trades to standard format
                 const normalizedTrades = [];
                 for (let i = 0; i < sbeTradesArray.length; i++) {
                     const trade = sbeTradesArray[i];
-                    const price = this.applyExponent (trade.price, priceExponent);
-                    const qty = this.applyExponent (trade.qty, qtyExponent);
-                    const quoteQty = this.applyExponent (trade.quoteQty, priceExponent);
-                    const timestamp = Math.floor (Number (trade.time) / 1000); // microseconds to milliseconds
+                    // safeInteger now handles BigInt values from SBE
+                    const priceNum = this.safeInteger (trade, 'price', 0);
+                    const qtyNum = this.safeInteger (trade, 'qty', 0);
+                    const quoteQtyNum = this.safeInteger (trade, 'quoteQty', 0);
+                    const idNum = this.safeInteger (trade, 'id', 0);
+                    const timeNum = this.safeInteger (trade, 'time', 0);
+                    const price = this.applyExponent (priceNum, priceExponent);
+                    const qty = this.applyExponent (qtyNum, qtyExponent);
+                    const quoteQty = this.applyExponent (quoteQtyNum, priceExponent);
+                    const timestamp = Math.floor (timeNum / 1000); // microseconds to milliseconds
                     normalizedTrades.push ({
-                        'id': String (trade.id),
+                        'id': String (idNum),
                         'price': String (price),
                         'qty': String (qty),
                         'quoteQty': String (quoteQty),
                         'time': timestamp,
-                        'isBuyerMaker': trade.isBuyerMaker === 1,
-                        'isBestMatch': trade.isBestMatch === 1,
+                        'isBuyerMaker': this.safeInteger (trade, 'isBuyerMaker') === 1,
+                        'isBestMatch': this.safeInteger (trade, 'isBestMatch') === 1,
                     });
                 }
                 response = normalizedTrades;
@@ -12235,23 +12138,6 @@ export default class binance extends Exchange {
         return scheme + '//' + domain + '/';
     }
 
-    getSbeDecoder () {
-        // Binance uses specific decoders for each message type
-        // This method returns a mock decoder object to indicate SBE is supported
-        if (this['sbeDecoder'] === undefined) {
-            this['sbeDecoder'] = {
-                'supported': true,
-                'decoders': {
-                    'trades': TradesResponseDecoder,
-                    'bookTicker': BookTickerResponseDecoder,
-                    'bookTickerSymbol': BookTickerSymbolResponseDecoder,
-                    'depth': DepthResponseDecoder,
-                },
-            };
-        }
-        return this['sbeDecoder'];
-    }
-
     getSbeDecoderRegistry () {
         // Registry mapping template IDs to decoder classes
         return {
@@ -12319,88 +12205,6 @@ export default class binance extends Exchange {
             '504': UserDataStreamUnsubscribeResponseDecoder,
             '505': UserDataStreamSubscribeListenTokenResponseDecoder,
         };
-    }
-
-    decodeSbeResponse (buffer: ArrayBuffer, url: string) {
-        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
-        if (this.verbose) {
-            this.log ('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength);
-        }
-        // Extract endpoint from URL for special handling
-        const urlParts = url.split ('/');
-        const ulrPartsLength = urlParts.length;
-        const path = this.safeString (urlParts, ulrPartsLength - 1, '');
-        const pathSplit = path.split ('?');
-        const pathSplitLength = pathSplit.length;
-        const endpoint = this.safeString (pathSplit, pathSplitLength - 1, '');
-        try {
-            // Use global decodeSbeMessage with Binance decoder registry
-            const decoderRegistry = this.getSbeDecoderRegistry ();
-            const result = this.decodeSbeMessage (buffer, decoderRegistry);
-            const templateId = result['templateId'];
-            const decoded = result['data'];
-            if (this.verbose) {
-                this.log ('decodeSbeResponse: Template ID:', templateId, 'Endpoint:', endpoint);
-            }
-            // Handle ErrorResponse specially - convert to exception
-            if (templateId === 100) {
-                const errorMsg = this.decode (decoded.msg);
-                throw new ExchangeError (this.id + ' SBE error response: code=' + decoded.code + ', msg=' + errorMsg);
-            }
-            if (this.verbose) {
-                this.log ('decodeSbeResponse: Successfully decoded SBE message');
-                const decodedType = (decoded && decoded.constructor) ? decoded.constructor.name : 'unknown';
-                this.log ('decodeSbeResponse: Message type:', decodedType);
-                if (decoded && (typeof decoded === 'object') && !Array.isArray (decoded)) {
-                    const allKeys = Object.keys (decoded);
-                    this.log ('decodeSbeResponse: Message keys (total ' + allKeys.length + '):', allKeys);
-                    // Show decoded object structure for debugging
-                    if (allKeys.length <= 20) {
-                        this.log ('decodeSbeResponse: Full decoded object:', JSON.stringify (decoded, null, 2).substring (0, 1000));
-                    }
-                }
-            }
-            return decoded;
-        } catch (e) {
-            const errorMessage = e instanceof Error ? e.message : String (e);
-            const errorStack = e instanceof Error ? e.stack : '';
-            this.log ('decodeSbeResponse: Error decoding SBE buffer:', errorMessage);
-            this.log ('decodeSbeResponse: Stack trace:', errorStack);
-            this.log ('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes');
-            this.log ('decodeSbeResponse: Endpoint:', endpoint);
-            throw new ExchangeError (this.id + ' decodeSbeResponse() failed - SBE disabled. Error: ' + errorMessage + '. Try setting useSbe to false in options.');
-        }
-    }
-
-    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
-        const responseHeaders = this.getResponseHeaders (response);
-        const contentType = this.safeString (responseHeaders, 'Content-Type', '');
-        if (this.verbose) {
-            this.log ('handleRestResponse: Content-Type:', contentType, 'useSbe:', this.safeBool (this.options, 'useSbe', false));
-        }
-        // Handle SBE binary responses - automatically decode based on endpoint
-        if (contentType.includes ('application/sbe') || contentType.includes ('application/octet-stream')) {
-            const useSbe = this.safeBool (this.options, 'useSbe', false);
-            if (useSbe) {
-                if (this.verbose) {
-                    this.log ('handleRestResponse: Detected SBE response, calling arrayBuffer()');
-                }
-                const responseBuffer = response.arrayBuffer ();
-                if (this.enableLastResponseHeaders) {
-                    this.last_response_headers = responseHeaders;
-                }
-                if (this.enableLastHttpResponse) {
-                    this.last_http_response = responseBuffer;
-                }
-                if (this.verbose) {
-                    this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', responseBuffer.byteLength, '\n');
-                }
-                // Automatically decode SBE response based on endpoint
-                return this.decodeSbeResponse (responseBuffer, url);
-            }
-        }
-        // Fallback to parent implementation
-        return super.handleRestResponse (response, url, method, requestHeaders, requestBody);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

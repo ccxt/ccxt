@@ -1050,6 +1050,26 @@ export default class Exchange {
             // no error handler needed, because it would not be a zip response in case of an error
             return responseBuffer;
         }
+        const contentType = this.safeString (responseHeaders, 'Content-Type', '');
+        const useSbe = this.safeBool (this.options, 'useSbe', false);
+        if (useSbe && (contentType.includes ('application/sbe') || contentType.includes ('application/octet-stream'))) {
+            // Handle SBE binary responses - decode using exchange-specific decoder
+            // Use arrayBuffer() which returns a Promise (like text()), handle with .then()
+            return response.arrayBuffer ().then ((responseBuffer) => {
+                if (this.enableLastResponseHeaders) {
+                    this.last_response_headers = responseHeaders;
+                }
+                if (this.enableLastHttpResponse) {
+                    this.last_http_response = responseBuffer;
+                }
+                if (this.verbose) {
+                    const bufferLength = responseBuffer ? (responseBuffer.byteLength || responseBuffer.length) : 'undefined';
+                    this.log ('handleRestResponse (SBE):\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'SBE binary data, buffer length:', bufferLength, '\n');
+                }
+                // Call exchange-specific SBE decoder (overridden in binance.ts, okx.ts, etc.)
+                return this.decodeSbeResponse (responseBuffer, url);
+            });
+        }
         return response.text ().then ((responseBody) => {
             const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
             const parsedBody = this.parseJson (bodyText);
@@ -1218,8 +1238,9 @@ export default class Exchange {
             throw new ExchangeError (this.id + ' decodeSbeMessage() unknown template ID: ' + templateId);
         }
         // Instantiate and decode
+        // Skip 8-byte SBE message header (blockLength, templateId, schemaId, version)
         const decoder = new DecoderClass ();
-        const decoded = decoder.decode (arrayBuffer, 0);
+        const decoded = decoder.decode (arrayBuffer, 8);
         return {
             'templateId': templateId,
             'data': decoded,
@@ -1276,6 +1297,237 @@ export default class Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * Setup binary message decoder for SBE WebSocket connections
+     * @param {Client} client - WebSocket client
+     * @param {string} url - WebSocket URL
+     * @param {Function} decoderFunction - Custom decoder function
+     */
+    setupSbeBinaryDecoder (client, url: string, decoderFunction = undefined) {
+        // Check if URL indicates SBE format and decoder not already set
+        const isSbeUrl = url.indexOf ('responseFormat=sbe') > -1 || url.indexOf ('/public-sbe') > -1 || url.indexOf ('/ws-sbe') > -1;
+        if (isSbeUrl && !client.binaryMessageDecoder) {
+            client.binaryMessageDecoder = decoderFunction || this.decodeSbeWebSocketMessage.bind (this);
+            if (this.verbose) {
+                this.log ('setupSbeBinaryDecoder: Set binary decoder for SBE on URL:', url);
+            }
+        }
+    }
+
+    /**
+     * Decode nested SBE message (used in envelope patterns like Binance WebSocket)
+     * @param {Uint8Array} buffer - The binary SBE message
+     * @returns {any} Decoded message data
+     */
+    decodeSbeNestedMessage (buffer: Uint8Array): any {
+        const templateId = this.readSbeTemplateId (buffer);
+        if (this.verbose) {
+            this.log ('decodeSbeNestedMessage: templateId:', templateId, 'buffer length:', buffer.byteLength);
+        }
+        const registry = this.getSbeDecoderRegistry ();
+        const DecoderClass = registry[templateId];
+        if (!DecoderClass) {
+            if (this.verbose) {
+                this.log ('decodeSbeNestedMessage: unknown template ID:', templateId);
+            }
+            return undefined;
+        }
+        try {
+            // Convert Uint8Array to ArrayBuffer
+            const arrayBuffer = buffer.buffer.slice (buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+            const decoder = new DecoderClass ();
+            const decoded = decoder.decode (arrayBuffer, 8);
+            return decoded;
+        } catch (e) {
+            if (this.verbose) {
+                this.log ('decodeSbeNestedMessage: error decoding templateId', templateId, ':', e);
+            }
+            return undefined;
+        }
+    }
+
+    /**
+     * Decode SBE-encoded WebSocket message
+     * Override this in exchange class to handle exchange-specific envelope patterns
+     * @param {ArrayBuffer} buffer - The binary SBE message
+     * @returns {any} Decoded message data
+     */
+    decodeSbeWebSocketMessage (buffer: ArrayBuffer): any {
+        // Default implementation: direct decode without envelope
+        const result = this.decodeSbeMessage (buffer, this.getSbeDecoderRegistry ());
+        return result['data'];
+    }
+
+    /**
+     * Get SBE message handlers registry
+     * Override this in exchange class to provide message routing
+     * @returns {object} Map of template ID to handler function
+     */
+    getSbeMessageHandlers (): any {
+        return {};
+    }
+
+    /**
+     * Handle SBE binary message with automatic routing
+     * @param {Client} client - WebSocket client
+     * @param {ArrayBuffer|Uint8Array|Buffer} message - Binary SBE message
+     */
+    handleSbeMessage (client, message) {
+        try {
+            if (this.verbose) {
+                this.log ('handleSbeMessage: Received binary message, size:', message.byteLength || message.length);
+            }
+            // Decode the SBE message
+            const decoderRegistry = this.getSbeDecoderRegistry ();
+            const result = this.decodeSbeMessage (message, decoderRegistry);
+            const templateId = result['templateId'];
+            const decoded = result['data'];
+            if (this.verbose) {
+                this.log ('handleSbeMessage: Decoded template ID:', templateId);
+            }
+            // Route to appropriate handler
+            const handlers = this.getSbeMessageHandlers ();
+            const handler = handlers[templateId];
+            if (handler) {
+                handler.call (this, client, decoded);
+            } else if (this.verbose) {
+                this.log ('handleSbeMessage: No handler for template ID:', templateId);
+            }
+        } catch (e) {
+            if (this.verbose) {
+                this.log ('handleSbeMessage: Failed to decode SBE message:', e);
+            }
+        }
+    }
+
+    /**
+     * Format orderbook from SBE message with exponents
+     * Convenience helper for common orderbook processing pattern
+     * @param {object} message - Decoded SBE message
+     * @param {string} bidsKey - Key for bids array
+     * @param {string} asksKey - Key for asks array
+     * @param {string} priceKey - Key for price in bid/ask objects
+     * @param {string} sizeKey - Key for size in bid/ask objects
+     * @returns {object} Formatted orderbook with bids and asks arrays
+     */
+    formatSbeOrderbook (message, bidsKey = 'bids', asksKey = 'asks', priceKey = 'px', sizeKey = 'sz'): any {
+        const pxExponent = this.safeInteger (message, 'pxExponent', this.safeInteger (message, 'priceExponent', 0));
+        const szExponent = this.safeInteger (message, 'szExponent', this.safeInteger (message, 'qtyExponent', 0));
+        const rawBids = this.safeList (message, bidsKey, []);
+        const rawAsks = this.safeList (message, asksKey, []);
+        const bids = [];
+        const asks = [];
+        // Process bids
+        for (let i = 0; i < rawBids.length; i++) {
+            const bid = rawBids[i];
+            const pxMantissa = this.safeInteger (bid, priceKey + 'Mantissa', this.safeInteger (bid, priceKey, 0));
+            const szMantissa = this.safeInteger (bid, sizeKey + 'Mantissa', this.safeInteger (bid, sizeKey, 0));
+            const price = this.applyExponent (pxMantissa, pxExponent);
+            const size = this.applyExponent (szMantissa, szExponent);
+            bids.push ([ price, size ]);
+        }
+        // Process asks
+        for (let i = 0; i < rawAsks.length; i++) {
+            const ask = rawAsks[i];
+            const pxMantissa = this.safeInteger (ask, priceKey + 'Mantissa', this.safeInteger (ask, priceKey, 0));
+            const szMantissa = this.safeInteger (ask, sizeKey + 'Mantissa', this.safeInteger (ask, sizeKey, 0));
+            const price = this.applyExponent (pxMantissa, pxExponent);
+            const size = this.applyExponent (szMantissa, szExponent);
+            asks.push ([ price, size ]);
+        }
+        return {
+            'bids': bids,
+            'asks': asks,
+        };
+    }
+
+    /**
+     * Safely access a BigInt value and convert to number
+     * Many SBE decoders return BigInt for large numbers - this helper safely converts them
+     * @param {object} object - The object containing the value
+     * @param {string} key - The key to access
+     * @param {number} defaultValue - Default value if key not found
+     * @returns {number} The value as number (converted from BigInt if needed)
+     */
+    safeBigInt (object, key: IndexType, defaultValue = undefined): number {
+        const value = this.safeValue (object, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        return typeof value === 'bigint' ? Number (value) : value;
+    }
+
+    /**
+     * Convert all BigInt fields in an object to numbers
+     * Useful for SBE messages that use BigInt for IDs and timestamps
+     * @param {object} object - The object to process
+     * @param {string[]} fields - Specific fields to convert
+     * @returns {object} New object with BigInt fields converted to numbers
+     */
+    convertBigIntFields (object, fields = undefined): any {
+        if (!object || typeof object !== 'object') {
+            return object;
+        }
+        const result = {};
+        const keys = fields || Object.keys (object);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = object[key];
+            if (typeof value === 'bigint') {
+                result[key] = Number (value);
+            } else if (Array.isArray (value)) {
+                result[key] = [];
+                for (let j = 0; j < value.length; j++) {
+                    result[key].push (this.convertBigIntFields (value[j], fields));
+                }
+            } else {
+                result[key] = value;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Normalize SBE order data (common pattern for Binance WebSocket)
+     * Converts exponent fields to actual values
+     * @param {object} order - SBE order data
+     * @returns {object} Normalized order data compatible with parseOrder
+     */
+    normalizeSbeOrder (order): any {
+        // Check if this is SBE format (has exponent fields)
+        const hasExponents = ('priceExponent' in order) || ('qtyExponent' in order);
+        if (!hasExponents) {
+            return order; // Already normalized or not SBE format
+        }
+        // Apply exponents and convert to standard format
+        const priceExponent = this.safeInteger (order, 'priceExponent', 0);
+        const qtyExponent = this.safeInteger (order, 'qtyExponent', 0);
+        const normalized = {};
+        const keys = Object.keys (order);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = order[key];
+            // Skip exponent fields themselves
+            if (key.endsWith ('Exponent')) {
+                continue;
+            }
+            // Handle price-related mantissa fields
+            if (key === 'price' || key === 'stopPrice' || key === 'icebergQty') {
+                normalized[key] = this.numberToString (this.applyExponent (value, priceExponent));
+            } else if (key === 'origQty' || key === 'executedQty' || key === 'cummulativeQuoteQty') {
+                // Handle quantity-related fields
+                normalized[key] = this.numberToString (this.applyExponent (value, qtyExponent));
+            } else if (typeof value === 'bigint') {
+                // Convert BigInt to string for IDs
+                normalized[key] = String (value);
+            } else {
+                // Copy other fields as-is
+                normalized[key] = value;
+            }
+        }
+        return normalized;
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
@@ -2665,6 +2917,36 @@ export default class Exchange {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
         }
         return [ httpProxy, httpsProxy, socksProxy ];
+    }
+
+    decodeSbeResponse (buffer: ArrayBuffer, url: string) {
+        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
+        if (this.verbose) {
+            this.log ('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength);
+        }
+        try {
+            // Use global decodeSbeMessage with OKX decoder registry
+            const decoderRegistry = this.getSbeDecoderRegistry ();
+            const result = this.decodeSbeMessage (buffer, decoderRegistry);
+            const templateId = result['templateId'];
+            const decoded = result['data'];
+            if (this.verbose) {
+                this.log ('decodeSbeResponse: Template ID:', templateId);
+                this.log ('decodeSbeResponse: Successfully decoded SBE message');
+            }
+            return decoded;
+        } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : String (e);
+            const errorStack = e instanceof Error ? e.stack : '';
+            this.log ('decodeSbeResponse: Error decoding SBE buffer:', errorMessage);
+            this.log ('decodeSbeResponse: Stack trace:', errorStack);
+            this.log ('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes');
+            throw new ExchangeError (this.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to false in options.');
+        }
+    }
+
+    getSbeDecoderRegistry () {
+        return {};
     }
 
     checkWsProxySettings () {

@@ -10,7 +10,8 @@ async function testFetchOrderBookSbe (exchange: Exchange, skippedProperties: obj
     const method = 'fetchOrderBookSbe';
 
     // Check if the method exists (OKX-specific)
-    if (typeof (exchange as any).fetchOrderBookSbe !== 'function') {
+    const exchangeAny = exchange as any;
+    if (!exchangeAny.fetchOrderBookSbe) {
         console.log ('fetchOrderBookSbe is not supported by', exchange.id);
         return true;
     }

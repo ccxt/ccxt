@@ -5,10 +5,6 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { BboTbtChannelEventDecoder } from '../../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BboTbtChannelEvent.js';
-import { BooksL2TbtChannelEventDecoder } from '../../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtChannelEvent.js';
-import { BooksL2TbtExponentUpdateEventDecoder } from '../../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtExponentUpdateEvent.js';
-import { TradesChannelEventDecoder } from '../../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/TradesChannelEvent.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -2434,7 +2430,36 @@ export default class okx extends okxRest {
         if (message instanceof ArrayBuffer || ArrayBuffer.isView (message)) {
             const useSbe = this.safeBool (this.options, 'useSbe', this.safeBool (this, 'useSbe', false));
             if (useSbe) {
-                return this.handleSbeMessage (client, message);
+                // Validate SBE header before trying to decode
+                // OKX SBE WebSocket sends JSON for subscription confirmations and binary SBE for data
+                let uint8Array;
+                if (message instanceof ArrayBuffer) {
+                    uint8Array = new Uint8Array (message);
+                } else if (message instanceof Uint8Array) {
+                    uint8Array = message;
+                } else if (ArrayBuffer.isView (message)) {
+                    uint8Array = new Uint8Array (message.buffer, message.byteOffset, message.byteLength);
+                }
+                // Check if it looks like valid SBE by validating header
+                if (uint8Array && uint8Array.length >= 8) {
+                    const view = new DataView (uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength);
+                    const templateId = view.getUint16 (2, true); // offset 2, little-endian
+                    const schemaId = view.getUint16 (4, true);   // offset 4, little-endian
+                    // OKX SBE schema ID is 1, template IDs are 1000-1006
+                    if (schemaId === 1 && templateId >= 1000 && templateId <= 1006) {
+                        return this.handleSbeMessage (client, message);
+                    }
+                }
+                // Not valid SBE, try to decode as text (JSON subscription response)
+                try {
+                    const text = new TextDecoder ().decode (uint8Array);
+                    message = JSON.parse (text);
+                } catch (e) {
+                    if (this.verbose) {
+                        this.log ('handleMessage: Failed to decode binary message as text:', e);
+                    }
+                    return;
+                }
             }
         }
         if (!this.handleErrorMessage (client, message)) {
@@ -2536,42 +2561,6 @@ export default class okx extends okxRest {
                 }
             } else {
                 method.call (this, client, message);
-            }
-        }
-    }
-
-    handleSbeMessage (client: Client, message) {
-        if (this.verbose) {
-            this.log ('handleSbeMessage: Received binary message');
-        }
-        try {
-            // Define decoder registry for OKX WebSocket messages
-            const decoderRegistry = {
-                '1000': BboTbtChannelEventDecoder, // BboTbtChannelEvent
-                '1001': BooksL2TbtChannelEventDecoder, // BooksL2TbtChannelEvent
-                '1002': BooksL2TbtExponentUpdateEventDecoder, // BooksL2TbtExponentUpdateEvent
-                '1005': TradesChannelEventDecoder, // TradesChannelEvent
-            };
-            // Decode message using registry
-            const result = this.decodeSbeMessage (message, decoderRegistry);
-            const templateId = result['templateId'];
-            const decoded = result['data'];
-            if (this.verbose) {
-                this.log ('handleSbeMessage: Decoded template ID:', templateId);
-            }
-            // Route to appropriate handler
-            if (templateId === 1000) {
-                this.handleSbeBboTbt (client, decoded);
-            } else if (templateId === 1001) {
-                this.handleSbeBooksL2Tbt (client, decoded);
-            } else if (templateId === 1002) {
-                this.handleSbeBooksL2TbtExponentUpdate (client, decoded);
-            } else if (templateId === 1005) {
-                this.handleSbeTrades (client, decoded);
-            }
-        } catch (e) {
-            if (this.verbose) {
-                this.log ('handleSbeMessage: Failed to decode SBE message:', e);
             }
         }
     }
@@ -2727,6 +2716,19 @@ export default class okx extends okxRest {
             }
         }
         return undefined;
+    }
+
+    getSbeMessageHandlers () {
+        // Map SBE template IDs to handler methods for WebSocket messages
+        return {
+            '1000': this.handleSbeBboTbt,              // BboTbtChannelEvent
+            '1001': this.handleSbeBooksL2Tbt,          // BooksL2TbtChannelEvent
+            '1002': this.handleSbeBooksL2TbtExponentUpdate, // BooksL2TbtExponentUpdateEvent
+            '1003': this.handleSbeBooksL2Tbt,          // BooksL2TbtElpChannelEvent (same structure)
+            '1004': this.handleSbeBooksL2TbtExponentUpdate, // BooksL2TbtElpExponentUpdateEvent
+            '1005': this.handleSbeTrades,              // TradesChannelEvent
+            '1006': this.handleSbeBooksL2Tbt,          // SnapshotDepthResponseEvent
+        };
     }
 
     handleUnSubscriptionTrades (client: Client, symbol: string, channel: string) {

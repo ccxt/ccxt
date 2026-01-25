@@ -11,11 +11,6 @@ import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 import { WebSocketResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketResponse.js';
-import { DepthResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/DepthResponse.js';
-import { TradesResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TradesResponse.js';
-import { AccountResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountResponse.js';
-import { OrderResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderResponse.js';
-import { OrdersResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrdersResponse.js';
 import Client from '../base/ws/Client.js';
 import WsClient from '../base/ws/WsClient.js';
 
@@ -230,48 +225,6 @@ export default class binance extends binanceRest {
     }
 
     /**
-     * Decodes a nested SBE message based on its template ID (Binance-specific)
-     * @param {Uint8Array} buffer - The binary SBE message
-     * @returns {object} Decoded message
-     */
-    decodeSbeNestedMessage (buffer: Uint8Array): any {
-        const templateId = this.readSbeTemplateId (buffer);
-        if (this.verbose) {
-            this.log ('decodeSbeNestedMessage: templateId:', templateId, 'buffer length:', buffer.byteLength);
-        }
-        // Create an ArrayBuffer from the Uint8Array for the decoder
-        const arrayBuffer = buffer.buffer.slice (buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-        // Decode based on template ID
-        // Skip the 8-byte message header when decoding the message body
-        const messageOffset = 8;
-        try {
-            // Use decoder registry pattern for better transpilation
-            const decoderRegistry = {
-                '200': DepthResponseDecoder,
-                '201': TradesResponseDecoder,
-                '400': AccountResponseDecoder,
-                '403': OrderResponseDecoder,
-                '404': OrdersResponseDecoder,
-            };
-            const DecoderClass = decoderRegistry[templateId];
-            if (DecoderClass) {
-                const decoder = new DecoderClass ();
-                return decoder.decode (arrayBuffer, messageOffset);
-            } else {
-                if (this.verbose) {
-                    this.log ('decodeSbeNestedMessage: unknown template ID:', templateId);
-                }
-                return buffer; // Return raw buffer for unknown messages
-            }
-        } catch (e) {
-            if (this.verbose) {
-                this.log ('decodeSbeNestedMessage: error decoding templateId', templateId, ':', e);
-            }
-            return buffer; // Return raw buffer on error
-        }
-    }
-
-    /**
      * Decodes SBE-encoded WebSocket messages
      * @param {ArrayBuffer} buffer - The binary SBE message
      * @returns {object} Decoded message as JSON-compatible object
@@ -314,20 +267,10 @@ export default class binance extends binanceRest {
         }
     }
 
-    /**
-     * Override parent's client method to set binary message decoder for SBE
-     * @param {string} url - WebSocket URL
-     * @returns {WsClient} WebSocket client
-     */
     client (url: string): WsClient {
         const client = super.client (url);
-        // If the URL contains SBE parameters and we haven't set the decoder yet, set it now
-        if (url.indexOf ('responseFormat=sbe') > -1 && !client.binaryMessageDecoder) {
-            client.binaryMessageDecoder = this.decodeSbeWebSocketMessage.bind (this);
-            if (this.verbose) {
-                this.log ('client: set binaryMessageDecoder for SBE on URL:', url);
-            }
-        }
+        // Setup binary decoder for SBE WebSocket connections
+        this.setupSbeBinaryDecoder (client, url, this.decodeSbeWebSocketMessage.bind (this));
         return client;
     }
 

@@ -1628,6 +1628,21 @@ class Exchange {
             $this->last_response_headers = $response_headers;
         }
 
+        // Check if response is SBE binary format
+        $content_type = $this->safe_string($response_headers, 'Content-Type', '');
+        $useSbe = $this->safe_bool($this->options, 'useSbe', false);
+        if ($useSbe && (strpos($content_type, 'application/sbe') !== false || strpos($content_type, 'application/octet-stream') !== false)) {
+            // Handle SBE binary responses - decode using exchange-specific decoder
+            if ($this->verbose) {
+                $this->log('fetch: SBE binary response detected, buffer length:', strlen($result));
+            }
+            $decoded_sbe_response = $this->decode_sbe_response($result, $url);
+            if ($this->enableLastJsonResponse) {
+                $this->last_json_response = $decoded_sbe_response;
+            }
+            return $decoded_sbe_response;
+        }
+
         $json_response = null;
         $is_json_encoded_response = $this->is_json_encoded_object($result);
 
@@ -2361,6 +2376,340 @@ class Exchange {
         return strlen($binary);
     }
 
+    public function read_sbe_template_id($buffer) {
+        // Reads the template ID from an SBE message header
+        // SBE message header format (8 bytes):
+        // - blockLength (2 bytes, uint16, offset 0)
+        // - templateId (2 bytes, uint16, offset 2)
+        // - schemaId (2 bytes, uint16, offset 4)
+        // - version (2 bytes, uint16, offset 6)
+        if (strlen($buffer) < 8) {
+            return -1;
+        }
+        // Read uint16 at offset 2, little-endian
+        $template_id = unpack('v', substr($buffer, 2, 2))[1];
+        return $template_id;
+    }
+
+    public function apply_exponent($mantissa, $exponent) {
+        // Convert mantissa and exponent to decimal number
+        // Used by exchanges that encode prices/amounts as mantissa * 10^exponent
+        $mantissa_num = is_int($mantissa) ? floatval($mantissa) : $mantissa;
+        return $mantissa_num * pow(10, $exponent);
+    }
+
+    public function mantissa128_to_number($bytes_data) {
+        // Convert mantissa128 byte array to number
+        // mantissa128 is a signed 128-bit integer encoded as a little-endian byte array
+        // Used by Binance SBE for large volume values
+        if (!$bytes_data || (is_array($bytes_data) && count($bytes_data) === 0) || (is_string($bytes_data) && strlen($bytes_data) === 0)) {
+            return 0;
+        }
+        // Convert to string if it's an array
+        if (is_array($bytes_data)) {
+            $bytes_data = implode('', array_map('chr', $bytes_data));
+        }
+        // For mantissa128, we need to handle signed 128-bit integers
+        // The value −2^127 is nullValue by default
+        // For practical purposes, we'll read up to 8 bytes (64-bit) as most values fit
+        $result = 0;
+        $multiplier = 1;
+        // Read up to 8 bytes (64-bit safe range for PHP numbers)
+        $limit = min(strlen($bytes_data), 8);
+        for ($i = 0; $i < $limit; $i++) {
+            $result += ord($bytes_data[$i]) * $multiplier;
+            $multiplier *= 256;
+        }
+        return $result;
+    }
+
+    public function decode_sbe_message($buffer, $decoder_registry) {
+        // Decode SBE message using registered decoder based on template ID
+        // Convert to string if needed
+        if (is_object($buffer) && property_exists($buffer, 'content')) {
+            $buffer_bytes = $buffer->content;
+        } else {
+            $buffer_bytes = $buffer;
+        }
+
+        // Read template ID from header
+        $template_id = $this->read_sbe_template_id($buffer_bytes);
+
+        // Look up decoder class in registry
+        $decoder_class = $this->safe_value($decoder_registry, strval($template_id));
+        if (!$decoder_class) {
+            throw new ExchangeError($this->id . ' decode_sbe_message() unknown template ID: ' . strval($template_id));
+        }
+
+        // Instantiate and decode
+        // Skip 8-byte SBE message header (blockLength, templateId, schemaId, version)
+        $decoder = new $decoder_class();
+        $decoded = $decoder->decode($buffer_bytes, 8);
+
+        return array(
+            'templateId' => $template_id,
+            'data' => $decoded,
+        );
+    }
+
+    public function apply_sbe_exponents($data, $exponent_map = null) {
+        // Automatically apply exponents to mantissa fields in decoded SBE data
+        // Finds fields ending in 'Mantissa' and applies corresponding 'Exponent' field
+        if (!$data || !is_array($data)) {
+            return $data;
+        }
+
+        $result = array();
+
+        // Get all exponent fields first
+        $exponents = array();
+        foreach (array_keys($data) as $key) {
+            if (substr($key, -8) === 'Exponent') {
+                $exponents[$key] = $data[$key];
+            }
+        }
+
+        // Process all fields
+        foreach ($data as $key => $value) {
+            // Handle arrays recursively
+            if (is_array($value) && array_keys($value) === range(0, count($value) - 1)) {
+                // It's a list
+                $mapped_array = array();
+                foreach ($value as $item) {
+                    $mapped_array[] = $this->apply_sbe_exponents($item, $exponent_map);
+                }
+                $result[$key] = $mapped_array;
+            } elseif (substr($key, -8) === 'Mantissa') {
+                // Find corresponding exponent
+                $base_field_name = str_replace('Mantissa', '', $key);
+                $exponent_key = $base_field_name . 'Exponent';
+
+                // Check if custom exponent mapping provided
+                if ($exponent_map && array_key_exists($key, $exponent_map)) {
+                    $exponent_key = $exponent_map[$key];
+                }
+
+                $exponent = array_key_exists($exponent_key, $exponents) ? $exponents[$exponent_key] : 0;
+
+                // Convert mantissa to decimal number
+                $mantissa_num = is_int($value) ? floatval($value) : $value;
+                $result[$base_field_name] = $this->apply_exponent($mantissa_num, $exponent);
+            } elseif (substr($key, -8) !== 'Exponent') {
+                // Copy non-exponent fields
+                $result[$key] = $value;
+            }
+        }
+
+        return $result;
+    }
+
+    public function setup_sbe_binary_decoder($client, string $url, $decoder_function = null) {
+        // Setup binary message decoder for SBE WebSocket connections
+        // Check if URL indicates SBE format and decoder not already set
+        $is_sbe_url = strpos($url, 'responseFormat=sbe') !== false ||
+                      strpos($url, '/public-sbe') !== false ||
+                      strpos($url, '/ws-sbe') !== false;
+
+        if ($is_sbe_url && !isset($client->binaryMessageDecoder)) {
+            if ($decoder_function !== null) {
+                $client->binaryMessageDecoder = $decoder_function;
+            } else {
+                $client->binaryMessageDecoder = array($this, 'decode_sbe_websocket_message');
+            }
+            if ($this->verbose) {
+                $this->log('setup_sbe_binary_decoder: Set binary decoder for SBE on URL:', $url);
+            }
+        }
+    }
+
+    public function decode_sbe_nested_message($buffer) {
+        // Decode nested SBE message (used in envelope patterns like Binance WebSocket)
+        $template_id = $this->read_sbe_template_id($buffer);
+        if ($this->verbose) {
+            $this->log('decode_sbe_nested_message: templateId:', $template_id, 'buffer length:', strlen($buffer));
+        }
+
+        $registry = $this->get_sbe_decoder_registry();
+        $decoder_class = $this->safe_string($registry, strval($template_id));
+
+        if ($decoder_class === null) {
+            if ($this->verbose) {
+                $this->log('decode_sbe_nested_message: unknown template ID:', $template_id);
+            }
+            return null;
+        }
+
+        try {
+            $decoder = new $decoder_class();
+            $decoded = $decoder->decode($buffer, 8);
+            return $decoded;
+        } catch (Exception $e) {
+            if ($this->verbose) {
+                $this->log('decode_sbe_nested_message: error decoding templateId', $template_id, ':', $e->getMessage());
+            }
+            return null;
+        }
+    }
+
+    public function decode_sbe_websocket_message($buffer) {
+        // Decode SBE-encoded WebSocket message
+        // Override this in exchange class to handle exchange-specific envelope patterns
+        // Default implementation: direct decode without envelope
+        $result = $this->decode_sbe_message($buffer, $this->get_sbe_decoder_registry());
+        return $result['data'];
+    }
+
+    public function get_sbe_message_handlers() {
+        // Get SBE message handlers registry
+        // Override this in exchange class to provide message routing
+        return array();
+    }
+
+    public function handle_sbe_message($client, $message) {
+        // Handle SBE binary message with automatic routing
+        try {
+            if ($this->verbose) {
+                $this->log('handle_sbe_message: Received binary message, size:', strlen($message));
+            }
+
+            // Decode the SBE message
+            $decoder_registry = $this->get_sbe_decoder_registry();
+            $result = $this->decode_sbe_message($message, $decoder_registry);
+            $template_id = $result['templateId'];
+            $decoded = $result['data'];
+
+            if ($this->verbose) {
+                $this->log('handle_sbe_message: Decoded template ID:', $template_id);
+            }
+
+            // Route to appropriate handler
+            $handlers = $this->get_sbe_message_handlers();
+            $handler = $this->safe_value($handlers, strval($template_id));
+
+            if ($handler !== null) {
+                call_user_func($handler, $client, $decoded);
+            } elseif ($this->verbose) {
+                $this->log('handle_sbe_message: No handler for template ID:', $template_id);
+            }
+        } catch (Exception $e) {
+            if ($this->verbose) {
+                $this->log('handle_sbe_message: Failed to decode SBE message:', $e->getMessage());
+            }
+        }
+    }
+
+    public function format_sbe_orderbook($message, $bids_key = 'bids', $asks_key = 'asks', $price_key = 'px', $size_key = 'sz') {
+        // Format orderbook from SBE message with exponents
+        // Convenience helper for common orderbook processing pattern
+        $px_exponent = $this->safe_integer($message, 'pxExponent', $this->safe_integer($message, 'priceExponent', 0));
+        $sz_exponent = $this->safe_integer($message, 'szExponent', $this->safe_integer($message, 'qtyExponent', 0));
+        $raw_bids = $this->safe_value($message, $bids_key, array());
+        $raw_asks = $this->safe_value($message, $asks_key, array());
+
+        $bids = array();
+        $asks = array();
+
+        // Process bids
+        foreach ($raw_bids as $bid) {
+            $px_mantissa = $this->safe_integer($bid, $price_key . 'Mantissa', $this->safe_integer($bid, $price_key, 0));
+            $sz_mantissa = $this->safe_integer($bid, $size_key . 'Mantissa', $this->safe_integer($bid, $size_key, 0));
+            $price = $this->apply_exponent($px_mantissa, $px_exponent);
+            $size = $this->apply_exponent($sz_mantissa, $sz_exponent);
+            $bids[] = array($price, $size);
+        }
+
+        // Process asks
+        foreach ($raw_asks as $ask) {
+            $px_mantissa = $this->safe_integer($ask, $price_key . 'Mantissa', $this->safe_integer($ask, $price_key, 0));
+            $sz_mantissa = $this->safe_integer($ask, $size_key . 'Mantissa', $this->safe_integer($ask, $size_key, 0));
+            $price = $this->apply_exponent($px_mantissa, $px_exponent);
+            $size = $this->apply_exponent($sz_mantissa, $sz_exponent);
+            $asks[] = array($price, $size);
+        }
+
+        return array(
+            'bids' => $bids,
+            'asks' => $asks,
+        );
+    }
+
+    public function safe_big_int($dictionary, $key, $default_value = null) {
+        // Safely access a large integer value
+        // PHP handles large integers natively, but this provides consistent interface
+        $value = $this->safe_value($dictionary, $key, $default_value);
+        if ($value === null) {
+            return $default_value;
+        }
+        return is_int($value) ? $value : intval($value);
+    }
+
+    public function convert_big_int_fields($obj, $fields = null) {
+        // Convert all large integer fields in an object
+        // Useful for SBE messages that use large integers for IDs and timestamps
+        if (!$obj || !is_array($obj)) {
+            return $obj;
+        }
+
+        $result = array();
+        $keys = ($fields !== null) ? $fields : array_keys($obj);
+
+        foreach ($keys as $key) {
+            $value = $this->safe_value($obj, $key);
+            if (is_int($value)) {
+                $result[$key] = $value;
+            } elseif (is_array($value)) {
+                $mapped = array();
+                foreach ($value as $item) {
+                    $mapped[] = $this->convert_big_int_fields($item, $fields);
+                }
+                $result[$key] = $mapped;
+            } else {
+                $result[$key] = $value;
+            }
+        }
+
+        return $result;
+    }
+
+    public function normalize_sbe_order($order) {
+        // Normalize SBE order data (common pattern for Binance WebSocket)
+        // Converts exponent fields to actual values
+
+        // Check if this is SBE format (has exponent fields)
+        $has_exponents = array_key_exists('priceExponent', $order) || array_key_exists('qtyExponent', $order);
+        if (!$has_exponents) {
+            return $order; // Already normalized or not SBE format
+        }
+
+        // Apply exponents and convert to standard format
+        $price_exponent = $this->safe_integer($order, 'priceExponent', 0);
+        $qty_exponent = $this->safe_integer($order, 'qtyExponent', 0);
+        $normalized = array();
+
+        foreach ($order as $key => $value) {
+            // Skip exponent fields themselves
+            if (substr($key, -8) === 'Exponent') {
+                continue;
+            }
+
+            // Handle price-related fields
+            if (in_array($key, array('price', 'stopPrice', 'icebergQty'))) {
+                $normalized[$key] = $this->number_to_string($this->apply_exponent($value, $price_exponent));
+            } elseif (in_array($key, array('origQty', 'executedQty', 'cummulativeQuoteQty'))) {
+                // Handle quantity-related fields
+                $normalized[$key] = $this->number_to_string($this->apply_exponent($value, $qty_exponent));
+            } elseif (is_int($value) && $value > 9007199254740991) {
+                // Convert large integers to strings for IDs (beyond JavaScript safe integer)
+                $normalized[$key] = strval($value);
+            } else {
+                // Copy other fields as-is
+                $normalized[$key] = $value;
+            }
+        }
+
+        return $normalized;
+    }
+
     public function get_zk_contract_signature_obj($seed, $params) {
          throw new NotSupported ('Apex currently does not support create order in PHP language');
          return "";
@@ -2536,7 +2885,6 @@ class Exchange {
                 'createTriggerOrderWs' => null,
                 'deposit' => null,
                 'editOrder' => 'emulated',
-                'editOrderWithClientOrderId' => null,
                 'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
@@ -2615,7 +2963,6 @@ class Exchange {
                 'fetchOption' => null,
                 'fetchOptionChain' => null,
                 'fetchOrder' => null,
-                'fetchOrderWithClientOrderId' => null,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrderBookWs' => null,
@@ -3027,6 +3374,36 @@ class Exchange {
             throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => $httpProxy, $httpsProxy, httpProxyCallback, httpsProxyCallback, $socksProxy, socksProxyCallback');
         }
         return array( $httpProxy, $httpsProxy, $socksProxy );
+    }
+
+    public function decode_sbe_response(string $buffer, string $url) {
+        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
+        if ($this->verbose) {
+            $this->log('decodeSbeResponse => Decoding SBE $buffer, size:', strlen($buffer));
+        }
+        try {
+            // Use global decodeSbeMessage with OKX decoder registry
+            $decoderRegistry = $this->get_sbe_decoder_registry();
+            $result = $this->decode_sbe_message($buffer, $decoderRegistry);
+            $templateId = $result['templateId'];
+            $decoded = $result['data'];
+            if ($this->verbose) {
+                $this->log('decodeSbeResponse => Template ID:', $templateId);
+                $this->log('decodeSbeResponse => Successfully $decoded SBE message');
+            }
+            return $decoded;
+        } catch (Exception $e) {
+            $errorMessage = $e instanceof Error ? $e->message : 'strval' ($e);
+            $errorStack = $e instanceof Error ? $e->stack : '';
+            $this->log('decodeSbeResponse => Error decoding SBE $buffer:', $errorMessage);
+            $this->log('decodeSbeResponse => Stack trace:', $errorStack);
+            $this->log('decodeSbeResponse => Buffer size:', strlen($buffer), 'bytes');
+            throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . $errorMessage . '. Try setting useSbe to false in options.');
+        }
+    }
+
+    public function get_sbe_decoder_registry() {
+        return array();
     }
 
     public function check_ws_proxy_settings() {

@@ -235,6 +235,86 @@ generate_code() {
     fi
 }
 
+# Function to organize Go files into go/v4/sbe/
+# This ensures Go imports work correctly within the Go module
+organize_go_files() {
+    print_info "Organizing Go files for Go module..."
+
+    local go_sbe_dir="$(dirname "$SBE_FOLDER")/go/v4/sbe"
+
+    # Create the go/v4/sbe directory if it doesn't exist
+    mkdir -p "$go_sbe_dir"
+
+    # Find all generated-golang directories
+    while IFS= read -r golang_dir; do
+        # Extract exchange and version from path
+        # Example: sbe/binance/spot_3_2/generated-golang -> binance_spot_3_2
+        # Example: sbe/okx/okx_sbe_1_0/generated-golang -> okx_1_0
+
+        local rel_path="${golang_dir#$SBE_FOLDER/}"
+        local exchange_path="${rel_path%/generated-golang}"
+
+        # Parse exchange and schema parts
+        local exchange=$(echo "$exchange_path" | cut -d'/' -f1)
+        local schema=$(echo "$exchange_path" | cut -d'/' -f2)
+
+        # Create clean package name
+        local package_name=""
+        if [[ "$schema" == "okx_sbe_"* ]]; then
+            # okx_sbe_1_0 -> okx_1_0
+            package_name="okx_${schema#okx_sbe_}"
+        elif [[ "$schema" == "spot_"* ]]; then
+            # binance/spot_3_2 -> binance_spot_3_2
+            package_name="${exchange}_${schema}"
+        elif [[ "$schema" == "stream_"* ]]; then
+            # binance/stream_1_0 -> binance_stream_1_0
+            package_name="${exchange}_${schema}"
+        else
+            # Generic fallback
+            package_name="${exchange}_${schema}"
+        fi
+
+        # Clean up package name (remove special chars)
+        package_name=$(echo "$package_name" | tr '-' '_')
+
+        local target_dir="$go_sbe_dir/$package_name"
+
+        print_info "Copying Go files: $exchange_path -> go/v4/sbe/$package_name"
+
+        # Find the subdirectory with Go files (spot_sbe, com_okx_sbe, etc.)
+        local source_package_dir=$(find "$golang_dir" -type d -mindepth 1 -maxdepth 1 | head -n 1)
+
+        if [ -z "$source_package_dir" ]; then
+            print_warn "No Go package directory found in $golang_dir"
+            continue
+        fi
+
+        # Create target directory
+        mkdir -p "$target_dir"
+
+        # Copy all .go files
+        cp -f "$source_package_dir"/*.go "$target_dir/" 2>/dev/null || true
+
+        # Update package declaration in all Go files
+        local old_package=$(basename "$source_package_dir")
+        for go_file in "$target_dir"/*.go; do
+            if [ -f "$go_file" ]; then
+                # Replace package declaration
+                # From: package spot_sbe
+                # To:   package binance_spot_3_2
+                sed -i.bak "s/^package $old_package$/package $package_name/" "$go_file"
+                # Remove backup files
+                rm -f "$go_file.bak"
+            fi
+        done
+
+        print_info "✓ Organized $package_name ($(ls -1 "$target_dir"/*.go 2>/dev/null | wc -l | tr -d ' ') files)"
+
+    done < <(find "$SBE_FOLDER" -type d -name "generated-golang")
+
+    print_info "✓ Go files organized in go/v4/sbe/"
+}
+
 # Main execution
 main() {
     print_info "Starting SBE code generation..."
@@ -276,6 +356,9 @@ main() {
         print_warn "Completed with $errors error(s)"
         exit 1
     fi
+
+    # Organize Go files for Go module
+    organize_go_files
 }
 
 # Run main function
