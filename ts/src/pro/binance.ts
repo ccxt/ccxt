@@ -4912,7 +4912,7 @@ export default class binance extends binanceRest {
                             normalized['isBuyer'] = this.safeBool (trade, 'isBuyer', false);
                             normalized['isMaker'] = this.safeBool (trade, 'isMaker', false);
                         }
-                        normalizedTrades.push (normalized); 
+                        normalizedTrades.push (normalized);
                     }
                     trades = this.parseTrades (normalizedTrades);
                 }
