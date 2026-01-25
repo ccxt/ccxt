@@ -19,9 +19,13 @@ async function example () {
     });
 
     await exchange.loadMarkets ();
-    Object.values (exchange.markets).filter ((p) => p['info']['hip3']).forEach ((market) => {
-        console.log (market['symbol'], 'from DEX');
-    });
+    const markets = Object.values (exchange.markets);
+    for (let i = 0; i < markets.length; i++) {
+        const market = markets[i];
+        if (market['info']['hip3']) {
+            console.log (market['symbol'], 'from DEX');
+        }
+    }
 }
 await example ();
  

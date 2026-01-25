@@ -188,8 +188,12 @@ public partial class BaseTest
 
 public partial class BaseTest
 {
-    public void testLanguageSpecific()
+    public async Task testLanguageSpecific()
     {
         MultithreadTest().Wait();
+        
+        // Run throttler performance test
+        var baseTest = new BaseTest();
+        await baseTest.testThrottlerPerformance();
     }
 }

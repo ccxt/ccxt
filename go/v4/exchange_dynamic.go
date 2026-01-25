@@ -9,6 +9,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		ExchangeItf := NewExchange()
 		ExchangeItf.Init(exchangeArgs)
 		return ExchangeItf, true
+	case "alp":
+		alpItf := NewAlpCore()
+		alpItf.Init(exchangeArgs)
+		return alpItf, true
 	case "alpaca":
 		alpacaItf := NewAlpacaCore()
 		alpacaItf.Init(exchangeArgs)
@@ -25,6 +29,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		ascendexItf := NewAscendexCore()
 		ascendexItf.Init(exchangeArgs)
 		return ascendexItf, true
+	case "aster":
+		asterItf := NewAsterCore()
+		asterItf.Init(exchangeArgs)
+		return asterItf, true
 	case "backpack":
 		backpackItf := NewBackpackCore()
 		backpackItf.Init(exchangeArgs)
@@ -129,10 +137,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		blofinItf := NewBlofinCore()
 		blofinItf.Init(exchangeArgs)
 		return blofinItf, true
-	case "btcalpha":
-		btcalphaItf := NewBtcalphaCore()
-		btcalphaItf.Init(exchangeArgs)
-		return btcalphaItf, true
 	case "btcbox":
 		btcboxItf := NewBtcboxCore()
 		btcboxItf.Init(exchangeArgs)
@@ -153,6 +157,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		bybitItf := NewBybitCore()
 		bybitItf.Init(exchangeArgs)
 		return bybitItf, true
+	case "bydfi":
+		bydfiItf := NewBydfiCore()
+		bydfiItf.Init(exchangeArgs)
+		return bydfiItf, true
 	case "cex":
 		cexItf := NewCexCore()
 		cexItf.Init(exchangeArgs)
@@ -353,10 +361,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		novadaxItf := NewNovadaxCore()
 		novadaxItf.Init(exchangeArgs)
 		return novadaxItf, true
-	case "oceanex":
-		oceanexItf := NewOceanexCore()
-		oceanexItf.Init(exchangeArgs)
-		return oceanexItf, true
 	case "okx":
 		okxItf := NewOkxCore()
 		okxItf.Init(exchangeArgs)

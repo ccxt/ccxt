@@ -222,6 +222,7 @@ interface Exchange {
     sapiGetPortfolioNegativeBalanceExchangeRecord(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioPmloanHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioEarnAssetBalance(params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioDeltaMode(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord(params?: {}): Promise<implicitReturnType>;
@@ -365,6 +366,7 @@ interface Exchange {
     sapiPostPortfolioMint(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRedeem(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioEarnAssetTransfer(params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioDeltaMode(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanAdd(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEdit(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEditStatus(params?: {}): Promise<implicitReturnType>;
@@ -505,6 +507,8 @@ interface Exchange {
     fapiPublicGetLvtKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetInsuranceBalance(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetSymbolAdlRisk(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetTradingSchedule(params?: {}): Promise<implicitReturnType>;
     fapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
@@ -528,7 +532,6 @@ interface Exchange {
     fapiPrivateGetCommissionRate(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
-    fapiPrivateGetSymbolAdlRisk(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetMultiAssetsMargin(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralIfNewUser(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralCustomization(params?: {}): Promise<implicitReturnType>;
@@ -554,6 +557,7 @@ interface Exchange {
     fapiPrivateGetAlgoOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOpenAlgoOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetAllAlgoOrders(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetStockContract(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin(params?: {}): Promise<implicitReturnType>;
@@ -615,6 +619,7 @@ interface Exchange {
     eapiPrivateGetBlockOrderExecute(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBlockUserTrades(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBlockTrades(params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetComission(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostListenKey(params?: {}): Promise<implicitReturnType>;
@@ -666,6 +671,8 @@ interface Exchange {
     privatePostOrderListOco(params?: {}): Promise<implicitReturnType>;
     privatePostOrderListOto(params?: {}): Promise<implicitReturnType>;
     privatePostOrderListOtoco(params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOpo(params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOpoco(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest(params?: {}): Promise<implicitReturnType>;
     privatePostOrder(params?: {}): Promise<implicitReturnType>;

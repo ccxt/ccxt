@@ -1116,6 +1116,11 @@ public partial class binance : Exchange
         return await this.callAsync ("sapiGetPortfolioEarnAssetBalance",parameters);
     }
 
+    public async Task<object> sapiGetPortfolioDeltaMode (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetPortfolioDeltaMode",parameters);
+    }
+
     public async Task<object> sapiGetStakingProductList (object parameters = null)
     {
         return await this.callAsync ("sapiGetStakingProductList",parameters);
@@ -1831,6 +1836,11 @@ public partial class binance : Exchange
         return await this.callAsync ("sapiPostPortfolioEarnAssetTransfer",parameters);
     }
 
+    public async Task<object> sapiPostPortfolioDeltaMode (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostPortfolioDeltaMode",parameters);
+    }
+
     public async Task<object> sapiPostLendingAutoInvestPlanAdd (object parameters = null)
     {
         return await this.callAsync ("sapiPostLendingAutoInvestPlanAdd",parameters);
@@ -2531,6 +2541,16 @@ public partial class binance : Exchange
         return await this.callAsync ("fapiPublicGetInsuranceBalance",parameters);
     }
 
+    public async Task<object> fapiPublicGetSymbolAdlRisk (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetSymbolAdlRisk",parameters);
+    }
+
+    public async Task<object> fapiPublicGetTradingSchedule (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetTradingSchedule",parameters);
+    }
+
     public async Task<object> fapiDataGetDeliveryPrice (object parameters = null)
     {
         return await this.callAsync ("fapiDataGetDeliveryPrice",parameters);
@@ -2644,11 +2664,6 @@ public partial class binance : Exchange
     public async Task<object> fapiPrivateGetApiTradingStatus (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetApiTradingStatus",parameters);
-    }
-
-    public async Task<object> fapiPrivateGetSymbolAdlRisk (object parameters = null)
-    {
-        return await this.callAsync ("fapiPrivateGetSymbolAdlRisk",parameters);
     }
 
     public async Task<object> fapiPrivateGetMultiAssetsMargin (object parameters = null)
@@ -2774,6 +2789,11 @@ public partial class binance : Exchange
     public async Task<object> fapiPrivateGetAllAlgoOrders (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetAllAlgoOrders",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetStockContract (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetStockContract",parameters);
     }
 
     public async Task<object> fapiPrivatePostBatchOrders (object parameters = null)
@@ -3081,6 +3101,11 @@ public partial class binance : Exchange
         return await this.callAsync ("eapiPrivateGetBlockTrades",parameters);
     }
 
+    public async Task<object> eapiPrivateGetComission (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetComission",parameters);
+    }
+
     public async Task<object> eapiPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePostOrder",parameters);
@@ -3334,6 +3359,16 @@ public partial class binance : Exchange
     public async Task<object> privatePostOrderListOtoco (object parameters = null)
     {
         return await this.callAsync ("privatePostOrderListOtoco",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOpo (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOpo",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOpoco (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOpoco",parameters);
     }
 
     public async Task<object> privatePostSorOrder (object parameters = null)

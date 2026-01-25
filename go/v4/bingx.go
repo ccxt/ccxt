@@ -72,6 +72,7 @@ func (this *BingxCore) Describe() interface{} {
 			"fetchDeposits":                        true,
 			"fetchDepositWithdrawFee":              "emulated",
 			"fetchDepositWithdrawFees":             true,
+			"fetchFundingHistory":                  true,
 			"fetchFundingRate":                     true,
 			"fetchFundingRateHistory":              true,
 			"fetchFundingRates":                    true,
@@ -82,6 +83,7 @@ func (this *BingxCore) Describe() interface{} {
 			"fetchLiquidations":                    false,
 			"fetchMarginAdjustmentHistory":         false,
 			"fetchMarginMode":                      true,
+			"fetchMarketLeverageTiers":             true,
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       true,
 			"fetchMarkPrice":                       true,
@@ -306,6 +308,7 @@ func (this *BingxCore) Describe() interface{} {
 							"quote/bookTicker":    1,
 						},
 						"post": map[string]interface{}{
+							"trade/getVst":            5,
 							"trade/order":             2,
 							"trade/batchOrders":       2,
 							"trade/closeAllPositions": 2,
@@ -1246,17 +1249,17 @@ func (this *BingxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes11668 := (<-this.LoadMarkets())
-		PanicOnError(retRes11668)
+		retRes11698 := (<-this.LoadMarkets())
+		PanicOnError(retRes11698)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes117019 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
-			PanicOnError(retRes117019)
-			ch <- retRes117019
+			retRes117319 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
+			PanicOnError(retRes117319)
+			ch <- retRes117319
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -1397,7 +1400,7 @@ func (this *BingxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BingxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1411,8 +1414,8 @@ func (this *BingxCore) FetchTrades(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes13138 := (<-this.LoadMarkets())
-		PanicOnError(retRes13138)
+		retRes13168 := (<-this.LoadMarkets())
+		PanicOnError(retRes13168)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1656,7 +1659,7 @@ func (this *BingxCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BingxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1668,8 +1671,8 @@ func (this *BingxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15488 := (<-this.LoadMarkets())
-		PanicOnError(retRes15488)
+		retRes15518 := (<-this.LoadMarkets())
+		PanicOnError(retRes15518)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1792,7 +1795,7 @@ func (this *BingxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *BingxCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1802,8 +1805,8 @@ func (this *BingxCore) FetchFundingRate(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes16618 := (<-this.LoadMarkets())
-		PanicOnError(retRes16618)
+		retRes16648 := (<-this.LoadMarkets())
+		PanicOnError(retRes16648)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1850,7 +1853,7 @@ func (this *BingxCore) FetchFundingRate(symbol interface{}, optionalArgs ...inte
  * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *BingxCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1862,8 +1865,8 @@ func (this *BingxCore) FetchFundingRates(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17028 := (<-this.LoadMarkets())
-		PanicOnError(retRes17028)
+		retRes17058 := (<-this.LoadMarkets())
+		PanicOnError(retRes17058)
 		symbols = this.MarketSymbols(symbols, "swap", true)
 
 		response := (<-this.SwapV2PublicGetQuotePremiumIndex(this.Extend(params)))
@@ -1919,11 +1922,11 @@ func (this *BingxCore) ParseFundingRate(contract interface{}, optionalArgs ...in
  * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1942,17 +1945,17 @@ func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes17608 := (<-this.LoadMarkets())
-		PanicOnError(retRes17608)
+		retRes17638 := (<-this.LoadMarkets())
+		PanicOnError(retRes17638)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes176419 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes176419)
-			ch <- retRes176419
+			retRes176719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes176719)
+			ch <- retRes176719
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -2017,13 +2020,126 @@ func (this *BingxCore) ParseFundingRateHistory(contract interface{}, optionalArg
 
 /**
  * @method
+ * @name bingx#fetchFundingHistory
+ * @description fetches historical funding received
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+ * @param {string} symbol unified symbol of the market to fetch the funding history for
+ * @param {int} [since] timestamp in ms of the earliest funding to fetch
+ * @param {int} [limit] the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding to fetch
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+ */
+func (this *BingxCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbol := GetArg(optionalArgs, 0, nil)
+		_ = symbol
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		_ = params
+
+		retRes18348 := (<-this.LoadMarkets())
+		PanicOnError(retRes18348)
+		var paginate interface{} = false
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+		paginate = GetValue(paginateparamsVariable, 0)
+		params = GetValue(paginateparamsVariable, 1)
+		if IsTrue(paginate) {
+
+			retRes183819 := (<-this.FetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", params))
+			PanicOnError(retRes183819)
+			ch <- retRes183819
+			return nil
+		}
+		var request interface{} = map[string]interface{}{
+			"incomeType": "FUNDING_FEE",
+		}
+		var market interface{} = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+			AddElementToObject(request, "symbol", GetValue(market, "id"))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "startTime", since)
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+		var until interface{} = this.SafeInteger2(params, "until", "endTime")
+		if IsTrue(!IsEqual(until, nil)) {
+			params = this.Omit(params, []interface{}{"until"})
+			AddElementToObject(request, "endTime", until)
+		}
+
+		response := (<-this.SwapV2PrivateGetUserIncome(this.Extend(request, params)))
+		PanicOnError(response)
+		//         {
+		//             "code": 0,
+		//             "msg": "",
+		//             "data": [
+		//                 {
+		//                 "symbol": "LDO-USDT",
+		//                 "incomeType": "FUNDING_FEE",
+		//                 "income": "-0.0292",
+		//                 "asset": "USDT",
+		//                 "info": "Funding Fee",
+		//                 "time": 1702713615000,
+		//                 "tranId": "170***6*2_3*9_20***97",
+		//                 "tradeId": "170***6*2_3*9_20***97"
+		//                 }
+		//             ]
+		//         }
+		var data interface{} = this.SafeList(response, "data", []interface{}{})
+
+		ch <- this.ParseIncomes(data, market, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BingxCore) ParseIncome(income interface{}, optionalArgs ...interface{}) interface{} {
+	// {
+	//     "symbol": "LDO-USDT",
+	//     "incomeType": "FUNDING_FEE",
+	//     "income": "-0.0292",
+	//     "asset": "USDT",
+	//     "info": "Funding Fee",
+	//     "time": 1702713615000,
+	//     "tranId": "170***6*2_3*9_20***97",
+	//     "tradeId": "170***6*2_3*9_20***97"
+	// }
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId interface{} = this.SafeString(income, "symbol")
+	var currencyId interface{} = this.SafeString(income, "asset")
+	var timestamp interface{} = this.SafeInteger(income, "time")
+	return map[string]interface{}{
+		"info":      income,
+		"symbol":    this.SafeSymbol(marketId, market, nil, "swap"),
+		"code":      this.SafeCurrencyCode(currencyId),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"id":        this.SafeString(income, "tranId"),
+		"amount":    this.SafeNumber(income, "income"),
+		"type":      "funding",
+	}
+}
+
+/**
+ * @method
  * @name bingx#fetchOpenInterest
  * @description retrieves the open interest of a trading pair
  * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *BingxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2033,8 +2149,8 @@ func (this *BingxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18298 := (<-this.LoadMarkets())
-		PanicOnError(retRes18298)
+		retRes19178 := (<-this.LoadMarkets())
+		PanicOnError(retRes19178)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2136,7 +2252,7 @@ func (this *BingxCore) ParseOpenInterest(interest interface{}, optionalArgs ...i
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BingxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2146,8 +2262,8 @@ func (this *BingxCore) FetchTicker(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes19248 := (<-this.LoadMarkets())
-		PanicOnError(retRes19248)
+		retRes20128 := (<-this.LoadMarkets())
+		PanicOnError(retRes20128)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2221,7 +2337,7 @@ func (this *BingxCore) FetchTicker(symbol interface{}, optionalArgs ...interface
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BingxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2233,8 +2349,8 @@ func (this *BingxCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19888 := (<-this.LoadMarkets())
-		PanicOnError(retRes19888)
+		retRes20768 := (<-this.LoadMarkets())
+		PanicOnError(retRes20768)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -2312,7 +2428,7 @@ func (this *BingxCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
  * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BingxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2322,8 +2438,8 @@ func (this *BingxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20548 := (<-this.LoadMarkets())
-		PanicOnError(retRes20548)
+		retRes21428 := (<-this.LoadMarkets())
+		PanicOnError(retRes21428)
 		var market interface{} = this.Market(symbol)
 		var subType interface{} = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear")
@@ -2362,7 +2478,7 @@ func (this *BingxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interf
  * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BingxCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2374,8 +2490,8 @@ func (this *BingxCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21128 := (<-this.LoadMarkets())
-		PanicOnError(retRes21128)
+		retRes22008 := (<-this.LoadMarkets())
+		PanicOnError(retRes22008)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -2551,7 +2667,7 @@ func (this *BingxCore) ParseTicker(ticker interface{}, optionalArgs ...interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.standard] whether to fetch standard contract balances
  * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BingxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2561,8 +2677,8 @@ func (this *BingxCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22798 := (<-this.LoadMarkets())
-		PanicOnError(retRes22798)
+		retRes23678 := (<-this.LoadMarkets())
+		PanicOnError(retRes23678)
 		var response interface{} = nil
 		var standard interface{} = nil
 		standardparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "standard", false)
@@ -2730,7 +2846,7 @@ func (this *BingxCore) ParseBalance(response interface{}) interface{} {
  * @param {int} [limit] the maximum amount of records to fetch
  * @param {object} [params] extra parameters specific to the exchange api endpoint
  * @param {int} [params.until] the latest time in ms to fetch positions for
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BingxCore) FetchPositionHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2744,8 +2860,8 @@ func (this *BingxCore) FetchPositionHistory(symbol interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes25138 := (<-this.LoadMarkets())
-		PanicOnError(retRes25138)
+		retRes26018 := (<-this.LoadMarkets())
+		PanicOnError(retRes26018)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2816,7 +2932,7 @@ func (this *BingxCore) FetchPositionHistory(symbol interface{}, optionalArgs ...
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.standard] whether to fetch standard contract positions
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BingxCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2828,8 +2944,8 @@ func (this *BingxCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25788 := (<-this.LoadMarkets())
-		PanicOnError(retRes25788)
+		retRes26668 := (<-this.LoadMarkets())
+		PanicOnError(retRes26668)
 		symbols = this.MarketSymbols(symbols)
 		var standard interface{} = nil
 		standardparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "standard", false)
@@ -2880,7 +2996,7 @@ func (this *BingxCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BingxCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2890,8 +3006,8 @@ func (this *BingxCore) FetchPosition(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes26748 := (<-this.LoadMarkets())
-		PanicOnError(retRes26748)
+		retRes27628 := (<-this.LoadMarkets())
+		PanicOnError(retRes27628)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadRequest(Add(this.Id, " fetchPosition() supports swap markets only")))
@@ -3051,7 +3167,7 @@ func (this *BingxCore) ParsePosition(position interface{}, optionalArgs ...inter
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) CreateMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3062,9 +3178,9 @@ func (this *BingxCore) CreateMarketOrderWithCost(symbol interface{}, side interf
 		_ = params
 		AddElementToObject(params, "quoteOrderQty", cost)
 
-		retRes288515 := (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
-		PanicOnError(retRes288515)
-		ch <- retRes288515
+		retRes297315 := (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
+		PanicOnError(retRes297315)
+		ch <- retRes297315
 		return nil
 
 	}()
@@ -3078,7 +3194,7 @@ func (this *BingxCore) CreateMarketOrderWithCost(symbol interface{}, side interf
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3089,9 +3205,9 @@ func (this *BingxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost int
 		_ = params
 		AddElementToObject(params, "quoteOrderQty", cost)
 
-		retRes289915 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes289915)
-		ch <- retRes289915
+		retRes298715 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes298715)
+		ch <- retRes298715
 		return nil
 
 	}()
@@ -3105,7 +3221,7 @@ func (this *BingxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost int
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3116,9 +3232,9 @@ func (this *BingxCore) CreateMarketSellOrderWithCost(symbol interface{}, cost in
 		_ = params
 		AddElementToObject(params, "quoteOrderQty", cost)
 
-		retRes291315 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-		PanicOnError(retRes291315)
-		ch <- retRes291315
+		retRes300115 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+		PanicOnError(retRes300115)
+		ch <- retRes300115
 		return nil
 
 	}()
@@ -3251,8 +3367,8 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 		var isTrailing interface{} = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
 		var stopLoss interface{} = this.SafeValue(params, "stopLoss")
 		var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-		var isStopLoss interface{} = !IsEqual(stopLoss, nil)
-		var isTakeProfit interface{} = !IsEqual(takeProfit, nil)
+		var hasStopLoss interface{} = !IsEqual(stopLoss, nil)
+		var hasTakeProfit interface{} = !IsEqual(takeProfit, nil)
 		if IsTrue(IsTrue((IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "LIMIT"))) || IsTrue((IsEqual(typeVar, "TRIGGER_LIMIT")))) || IsTrue((IsEqual(typeVar, "STOP")))) || IsTrue((IsEqual(typeVar, "TAKE_PROFIT"))))) && !IsTrue(isTrailing)) {
 			AddElementToObject(request, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
 		}
@@ -3291,9 +3407,9 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 				AddElementToObject(request, "priceRate", this.ParseToNumeric(requestTrailingPercent))
 			}
 		}
-		if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
+		if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 			var stringifiedAmount interface{} = this.NumberToString(amount)
-			if IsTrue(isStopLoss) {
+			if IsTrue(hasStopLoss) {
 				var slTriggerPrice interface{} = this.SafeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss)
 				var slWorkingType interface{} = this.SafeString(stopLoss, "workingType", "MARK_PRICE")
 				var slType interface{} = this.SafeString(stopLoss, "type", "STOP_MARKET")
@@ -3310,7 +3426,7 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
 				AddElementToObject(slRequest, "quantity", this.ParseToNumeric(this.AmountToPrecision(symbol, slQuantity)))
 				AddElementToObject(request, "stopLoss", this.Json(slRequest))
 			}
-			if IsTrue(isTakeProfit) {
+			if IsTrue(hasTakeProfit) {
 				var tkTriggerPrice interface{} = this.SafeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit)
 				var tkWorkingType interface{} = this.SafeString(takeProfit, "workingType", "MARK_PRICE")
 				var tpType interface{} = this.SafeString(takeProfit, "type", "TAKE_PROFIT_MARKET")
@@ -3382,7 +3498,7 @@ func (this *BingxCore) CreateOrderRequest(symbol interface{}, typeVar interface{
  * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
  * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
  * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3394,8 +3510,8 @@ func (this *BingxCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes31698 := (<-this.LoadMarkets())
-		PanicOnError(retRes31698)
+		retRes32578 := (<-this.LoadMarkets())
+		PanicOnError(retRes32578)
 		var market interface{} = this.Market(symbol)
 		var test interface{} = this.SafeBool(params, "test", false)
 		params = this.Omit(params, "test")
@@ -3523,7 +3639,7 @@ func (this *BingxCore) CreateOrder(symbol interface{}, typeVar interface{}, side
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3533,8 +3649,8 @@ func (this *BingxCore) CreateOrders(orders interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes32858 := (<-this.LoadMarkets())
-		PanicOnError(retRes32858)
+		retRes33738 := (<-this.LoadMarkets())
+		PanicOnError(retRes33738)
 		var ordersRequests interface{} = []interface{}{}
 		var marketIds interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -4062,7 +4178,7 @@ func (this *BingxCore) ParseOrderStatus(status interface{}) interface{} {
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4074,8 +4190,8 @@ func (this *BingxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes38098 := (<-this.LoadMarkets())
-		PanicOnError(retRes38098)
+		retRes38978 := (<-this.LoadMarkets())
+		PanicOnError(retRes38978)
 		var isTwapOrder interface{} = this.SafeBool(params, "twap", false)
 		params = this.Omit(params, "twap")
 		var response interface{} = nil
@@ -4243,7 +4359,7 @@ func (this *BingxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
  * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4258,8 +4374,8 @@ func (this *BingxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes39908 := (<-this.LoadMarkets())
-		PanicOnError(retRes39908)
+		retRes40788 := (<-this.LoadMarkets())
+		PanicOnError(retRes40788)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -4302,7 +4418,7 @@ func (this *BingxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4317,8 +4433,8 @@ func (this *BingxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes41348 := (<-this.LoadMarkets())
-		PanicOnError(retRes41348)
+		retRes42228 := (<-this.LoadMarkets())
+		PanicOnError(retRes42228)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -4382,8 +4498,8 @@ func (this *BingxCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes42378 := (<-this.LoadMarkets())
-		PanicOnError(retRes42378)
+		retRes43258 := (<-this.LoadMarkets())
+		PanicOnError(retRes43258)
 		var isActive interface{} = (IsGreaterThan(timeout, 0))
 		var request interface{} = map[string]interface{}{
 			"type":    Ternary(IsTrue((isActive)), "ACTIVATE", "CLOSE"),
@@ -4436,7 +4552,7 @@ func (this *BingxCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ..
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.twap] if fetching twap order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4448,8 +4564,8 @@ func (this *BingxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes42828 := (<-this.LoadMarkets())
-		PanicOnError(retRes42828)
+		retRes43708 := (<-this.LoadMarkets())
+		PanicOnError(retRes43708)
 		var isTwapOrder interface{} = this.SafeBool(params, "twap", false)
 		params = this.Omit(params, "twap")
 		var response interface{} = nil
@@ -4516,7 +4632,7 @@ func (this *BingxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {int} [params.orderId] Only return subsequent orders, and return the latest order by default
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4532,8 +4648,8 @@ func (this *BingxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes44598 := (<-this.LoadMarkets())
-		PanicOnError(retRes44598)
+		retRes45478 := (<-this.LoadMarkets())
+		PanicOnError(retRes45478)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -4634,7 +4750,7 @@ func (this *BingxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.twap] if fetching twap open orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4650,8 +4766,8 @@ func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes45528 := (<-this.LoadMarkets())
-		PanicOnError(retRes45528)
+		retRes46408 := (<-this.LoadMarkets())
+		PanicOnError(retRes46408)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -4851,7 +4967,7 @@ func (this *BingxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @param {boolean} [params.standard] whether to fetch standard contract orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4867,8 +4983,8 @@ func (this *BingxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes47388 := (<-this.LoadMarkets())
-		PanicOnError(retRes47388)
+		retRes48268 := (<-this.LoadMarkets())
+		PanicOnError(retRes48268)
 
 		orders := (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
 		PanicOnError(orders)
@@ -4894,7 +5010,7 @@ func (this *BingxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @param {boolean} [params.standard] whether to fetch standard contract orders
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4910,8 +5026,8 @@ func (this *BingxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes47608 := (<-this.LoadMarkets())
-		PanicOnError(retRes47608)
+		retRes48488 := (<-this.LoadMarkets())
+		PanicOnError(retRes48488)
 
 		orders := (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
 		PanicOnError(orders)
@@ -4939,7 +5055,7 @@ func (this *BingxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan i
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @param {boolean} [params.standard] whether to fetch standard contract orders
  * @param {boolean} [params.twap] if fetching twap orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4955,8 +5071,8 @@ func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes47848 := (<-this.LoadMarkets())
-		PanicOnError(retRes47848)
+		retRes48728 := (<-this.LoadMarkets())
+		PanicOnError(retRes48728)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -5030,7 +5146,7 @@ func (this *BingxCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
  * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
  * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BingxCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5040,8 +5156,8 @@ func (this *BingxCore) Transfer(code interface{}, amount interface{}, fromAccoun
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes49748 := (<-this.LoadMarkets())
-		PanicOnError(retRes49748)
+		retRes50628 := (<-this.LoadMarkets())
+		PanicOnError(retRes50628)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var subType interface{} = nil
@@ -5109,7 +5225,7 @@ func (this *BingxCore) Transfer(code interface{}, amount interface{}, fromAccoun
  * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
  * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BingxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5125,8 +5241,8 @@ func (this *BingxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes50368 := (<-this.LoadMarkets())
-		PanicOnError(retRes50368)
+		retRes51248 := (<-this.LoadMarkets())
+		PanicOnError(retRes51248)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -5154,9 +5270,9 @@ func (this *BingxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes506119 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
-			PanicOnError(retRes506119)
-			ch <- retRes506119
+			retRes514919 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", nil, since, limit, params, maxLimit))
+			PanicOnError(retRes514919)
+			ch <- retRes514919
 			return nil
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -5234,7 +5350,7 @@ func (this *BingxCore) ParseTransferStatus(status interface{}) interface{} {
  * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+ * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
  */
 func (this *BingxCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5244,8 +5360,8 @@ func (this *BingxCore) FetchDepositAddressesByNetwork(code interface{}, optional
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes51328 := (<-this.LoadMarkets())
-		PanicOnError(retRes51328)
+		retRes52208 := (<-this.LoadMarkets())
+		PanicOnError(retRes52208)
 		var currency interface{} = this.Currency(code)
 		var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
 		var recvWindow interface{} = this.SafeInteger(this.ParseParams, "recvWindow", defaultRecvWindow)
@@ -5294,7 +5410,7 @@ func (this *BingxCore) FetchDepositAddressesByNetwork(code interface{}, optional
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BingxCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5369,7 +5485,7 @@ func (this *BingxCore) ParseDepositAddress(depositAddress interface{}, optionalA
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BingxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5385,8 +5501,8 @@ func (this *BingxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes52348 := (<-this.LoadMarkets())
-		PanicOnError(retRes52348)
+		retRes53228 := (<-this.LoadMarkets())
+		PanicOnError(retRes53228)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -5436,7 +5552,7 @@ func (this *BingxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BingxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5452,8 +5568,8 @@ func (this *BingxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes52818 := (<-this.LoadMarkets())
-		PanicOnError(retRes52818)
+		retRes53698 := (<-this.LoadMarkets())
+		PanicOnError(retRes53698)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -5608,7 +5724,7 @@ func (this *BingxCore) ParseTransactionStatus(status interface{}) interface{} {
 		"3":  "rejected",
 		"4":  "pending",
 		"5":  "rejected",
-		"6":  "pending",
+		"6":  "ok",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -5637,8 +5753,8 @@ func (this *BingxCore) SetMarginMode(marginMode interface{}, optionalArgs ...int
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes54508 := (<-this.LoadMarkets())
-		PanicOnError(retRes54508)
+		retRes55388 := (<-this.LoadMarkets())
+		PanicOnError(retRes55388)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
@@ -5660,15 +5776,15 @@ func (this *BingxCore) SetMarginMode(marginMode interface{}, optionalArgs ...int
 		params = GetValue(subTypeparamsVariable, 1)
 		if IsTrue(IsEqual(subType, "inverse")) {
 
-			retRes546919 := (<-this.CswapV1PrivatePostTradeMarginType(this.Extend(request, params)))
-			PanicOnError(retRes546919)
-			ch <- retRes546919
+			retRes555719 := (<-this.CswapV1PrivatePostTradeMarginType(this.Extend(request, params)))
+			PanicOnError(retRes555719)
+			ch <- retRes555719
 			return nil
 		} else {
 
-			retRes547119 := (<-this.SwapV2PrivatePostTradeMarginType(this.Extend(request, params)))
-			PanicOnError(retRes547119)
-			ch <- retRes547119
+			retRes555919 := (<-this.SwapV2PrivatePostTradeMarginType(this.Extend(request, params)))
+			PanicOnError(retRes555919)
+			ch <- retRes555919
 			return nil
 		}
 
@@ -5686,9 +5802,9 @@ func (this *BingxCore) AddMargin(symbol interface{}, amount interface{}, optiona
 			"type": 1,
 		}
 
-		retRes547915 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes547915)
-		ch <- retRes547915
+		retRes556715 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+		PanicOnError(retRes556715)
+		ch <- retRes556715
 		return nil
 
 	}()
@@ -5705,9 +5821,9 @@ func (this *BingxCore) ReduceMargin(symbol interface{}, amount interface{}, opti
 			"type": 2,
 		}
 
-		retRes548615 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes548615)
-		ch <- retRes548615
+		retRes557415 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+		PanicOnError(retRes557415)
+		ch <- retRes557415
 		return nil
 
 	}()
@@ -5722,7 +5838,7 @@ func (this *BingxCore) ReduceMargin(symbol interface{}, amount interface{}, opti
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
  * @param {object} [params] parameters specific to the bingx api endpoint
- * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *BingxCore) SetMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5739,8 +5855,8 @@ func (this *BingxCore) SetMargin(symbol interface{}, amount interface{}, optiona
 			panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")))
 		}
 
-		retRes55078 := (<-this.LoadMarkets())
-		PanicOnError(retRes55078)
+		retRes55958 := (<-this.LoadMarkets())
+		PanicOnError(retRes55958)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -5799,7 +5915,7 @@ func (this *BingxCore) ParseMarginModification(data interface{}, optionalArgs ..
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *BingxCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5809,8 +5925,8 @@ func (this *BingxCore) FetchLeverage(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes55618 := (<-this.LoadMarkets())
-		PanicOnError(retRes55618)
+		retRes56498 := (<-this.LoadMarkets())
+		PanicOnError(retRes56498)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -5901,8 +6017,8 @@ func (this *BingxCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
 		var side interface{} = this.SafeStringUpper(params, "side")
 		this.CheckRequiredArgument("setLeverage", side, "side", []interface{}{"LONG", "SHORT", "BOTH"})
 
-		retRes56678 := (<-this.LoadMarkets())
-		PanicOnError(retRes56678)
+		retRes57558 := (<-this.LoadMarkets())
+		PanicOnError(retRes57558)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":   GetValue(market, "id"),
@@ -5911,15 +6027,15 @@ func (this *BingxCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
 		}
 		if IsTrue(GetValue(market, "inverse")) {
 
-			retRes567519 := (<-this.CswapV1PrivatePostTradeLeverage(this.Extend(request, params)))
-			PanicOnError(retRes567519)
-			ch <- retRes567519
+			retRes576319 := (<-this.CswapV1PrivatePostTradeLeverage(this.Extend(request, params)))
+			PanicOnError(retRes576319)
+			ch <- retRes576319
 			return nil
 		} else {
 
-			retRes569319 := (<-this.SwapV2PrivatePostTradeLeverage(this.Extend(request, params)))
-			PanicOnError(retRes569319)
-			ch <- retRes569319
+			retRes578119 := (<-this.SwapV2PrivatePostTradeLeverage(this.Extend(request, params)))
+			PanicOnError(retRes578119)
+			ch <- retRes578119
 			return nil
 		}
 
@@ -5942,7 +6058,7 @@ func (this *BingxCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
  * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
  * @param {string} params.orderId the order id required for inverse swap
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BingxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5961,8 +6077,8 @@ func (this *BingxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes57348 := (<-this.LoadMarkets())
-		PanicOnError(retRes57348)
+		retRes58228 := (<-this.LoadMarkets())
+		PanicOnError(retRes58228)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{}
 		var fills interface{} = nil
@@ -6075,7 +6191,7 @@ func (this *BingxCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...
  * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BingxCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6087,8 +6203,8 @@ func (this *BingxCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes59008 := (<-this.LoadMarkets())
-		PanicOnError(retRes59008)
+		retRes59888 := (<-this.LoadMarkets())
+		PanicOnError(retRes59888)
 
 		response := (<-this.FetchCurrencies(params))
 		PanicOnError(response)
@@ -6120,7 +6236,7 @@ func (this *BingxCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-c
  * @param {string} [tag]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BingxCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6136,8 +6252,8 @@ func (this *BingxCore) Withdraw(code interface{}, amount interface{}, address in
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes59308 := (<-this.LoadMarkets())
-		PanicOnError(retRes59308)
+		retRes60188 := (<-this.LoadMarkets())
+		PanicOnError(retRes60188)
 		var currency interface{} = this.Currency(code)
 		var defaultWalletType interface{} = 15 // spot
 		var walletType interface{} = nil
@@ -6218,7 +6334,7 @@ func (this *BingxCore) ParseParams(params interface{}) interface{} {
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the bingx api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *BingxCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6234,8 +6350,8 @@ func (this *BingxCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes60068 := (<-this.LoadMarkets())
-		PanicOnError(retRes60068)
+		retRes60948 := (<-this.LoadMarkets())
+		PanicOnError(retRes60948)
 		var request interface{} = map[string]interface{}{
 			"autoCloseType": "LIQUIDATION",
 		}
@@ -6388,7 +6504,7 @@ func (this *BingxCore) ParseLiquidation(liquidation interface{}, optionalArgs ..
  * @param {string} [side] not used by bingx
  * @param {object} [params] extra parameters specific to the bingx api endpoint
  * @param {string|undefined} [params.positionId] the id of the position you would like to close
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6400,8 +6516,8 @@ func (this *BingxCore) ClosePosition(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes61488 := (<-this.LoadMarkets())
-		PanicOnError(retRes61488)
+		retRes62368 := (<-this.LoadMarkets())
+		PanicOnError(retRes62368)
 		var market interface{} = this.Market(symbol)
 		var positionId interface{} = this.SafeString(params, "positionId")
 		var request interface{} = map[string]interface{}{}
@@ -6439,7 +6555,7 @@ func (this *BingxCore) ClosePosition(symbol interface{}, optionalArgs ...interfa
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
  * @param {object} [params] extra parameters specific to the bingx api endpoint
  * @param {string} [params.recvWindow] request valid time window value
- * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BingxCore) CloseAllPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6449,8 +6565,8 @@ func (this *BingxCore) CloseAllPositions(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes62178 := (<-this.LoadMarkets())
-		PanicOnError(retRes62178)
+		retRes63058 := (<-this.LoadMarkets())
+		PanicOnError(retRes63058)
 		var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
 		var recvWindow interface{} = this.SafeInteger(this.ParseParams, "recvWindow", defaultRecvWindow)
 		var marketType interface{} = nil
@@ -6567,8 +6683,8 @@ func (this *BingxCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
 			"dualSidePosition": dualSidePosition,
 		}
 
-		retRes632715 := (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params)))
-		PanicOnError(retRes632715)
+		retRes641515 := (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params)))
+		PanicOnError(retRes641515)
 		//
 		//     {
 		//         code: '0',
@@ -6577,7 +6693,7 @@ func (this *BingxCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
 		//         data: { dualSidePosition: 'false' }
 		//     }
 		//
-		ch <- retRes632715
+		ch <- retRes641515
 		return nil
 
 	}()
@@ -6613,7 +6729,7 @@ func (this *BingxCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
  * @param {string} [params.reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
  * @param {float} [params.priceRate] *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
  * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BingxCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6627,8 +6743,8 @@ func (this *BingxCore) EditOrder(id interface{}, symbol interface{}, typeVar int
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes63628 := (<-this.LoadMarkets())
-		PanicOnError(retRes63628)
+		retRes64508 := (<-this.LoadMarkets())
+		PanicOnError(retRes64508)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		AddElementToObject(request, "cancelOrderId", id)
@@ -6660,7 +6776,7 @@ func (this *BingxCore) EditOrder(id interface{}, symbol interface{}, typeVar int
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *BingxCore) FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6670,8 +6786,8 @@ func (this *BingxCore) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes64798 := (<-this.LoadMarkets())
-		PanicOnError(retRes64798)
+		retRes65678 := (<-this.LoadMarkets())
+		PanicOnError(retRes65678)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -6720,7 +6836,7 @@ func (this *BingxCore) ParseMarginMode(marginMode interface{}, optionalArgs ...i
  * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BingxCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6730,8 +6846,8 @@ func (this *BingxCore) FetchTradingFee(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes65398 := (<-this.LoadMarkets())
-		PanicOnError(retRes65398)
+		retRes66278 := (<-this.LoadMarkets())
+		PanicOnError(retRes66278)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -6855,6 +6971,96 @@ func (this *BingxCore) CustomEncode(params interface{}) interface{} {
 		}
 	}
 	return result
+}
+
+/**
+ * @method
+ * @name bingx#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *BingxCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		retRes67528 := (<-this.LoadMarkets())
+		PanicOnError(retRes67528)
+		var market interface{} = this.Market(symbol)
+		if !IsTrue(GetValue(market, "swap")) {
+			panic(BadRequest(Add(this.Id, " fetchMarketLeverageTiers() supports swap markets only")))
+		}
+		var request interface{} = map[string]interface{}{
+			"symbol": GetValue(market, "id"),
+		}
+
+		response := (<-this.SwapV1PrivateGetMaintMarginRatio(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//     {
+		//         "code": 0,
+		//         "msg": "",
+		//         "timestamp": 1767789967284,
+		//         "data": [
+		//             {
+		//                 "tier": "Tier 1",
+		//                 "symbol": "ETH-USDT",
+		//                 "minPositionVal": "0",
+		//                 "maxPositionVal": "900000",
+		//                 "maintMarginRatio": "0.003300",
+		//                 "maintAmount": "0.000000"
+		//             }
+		//         ]
+		//     }
+		//
+		var data interface{} = this.SafeList(response, "data", []interface{}{})
+
+		ch <- this.ParseMarketLeverageTiers(data, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BingxCore) ParseMarketLeverageTiers(info interface{}, optionalArgs ...interface{}) interface{} {
+	//
+	//     [
+	//         {
+	//             "tier": "Tier 1",
+	//             "symbol": "ETH-USDT",
+	//             "minPositionVal": "0",
+	//             "maxPositionVal": "900000",
+	//             "maintMarginRatio": "0.003300",
+	//             "maintAmount": "0.000000"
+	//         }
+	//     ]
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var tiers interface{} = []interface{}{}
+	for i := 0; IsLessThan(i, GetArrayLength(info)); i++ {
+		var tier interface{} = this.SafeDict(info, i)
+		var tierString interface{} = this.SafeString(tier, "tier")
+		var tierParts interface{} = Split(tierString, " ")
+		var marketId interface{} = this.SafeString(tier, "symbol")
+		market = this.SafeMarket(marketId, market, nil, "swap")
+		AppendToArray(&tiers, map[string]interface{}{
+			"tier":                  this.SafeNumber(tierParts, 1),
+			"symbol":                this.SafeSymbol(marketId, market),
+			"currency":              this.SafeString(market, "settle"),
+			"minNotional":           this.SafeNumber(tier, "minPositionVal"),
+			"maxNotional":           this.SafeNumber(tier, "maxPositionVal"),
+			"maintenanceMarginRate": this.SafeNumber(tier, "maintMarginRatio"),
+			"maxLeverage":           nil,
+			"info":                  tier,
+		})
+	}
+	return tiers
 }
 func (this *BingxCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
 	section := GetArg(optionalArgs, 0, "public")

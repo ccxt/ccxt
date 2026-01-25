@@ -784,7 +784,7 @@ func  (this *XtCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
  * @param {object} params extra parameters specific to the kucoin api endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *XtCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -827,7 +827,7 @@ func  (this *XtCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interfac
  * @see https://doc.xt.com/#websocket_privatebalanceChange
  * @see https://doc.xt.com/#futures_user_websocket_v2balance
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *XtCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -937,9 +937,11 @@ func  (this *XtCore) LoadPositionsSnapshot(client interface{}, messageHash inter
                 }
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(cache, "position::contract")
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(cache, "position::contract")
+            }
                 return nil
             }()
             return ch

@@ -149,7 +149,7 @@ func  (this *BitgetCore) GetInstType(market interface{}, optionalArgs ...interfa
  * @param {string} symbol unified symbol of the market to watch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BitgetCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -227,7 +227,7 @@ func  (this *BitgetCore) UnWatchTicker(symbol interface{}, optionalArgs ...inter
  * @param {string[]} symbols unified symbol of the market to watch the tickers for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BitgetCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -488,7 +488,7 @@ func  (this *BitgetCore) ParseWsTicker(message interface{}, optionalArgs ...inte
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BitgetCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -659,7 +659,7 @@ func  (this *BitgetCore) WatchOHLCV(symbol interface{}, optionalArgs ...interfac
  * @param {string} [timeframe] the period for the ratio, default is 1 minute
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BitgetCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -853,7 +853,7 @@ func  (this *BitgetCore) ParseWsOHLCV(ohlcv interface{}, optionalArgs ...interfa
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BitgetCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -884,7 +884,7 @@ func  (this *BitgetCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BitgetCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -966,7 +966,7 @@ func  (this *BitgetCore) UnWatchChannel(symbol interface{}, channel interface{},
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BitgetCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1135,7 +1135,20 @@ func  (this *BitgetCore) HandleOrderBook(client interface{}, message interface{}
         }
     } else {
         var orderbook interface{} = this.OrderBook(map[string]interface{} {})
-        var parsedOrderbook interface{} = this.ParseOrderBook(rawOrderBook, symbol, timestamp)
+        var bidsKey interface{} = "bids"
+        var asksKey interface{} = "asks"
+        // bitget UTA has `a` and `b` instead of `asks` and `bids`
+        if ccxt.IsTrue(ccxt.InOp(rawOrderBook, "a")) {
+            if !ccxt.IsTrue((ccxt.InOp(rawOrderBook, "asks"))) {
+                asksKey = "a"
+            }
+        }
+        if ccxt.IsTrue(ccxt.InOp(rawOrderBook, "b")) {
+            if !ccxt.IsTrue((ccxt.InOp(rawOrderBook, "bids"))) {
+                bidsKey = "b"
+            }
+        }
+        var parsedOrderbook interface{} = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
         orderbook.(ccxt.OrderBookInterface).Reset(parsedOrderbook)
         ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
     }
@@ -1147,8 +1160,8 @@ func  (this *BitgetCore) HandleCheckSumError(client interface{}, symbol interfac
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                 
-            retRes9488 := (<-this.UnWatchOrderBook(symbol))
-            ccxt.PanicOnError(retRes9488)
+            retRes9618 := (<-this.UnWatchOrderBook(symbol))
+            ccxt.PanicOnError(retRes9618)
             error := ccxt.ChecksumError(ccxt.Add(ccxt.Add(this.Id, " "), this.OrderbookChecksumMessage(symbol)))
             client.(ccxt.ClientInterface).Reject(error, messageHash)
                 return nil
@@ -1179,7 +1192,7 @@ func  (this *BitgetCore) HandleDeltas(bookside interface{}, deltas interface{}) 
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *BitgetCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1193,9 +1206,9 @@ func  (this *BitgetCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-                retRes98215 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes98215)
-                ch <- retRes98215
+                retRes99515 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes99515)
+                ch <- retRes99515
                 return nil
         
             }()
@@ -1213,7 +1226,7 @@ func  (this *BitgetCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *BitgetCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1231,8 +1244,8 @@ func  (this *BitgetCore) WatchTradesForSymbols(symbols interface{}, optionalArgs
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
             }
         
-            retRes10048 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10048)
+            retRes10178 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10178)
             symbols = this.MarketSymbols(symbols)
             var uta interface{} = nil
             utaparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "uta", false)
@@ -1310,9 +1323,9 @@ func  (this *BitgetCore) UnWatchTrades(symbol interface{}, optionalArgs ...inter
             params = ccxt.GetValue(utaparamsVariable,1)
             var channelTopic interface{} = ccxt.Ternary(ccxt.IsTrue(uta), "publicTrade", "trade")
         
-                retRes105915 :=  (<-this.UnWatchChannel(symbol, channelTopic, "trade", params))
-                ccxt.PanicOnError(retRes105915)
-                ch <- retRes105915
+                retRes107215 :=  (<-this.UnWatchChannel(symbol, channelTopic, "trade", params))
+                ccxt.PanicOnError(retRes107215)
+                ch <- retRes107215
                 return nil
         
             }()
@@ -1542,8 +1555,8 @@ func  (this *BitgetCore) WatchPositions(optionalArgs ...interface{}) <- chan int
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes12738 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12738)
+            retRes12868 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes12868)
             var market interface{} = nil
             var messageHash interface{} = ""
             var subscriptionHash interface{} = "positions"
@@ -1819,7 +1832,7 @@ func  (this *BitgetCore) ParseWsPosition(position interface{}, optionalArgs ...i
  * @param {string} [params.type] 'spot', 'swap'
  * @param {string} [params.subType] 'linear', 'inverse'
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *BitgetCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1835,8 +1848,8 @@ func  (this *BitgetCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes15388 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15388)
+            retRes15518 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes15518)
             var market interface{} = nil
             var marketId interface{} = nil
             var isTrigger interface{} = nil
@@ -2353,7 +2366,7 @@ func  (this *BitgetCore) ParseWsOrderStatus(status interface{}) interface{}  {
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *BitgetCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2369,8 +2382,8 @@ func  (this *BitgetCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes20418 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes20418)
+            retRes20548 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes20548)
             var market interface{} = nil
             var messageHash interface{} = "myTrades"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -2565,7 +2578,7 @@ func  (this *BitgetCore) HandleMyTrades(client interface{}, message interface{})
  * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *BitgetCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2622,9 +2635,9 @@ func  (this *BitgetCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
             }
             var messageHash interface{} = ccxt.Add("balance:", ccxt.ToLower(instType))
         
-                retRes226315 :=  (<-this.WatchPrivate(messageHash, messageHash, args, params))
-                ccxt.PanicOnError(retRes226315)
-                ch <- retRes226315
+                retRes227615 :=  (<-this.WatchPrivate(messageHash, messageHash, args, params))
+                ccxt.PanicOnError(retRes227615)
+                ch <- retRes227615
                 return nil
         
             }()
@@ -2795,9 +2808,9 @@ func  (this *BitgetCore) WatchPublic(messageHash interface{}, args interface{}, 
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes242315 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes242315)
-                ch <- retRes242315
+                retRes243615 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes243615)
+                ch <- retRes243615
                 return nil
         
             }()
@@ -2837,9 +2850,9 @@ func  (this *BitgetCore) UnWatchPublic(messageHash interface{}, args interface{}
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes245115 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes245115)
-                ch <- retRes245115
+                retRes246415 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes246415)
+                ch <- retRes246415
                 return nil
         
             }()
@@ -2880,9 +2893,9 @@ func  (this *BitgetCore) WatchPublicMultiple(messageHashes interface{}, argsArra
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes248015 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes248015)
-                ch <- retRes248015
+                retRes249315 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes249315)
+                ch <- retRes249315
                 return nil
         
             }()
@@ -2919,9 +2932,9 @@ func  (this *BitgetCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes250915 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes250915)
-                ch <- retRes250915
+                retRes252215 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes252215)
+                ch <- retRes252215
                 return nil
         
             }()
@@ -2956,19 +2969,19 @@ func  (this *BitgetCore) WatchPrivate(messageHash interface{}, subscriptionHash 
                 }
             }
         
-            retRes25328 := (<-this.Authenticate(map[string]interface{} {
+            retRes25458 := (<-this.Authenticate(map[string]interface{} {
                 "url": url,
             }))
-            ccxt.PanicOnError(retRes25328)
+            ccxt.PanicOnError(retRes25458)
             var request interface{} = map[string]interface{} {
                 "op": "subscribe",
                 "args": []interface{}{args},
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes253815 :=  (<-this.Watch(url, messageHash, message, subscriptionHash))
-                ccxt.PanicOnError(retRes253815)
-                ch <- retRes253815
+                retRes255115 :=  (<-this.Watch(url, messageHash, message, subscriptionHash))
+                ccxt.PanicOnError(retRes255115)
+                ch <- retRes255115
                 return nil
         
             }()
@@ -3333,16 +3346,16 @@ func  (this *BitgetCore) HandleUnSubscriptionStatus(client interface{}, message 
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(argsList)); i++ {
         var arg interface{} = ccxt.GetValue(argsList, i)
         var channel interface{} = this.SafeString2(arg, "channel", "topic")
-        if ccxt.IsTrue(ccxt.IsEqual(channel, "books")) {
+        if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "books"), 0)) {
             // for now only unWatchOrderBook is supporteod
             this.HandleOrderBookUnSubscription(client, message)
-        } else if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(channel, "trade"))) || ccxt.IsTrue((ccxt.IsEqual(channel, "publicTrade")))) {
+        } else if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "trade"), 0))) || ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "publicTrade"), 0)))) {
             this.HandleTradesUnSubscription(client, message)
-        } else if ccxt.IsTrue(ccxt.IsEqual(channel, "ticker")) {
+        } else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "ticker"), 0)) {
             this.HandleTickerUnSubscription(client, message)
-        } else if ccxt.IsTrue(ccxt.StartsWith(channel, "candle")) {
+        } else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "candle"), 0)) {
             this.HandleOHLCVUnSubscription(client, message)
-        } else if ccxt.IsTrue(ccxt.StartsWith(channel, "kline")) {
+        } else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "kline"), 0)) {
             this.HandleOHLCVUnSubscription(client, message)
         }
     }

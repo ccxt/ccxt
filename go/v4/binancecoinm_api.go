@@ -891,6 +891,10 @@ func (this *BinancecoinmCore) SapiGetPortfolioEarnAssetBalance(args ...interface
 	return this.callEndpointAsync("sapiGetPortfolioEarnAssetBalance", args...)
 }
 
+func (this *BinancecoinmCore) SapiGetPortfolioDeltaMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioDeltaMode", args...)
+}
+
 func (this *BinancecoinmCore) SapiGetStakingProductList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiGetStakingProductList", args...)
 }
@@ -1463,6 +1467,10 @@ func (this *BinancecoinmCore) SapiPostPortfolioEarnAssetTransfer(args ...interfa
 	return this.callEndpointAsync("sapiPostPortfolioEarnAssetTransfer", args...)
 }
 
+func (this *BinancecoinmCore) SapiPostPortfolioDeltaMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioDeltaMode", args...)
+}
+
 func (this *BinancecoinmCore) SapiPostLendingAutoInvestPlanAdd(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanAdd", args...)
 }
@@ -2023,6 +2031,14 @@ func (this *BinancecoinmCore) FapiPublicGetInsuranceBalance(args ...interface{})
 	return this.callEndpointAsync("fapiPublicGetInsuranceBalance", args...)
 }
 
+func (this *BinancecoinmCore) FapiPublicGetSymbolAdlRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetSymbolAdlRisk", args...)
+}
+
+func (this *BinancecoinmCore) FapiPublicGetTradingSchedule(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPublicGetTradingSchedule", args...)
+}
+
 func (this *BinancecoinmCore) FapiDataGetDeliveryPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiDataGetDeliveryPrice", args...)
 }
@@ -2113,10 +2129,6 @@ func (this *BinancecoinmCore) FapiPrivateGetRateLimitOrder(args ...interface{}) 
 
 func (this *BinancecoinmCore) FapiPrivateGetApiTradingStatus(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetApiTradingStatus", args...)
-}
-
-func (this *BinancecoinmCore) FapiPrivateGetSymbolAdlRisk(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiPrivateGetSymbolAdlRisk", args...)
 }
 
 func (this *BinancecoinmCore) FapiPrivateGetMultiAssetsMargin(args ...interface{}) <-chan interface{} {
@@ -2217,6 +2229,10 @@ func (this *BinancecoinmCore) FapiPrivateGetOpenAlgoOrders(args ...interface{}) 
 
 func (this *BinancecoinmCore) FapiPrivateGetAllAlgoOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetAllAlgoOrders", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateGetStockContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateGetStockContract", args...)
 }
 
 func (this *BinancecoinmCore) FapiPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
@@ -2463,6 +2479,10 @@ func (this *BinancecoinmCore) EapiPrivateGetBlockTrades(args ...interface{}) <-c
 	return this.callEndpointAsync("eapiPrivateGetBlockTrades", args...)
 }
 
+func (this *BinancecoinmCore) EapiPrivateGetComission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("eapiPrivateGetComission", args...)
+}
+
 func (this *BinancecoinmCore) EapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("eapiPrivatePostOrder", args...)
 }
@@ -2665,6 +2685,14 @@ func (this *BinancecoinmCore) PrivatePostOrderListOto(args ...interface{}) <-cha
 
 func (this *BinancecoinmCore) PrivatePostOrderListOtoco(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostOrderListOtoco", args...)
+}
+
+func (this *BinancecoinmCore) PrivatePostOrderListOpo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOpo", args...)
+}
+
+func (this *BinancecoinmCore) PrivatePostOrderListOpoco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOpoco", args...)
 }
 
 func (this *BinancecoinmCore) PrivatePostSorOrder(args ...interface{}) <-chan interface{} {

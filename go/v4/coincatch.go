@@ -702,7 +702,7 @@ func (this *CoincatchCore) FetchCurrencies(optionalArgs ...interface{}) <-chan i
  * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
  * @param {string[]} [codes] list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *CoincatchCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1132,7 +1132,7 @@ func (this *CoincatchCore) ParseSpotMarketId(marketId interface{}) interface{} {
  * @see https://coincatch.github.io/github.io/en/mix/#get-single-symbol-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *CoincatchCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1179,7 +1179,7 @@ func (this *CoincatchCore) FetchTicker(symbol interface{}, optionalArgs ...inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
  * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl') - USDT perpetual contract or Universal margin perpetual contract
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *CoincatchCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1318,7 +1318,7 @@ func (this *CoincatchCore) ParseTicker(ticker interface{}, optionalArgs ...inter
  * @param {int} [limit] the maximum amount of order book entries to return (maximum and default value is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.precision] 'scale0' (default), 'scale1', 'scale2' or 'scale3' - price accuracy, according to the selected accuracy as the step size to return the cumulative depth
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *CoincatchCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1518,7 +1518,7 @@ func (this *CoincatchCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interfa
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest entry to fetch
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *CoincatchCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1676,7 +1676,7 @@ func (this *CoincatchCore) ParseTrade(trade interface{}, optionalArgs ...interfa
  * @see https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *CoincatchCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1766,7 +1766,7 @@ func (this *CoincatchCore) HandleOptionParamsAndRequest(params interface{}, meth
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.pageNo] the page number to fetch
  * @param {bool} [params.nextPage] whether to query the next page (default false)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *CoincatchCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1846,7 +1846,7 @@ func (this *CoincatchCore) FetchFundingRateHistory(optionalArgs ...interface{}) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
  * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl')
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *CoincatchCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1995,7 +1995,7 @@ func (this *CoincatchCore) ParseBalance(balances interface{}) interface{} {
  * @param {string} toAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the transfer
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *CoincatchCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2086,7 +2086,7 @@ func (this *CoincatchCore) ParseTransfer(transfer interface{}, optionalArgs ...i
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] network for fetch deposit address
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *CoincatchCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2177,7 +2177,7 @@ func (this *CoincatchCore) ParseDepositAddress(depositAddress interface{}, optio
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
  * @param {int} [params.pageNo] pageNo default 1
  * @param {int} [params.pageSize] pageSize (default 20, max 100)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *CoincatchCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2264,7 +2264,7 @@ func (this *CoincatchCore) FetchDeposits(optionalArgs ...interface{}) <-chan int
  * @param {string} [params.clientOid] clientOid
  * @param {string} [params.orderId] The response orderId
  * @param {string} [params.idLessThan] Requests the content on the page before this ID (older data), the value input should be the orderId of the corresponding interface.
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CoincatchCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2329,7 +2329,7 @@ func (this *CoincatchCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan 
  * @param {string} params.network network for withdraw (mandatory)
  * @param {string} [params.remark] remark
  * @param {string} [params.clientOid] custom id
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CoincatchCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2474,7 +2474,7 @@ func (this *CoincatchCore) ParseTransaction(transaction interface{}, optionalArg
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2523,7 +2523,7 @@ func (this *CoincatchCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
  * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
  * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2576,7 +2576,7 @@ func (this *CoincatchCore) CreateOrder(symbol interface{}, typeVar interface{}, 
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
  * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
  * @param {string} [params.clientOrderId] a unique id for the order (max length 40)
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) CreateSpotOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2799,7 +2799,7 @@ func (this *CoincatchCore) HandleTimeInForceAndPostOnly(methodName interface{}, 
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) CreateSwapOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2960,22 +2960,22 @@ func (this *CoincatchCore) HandleTriggerStopLossAndTakeProfit(symbol interface{}
 	var stopLossPrice interface{} = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice interface{} = this.SafeString(params, "takeProfitPrice")
 	var requestTriggerPrice interface{} = nil
-	var takeProfitParams interface{} = this.SafeDict(params, "takeProfit")
-	var stopLossParams interface{} = this.SafeDict(params, "stopLoss")
+	var takeProfit interface{} = this.SafeDict(params, "takeProfit")
+	var stopLoss interface{} = this.SafeDict(params, "stopLoss")
 	var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var isTrigger interface{} = (!IsEqual(triggerPrice, nil))
 	var trailingPercent interface{} = this.SafeString(params, "trailingPercent")
 	var trailingTriggerPrice interface{} = this.SafeString(params, "trailingTriggerPrice")
 	var hasTPPrice interface{} = (!IsEqual(takeProfitPrice, nil))
 	var hasSLPrice interface{} = (!IsEqual(stopLossPrice, nil))
-	var hasTPParams interface{} = (!IsEqual(takeProfitParams, nil))
-	if IsTrue(IsTrue(hasTPParams) && !IsTrue(hasTPPrice)) {
-		takeProfitPrice = this.SafeString(takeProfitParams, "triggerPrice")
+	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
+	if IsTrue(IsTrue(hasTakeProfit) && !IsTrue(hasTPPrice)) {
+		takeProfitPrice = this.SafeString(takeProfit, "triggerPrice")
 		hasTPPrice = (!IsEqual(takeProfitPrice, nil))
 	}
-	var hasSLParams interface{} = (!IsEqual(stopLossParams, nil))
-	if IsTrue(IsTrue(hasSLParams) && !IsTrue(hasSLPrice)) {
-		stopLossPrice = this.SafeString(stopLossParams, "triggerPrice")
+	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+	if IsTrue(IsTrue(hasStopLoss) && !IsTrue(hasSLPrice)) {
+		stopLossPrice = this.SafeString(stopLoss, "triggerPrice")
 		hasSLPrice = (!IsEqual(stopLossPrice, nil))
 	}
 	var hasBothTPAndSL interface{} = IsTrue(hasTPPrice) && IsTrue(hasSLPrice)
@@ -3047,7 +3047,7 @@ func (this *CoincatchCore) HandleTriggerStopLossAndTakeProfit(symbol interface{}
  * @param {float} [takeProfit] the take profit price, in units of the quote currency
  * @param {float} [stopLoss] the stop loss price, in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) CreateOrderWithTakeProfitAndStopLoss(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3095,7 +3095,7 @@ func (this *CoincatchCore) EncodeTimeInForce(timeInForce interface{}) interface{
  * @see https://coincatch.github.io/github.io/en/spot/#batch-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params (max 50 entries)
  * @param {object} [params] extra parameters specific to the api endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3253,7 +3253,7 @@ func (this *CoincatchCore) CreateOrderRequest(symbol interface{}, typeVar interf
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3303,7 +3303,7 @@ func (this *CoincatchCore) EditOrder(id interface{}, symbol interface{}, typeVar
  * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
  * @param {string} params.triggerPrice *mandatory* the price that the order is to be triggered at
  * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) EditSpotOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3393,7 +3393,7 @@ func (this *CoincatchCore) EditSpotOrder(id interface{}, symbol interface{}, typ
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
  * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3552,7 +3552,7 @@ func (this *CoincatchCore) FetchOrder(id interface{}, optionalArgs ...interface{
  * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
  * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
  * @param {string} [params.isPlan] *swap trigger only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3613,7 +3613,7 @@ func (this *CoincatchCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
  * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) FetchOpenSpotOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3745,7 +3745,7 @@ func (this *CoincatchCore) FetchOpenSpotOrders(optionalArgs ...interface{}) <-ch
  * @param {string} [params.isPlan] 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
  * @param {string} [params.productType] 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
  * @param {string} [params.marginCoin] the margin coin of the market to fetch entries for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) FetchOpenSwapOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3910,7 +3910,7 @@ func (this *CoincatchCore) FetchOpenSwapOrders(optionalArgs ...interface{}) <-ch
  * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
  * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3972,7 +3972,7 @@ func (this *CoincatchCore) FetchCanceledAndClosedOrders(optionalArgs ...interfac
  * @param {int} [params.until] *for trigger orders only* the latest time in ms to fetch orders for
  * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
  * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) FetchCanceledAndClosedSpotOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4147,7 +4147,7 @@ func (this *CoincatchCore) FetchCanceledAndClosedSpotOrders(optionalArgs ...inte
  * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
  * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
  * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) FetchCanceledAndClosedSwapOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4334,7 +4334,7 @@ func (this *CoincatchCore) FetchCanceledAndClosedSwapOrders(optionalArgs ...inte
  * @param {bool} [params.trigger] true for canceling a trigger order (default false)
  * @param {bool} [params.stop] *swap only* an alternative for trigger param
  * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4592,7 +4592,7 @@ func (this *CoincatchCore) CancelAllOrders(optionalArgs ...interface{}) <-chan i
  * @param {string} symbol *is mandatory* unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoincatchCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5168,7 +5168,7 @@ func (this *CoincatchCore) FetchMyTrades(optionalArgs ...interface{}) <-chan int
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *CoincatchCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5208,7 +5208,7 @@ func (this *CoincatchCore) FetchOrderTrades(id interface{}, optionalArgs ...inte
  * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *CoincatchCore) FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5469,7 +5469,7 @@ func (this *CoincatchCore) SetPositionMode(hedged interface{}, optionalArgs ...i
  * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *CoincatchCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5706,7 +5706,7 @@ func (this *CoincatchCore) ParseMarginModification(data interface{}, optionalArg
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *CoincatchCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5735,7 +5735,7 @@ func (this *CoincatchCore) ReduceMargin(symbol interface{}, amount interface{}, 
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *CoincatchCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5763,7 +5763,7 @@ func (this *CoincatchCore) AddMargin(symbol interface{}, amount interface{}, opt
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *CoincatchCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5807,7 +5807,7 @@ func (this *CoincatchCore) FetchPosition(symbol interface{}, optionalArgs ...int
  * @description fetch all open positions for specific symbol
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *CoincatchCore) FetchPositionsForSymbol(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5876,7 +5876,7 @@ func (this *CoincatchCore) FetchPositionsForSymbol(symbol interface{}, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbols are not provided)
  * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *CoincatchCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6104,7 +6104,7 @@ func (this *CoincatchCore) SafeMarketCustom(marketId interface{}, optionalArgs .
  * @param {string} [params.business] *swap only*
  * @param {string} [params.lastEndId] *swap only*
  * @param {bool} [params.next] *swap only*
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *CoincatchCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

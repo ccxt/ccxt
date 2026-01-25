@@ -103,6 +103,10 @@ func (this *KucoinfuturesCore) PrivateGetUserInfo(args ...interface{}) <-chan in
 	return this.callEndpointAsync("privateGetUserInfo", args...)
 }
 
+func (this *KucoinfuturesCore) PrivateGetUserApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserApiKey", args...)
+}
+
 func (this *KucoinfuturesCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccounts", args...)
 }
@@ -413,6 +417,10 @@ func (this *KucoinfuturesCore) PrivateGetConvertLimitOrders(args ...interface{})
 
 func (this *KucoinfuturesCore) PrivateGetAffiliateInviterStatistics(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAffiliateInviterStatistics", args...)
+}
+
+func (this *KucoinfuturesCore) PrivateGetEarnRedeemPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEarnRedeemPreview", args...)
 }
 
 func (this *KucoinfuturesCore) PrivatePostSubUserCreated(args ...interface{}) <-chan interface{} {
