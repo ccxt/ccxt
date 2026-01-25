@@ -192,6 +192,10 @@ export default class pacifica extends Exchange {
                         'orders/batch': 1,
                         'account/builder_codes/approve': 1,
                         'account/builder_codes/revoke': 1,
+                        'agent/bind': 1,
+                        'account/api_keys/create': 1,
+                        'account/api_keys/revoke': 1,
+                        'account/api_keys': 1,
                     },
                 },
             },
@@ -204,7 +208,7 @@ export default class pacifica extends Exchange {
             'requiredCredentials': {
                 'apiKey': undefined, // We will use it for option. Rate Limit Api Key
                 'secret': false,
-                'walletAddress': true,
+                'walletAddress': undefined,
                 'privateKey': true,
             },
             'exceptions': {
@@ -236,6 +240,13 @@ export default class pacifica extends Exchange {
             'precisionMode': TICK_SIZE,
             'commonCurrencies': { },
             'options': {
+                // There is a few choices:
+                // 1. never setup walletAddress AND always provide account/originAddress/agentAddress in params (or init in options).
+                // 2. always setup walletAddress equals pubkey of privateKey AND provide agentAddress and originAddress both in params (or init in options) if agent wallet in use.
+                // 3. always setup walletAddress equal originAddress AND provide only agentAddress in params if agent wallet in use (or init in options). (both (..and originAddress) is optional and not required)
+                'agentAddress': undefined,
+                'originAddress': undefined,
+                'builderCode': undefined,
                 'batchOrdersMax': 10,
                 'defaultType': 'swap',
                 'sandboxMode': false,
@@ -243,8 +254,11 @@ export default class pacifica extends Exchange {
                 'maxCostHugeWithApiKey': 3,
                 'marketHelperProps': [ ],
                 'defaultMarginMode': 'cross',
-                'fetchMarkets': {
-                    'types': [ 'swap' ],
+                'builderSupportOperations': {
+                    'create_market_order': true,
+                    'create_limit_order': true,
+                    'create_stop_order': true,
+                    'set_position_tpsl': true,
                 },
             },
             'features': {
@@ -376,21 +390,7 @@ export default class pacifica extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const types = this.safeList (options, 'types');
-        const rawPromises = [];
-        for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
-            if (marketType === 'swap') {
-                rawPromises.push (this.fetchSwapMarkets (params));
-            }
-        }
-        const promises = await Promise.all (rawPromises);
-        let result = [];
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat (result, promises[i]);
-        }
-        return result;
+        return await this.fetchSwapMarkets (params);
     }
 
     /**
@@ -565,7 +565,7 @@ export default class pacifica extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         let userAccount = undefined;
-        [ userAccount, params ] = this.handleMainAddress ('fetchBalance', params);
+        [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchBalance', params);
         const request = {
             'account': userAccount,
         };
@@ -624,7 +624,7 @@ export default class pacifica extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let userAccount = undefined;
-        [ userAccount, params ] = this.handleMainAddress ('fetchLeverage', params);
+        [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchLeverage', params);
         const request: Dict = {
             'account': userAccount,
         };
@@ -668,7 +668,7 @@ export default class pacifica extends Exchange {
         return {
             'info': market,
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': this.safeString (this.options, 'defaultMarginMode'),
+            'marginMode': this.handleOption ('defaultMarginMode', undefined),
             'longLeverage': this.safeInteger (leverageLimits, 'max'),
             'shortLeverage': this.safeInteger (leverageLimits, 'max'),
         } as Leverage;
@@ -685,7 +685,7 @@ export default class pacifica extends Exchange {
      */
     async fetchAccountSettings (params): Promise<Dict> {
         let userAccount = undefined;
-        [ userAccount, params ] = this.handleMainAddress ('fetchAccountSettings', params);
+        [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchAccountSettings', params);
         const request: Dict = {
             'account': userAccount,
         };
@@ -733,7 +733,7 @@ export default class pacifica extends Exchange {
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         await this.loadMarkets ();
         let userAccount = undefined;
-        [ userAccount, params ] = this.handleMainAddress ('fetchMarginMode', params);
+        [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchMarginMode', params);
         const request: Dict = {
             'account': userAccount,
         };
@@ -753,7 +753,7 @@ export default class pacifica extends Exchange {
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return {
                 'symbol': symbol,
-                'marginMode': this.safeString (this.options, 'defaultMarginMode'),
+                'marginMode': this.handleOption ('defaultMarginMode', undefined),
             } as MarginMode;
         } else {
             const setting = this.safeDict (settings, symbol, {});
@@ -787,7 +787,7 @@ export default class pacifica extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int|undefined} [params.aggLevel] Aggregation level for price grouping. Defaults to 1
+     * @param {int|undefined} [params.aggLevel] Aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -901,6 +901,7 @@ export default class pacifica extends Exchange {
         const markPx = this.safeNumber (info, 'mark');
         const oraclePx = this.safeNumber (info, 'oracle');
         const nextFundingRate = this.safeNumber (info, 'next_funding');
+        const timestamp = this.safeNumber (info, 'timestamp');
         const fundingTimestamp = (Math.floor (this.milliseconds () / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
         return {
             'info': info,
@@ -909,8 +910,8 @@ export default class pacifica extends Exchange {
             'indexPrice': oraclePx,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'fundingRate': funding,
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
@@ -963,6 +964,7 @@ export default class pacifica extends Exchange {
             }
         }
         const response = await this.publicGetKline (this.extend (request, params));
+        //
         // {
         //   "success": true,
         //   "data": [
@@ -982,6 +984,7 @@ export default class pacifica extends Exchange {
         //   "error": null,
         //   "code": null
         // }
+        //
         const candles = this.safeList (response, 'data', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
@@ -1067,7 +1070,7 @@ export default class pacifica extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleMainAddress ('fetchMyTrades', params);
+        [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchMyTrades', params);
         let until = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'until');
         let cursor = undefined;
@@ -1216,28 +1219,17 @@ export default class pacifica extends Exchange {
      * @param {bool|undefined} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
-     * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.agentAddress] only if agent wallet in use.
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.builderCode] only if builder approved.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const [ request, operationType ] = this.createOrderRequest (symbol, type, side, amount, price, params);
         params = this.omit (params, [
-            'reduceOnly', 'reduce_only',
-            'clientOrderId', 'cloid', 'client_order_id',
-            'stopLimit', 'stopLimitPrice', 'stop_limit_price',
-            'timeInForce', 'tif', 'time_in_force',
-            'stopPrice', 'triggerPrice',
-            'stopLossCloid', 'sl_cloid', 'stop_loss_cloid',
-            'stopLossPrice',
-            'sl_limit_price', 'stopLossLimit',
-            'takeProfitCloid', 'tp_cloid', 'take_profit_cloid',
-            'takeProfitPrice',
-            'tp_limit_price', 'takeProfitLimit',
-            'expiryWindow', 'expiry_window',
-            'agentAddress',
-            'mainAddress',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'tif', 'stopPrice', 'triggerPrice', 'stopLossCloid', 'builderCode',
+            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'expiry_window', 'agentAddress', 'originAddress',
         ]);
         let response = undefined;
         if (operationType === 'create_market_order') {
@@ -1249,12 +1241,14 @@ export default class pacifica extends Exchange {
         } else { // create_order
             response = await this.privatePostOrdersCreate (this.extend (request, params));
         }
+        //
         // {
         //   'success': true,
         //   'data': {
         //    "order_id": 12345
-        //   },
+        //    },
         // }
+        //
         const error = this.safeString (response, 'error', undefined);
         const success = this.safeBool (response, 'success', false);
         let status = undefined;
@@ -1293,7 +1287,8 @@ export default class pacifica extends Exchange {
          * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
          * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-         * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+         * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+         * @param {string|undefined} [params.builderCode] only if builder approved
          * @returns {object} an [order structure]
          */
         const market = this.market (symbol);
@@ -1310,7 +1305,7 @@ export default class pacifica extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const tifRaw = this.safeStringUpper2 (params, 'timeInForce', 'tif', 'time_in_force');
+        const tifRaw = this.safeStringUpper2 (params, 'timeInForce', 'tif');
         const isMarket = orderType === 'MARKET';
         const isTakeProfitOrder = (takeProfitPrice !== undefined);
         const isStopLossOrder = (stopLossPrice !== undefined);
@@ -1319,7 +1314,7 @@ export default class pacifica extends Exchange {
         if (isMarket) {
             operationType = 'create_market_order';
             sigPayload['reduce_only'] = reduceOnly;
-            const defaultSlippage = this.safeString (this.options, 'defaultSlippage', '0.5');
+            const defaultSlippage = this.handleOption ('defaultSlippage', '0.5');
             const slippage = this.safeString2 (params, 'slippage', 'slippage_percent', defaultSlippage);
             sigPayload['slippage_percent'] = slippage;
         } else if ((isTakeProfitOrder || isStopLossOrder) && (price === undefined)) { // there is no arg 'price' for tpsl endpoint
@@ -1327,9 +1322,9 @@ export default class pacifica extends Exchange {
         } else if (isStopOrder) {
             operationType = 'create_stop_order';
             sigPayload['reduce_only'] = reduceOnly;
-            const stopClientOrderId = this.safeStringN (params, [ 'clientOrderId', 'cloid', 'client_order_id' ]);
-            params = this.omit (params, [ 'clientOrderId', 'cloid', 'client_order_id' ]);
-            const stopLimitPrice = this.safeStringN (params, [ 'stopLimit', 'stopLimitPrice', 'stop_limit_price' ], this.priceToPrecision (symbol, price)); // Default limit price for stop order is price from args.
+            const stopClientOrderId = this.safeString (params, 'clientOrderId');
+            params = this.omit (params, [ 'clientOrderId' ]);
+            const stopLimitPrice = this.safeString (params, 'stopLimitPrice', this.priceToPrecision (symbol, price)); // Default limit price for stop order is price from args.
             const stopPayload = {
                 'amount': this.amountToPrecision (symbol, amount),
                 'stop_price': this.priceToPrecision (symbol, triggerPrice),
@@ -1351,8 +1346,8 @@ export default class pacifica extends Exchange {
             }
         }
         if (isTakeProfitOrder) {
-            const tpCloid = this.safeStringN (params, [ 'takeProfitCloid', 'tp_cloid', 'take_profit_cloid' ]);
-            const tpLimitPrice = this.safeStringN (params, [ 'tp_limit_price', 'takeProfitLimit' ]);
+            const tpCloid = this.safeString (params, 'takeProfitCloid');
+            const tpLimitPrice = this.safeString (params, 'takeProfitLimitPrice');
             const tpPayload: Dict = {
                 'stop_price': this.priceToPrecision (symbol, takeProfitPrice),
             };
@@ -1365,8 +1360,8 @@ export default class pacifica extends Exchange {
             sigPayload['take_profit'] = tpPayload;
         }
         if (isStopLossOrder) {
-            const slCloid = this.safeStringN (params, [ 'stopLossCloid', 'sl_cloid', 'stop_loss_cloid' ]);
-            const slLimitPrice = this.safeStringN (params, [ 'sl_limit_price', 'stopLossLimit' ]);
+            const slCloid = this.safeString (params, 'stopLossCloid');
+            const slLimitPrice = this.safeString (params, 'stopLossLimitPrice');
             const slPayload: Dict = {
                 'stop_price': this.priceToPrecision (symbol, stopLossPrice),
             };
@@ -1384,7 +1379,7 @@ export default class pacifica extends Exchange {
         if (amount !== undefined && (operationType !== 'create_stop_order' && operationType !== 'set_position_tpsl')) {
             sigPayload['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const clientOrderId = this.safeStringN (params, [ 'clientOrderId', 'cloid', 'client_order_id' ]);
+        const clientOrderId = this.safeStringN (params, [ 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         }
@@ -1427,7 +1422,7 @@ export default class pacifica extends Exchange {
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         const lenActions = actions.length;
-        const maxLen = this.safeInteger (this.options, 'batchOrdersMax');
+        const maxLen = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
         if (maxLen !== undefined) {
             if (lenActions > maxLen) {
                 throw new ExchangeError (this.id + 'batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
@@ -1516,7 +1511,7 @@ export default class pacifica extends Exchange {
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
@@ -1525,7 +1520,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + 'cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
-        params = this.omit (params, [ 'mainAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId', 'client_order_id', 'cloid' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
         const response = await this.privatePostOrdersBatch (this.extend (request, params));
         // {
         //   "success": true,
@@ -1586,12 +1581,12 @@ export default class pacifica extends Exchange {
      * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         const request = this.cancelAllOrdersRequest (symbol, params);
-        params = this.omit (params, [ 'excludeReduceOnly', 'exclude_reduce_only', 'agentAddress', 'mainAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'excludeReduceOnly', 'exclude_reduce_only', 'agentAddress', 'originAddress', 'expiryWindow', 'expiry_window' ]);
         const response = await this.privatePostOrdersCancelAll (this.extend (request, params));
         // {
         //   success: true,
@@ -1639,7 +1634,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @param {bool} [params.isStopOrder] Required if order is stop order. (Another endpoint in use)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1650,7 +1645,7 @@ export default class pacifica extends Exchange {
         }
         const request = this.cancelOrderRequest (id, symbol, params);
         const isStopOrder = this.safeBool2 (params, 'isStopOrder', 'is_stop_order', false);
-        params = this.omit (params, [ 'mainAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'is_stop_order', 'isStopOrder', 'clientOrderId', 'client_order_id', 'cloid' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'is_stop_order', 'isStopOrder', 'clientOrderId' ]);
         let response = undefined;
         if (isStopOrder) {
             response = await this.privatePostOrdersStopCancel (this.extend (request, params));
@@ -1709,7 +1704,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -1719,7 +1714,7 @@ export default class pacifica extends Exchange {
         }
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, market, params);
-        params = this.omit (params, [ 'mainAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId', 'client_order_id', 'cloid' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
         const response = await this.privatePostOrdersEdit (this.extend (request, params));
         //
         // {
@@ -1965,7 +1960,7 @@ export default class pacifica extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleMainAddress ('fetchOpenOrders', params);
+        [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchOpenOrders', params);
         const request: Dict = {
             'account': userAddress,
         };
@@ -2017,7 +2012,7 @@ export default class pacifica extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleMainAddress ('fetchOrders', params);
+        [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchOrders', params);
         await this.loadMarkets ();
         let market = undefined;
         const request: Dict = {
@@ -2327,7 +2322,7 @@ export default class pacifica extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleMainAddress ('fetchPositions', params);
+        [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchPositions', params);
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
             'account': userAddress,
@@ -2421,7 +2416,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} response from the exchange
      */
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
@@ -2437,7 +2432,7 @@ export default class pacifica extends Exchange {
             'is_isolated': isIsolated,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
-        params = this.omit (params, [ 'mainAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
         const response = await this.privatePostAccountMargin (request);
         // {
         //     "success": true
@@ -2455,7 +2450,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
@@ -2470,7 +2465,7 @@ export default class pacifica extends Exchange {
             'leverage': leverage,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
-        params = this.omit (params, [ 'mainAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
         const response = await this.privatePostAccountLeverage (request);
         // {
         //     "success": true
@@ -2490,7 +2485,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
@@ -2501,7 +2496,7 @@ export default class pacifica extends Exchange {
             'amount': amount,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
-        params = this.omit (params, [ 'mainAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
         const response = await this.privatePostAccountWithdraw (this.extend (request, params));
         return { 'info': response } as Transaction;
     }
@@ -2519,7 +2514,7 @@ export default class pacifica extends Exchange {
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleMainAddress ('fetchTradingFee', params);
+        [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchTradingFee', params);
         const market = this.market (symbol);
         const request: Dict = {
             'account': userAddress,
@@ -2666,7 +2661,7 @@ export default class pacifica extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleMainAddress ('fetchLedger', params);
+        [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchLedger', params);
         const request: Dict = {
             'account': userAddress,
         };
@@ -2771,7 +2766,7 @@ export default class pacifica extends Exchange {
             market = this.market (symbol);
         }
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleMainAddress ('fetchFundingHistory', params);
+        [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchFundingHistory', params);
         const request: Dict = {
             'account': userAddress,
         };
@@ -2848,7 +2843,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
@@ -2914,7 +2909,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
-     * @param {string|undefined} [params.mainAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
+     * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @param {string} [params.subAccountAddress] - The public key (address) of the sub-account to use for creation
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
@@ -2923,10 +2918,10 @@ export default class pacifica extends Exchange {
         const finalHeaders = { };
         let agentAddress = undefined;
         [ agentAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
-        let mainAddress = undefined;
-        [ mainAddress, params ] = this.handleMainAddress ('createSubAccount', params);
-        if (mainAddress === undefined) {
-            throw new ArgumentsRequired (this.id + 'createSubAccount() requires "mainAddress" in params or "walletAddress" in requiredCredentials');
+        let originAddress = undefined;
+        [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
+        if (originAddress === undefined) {
+            throw new ArgumentsRequired (this.id + 'createSubAccount() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }
         if (agentAddress !== undefined) {
             finalHeaders['agent_wallet'] = agentAddress;
@@ -2950,7 +2945,7 @@ export default class pacifica extends Exchange {
             'type': 'subaccount_initiate',
         };
         const subSigPayload = {
-            'account': mainAddress,
+            'account': originAddress,
         };
         const subaccount_signature = this.signMessage (subaccount_signature_header, subSigPayload, subAccountPrivateKey);
         const main_signature_header = {
@@ -2962,7 +2957,7 @@ export default class pacifica extends Exchange {
             'signature': subaccount_signature,
         };
         const main_signature = this.signMessage (main_signature_header, mainSigPayload, this.privateKey);
-        finalHeaders['main_account'] = mainAddress;
+        finalHeaders['main_account'] = originAddress;
         finalHeaders['subaccount'] = subAccountAddress;
         finalHeaders['sub_signature'] = subaccount_signature;
         finalHeaders['main_signature'] = main_signature;
@@ -2970,18 +2965,78 @@ export default class pacifica extends Exchange {
         finalHeaders['expiry_window'] = expiryWindow;
         const request = finalHeaders;
         const response = await this.privatePostAccountSubaccountCreate (request);
+        //
         // {
         //   "success": true,
         //   "data": null,
         //   "error": null,
         //   "code": null,
         // }
+        //
         return response;
     }
 
-    handleMainAddress (methodName: string, params: Dict) {
+    async bindAgentWallet (agentAddress: string, params = {}) {
+        const operationType = 'bind_agent_wallet';
+        const sigPayload = {
+            'agent_wallet': agentAddress,
+        };
+        const request = this.postActionRequest (operationType, sigPayload, params);
+        return await this.privatePostAgentBind (this.extend (request, params));
+    }
+
+    async createApiKey (params = {}) {
+        const operationType = 'create_api_key';
+        const sigPayload = {};
+        const request = this.postActionRequest (operationType, sigPayload, params);
+        return await this.privatePostAccountApiKeysCreate (this.extend (request, params));
+    }
+
+    async revokeApiKey (apiKey: string, params = {}) {
+        const operationType = 'revoke_api_key';
+        const sigPayload = {
+            'api_key': apiKey,
+        };
+        const request = this.postActionRequest (operationType, sigPayload, params);
+        return await this.privatePostAccountApiKeysRevoke (this.extend (request, params));
+    }
+
+    async fetchApiKeys (params = {}) {
+        const operationType = 'list_api_keys';
+        const sigPayload = {};
+        const request = this.postActionRequest (operationType, sigPayload, params);
+        return await this.privatePostAccountApiKeys (this.extend (request, params));
+    }
+
+    async approveBuilderCode (builderCode: string, maxFeeRate: string, params = {}) {
+        const operationType = 'approve_builder_code';
+        const sigPayload = {
+            'builder_code': builderCode,
+            'max_fee_rate': maxFeeRate,
+        };
+        const request = this.postActionRequest (operationType, sigPayload, params);
+        return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
+    }
+
+    async fetchBuilderApprovals (address: string, params = {}) {
+        const request = {
+            'account': address,
+        };
+        return await this.privatePostAgentBind (this.extend (request, params));
+    }
+
+    async revokeBuilderCode (builderCode: string, params = {}) {
+        const operationType = 'revoke_builder_code';
+        const sigPayload = {
+            'builder_code': builderCode,
+        };
+        const request = this.postActionRequest (operationType, sigPayload, params);
+        return await this.privatePostAccountBuilderCodesRevoke (this.extend (request, params));
+    }
+
+    handleOriginAndSingleAddress (methodName: string, params: Dict) {
         let address1 = undefined;
-        [ address1, params ] = this.handleOptionAndParams2 (params, methodName, 'mainAddress', 'main_address');
+        [ address1, params ] = this.handleOptionAndParams2 (params, methodName, 'originAddress', 'mainAddress');
         if (address1 !== undefined) {
             return [ address1, params ];
         }
@@ -3027,7 +3082,7 @@ export default class pacifica extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
+        const isTestnet = this.handleOption ('sign', 'sandboxMode', false);
         const urlKey = (isTestnet) ? 'test' : 'api';
         const host = this.implodeHostname (this.urls[urlKey][api]);
         let url = host + '/api/' + this.version + '/' + this.implodeParams (path, params);
@@ -3054,8 +3109,8 @@ export default class pacifica extends Exchange {
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (cost > 1) {
             if (this.apiKey) {
-                const costWithKey = this.safeValue (
-                    this.options,
+                const costWithKey = this.handleOption (
+                    method,
                     'maxCostHugeWithApiKey',
                     3
                 );
@@ -3123,14 +3178,22 @@ export default class pacifica extends Exchange {
         const finalHeaders = { };
         let agentAddress = undefined;
         [ agentAddress, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'agentAddress');
-        let mainAddress = undefined;
-        [ mainAddress, params ] = this.handleMainAddress ('postActionRequest', params);
-        if (mainAddress === undefined) {
-            throw new ArgumentsRequired (this.id + 'action:' + operationType + ' postActionRequest() requires "mainAddress" in params or "walletAddress" in requiredCredentials');
+        let originAddress = undefined;
+        [ originAddress, params ] = this.handleOriginAndSingleAddress ('postActionRequest', params);
+        if (originAddress === undefined) {
+            throw new ArgumentsRequired (this.id + 'action:' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }
-        finalHeaders['account'] = mainAddress;
+        finalHeaders['account'] = originAddress;
         if (agentAddress !== undefined) {
             finalHeaders['agent_wallet'] = agentAddress;
+        }
+        let builderCode = undefined;
+        [ builderCode, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'builderCode');
+        const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
+        if (builderCode !== undefined) {
+            if (isOperationSupportBuilder) {
+                finalHeaders['builder_code'] = builderCode;
+            }
         }
         finalHeaders['signature'] = signature;
         finalHeaders['timestamp'] = this.safeInteger (signatureHeader, 'timestamp');
