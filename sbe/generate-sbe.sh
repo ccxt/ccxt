@@ -315,6 +315,99 @@ organize_go_files() {
     print_info "✓ Go files organized in go/v4/sbe/"
 }
 
+# Function to organize C# files into cs/ccxt/sbe/
+# This ensures C# namespaces work correctly within the C# project
+organize_csharp_files() {
+    print_info "Organizing C# files for C# project..."
+
+    local cs_sbe_dir="$(dirname "$SBE_FOLDER")/cs/ccxt/sbe"
+
+    # Create the cs/ccxt/sbe directory if it doesn't exist
+    mkdir -p "$cs_sbe_dir"
+
+    # Find all generated-csharp directories
+    while IFS= read -r csharp_dir; do
+        # Extract exchange and version from path
+        # Example: sbe/binance/spot_3_2/generated-csharp -> binance_spot_3_2
+        # Example: sbe/okx/okx_sbe_1_0/generated-csharp -> okx_1_0
+
+        local rel_path="${csharp_dir#$SBE_FOLDER/}"
+        local exchange_path="${rel_path%/generated-csharp}"
+
+        # Parse exchange and schema parts
+        local exchange=$(echo "$exchange_path" | cut -d'/' -f1)
+        local schema=$(echo "$exchange_path" | cut -d'/' -f2)
+
+        # Create clean package name
+        local package_name=""
+        if [[ "$schema" == "okx_sbe_"* ]]; then
+            # okx_sbe_1_0 -> okx_1_0
+            package_name="okx_${schema#okx_sbe_}"
+        elif [[ "$schema" == "spot_"* ]]; then
+            # binance/spot_3_2 -> binance_spot_3_2
+            package_name="${exchange}_${schema}"
+        elif [[ "$schema" == "stream_"* ]]; then
+            # binance/stream_1_0 -> binance_stream_1_0
+            package_name="${exchange}_${schema}"
+        else
+            # Generic fallback
+            package_name="${exchange}_${schema}"
+        fi
+
+        # Clean up package name (remove special chars)
+        package_name=$(echo "$package_name" | tr '-' '_')
+
+        local target_dir="$cs_sbe_dir/$package_name"
+
+        print_info "Copying C# files: $exchange_path -> cs/ccxt/sbe/$package_name"
+
+        # Find the subdirectory with C# files (spot_sbe, com_okx_sbe, etc.)
+        local source_package_dir=$(find "$csharp_dir" -type d -mindepth 1 -maxdepth 1 | head -n 1)
+
+        if [ -z "$source_package_dir" ]; then
+            print_warn "No C# package directory found in $csharp_dir"
+            continue
+        fi
+
+        # Create target directory
+        mkdir -p "$target_dir"
+
+        # Copy all .cs files
+        cp -f "$source_package_dir"/*.cs "$target_dir/" 2>/dev/null || true
+
+        # Update namespace in all C# files
+        # New namespace pattern: ccxt.sbe.binance_spot_3_2, ccxt.sbe.okx_1_0
+        local new_namespace="ccxt.sbe.$package_name"
+
+        # Get the first .cs file to extract the old namespace
+        local first_cs_file=$(find "$source_package_dir" -name "*.cs" -type f | head -n 1)
+        if [ -n "$first_cs_file" ]; then
+            # Extract just the namespace name from the file
+            local old_namespace=$(grep "^namespace " "$first_cs_file" | head -n 1 | sed 's/^namespace //' | tr -d ' ')
+
+            for cs_file in "$target_dir"/*.cs; do
+                if [ -f "$cs_file" ]; then
+                    # Replace namespace declaration
+                    # From: namespace Com.Okx.Sbe
+                    # To:   namespace ccxt.sbe.okx_1_0
+                    # From: namespace Spot_sbe_3_2
+                    # To:   namespace ccxt.sbe.binance_spot_3_2
+                    # Escape dots in old_namespace for sed
+                    local old_namespace_escaped=$(echo "$old_namespace" | sed 's/\./\\./g')
+                    sed -i.bak "s/^namespace ${old_namespace_escaped}$/namespace $new_namespace/" "$cs_file"
+                    # Remove backup files
+                    rm -f "$cs_file.bak"
+                fi
+            done
+        fi
+
+        print_info "✓ Organized $package_name ($(ls -1 "$target_dir"/*.cs 2>/dev/null | wc -l | tr -d ' ') files)"
+
+    done < <(find "$SBE_FOLDER" -type d -name "generated-csharp")
+
+    print_info "✓ C# files organized in cs/ccxt/sbe/"
+}
+
 # Main execution
 main() {
     print_info "Starting SBE code generation..."
@@ -359,6 +452,9 @@ main() {
 
     # Organize Go files for Go module
     organize_go_files
+
+    # Organize C# files for C# project
+    organize_csharp_files
 }
 
 # Run main function
