@@ -1,8 +1,15 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
+
+class UnlockData:
+    """Repeating group item."""
+
+    def __init__(self):
+        self.unlock_time = None
+        self.qty = None
 
 class TPlusFilterLockEvent:
     """SBE message: TPlusFilterLockEvent."""
@@ -20,6 +27,40 @@ class TPlusFilterLockEvent:
         self.symbol = b''
         self.base_asset = b''
 
+    def _decode_unlock_data_group(self, data: bytes, offset: int) -> Tuple[List[UnlockData], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = UnlockData()
+
+            item.unlock_time = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.qty = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
+
     def encode(self) -> bytes:
         """Encode the message to bytes."""
         buffer = BytesIO()
@@ -35,8 +76,19 @@ class TPlusFilterLockEvent:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.event_time = struct.unpack('<q', buffer.read(8))[0]
-        self.qty_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.subscription_id = struct.unpack('<H', buffer.read(2))[0]
+        self.event_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.qty_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.subscription_id = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+
+        # Skip to end of block for forward compatibility
+        pos = 11
+
+        self.unlock_data, pos = self._decode_unlock_data_group(data, pos)
+
+        self.symbol, pos = self._decode_var_data(data, pos)
+        self.base_asset, pos = self._decode_var_data(data, pos)

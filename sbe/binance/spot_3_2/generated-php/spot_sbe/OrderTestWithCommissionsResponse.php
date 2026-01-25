@@ -23,6 +23,15 @@ class OrderTestWithCommissionsResponse
     public int|float|array|null $specialCommissionForOrderTaker = null;
     public string $discountAsset = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -80,5 +89,11 @@ class OrderTestWithCommissionsResponse
         $offset += 8;
         $this->specialCommissionForOrderTaker = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 60;
+
+
+        $this->discountAsset = $this->decodeVarData($data, $offset);
     }
 }

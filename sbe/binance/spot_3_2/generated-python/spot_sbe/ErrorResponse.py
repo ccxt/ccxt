@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class ErrorResponse:
@@ -19,6 +19,15 @@ class ErrorResponse:
         self.msg = b''
         self.data = b''
 
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
+
     def encode(self) -> bytes:
         """Encode the message to bytes."""
         buffer = BytesIO()
@@ -34,8 +43,18 @@ class ErrorResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.code = struct.unpack('<h', buffer.read(2))[0]
-        self.server_time = struct.unpack('<q', buffer.read(8))[0]
-        self.retry_after = struct.unpack('<q', buffer.read(8))[0]
+        self.code = struct.unpack_from('<h', data, pos)[0]
+        pos += 2
+        self.server_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.retry_after = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+
+        # Skip to end of block for forward compatibility
+        pos = 18
+
+
+        self.msg, pos = self._decode_var_data(data, pos)
+        self.data, pos = self._decode_var_data(data, pos)

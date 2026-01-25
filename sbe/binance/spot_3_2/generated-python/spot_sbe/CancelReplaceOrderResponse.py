@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class CancelReplaceOrderResponse:
@@ -18,6 +18,15 @@ class CancelReplaceOrderResponse:
         self.cancel_response = b''
         self.new_order_response = b''
 
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
+
     def encode(self) -> bytes:
         """Encode the message to bytes."""
         buffer = BytesIO()
@@ -27,5 +36,12 @@ class CancelReplaceOrderResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
+
+        # Skip to end of block for forward compatibility
+        pos = 2
+
+
+        self.cancel_response, pos = self._decode_var_data(data, pos)
+        self.new_order_response, pos = self._decode_var_data(data, pos)

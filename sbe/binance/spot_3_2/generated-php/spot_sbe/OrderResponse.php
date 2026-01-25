@@ -46,6 +46,15 @@ class OrderResponse
     public string $symbol = '';
     public string $clientOrderId = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -168,5 +177,12 @@ class OrderResponse
         $offset += 1;
         $this->peggedPrice = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 162;
+
+
+        $this->symbol = $this->decodeVarData($data, $offset);
+        $this->clientOrderId = $this->decodeVarData($data, $offset);
     }
 }

@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class MinNotionalFilter:
@@ -34,8 +34,15 @@ class MinNotionalFilter:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.price_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.min_notional = struct.unpack('<q', buffer.read(8))[0]
-        self.avg_price_mins = struct.unpack('<i', buffer.read(4))[0]
+        self.price_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.min_notional = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.avg_price_mins = struct.unpack_from('<i', data, pos)[0]
+        pos += 4
+
+        # Skip to end of block for forward compatibility
+        pos = 14
+

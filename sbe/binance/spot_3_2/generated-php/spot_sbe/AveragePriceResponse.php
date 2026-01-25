@@ -47,5 +47,9 @@ class AveragePriceResponse
         $offset += 8;
         $this->closeTime = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 25;
+
     }
 }

@@ -1,8 +1,14 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
+
+class Orders:
+    """Repeating group item."""
+
+    def __init__(self):
+        self.order_id = None
 
 class ListStatusEvent:
     """SBE message: ListStatusEvent."""
@@ -25,6 +31,38 @@ class ListStatusEvent:
         self.list_client_order_id = b''
         self.reject_reason = b''
 
+    def _decode_orders_group(self, data: bytes, offset: int) -> Tuple[List[Orders], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = Orders()
+
+            item.order_id = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
+
     def encode(self) -> bytes:
         """Encode the message to bytes."""
         buffer = BytesIO()
@@ -42,9 +80,22 @@ class ListStatusEvent:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.event_time = struct.unpack('<q', buffer.read(8))[0]
-        self.transact_time = struct.unpack('<q', buffer.read(8))[0]
-        self.order_list_id = struct.unpack('<q', buffer.read(8))[0]
-        self.subscription_id = struct.unpack('<H', buffer.read(2))[0]
+        self.event_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.transact_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.order_list_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.subscription_id = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+
+        # Skip to end of block for forward compatibility
+        pos = 29
+
+        self.orders, pos = self._decode_orders_group(data, pos)
+
+        self.symbol, pos = self._decode_var_data(data, pos)
+        self.list_client_order_id, pos = self._decode_var_data(data, pos)
+        self.reject_reason, pos = self._decode_var_data(data, pos)

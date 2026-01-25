@@ -1,8 +1,29 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
+
+class Fills:
+    """Repeating group item."""
+
+    def __init__(self):
+        self.commission_exponent = None
+        self.price = None
+        self.qty = None
+        self.commission = None
+        self.trade_id = None
+        self.alloc_id = None
+
+class PreventedMatches:
+    """Repeating group item."""
+
+    def __init__(self):
+        self.prevented_match_id = None
+        self.maker_order_id = None
+        self.price = None
+        self.taker_prevented_quantity = None
+        self.maker_prevented_quantity = None
 
 class NewOrderFullResponse:
     """SBE message: NewOrderFullResponse."""
@@ -48,6 +69,79 @@ class NewOrderFullResponse:
         self.prevented_matches = []
         self.symbol = b''
         self.client_order_id = b''
+
+    def _decode_fills_group(self, data: bytes, offset: int) -> Tuple[List[Fills], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = Fills()
+
+            item.commission_exponent = struct.unpack_from('<b', data, pos)[0]
+            pos += 1
+            item.price = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.qty = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.commission = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.trade_id = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.alloc_id = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
+    def _decode_prevented_matches_group(self, data: bytes, offset: int) -> Tuple[List[PreventedMatches], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = PreventedMatches()
+
+            item.prevented_match_id = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.maker_order_id = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.price = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.taker_prevented_quantity = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.maker_prevented_quantity = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
 
     def encode(self) -> bytes:
         """Encode the message to bytes."""
@@ -100,26 +194,56 @@ class NewOrderFullResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.price_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.qty_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.order_id = struct.unpack('<q', buffer.read(8))[0]
-        self.order_list_id = struct.unpack('<q', buffer.read(8))[0]
-        self.transact_time = struct.unpack('<q', buffer.read(8))[0]
-        self.price = struct.unpack('<q', buffer.read(8))[0]
-        self.orig_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.executed_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.cummulative_quote_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.stop_price = struct.unpack('<q', buffer.read(8))[0]
-        self.trailing_delta = struct.unpack('<q', buffer.read(8))[0]
-        self.trailing_time = struct.unpack('<q', buffer.read(8))[0]
-        self.working_time = struct.unpack('<q', buffer.read(8))[0]
-        self.iceberg_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.strategy_id = struct.unpack('<q', buffer.read(8))[0]
-        self.strategy_type = struct.unpack('<i', buffer.read(4))[0]
-        self.trade_group_id = struct.unpack('<q', buffer.read(8))[0]
-        self.prevented_quantity = struct.unpack('<q', buffer.read(8))[0]
-        self.orig_quote_order_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.peg_offset_value = struct.unpack('<B', buffer.read(1))[0]
-        self.pegged_price = struct.unpack('<q', buffer.read(8))[0]
+        self.price_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.qty_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.order_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.order_list_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.transact_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.orig_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.executed_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.cummulative_quote_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.stop_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.trailing_delta = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.trailing_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.working_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.iceberg_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.strategy_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.strategy_type = struct.unpack_from('<i', data, pos)[0]
+        pos += 4
+        self.trade_group_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.prevented_quantity = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.orig_quote_order_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.peg_offset_value = struct.unpack_from('<B', data, pos)[0]
+        pos += 1
+        self.pegged_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+
+        # Skip to end of block for forward compatibility
+        pos = 153
+
+        self.fills, pos = self._decode_fills_group(data, pos)
+        self.prevented_matches, pos = self._decode_prevented_matches_group(data, pos)
+
+        self.symbol, pos = self._decode_var_data(data, pos)
+        self.client_order_id, pos = self._decode_var_data(data, pos)

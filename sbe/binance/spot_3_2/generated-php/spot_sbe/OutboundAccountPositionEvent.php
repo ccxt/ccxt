@@ -3,6 +3,13 @@
  * Generated SBE (Simple Binary Encoding) message codec.
  */
 
+class Balances
+{
+    public int|float|null $exponent = null;
+    public int|float|null $free = null;
+    public int|float|null $locked = null;
+}
+
 class OutboundAccountPositionEvent
 {
     public const TEMPLATE_ID = 607;
@@ -14,6 +21,33 @@ class OutboundAccountPositionEvent
     public int|float|array|null $updateTime = null;
     public int|float|array|null $subscriptionId = null;
     public array $balances = [];
+
+    private function decodeBalancesGroup(string $data, int &$offset): array
+    {
+        $blockLength = unpack('v', substr($data, $offset, 2))[1];
+        $offset += 2;
+        $numInGroup = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+
+        $items = [];
+        for ($i = 0; $i < $numInGroup; $i++) {
+            $itemStart = $offset;
+            $item = new Balances();
+
+            $item->exponent = unpack('c', substr($data, $offset, 1))[1];
+            $offset += 1;
+            $item->free = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->locked = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+
+            // Skip to next block for forward compatibility
+            $offset = $itemStart + $blockLength;
+            $items[] = $item;
+        }
+
+        return $items;
+    }
 
     public function encode(): string
     {
@@ -42,5 +76,10 @@ class OutboundAccountPositionEvent
         $offset += 8;
         $this->subscriptionId = unpack('v', substr($data, $offset, 2))[1];
         $offset += 2;
+
+        // Skip to end of block for forward compatibility
+        $offset = 18;
+
+        $this->balances = $this->decodeBalancesGroup($data, $offset);
     }
 }

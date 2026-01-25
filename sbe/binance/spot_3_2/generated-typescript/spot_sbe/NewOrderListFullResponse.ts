@@ -40,14 +40,12 @@ export interface OrderReports {
   peggedPrice: bigint;
   commissionExponent: number;
   matchType: number;
-  price: bigint;
   qty: bigint;
   commission: bigint;
   tradeId: bigint;
   allocId: bigint;
   preventedMatchId: bigint;
   makerOrderId: bigint;
-  price: bigint;
   takerPreventedQuantity: bigint;
   makerPreventedQuantity: bigint;
 }
@@ -264,7 +262,6 @@ export class NewOrderListFullResponseDecoder {
       const matchType = view.getUint8(pos);
       pos += 1;
 
-      const price = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
       const qty = view.getBigInt64(pos, this.littleEndian);
@@ -285,7 +282,6 @@ export class NewOrderListFullResponseDecoder {
       const makerOrderId = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      const price = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
       const takerPreventedQuantity = view.getBigInt64(pos, this.littleEndian);
@@ -329,14 +325,12 @@ export class NewOrderListFullResponseDecoder {
         peggedPrice: peggedPrice,
         commissionExponent: commissionExponent,
         matchType: matchType,
-        price: price,
         qty: qty,
         commission: commission,
         tradeId: tradeId,
         allocId: allocId,
         preventedMatchId: preventedMatchId,
         makerOrderId: makerOrderId,
-        price: price,
         takerPreventedQuantity: takerPreventedQuantity,
         makerPreventedQuantity: makerPreventedQuantity
       });

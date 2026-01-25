@@ -70,6 +70,15 @@ class ExecutionReportEvent
     public string $rejectReason = '';
     public string $counterSymbol = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -272,5 +281,16 @@ class ExecutionReportEvent
         $offset += 1;
         $this->peggedPrice = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 281;
+
+
+        $this->symbol = $this->decodeVarData($data, $offset);
+        $this->clientOrderId = $this->decodeVarData($data, $offset);
+        $this->origClientOrderId = $this->decodeVarData($data, $offset);
+        $this->commissionAsset = $this->decodeVarData($data, $offset);
+        $this->rejectReason = $this->decodeVarData($data, $offset);
+        $this->counterSymbol = $this->decodeVarData($data, $offset);
     }
 }

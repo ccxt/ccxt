@@ -12,6 +12,15 @@ class UserDataStreamStartResponse
 
     public string $listenKey = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -24,5 +33,11 @@ class UserDataStreamStartResponse
     {
         $offset = 0;
 
+
+        // Skip to end of block for forward compatibility
+        $offset = 0;
+
+
+        $this->listenKey = $this->decodeVarData($data, $offset);
     }
 }

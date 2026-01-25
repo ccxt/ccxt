@@ -17,6 +17,15 @@ class WebSocketSessionLogoutResponse
     public int|float|array|null $userDataStream = null;
     public string $loggedOnApiKey = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -44,5 +53,11 @@ class WebSocketSessionLogoutResponse
         $offset += 8;
         $this->serverTime = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 26;
+
+
+        $this->loggedOnApiKey = $this->decodeVarData($data, $offset);
     }
 }

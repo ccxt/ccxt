@@ -17,6 +17,15 @@ class ExternalLockUpdateEvent
     public int|float|array|null $subscriptionId = null;
     public string $asset = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -54,5 +63,11 @@ class ExternalLockUpdateEvent
         $offset += 8;
         $this->subscriptionId = unpack('v', substr($data, $offset, 2))[1];
         $offset += 2;
+
+        // Skip to end of block for forward compatibility
+        $offset = 27;
+
+
+        $this->asset = $this->decodeVarData($data, $offset);
     }
 }

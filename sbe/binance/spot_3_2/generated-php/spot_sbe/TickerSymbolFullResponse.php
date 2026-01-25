@@ -28,6 +28,15 @@ class TickerSymbolFullResponse
     public int|float|array|null $numTrades = null;
     public string $symbol = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -130,5 +139,11 @@ class TickerSymbolFullResponse
         $offset += 8;
         $this->numTrades = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 126;
+
+
+        $this->symbol = $this->decodeVarData($data, $offset);
     }
 }

@@ -48,5 +48,9 @@ class LotSizeFilter
         $offset += 8;
         $this->stepSize = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 25;
+
     }
 }

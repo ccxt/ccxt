@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class NewOrderResultResponse:
@@ -46,6 +46,15 @@ class NewOrderResultResponse:
         self.pegged_price = None
         self.symbol = b''
         self.client_order_id = b''
+
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
 
     def encode(self) -> bytes:
         """Encode the message to bytes."""
@@ -98,26 +107,54 @@ class NewOrderResultResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.price_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.qty_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.order_id = struct.unpack('<q', buffer.read(8))[0]
-        self.order_list_id = struct.unpack('<q', buffer.read(8))[0]
-        self.transact_time = struct.unpack('<q', buffer.read(8))[0]
-        self.price = struct.unpack('<q', buffer.read(8))[0]
-        self.orig_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.executed_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.cummulative_quote_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.stop_price = struct.unpack('<q', buffer.read(8))[0]
-        self.trailing_delta = struct.unpack('<q', buffer.read(8))[0]
-        self.trailing_time = struct.unpack('<q', buffer.read(8))[0]
-        self.working_time = struct.unpack('<q', buffer.read(8))[0]
-        self.iceberg_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.strategy_id = struct.unpack('<q', buffer.read(8))[0]
-        self.strategy_type = struct.unpack('<i', buffer.read(4))[0]
-        self.trade_group_id = struct.unpack('<q', buffer.read(8))[0]
-        self.prevented_quantity = struct.unpack('<q', buffer.read(8))[0]
-        self.orig_quote_order_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.peg_offset_value = struct.unpack('<B', buffer.read(1))[0]
-        self.pegged_price = struct.unpack('<q', buffer.read(8))[0]
+        self.price_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.qty_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.order_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.order_list_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.transact_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.orig_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.executed_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.cummulative_quote_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.stop_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.trailing_delta = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.trailing_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.working_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.iceberg_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.strategy_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.strategy_type = struct.unpack_from('<i', data, pos)[0]
+        pos += 4
+        self.trade_group_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.prevented_quantity = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.orig_quote_order_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.peg_offset_value = struct.unpack_from('<B', data, pos)[0]
+        pos += 1
+        self.pegged_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+
+        # Skip to end of block for forward compatibility
+        pos = 153
+
+
+        self.symbol, pos = self._decode_var_data(data, pos)
+        self.client_order_id, pos = self._decode_var_data(data, pos)

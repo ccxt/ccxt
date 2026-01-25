@@ -30,6 +30,15 @@ class AccountCommissionResponse
     public string $symbol = '';
     public string $discountAsset = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -117,5 +126,12 @@ class AccountCommissionResponse
         $offset += 8;
         $this->specialCommissionSeller = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 108;
+
+
+        $this->symbol = $this->decodeVarData($data, $offset);
+        $this->discountAsset = $this->decodeVarData($data, $offset);
     }
 }

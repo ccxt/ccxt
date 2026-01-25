@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class EventStreamTerminatedEvent:
@@ -29,7 +29,13 @@ class EventStreamTerminatedEvent:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.event_time = struct.unpack('<q', buffer.read(8))[0]
-        self.subscription_id = struct.unpack('<H', buffer.read(2))[0]
+        self.event_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.subscription_id = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+
+        # Skip to end of block for forward compatibility
+        pos = 10
+

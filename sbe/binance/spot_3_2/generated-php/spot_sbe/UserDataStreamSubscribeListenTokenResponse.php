@@ -35,5 +35,9 @@ class UserDataStreamSubscribeListenTokenResponse
         $offset += 2;
         $this->expirationTime = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 10;
+
     }
 }

@@ -1,8 +1,19 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
+
+class AggTrades:
+    """Repeating group item."""
+
+    def __init__(self):
+        self.agg_trade_id = None
+        self.price = None
+        self.qty = None
+        self.first_trade_id = None
+        self.last_trade_id = None
+        self.time = None
 
 class AggTradesResponse:
     """SBE message: AggTradesResponse."""
@@ -17,6 +28,39 @@ class AggTradesResponse:
         self.qty_exponent = None
         self.agg_trades = []
 
+    def _decode_agg_trades_group(self, data: bytes, offset: int) -> Tuple[List[AggTrades], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = AggTrades()
+
+            item.agg_trade_id = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.price = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.qty = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.first_trade_id = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.last_trade_id = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.time = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
     def encode(self) -> bytes:
         """Encode the message to bytes."""
         buffer = BytesIO()
@@ -30,7 +74,14 @@ class AggTradesResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.price_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.qty_exponent = struct.unpack('<b', buffer.read(1))[0]
+        self.price_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.qty_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+
+        # Skip to end of block for forward compatibility
+        pos = 2
+
+        self.agg_trades, pos = self._decode_agg_trades_group(data, pos)

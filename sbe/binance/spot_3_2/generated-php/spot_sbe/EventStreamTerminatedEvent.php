@@ -35,5 +35,9 @@ class EventStreamTerminatedEvent
         $offset += 8;
         $this->subscriptionId = unpack('v', substr($data, $offset, 2))[1];
         $offset += 2;
+
+        // Skip to end of block for forward compatibility
+        $offset = 10;
+
     }
 }

@@ -15,6 +15,15 @@ class MaxAssetFilter
     public int|float|array|null $maxQty = null;
     public string $asset = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -37,5 +46,11 @@ class MaxAssetFilter
         $offset += 1;
         $this->maxQty = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 9;
+
+
+        $this->asset = $this->decodeVarData($data, $offset);
     }
 }

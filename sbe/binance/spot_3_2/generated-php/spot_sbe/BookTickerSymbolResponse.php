@@ -18,6 +18,15 @@ class BookTickerSymbolResponse
     public int|float|array|null $askQty = null;
     public string $symbol = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -60,5 +69,11 @@ class BookTickerSymbolResponse
         $offset += 8;
         $this->askQty = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 34;
+
+
+        $this->symbol = $this->decodeVarData($data, $offset);
     }
 }

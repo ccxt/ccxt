@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class UserDataStreamUnsubscribeResponse:
@@ -23,5 +23,9 @@ class UserDataStreamUnsubscribeResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
+
+
+        # Skip to end of block for forward compatibility
+        pos = 0
 

@@ -1,8 +1,26 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
+
+class Balances:
+    """Repeating group item."""
+
+    def __init__(self):
+        self.exponent = None
+        self.free = None
+        self.locked = None
+
+class Permissions:
+    """Repeating group item."""
+
+    def __init__(self):
+
+class ReduceOnlyAssets:
+    """Repeating group item."""
+
+    def __init__(self):
 
 class AccountResponse:
     """SBE message: AccountResponse."""
@@ -32,6 +50,75 @@ class AccountResponse:
         self.permissions = []
         self.reduce_only_assets = []
 
+    def _decode_balances_group(self, data: bytes, offset: int) -> Tuple[List[Balances], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = Balances()
+
+            item.exponent = struct.unpack_from('<b', data, pos)[0]
+            pos += 1
+            item.free = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.locked = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
+    def _decode_permissions_group(self, data: bytes, offset: int) -> Tuple[List[Permissions], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = Permissions()
+
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
+    def _decode_reduce_only_assets_group(self, data: bytes, offset: int) -> Tuple[List[ReduceOnlyAssets], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = ReduceOnlyAssets()
+
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
     def encode(self) -> bytes:
         """Encode the message to bytes."""
         buffer = BytesIO()
@@ -57,13 +144,28 @@ class AccountResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.commission_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.commission_rate_maker = struct.unpack('<q', buffer.read(8))[0]
-        self.commission_rate_taker = struct.unpack('<q', buffer.read(8))[0]
-        self.commission_rate_buyer = struct.unpack('<q', buffer.read(8))[0]
-        self.commission_rate_seller = struct.unpack('<q', buffer.read(8))[0]
-        self.update_time = struct.unpack('<q', buffer.read(8))[0]
-        self.trade_group_id = struct.unpack('<q', buffer.read(8))[0]
-        self.uid = struct.unpack('<q', buffer.read(8))[0]
+        self.commission_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.commission_rate_maker = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.commission_rate_taker = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.commission_rate_buyer = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.commission_rate_seller = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.update_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.trade_group_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.uid = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+
+        # Skip to end of block for forward compatibility
+        pos = 64
+
+        self.balances, pos = self._decode_balances_group(data, pos)
+        self.permissions, pos = self._decode_permissions_group(data, pos)
+        self.reduce_only_assets, pos = self._decode_reduce_only_assets_group(data, pos)

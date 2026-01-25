@@ -3,6 +3,25 @@
  * Generated SBE (Simple Binary Encoding) message codec.
  */
 
+class Fills
+{
+    public int|float|null $commissionExponent = null;
+    public int|float|null $price = null;
+    public int|float|null $qty = null;
+    public int|float|null $commission = null;
+    public int|float|null $tradeId = null;
+    public int|float|null $allocId = null;
+}
+
+class PreventedMatches
+{
+    public int|float|null $preventedMatchId = null;
+    public int|float|null $makerOrderId = null;
+    public int|float|null $price = null;
+    public int|float|null $takerPreventedQuantity = null;
+    public int|float|null $makerPreventedQuantity = null;
+}
+
 class NewOrderFullResponse
 {
     public const TEMPLATE_ID = 302;
@@ -45,6 +64,79 @@ class NewOrderFullResponse
     public array $preventedMatches = [];
     public string $symbol = '';
     public string $clientOrderId = '';
+
+    private function decodeFillsGroup(string $data, int &$offset): array
+    {
+        $blockLength = unpack('v', substr($data, $offset, 2))[1];
+        $offset += 2;
+        $numInGroup = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+
+        $items = [];
+        for ($i = 0; $i < $numInGroup; $i++) {
+            $itemStart = $offset;
+            $item = new Fills();
+
+            $item->commissionExponent = unpack('c', substr($data, $offset, 1))[1];
+            $offset += 1;
+            $item->price = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->qty = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->commission = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->tradeId = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->allocId = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+
+            // Skip to next block for forward compatibility
+            $offset = $itemStart + $blockLength;
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    private function decodePreventedMatchesGroup(string $data, int &$offset): array
+    {
+        $blockLength = unpack('v', substr($data, $offset, 2))[1];
+        $offset += 2;
+        $numInGroup = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+
+        $items = [];
+        for ($i = 0; $i < $numInGroup; $i++) {
+            $itemStart = $offset;
+            $item = new PreventedMatches();
+
+            $item->preventedMatchId = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->makerOrderId = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->price = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->takerPreventedQuantity = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->makerPreventedQuantity = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+
+            // Skip to next block for forward compatibility
+            $offset = $itemStart + $blockLength;
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
 
     public function encode(): string
     {
@@ -163,5 +255,14 @@ class NewOrderFullResponse
         $offset += 1;
         $this->peggedPrice = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 153;
+
+        $this->fills = $this->decodeFillsGroup($data, $offset);
+        $this->preventedMatches = $this->decodePreventedMatchesGroup($data, $offset);
+
+        $this->symbol = $this->decodeVarData($data, $offset);
+        $this->clientOrderId = $this->decodeVarData($data, $offset);
     }
 }

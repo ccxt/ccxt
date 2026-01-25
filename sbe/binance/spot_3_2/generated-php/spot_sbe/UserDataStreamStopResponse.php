@@ -23,5 +23,9 @@ class UserDataStreamStopResponse
     {
         $offset = 0;
 
+
+        // Skip to end of block for forward compatibility
+        $offset = 0;
+
     }
 }

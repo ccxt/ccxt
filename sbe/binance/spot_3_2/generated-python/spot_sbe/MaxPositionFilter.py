@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class MaxPositionFilter:
@@ -30,7 +30,13 @@ class MaxPositionFilter:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.qty_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.max_position = struct.unpack('<q', buffer.read(8))[0]
+        self.qty_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.max_position = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+
+        # Skip to end of block for forward compatibility
+        pos = 9
+

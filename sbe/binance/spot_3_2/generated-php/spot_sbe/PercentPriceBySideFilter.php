@@ -60,5 +60,9 @@ class PercentPriceBySideFilter
         $offset += 8;
         $this->avgPriceMins = unpack('l', substr($data, $offset, 4))[1];
         $offset += 4;
+
+        // Skip to end of block for forward compatibility
+        $offset = 37;
+
     }
 }

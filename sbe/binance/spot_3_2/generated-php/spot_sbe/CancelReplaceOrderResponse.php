@@ -15,6 +15,15 @@ class CancelReplaceOrderResponse
     public string $cancelResponse = '';
     public string $newOrderResponse = '';
 
+    private function decodeVarData(string $data, int &$offset): string
+    {
+        $length = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+        $value = substr($data, $offset, $length);
+        $offset += $length;
+        return $value;
+    }
+
     public function encode(): string
     {
         $buffer = '';
@@ -27,5 +36,12 @@ class CancelReplaceOrderResponse
     {
         $offset = 0;
 
+
+        // Skip to end of block for forward compatibility
+        $offset = 2;
+
+
+        $this->cancelResponse = $this->decodeVarData($data, $offset);
+        $this->newOrderResponse = $this->decodeVarData($data, $offset);
     }
 }

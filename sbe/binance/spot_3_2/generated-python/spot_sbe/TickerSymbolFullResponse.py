@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class TickerSymbolFullResponse:
@@ -30,6 +30,15 @@ class TickerSymbolFullResponse:
         self.last_id = None
         self.num_trades = None
         self.symbol = b''
+
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
 
     def encode(self) -> bytes:
         """Encode the message to bytes."""
@@ -74,25 +83,47 @@ class TickerSymbolFullResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.price_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.qty_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.price_change = struct.unpack('<q', buffer.read(8))[0]
-        self.price_change_percent = struct.unpack('<f', buffer.read(4))[0]
-        self.weighted_avg_price = struct.unpack('<q', buffer.read(8))[0]
-        self.open_price = struct.unpack('<q', buffer.read(8))[0]
-        self.high_price = struct.unpack('<q', buffer.read(8))[0]
-        self.low_price = struct.unpack('<q', buffer.read(8))[0]
-        self.last_price = struct.unpack('<q', buffer.read(8))[0]
+        self.price_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.qty_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.price_change = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.price_change_percent = struct.unpack_from('<f', data, pos)[0]
+        pos += 4
+        self.weighted_avg_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.open_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.high_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.low_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.last_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
         self.volume = []
         for _ in range(16):
-            self.volume.append(struct.unpack('<B', buffer.read(1))[0])
+            self.volume.append(struct.unpack_from('<B', data, pos)[0])
+            pos += 1
         self.quote_volume = []
         for _ in range(16):
-            self.quote_volume.append(struct.unpack('<B', buffer.read(1))[0])
-        self.open_time = struct.unpack('<q', buffer.read(8))[0]
-        self.close_time = struct.unpack('<q', buffer.read(8))[0]
-        self.first_id = struct.unpack('<q', buffer.read(8))[0]
-        self.last_id = struct.unpack('<q', buffer.read(8))[0]
-        self.num_trades = struct.unpack('<q', buffer.read(8))[0]
+            self.quote_volume.append(struct.unpack_from('<B', data, pos)[0])
+            pos += 1
+        self.open_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.close_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.first_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.last_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.num_trades = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+
+        # Skip to end of block for forward compatibility
+        pos = 126
+
+
+        self.symbol, pos = self._decode_var_data(data, pos)

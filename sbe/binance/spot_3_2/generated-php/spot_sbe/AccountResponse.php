@@ -3,6 +3,21 @@
  * Generated SBE (Simple Binary Encoding) message codec.
  */
 
+class Balances
+{
+    public int|float|null $exponent = null;
+    public int|float|null $free = null;
+    public int|float|null $locked = null;
+}
+
+class Permissions
+{
+}
+
+class ReduceOnlyAssets
+{
+}
+
 class AccountResponse
 {
     public const TEMPLATE_ID = 400;
@@ -28,6 +43,75 @@ class AccountResponse
     public array $balances = [];
     public array $permissions = [];
     public array $reduceOnlyAssets = [];
+
+    private function decodeBalancesGroup(string $data, int &$offset): array
+    {
+        $blockLength = unpack('v', substr($data, $offset, 2))[1];
+        $offset += 2;
+        $numInGroup = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+
+        $items = [];
+        for ($i = 0; $i < $numInGroup; $i++) {
+            $itemStart = $offset;
+            $item = new Balances();
+
+            $item->exponent = unpack('c', substr($data, $offset, 1))[1];
+            $offset += 1;
+            $item->free = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+            $item->locked = unpack('q', substr($data, $offset, 8))[1];
+            $offset += 8;
+
+            // Skip to next block for forward compatibility
+            $offset = $itemStart + $blockLength;
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    private function decodePermissionsGroup(string $data, int &$offset): array
+    {
+        $blockLength = unpack('v', substr($data, $offset, 2))[1];
+        $offset += 2;
+        $numInGroup = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+
+        $items = [];
+        for ($i = 0; $i < $numInGroup; $i++) {
+            $itemStart = $offset;
+            $item = new Permissions();
+
+
+            // Skip to next block for forward compatibility
+            $offset = $itemStart + $blockLength;
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    private function decodeReduceOnlyAssetsGroup(string $data, int &$offset): array
+    {
+        $blockLength = unpack('v', substr($data, $offset, 2))[1];
+        $offset += 2;
+        $numInGroup = unpack('V', substr($data, $offset, 4))[1];
+        $offset += 4;
+
+        $items = [];
+        for ($i = 0; $i < $numInGroup; $i++) {
+            $itemStart = $offset;
+            $item = new ReduceOnlyAssets();
+
+
+            // Skip to next block for forward compatibility
+            $offset = $itemStart + $blockLength;
+            $items[] = $item;
+        }
+
+        return $items;
+    }
 
     public function encode(): string
     {
@@ -81,5 +165,12 @@ class AccountResponse
         $offset += 8;
         $this->uid = unpack('q', substr($data, $offset, 8))[1];
         $offset += 8;
+
+        // Skip to end of block for forward compatibility
+        $offset = 64;
+
+        $this->balances = $this->decodeBalancesGroup($data, $offset);
+        $this->permissions = $this->decodePermissionsGroup($data, $offset);
+        $this->reduceOnlyAssets = $this->decodeReduceOnlyAssetsGroup($data, $offset);
     }
 }

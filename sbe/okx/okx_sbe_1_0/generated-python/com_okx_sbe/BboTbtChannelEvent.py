@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class BboTbtChannelEvent:
@@ -59,17 +59,33 @@ class BboTbtChannelEvent:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.inst_id_code = struct.unpack('<q', buffer.read(8))[0]
-        self.ts_us = struct.unpack('<q', buffer.read(8))[0]
-        self.out_time = struct.unpack('<q', buffer.read(8))[0]
-        self.seq_id = struct.unpack('<q', buffer.read(8))[0]
-        self.ask_px_mantissa = struct.unpack('<q', buffer.read(8))[0]
-        self.ask_sz_mantissa = struct.unpack('<q', buffer.read(8))[0]
-        self.bid_px_mantissa = struct.unpack('<q', buffer.read(8))[0]
-        self.bid_sz_mantissa = struct.unpack('<q', buffer.read(8))[0]
-        self.ask_ord_count = struct.unpack('<i', buffer.read(4))[0]
-        self.bid_ord_count = struct.unpack('<i', buffer.read(4))[0]
-        self.px_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.sz_exponent = struct.unpack('<b', buffer.read(1))[0]
+        self.inst_id_code = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.ts_us = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.out_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.seq_id = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.ask_px_mantissa = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.ask_sz_mantissa = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.bid_px_mantissa = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.bid_sz_mantissa = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.ask_ord_count = struct.unpack_from('<i', data, pos)[0]
+        pos += 4
+        self.bid_ord_count = struct.unpack_from('<i', data, pos)[0]
+        pos += 4
+        self.px_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.sz_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+
+        # Skip to end of block for forward compatibility
+        pos = 74
+

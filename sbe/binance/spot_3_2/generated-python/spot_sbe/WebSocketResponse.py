@@ -1,8 +1,16 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
+
+class RateLimits:
+    """Repeating group item."""
+
+    def __init__(self):
+        self.interval_num = None
+        self.rate_limit = None
+        self.current = None
 
 class WebSocketResponse:
     """SBE message: WebSocketResponse."""
@@ -19,6 +27,42 @@ class WebSocketResponse:
         self.id = b''
         self.result = b''
 
+    def _decode_rate_limits_group(self, data: bytes, offset: int) -> Tuple[List[RateLimits], int]:
+        """Decode repeating group."""
+        pos = offset
+
+        block_length = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+        num_in_group = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+
+        items = []
+        for _ in range(num_in_group):
+            item_start = pos
+            item = RateLimits()
+
+            item.interval_num = struct.unpack_from('<B', data, pos)[0]
+            pos += 1
+            item.rate_limit = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+            item.current = struct.unpack_from('<q', data, pos)[0]
+            pos += 8
+
+            # Skip to next block for forward compatibility
+            pos = item_start + block_length
+            items.append(item)
+
+        return (items, pos)
+
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
+
     def encode(self) -> bytes:
         """Encode the message to bytes."""
         buffer = BytesIO()
@@ -30,6 +74,15 @@ class WebSocketResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.status = struct.unpack('<H', buffer.read(2))[0]
+        self.status = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+
+        # Skip to end of block for forward compatibility
+        pos = 3
+
+        self.rate_limits, pos = self._decode_rate_limits_group(data, pos)
+
+        self.id, pos = self._decode_var_data(data, pos)
+        self.result, pos = self._decode_var_data(data, pos)

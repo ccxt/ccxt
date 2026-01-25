@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class BookTickerSymbolResponse:
@@ -20,6 +20,15 @@ class BookTickerSymbolResponse:
         self.ask_price = None
         self.ask_qty = None
         self.symbol = b''
+
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
 
     def encode(self) -> bytes:
         """Encode the message to bytes."""
@@ -42,11 +51,23 @@ class BookTickerSymbolResponse:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.price_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.qty_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.bid_price = struct.unpack('<q', buffer.read(8))[0]
-        self.bid_qty = struct.unpack('<q', buffer.read(8))[0]
-        self.ask_price = struct.unpack('<q', buffer.read(8))[0]
-        self.ask_qty = struct.unpack('<q', buffer.read(8))[0]
+        self.price_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.qty_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.bid_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.bid_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.ask_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.ask_qty = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+
+        # Skip to end of block for forward compatibility
+        pos = 34
+
+
+        self.symbol, pos = self._decode_var_data(data, pos)

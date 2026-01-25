@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class PriceFilter:
@@ -36,9 +36,17 @@ class PriceFilter:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.price_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.min_price = struct.unpack('<q', buffer.read(8))[0]
-        self.max_price = struct.unpack('<q', buffer.read(8))[0]
-        self.tick_size = struct.unpack('<q', buffer.read(8))[0]
+        self.price_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.min_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.max_price = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.tick_size = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+
+        # Skip to end of block for forward compatibility
+        pos = 25
+

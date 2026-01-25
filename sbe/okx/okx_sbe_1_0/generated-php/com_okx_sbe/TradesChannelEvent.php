@@ -85,5 +85,9 @@ class TradesChannelEvent
         $offset += 1;
         $this->szExponent = unpack('c', substr($data, $offset, 1))[1];
         $offset += 1;
+
+        // Skip to end of block for forward compatibility
+        $offset = 62;
+
     }
 }

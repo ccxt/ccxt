@@ -1,7 +1,7 @@
 """Generated SBE (Simple Binary Encoding) message codec."""
 
 import struct
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from io import BytesIO
 
 class BalanceUpdateEvent:
@@ -19,6 +19,15 @@ class BalanceUpdateEvent:
         self.free_qty_delta = None
         self.subscription_id = None
         self.asset = b''
+
+    def _decode_var_data(self, data: bytes, offset: int) -> Tuple[bytes, int]:
+        """Decode variable-length binary data."""
+        pos = offset
+        length = struct.unpack_from('<I', data, pos)[0]
+        pos += 4
+        value = data[pos:pos+length]
+        pos += length
+        return (value, pos)
 
     def encode(self) -> bytes:
         """Encode the message to bytes."""
@@ -39,10 +48,21 @@ class BalanceUpdateEvent:
 
     def decode(self, data: bytes) -> None:
         """Decode the message from bytes."""
-        buffer = BytesIO(data)
+        pos = 0
 
-        self.event_time = struct.unpack('<q', buffer.read(8))[0]
-        self.clear_time = struct.unpack('<q', buffer.read(8))[0]
-        self.qty_exponent = struct.unpack('<b', buffer.read(1))[0]
-        self.free_qty_delta = struct.unpack('<q', buffer.read(8))[0]
-        self.subscription_id = struct.unpack('<H', buffer.read(2))[0]
+        self.event_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.clear_time = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.qty_exponent = struct.unpack_from('<b', data, pos)[0]
+        pos += 1
+        self.free_qty_delta = struct.unpack_from('<q', data, pos)[0]
+        pos += 8
+        self.subscription_id = struct.unpack_from('<H', data, pos)[0]
+        pos += 2
+
+        # Skip to end of block for forward compatibility
+        pos = 27
+
+
+        self.asset, pos = self._decode_var_data(data, pos)
