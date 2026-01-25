@@ -3021,10 +3021,10 @@ export default class binance extends binanceRest {
             const buyerMantissa = this.safeInteger (result, 'commissionRateBuyer');
             const sellerMantissa = this.safeInteger (result, 'commissionRateSeller');
             normalized['commissionRates'] = {
-                'maker': String (this.applyExponent (makerMantissa, commissionExponent)),
-                'taker': String (this.applyExponent (takerMantissa, commissionExponent)),
-                'buyer': String (this.applyExponent (buyerMantissa, commissionExponent)),
-                'seller': String (this.applyExponent (sellerMantissa, commissionExponent)),
+                'maker': (this.applyExponent (makerMantissa, commissionExponent)).toString (),
+                'taker': (this.applyExponent (takerMantissa, commissionExponent)).toString (),
+                'buyer': (this.applyExponent (buyerMantissa, commissionExponent)).toString (),
+                'seller': (this.applyExponent (sellerMantissa, commissionExponent)).toString (),
             };
             // Note: makerCommission, takerCommission, buyerCommission, sellerCommission
             // are NOT present in SBE format (as documented in the schema)
@@ -3054,8 +3054,8 @@ export default class binance extends binanceRest {
                 const lockedMantissa = this.safeInteger (balance, 'locked', 0);
                 normalized['balances'].push ({
                     'asset': this.safeString (balance, 'asset'),
-                    'free': String (this.applyExponent (freeMantissa, exponent)),
-                    'locked': String (this.applyExponent (lockedMantissa, exponent)),
+                    'free': (this.applyExponent (freeMantissa, exponent)).toString (),
+                    'locked': (this.applyExponent (lockedMantissa, exponent)).toString (),
                 });
             }
             // Copy permissions and reduceOnlyAssets arrays as-is
@@ -3470,39 +3470,39 @@ export default class binance extends binanceRest {
         // Convert mantissa values to decimal strings
         const priceMantissa = this.safeInteger (order, 'price');
         if (priceMantissa !== undefined) {
-            normalized['price'] = String (this.applyExponent (priceMantissa, priceExponent));
+            normalized['price'] = (this.applyExponent (priceMantissa, priceExponent)).toString ();
         }
         const origQtyMantissa = this.safeInteger (order, 'origQty');
         if (origQtyMantissa !== undefined) {
-            normalized['origQty'] = String (this.applyExponent (origQtyMantissa, qtyExponent));
+            normalized['origQty'] = (this.applyExponent (origQtyMantissa, qtyExponent)).toString ();
         }
         const executedQtyMantissa = this.safeInteger (order, 'executedQty');
         if (executedQtyMantissa !== undefined) {
-            normalized['executedQty'] = String (this.applyExponent (executedQtyMantissa, qtyExponent));
+            normalized['executedQty'] = (this.applyExponent (executedQtyMantissa, qtyExponent)).toString ();
         }
         const cummulativeQuoteQtyMantissa = this.safeInteger (order, 'cummulativeQuoteQty');
         if (cummulativeQuoteQtyMantissa !== undefined) {
-            normalized['cummulativeQuoteQty'] = String (this.applyExponent (cummulativeQuoteQtyMantissa, priceExponent));
+            normalized['cummulativeQuoteQty'] = (this.applyExponent (cummulativeQuoteQtyMantissa, priceExponent)).toString ();
         }
         const stopPriceMantissa = this.safeInteger (order, 'stopPrice');
         if (stopPriceMantissa !== undefined) {
-            normalized['stopPrice'] = String (this.applyExponent (stopPriceMantissa, priceExponent));
+            normalized['stopPrice'] = (this.applyExponent (stopPriceMantissa, priceExponent)).toString ();
         }
         const icebergQtyMantissa = this.safeInteger (order, 'icebergQty');
         if (icebergQtyMantissa !== undefined) {
-            normalized['icebergQty'] = String (this.applyExponent (icebergQtyMantissa, qtyExponent));
+            normalized['icebergQty'] = (this.applyExponent (icebergQtyMantissa, qtyExponent)).toString ();
         }
         const preventedQuantityMantissa = this.safeInteger (order, 'preventedQuantity');
         if (preventedQuantityMantissa !== undefined) {
-            normalized['preventedQuantity'] = String (this.applyExponent (preventedQuantityMantissa, qtyExponent));
+            normalized['preventedQuantity'] = (this.applyExponent (preventedQuantityMantissa, qtyExponent)).toString ();
         }
         const origQuoteOrderQtyMantissa = this.safeInteger (order, 'origQuoteOrderQty');
         if (origQuoteOrderQtyMantissa !== undefined) {
-            normalized['origQuoteOrderQty'] = String (this.applyExponent (origQuoteOrderQtyMantissa, priceExponent));
+            normalized['origQuoteOrderQty'] = (this.applyExponent (origQuoteOrderQtyMantissa, priceExponent)).toString ();
         }
         const peggedPriceMantissa = this.safeInteger (order, 'peggedPrice');
         if (peggedPriceMantissa !== undefined) {
-            normalized['peggedPrice'] = String (this.applyExponent (peggedPriceMantissa, priceExponent));
+            normalized['peggedPrice'] = (this.applyExponent (peggedPriceMantissa, priceExponent)).toString ();
         }
         // Copy enum fields - they need to be mapped to their string equivalents
         // The parseOrder method handles this mapping
@@ -3534,9 +3534,9 @@ export default class binance extends binanceRest {
                 const qtyMantissa = this.safeInteger (fill, 'qty');
                 const commissionMantissa = this.safeInteger (fill, 'commission');
                 normalized['fills'].push ({
-                    'price': fillPriceMantissa !== undefined ? String (this.applyExponent (fillPriceMantissa, priceExponent)) : undefined,
-                    'qty': qtyMantissa !== undefined ? String (this.applyExponent (qtyMantissa, qtyExponent)) : undefined,
-                    'commission': commissionMantissa !== undefined ? String (this.applyExponent (commissionMantissa, commissionExponent)) : undefined,
+                    'price': fillPriceMantissa !== undefined ? (this.applyExponent (fillPriceMantissa, priceExponent)).toString () : undefined,
+                    'qty': qtyMantissa !== undefined ? (this.applyExponent (qtyMantissa, qtyExponent)).toString () : undefined,
+                    'commission': commissionMantissa !== undefined ? (this.applyExponent (commissionMantissa, commissionExponent)).toString () : undefined,
                     'commissionAsset': this.safeString (fill, 'commissionAsset'),
                     'tradeId': this.safeInteger (fill, 'tradeId'),
                     'allocId': this.safeInteger (fill, 'allocId'),
@@ -3558,9 +3558,9 @@ export default class binance extends binanceRest {
                 normalized['preventedMatches'].push ({
                     'preventedMatchId': this.safeInteger (match, 'preventedMatchId'),
                     'makerOrderId': this.safeInteger (match, 'makerOrderId'),
-                    'price': matchPriceMantissa !== undefined ? String (this.applyExponent (matchPriceMantissa, priceExponent)) : undefined,
-                    'takerPreventedQuantity': takerPreventedQtyMantissa !== undefined ? String (this.applyExponent (takerPreventedQtyMantissa, qtyExponent)) : undefined,
-                    'makerPreventedQuantity': makerPreventedQtyMantissa !== undefined ? String (this.applyExponent (makerPreventedQtyMantissa, qtyExponent)) : undefined,
+                    'price': matchPriceMantissa !== undefined ? (this.applyExponent (matchPriceMantissa, priceExponent)).toString () : undefined,
+                    'takerPreventedQuantity': takerPreventedQtyMantissa !== undefined ? (this.applyExponent (takerPreventedQtyMantissa, qtyExponent)).toString () : undefined,
+                    'makerPreventedQuantity': makerPreventedQtyMantissa !== undefined ? (this.applyExponent (makerPreventedQtyMantissa, qtyExponent)).toString () : undefined,
                     'makerSymbol': this.safeString (match, 'makerSymbol'),
                 });
             }
@@ -4889,10 +4889,10 @@ export default class binance extends binanceRest {
                         const quoteQty = this.applyExponent (trade.quoteQty, priceExponent);
                         const timestamp = Math.floor (trade.time / 1000); // microseconds to milliseconds
                         const normalized: any = {
-                            'id': String (trade.id),
-                            'price': String (price),
-                            'qty': String (qty),
-                            'quoteQty': String (quoteQty),
+                            'id': (trade.id).toString (),
+                            'price': (price).toString (),
+                            'qty': (qty).toString (),
+                            'quoteQty': (quoteQty).toString (),
                             'time': timestamp,
                             'isBuyerMaker': trade.isBuyerMaker === 1,
                             'isBestMatch': trade.isBestMatch === 1,

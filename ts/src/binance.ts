@@ -5237,8 +5237,8 @@ export default class binance extends Exchange {
             // Check if we got SBE trades data
             if (sbeTradesArray.length > 0) {
                 if (this.verbose) {
-                    this.log ('fetchTrades: Using decoded SBE response, trades count:', sbeTradesArray.length);
-                    this.log ('fetchTrades: First trade raw:', sbeTradesArray[0]);
+                    this.log ('fetchTrades: Using decoded SBE response, trades count');
+                    this.log ('fetchTrades: First trade raw');
                 }
                 // Normalize trades to standard format
                 const normalizedTrades = [];
