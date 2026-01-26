@@ -3,6 +3,103 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history by futures endpoint",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1769328000000,
+                    1,
+                    {
+                        "uta": false
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.000014,
+                            "timepoint": 1769414400000
+                        },
+                        {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.00005,
+                            "timepoint": 1769385600000
+                        },
+                        {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.000136,
+                            "timepoint": 1769356800000
+                        },
+                        {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.000082,
+                            "timepoint": 1769328000000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.000082,
+                            "timepoint": 1769328000000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000082,
+                        "timestamp": 1769328000000,
+                        "datetime": "2026-01-25T08:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "fetch funding rate history by uta endpoint",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1769328000000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": "XBTUSDTM",
+                        "list": [
+                            {
+                                "fundingRate": 0.000014,
+                                "ts": 1769414400000
+                            },
+                            {
+                                "fundingRate": 0.00005,
+                                "ts": 1769385600000
+                            },
+                            {
+                                "fundingRate": 0.000136,
+                                "ts": 1769356800000
+                            },
+                            {
+                                "fundingRate": 0.000082,
+                                "ts": 1769328000000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fundingRate": 0.000082,
+                            "ts": 1769328000000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000082,
+                        "timestamp": 1769328000000,
+                        "datetime": "2026-01-25T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetch transfers",
