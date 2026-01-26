@@ -792,6 +792,25 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "fetch depth 100 order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api-futures.kucoin.com/api/v1/level2/depth100?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT",
+                    100
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api-futures.kucoin.com/api/v1/level2/depth20?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
                 "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol=BTC-USDT",
