@@ -68,15 +68,14 @@ export default class pacifica extends pacificaRest {
         });
     }
 
-    // coded call at fetchTickers. Use if you want to setup/change rate limit api key.
-    setupApiKeyIntoHeaders (key: string = undefined) {
+    setupApiKeyIntoHeaders (key: string = undefined) {     // coded call at fetchTickers. Use if you want to setup/change rate limit api key.   
         const headers = {};
-        if (key === undefined) {
-            key = this.apiKey;
-        }
-        //
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
+        } else {
+            if (this.apiKey !== undefined) {
+                headers['PF-API-KEY'] = this.apiKey;
+            }
         }
         this.options['ws']['options']['headers'] = headers;
     }

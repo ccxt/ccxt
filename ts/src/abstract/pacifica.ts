@@ -44,6 +44,10 @@ interface Exchange {
     privatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
     privatePostAccountBuilderCodesApprove (params?: {}): Promise<implicitReturnType>;
     privatePostAccountBuilderCodesRevoke (params?: {}): Promise<implicitReturnType>;
+    privatePostAgentBind (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountApiKeysCreate (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountApiKeysRevoke (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountApiKeys (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

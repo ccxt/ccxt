@@ -2199,6 +2199,7 @@ export default class pacifica extends Exchange {
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
+        //
         // fetchOpenOrders
         //   [
         //     {
@@ -2283,7 +2284,7 @@ export default class pacifica extends Exchange {
         //       "ut": 1765017219639,
         //       "li": 1559696133
         //     }
-
+        //
         const symbolExc = this.safeString2 (order, 'symbol', 's');
         let localSymbol = undefined;
         if (symbolExc !== undefined) {
