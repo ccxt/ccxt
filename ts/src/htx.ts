@@ -1811,7 +1811,7 @@ export default class htx extends Exchange {
         } catch (e) {
             const msg = this.exceptionMessage (e);
             if (msg.indexOf ('api.hbdm.com') >= 0) {
-                throw new ExchangeError (this.id + " fetchMarkets failed. You might need to adjust SSL certificate on your device by using `pip install certifi==2025.1.31` (for python), or switch to alternative api domain using `exchange.urls['hostnames']['contract'] = 'https://api.hbdm.vn'`. Original error: " + msg);
+                throw new ExchangeError (this.id + " fetchMarkets failed. Adjust SSL certificate on your device or switch to alternative api domain using `exchange.urls['hostnames']['contract'] = 'https://api.hbdm.vn'`. Original error: " + msg);
             } else {
                 throw new ExchangeError (this.id + ':' + msg);
             }
