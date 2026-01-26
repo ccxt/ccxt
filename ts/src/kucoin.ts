@@ -6194,20 +6194,19 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchFundingRateHistory
      * @description fetches historical funding rate prices
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history
      * @see https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] not used by kucuoinfutures
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to true
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a since argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -6215,47 +6214,80 @@ export default class kucoin extends Exchange {
             'symbol': market['id'],
         };
         const until = this.safeInteger (params, 'until');
+        let uta = true; // for backward compatibility, dafult endpoint is uta
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'uta', uta);
         params = this.omit (params, 'until');
-        if (since !== undefined) {
-            request['startAt'] = since;
-            if (until === undefined) {
-                request['endAt'] = this.milliseconds ();
-            }
+        let start = since;
+        let end = until;
+        if (since === undefined) {
+            start = 0;
         }
-        if (until !== undefined) {
-            request['endAt'] = until;
+        if (until === undefined) {
+            end = this.milliseconds ();
         }
-        const response = await this.utaGetMarketFundingRateHistory (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "symbol": "XBTUSDTM",
-        //             "list": [
-        //                 {
-        //                     "fundingRate": 7.6E-5,
-        //                     "ts": 1706097600000
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'list', []);
+        let response = undefined;
+        let resultKey = 'data';
+        if (uta) {
+            request['startAt'] = start;
+            request['endAt'] = end;
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "symbol": "XBTUSDTM",
+            //             "list": [
+            //                 {
+            //                     "fundingRate": 7.6E-5,
+            //                     "ts": 1706097600000
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+            const utaResponse = await this.utaGetMarketFundingRateHistory (this.extend (request, params));
+            response = this.safeDict (utaResponse, 'data', {});
+            resultKey = 'list';
+        } else {
+            request['from'] = start;
+            request['to'] = end;
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "symbol": "IDUSDTM",
+            //                 "fundingRate": 2.26E-4,
+            //                 "timepoint": 1702296000000
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.futuresPublicGetContractFundingRates (this.extend (request, params));
+        }
+        const result = this.safeList (response, resultKey, []);
         return this.parseFundingRateHistories (result, market, since, limit);
     }
 
     parseFundingRateHistory (info, market: Market = undefined) {
         //
+        // uta
         //     {
         //         "fundingRate": 7.6E-5,
         //         "ts": 1706097600000
         //     }
         //
-        const timestamp = this.safeInteger (info, 'ts');
+        // futures
+        //     {
+        //         "symbol": "IDUSDTM",
+        //         "fundingRate": 2.26E-4,
+        //         "timepoint": 1702296000000
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const timestamp = this.safeInteger2 (info, 'ts', 'timepoint');
         return {
             'info': info,
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': this.safeSymbol (marketId, market),
             'fundingRate': this.safeNumber (info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
