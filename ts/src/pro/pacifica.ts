@@ -116,9 +116,9 @@ export default class pacifica extends pacificaRest {
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         if (operationType === 'create_stop_order') {
-            throw new NotSupported (this.id + ' createOrderWs() do not supports stop order type of order!');
+            throw new NotSupported (this.id + ' createOrderWs() do not supports stop order type of order. Check provided arguments correctly!');
         } else if (operationType === 'set_position_tpsl') {
-            throw new NotSupported (this.id + ' createOrderWs() do not supports set position tpsl type of order!');
+            throw new NotSupported (this.id + ' createOrderWs() do not supports set position tpsl type of order. Check provided arguments correctly!');
         }
         const response = await this.watch (url, requestId, wsRequest, requestId);
         //
@@ -1373,10 +1373,9 @@ export default class pacifica extends pacificaRest {
         const requestId = this.requestId ();
         const payload = {
             'id': requestId,
-            'params': {
-                [operationType]: request,
-            },
+            'params': {},
         };
+        payload['params'][operationType] = request;
         return payload;
     }
 
