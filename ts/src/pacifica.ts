@@ -347,7 +347,7 @@ export default class pacifica extends Exchange {
                     },
                     'fetchLedger': {
                         'code': false,
-                    }
+                    },
                 },
                 'forPerps': {
                     'extends': 'default',
@@ -906,7 +906,7 @@ export default class pacifica extends Exchange {
         const markPx = this.safeNumber (info, 'mark');
         const oraclePx = this.safeNumber (info, 'oracle');
         const nextFundingRate = this.safeNumber (info, 'next_funding');
-        const timestamp = this.safeNumber (info, 'timestamp');
+        const timestamp = this.safeInteger (info, 'timestamp');
         const fundingTimestamp = (Math.floor (this.milliseconds () / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
         return {
             'info': info,
@@ -3334,7 +3334,7 @@ export default class pacifica extends Exchange {
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
         //
-        const inCode = this.safeNumber (response, 'code'); // actually if all ok -> code = undefined or code = 200
+        const inCode = this.safeInteger (response, 'code'); // actually if all ok -> code = undefined or code = 200
         const message = this.safeString (response, 'error');
         let error = undefined;
         if (inCode === undefined || inCode === 200) {

@@ -149,7 +149,7 @@ export default class pacifica extends pacificaRest {
         // }
         //
         const error = this.safeString (response, 'error', undefined);
-        const code = this.safeNumber (response, 'code');
+        const code = this.safeInteger (response, 'code');
         let success = false;
         if (code === 200) {
             success = true;
@@ -208,7 +208,7 @@ export default class pacifica extends pacificaRest {
         //   "type": "edit_order"
         // }
         const error = this.safeString (response, 'error', undefined);
-        const code = this.safeNumber (response, 'code');
+        const code = this.safeInteger (response, 'code');
         let success = false;
         if (code === 200) {
             success = true;
@@ -339,7 +339,7 @@ export default class pacifica extends pacificaRest {
         // }
         //
         const error = this.safeString (response, 'error', undefined);
-        const code = this.safeNumber (response, 'code');
+        const code = this.safeInteger (response, 'code');
         let success = false;
         if (code === 200) {
             success = true;
@@ -505,7 +505,7 @@ export default class pacifica extends pacificaRest {
         };
         const timestamp = this.safeInteger (entry, 't');
         const snapshot = this.parseOrderBook (result, symbolLocal, timestamp, 'bids', 'asks', 'p', 'a');
-        const nonce = this.safeNumber (entry, 'li');
+        const nonce = this.safeInteger (entry, 'li');
         if (nonce) {
             snapshot['nonce'] = nonce;
         }
@@ -1168,7 +1168,7 @@ export default class pacifica extends pacificaRest {
     }
 
     handleErrorMessage (client: Client, message): Bool {
-        const code = this.safeNumber (message, 'code'); // can be null
+        const code = this.safeInteger (message, 'code'); // can be null
         const error = this.safeString (message, 'err');
         const postType = this.safeString (message, 'type');
         const channel = this.safeString (message, 'channel', '');
