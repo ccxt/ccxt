@@ -2258,12 +2258,9 @@ func mathMin(a, b interface{}) interface{} {
 }
 
 func MathPow(base interface{}, exp interface{}) float64 {
-	baseFloat, baseOk := base.(float64)
-	expFloat, expOk := exp.(float64)
-	if baseOk && expOk {
-		return math.Pow(baseFloat, expFloat)
-	}
-	return 0
+	base64 := ToFloat64(base)
+	exp64 := ToFloat64(exp)
+	return math.Pow(base64, exp64)
 }
 
 func MathAbs(v interface{}) float64 {

@@ -1903,8 +1903,8 @@ export default class xt extends Exchange {
             'change': this.safeNumber (ticker, 'cv'),
             'percentage': this.parseNumber (percentage),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeNumber2 (ticker, 'a', 'v'),
+            'baseVolume': this.safeNumber (ticker, 'a'),
+            'quoteVolume': this.safeNumber (ticker, 'v'),
             'info': ticker,
         }, market);
     }
