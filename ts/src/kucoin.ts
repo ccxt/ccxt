@@ -3050,8 +3050,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
-     * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
      * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -3068,14 +3069,14 @@ export default class kucoin extends Exchange {
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
         let response = undefined;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         if (uta) {
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a limit argument for uta, either 20, 50, 100 or FULL');
             }
             request['limit'] = limit;
             request['symbol'] = market['id'];
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
             if (type === 'spot') {
                 request['tradeType'] = 'SPOT';
             } else {
@@ -3100,6 +3101,35 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
+        } else if (type === 'swap') {
+            if (level !== 2 && level !== undefined) {
+                throw new BadRequest (this.id + ' fetchOrderBook() can only return level 2');
+            }
+            if ((limit === undefined) || limit === 20) {
+                //
+                //     {
+                //         "code": "200000",
+                //         "data": {
+                //           "symbol": "XBTUSDM",      //Symbol
+                //           "sequence": 100,          //Ticker sequence number
+                //           "asks": [
+                //                 ["5000.0", 1000],   //Price, quantity
+                //                 ["6000.0", 1983]    //Price, quantity
+                //           ],
+                //           "bids": [
+                //                 ["3200.0", 800],    //Price, quantity
+                //                 ["3100.0", 100]     //Price, quantity
+                //           ],
+                //           "ts": 1604643655040584408  // timestamp
+                //         }
+                //     }
+                //
+                response = await this.futuresPublicGetLevel2Depth20 (this.extend (request, params));
+            } else if (limit === 100) {
+                response = await this.futuresPublicGetLevel2Depth100 (this.extend (request, params));
+            } else {
+                throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be 20 or 100');
+            }
         } else if (!isAuthenticated || limit !== undefined) {
             if (level === 2) {
                 request['level'] = level;
@@ -3148,7 +3178,13 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'time');
+        let timestamp = this.safeInteger (data, 'time');
+        if (timestamp === undefined) {
+            const nanoseconds = this.safeInteger (data, 'ts');
+            if (nanoseconds !== undefined) {
+                timestamp = Math.floor (nanoseconds / 1000000);
+            }
+        }
         const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
