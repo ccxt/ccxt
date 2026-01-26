@@ -3,7 +3,9 @@
     "skipKeys": [
         "clientOid",
         "startAt",
-        "endAt"
+        "endAt",
+        "from",
+        "to"
     ],
     "outputType": "json",
     "options": {
