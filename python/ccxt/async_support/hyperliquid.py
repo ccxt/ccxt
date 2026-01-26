@@ -2841,6 +2841,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         entry = self.safe_dict_n(order, ['order', 'resting', 'filled'])
         if entry is None:
             entry = order
+        filled = self.safe_dict(order, 'filled', {})
         coin = self.safe_string(entry, 'coin')
         marketId = None
         if coin is not None:
@@ -2881,7 +2882,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'amount': totalAmount,
             'cost': None,
             'average': self.safe_string(entry, 'avgPx'),
-            'filled': Precise.string_sub(totalAmount, remaining),
+            'filled': self.safe_string(filled, 'totalSz', Precise.string_sub(totalAmount, remaining)),
             'remaining': remaining,
             'status': self.parse_order_status(status),
             'fee': None,
@@ -3320,7 +3321,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
@@ -3335,7 +3336,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
@@ -3739,7 +3740,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param str [params.subAccountAddress]: sub account user address
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         userAddress = None

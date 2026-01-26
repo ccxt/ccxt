@@ -42,7 +42,7 @@ func main() {
 	binance2 := ccxt.NewBinance(nil)
 	fmt.Printf("Memory usage after creating binance2: %.2f MB\n", getMemoryUsage())
 
-	binance2.SetMarketsFromExchange(binance)
+	binance2.SetMarketsFromExchange(&binance.Exchange)
 	fmt.Printf("Memory usage after setting markets from exchange: %.2f MB\n", getMemoryUsage())
 	fmt.Printf("binance2.symbols loaded: %d\n", len(binance2.GetSymbols()))
 

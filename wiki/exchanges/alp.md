@@ -1,7 +1,7 @@
 
-<a name="btcalpha" id="btcalpha"></a>
+<a name="alp" id="alp"></a>
 
-## btcalpha{docsify-ignore}
+## alp{docsify-ignore}
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
@@ -25,12 +25,12 @@
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ### fetchMarkets{docsify-ignore}
-retrieves data on all markets for btcalpha
+retrieves data on all markets for alp
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://btc-alpha.github.io/api-docs/#list-all-currencies  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-all-currencies  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -38,7 +38,7 @@ retrieves data on all markets for btcalpha
 
 
 ```javascript
-btcalpha.fetchMarkets ([params])
+alp.fetchMarkets ([params])
 ```
 
 
@@ -47,10 +47,10 @@ btcalpha.fetchMarkets ([params])
 ### fetchTickers{docsify-ignore}
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#tickers  
+**See**: https://alpcomdev.github.io/alp-api-docs/#tickers  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -59,7 +59,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-btcalpha.fetchTickers (symbols[, params])
+alp.fetchTickers (symbols[, params])
 ```
 
 
@@ -68,10 +68,10 @@ btcalpha.fetchTickers (symbols[, params])
 ### fetchTicker{docsify-ignore}
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#tickers  
+**See**: https://alpcomdev.github.io/alp-api-docs/#tickers  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -80,7 +80,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-btcalpha.fetchTicker (symbol[, params])
+alp.fetchTicker (symbol[, params])
 ```
 
 
@@ -89,10 +89,10 @@ btcalpha.fetchTicker (symbol[, params])
 ### fetchOrderBook{docsify-ignore}
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
-**See**: https://btc-alpha.github.io/api-docs/#get-orderbook  
+**See**: https://alpcomdev.github.io/alp-api-docs/#get-orderbook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -102,7 +102,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-btcalpha.fetchOrderBook (symbol[, limit, params])
+alp.fetchOrderBook (symbol[, limit, params])
 ```
 
 
@@ -111,10 +111,10 @@ btcalpha.fetchOrderBook (symbol[, limit, params])
 ### fetchTrades{docsify-ignore}
 get the list of most recent trades for a particular symbol
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://btc-alpha.github.io/api-docs/#list-all-exchanges  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-all-exchanges  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -125,7 +125,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-btcalpha.fetchTrades (symbol[, since, limit, params])
+alp.fetchTrades (symbol[, since, limit, params])
 ```
 
 
@@ -134,10 +134,10 @@ btcalpha.fetchTrades (symbol[, since, limit, params])
 ### fetchDeposits{docsify-ignore}
 fetch all deposits made to an account
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#list-own-deposits  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-own-deposits  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -148,7 +148,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-btcalpha.fetchDeposits (code[, since, limit, params])
+alp.fetchDeposits (code[, since, limit, params])
 ```
 
 
@@ -157,10 +157,10 @@ btcalpha.fetchDeposits (code[, since, limit, params])
 ### fetchWithdrawals{docsify-ignore}
 fetch all withdrawals made from an account
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#list-own-made-withdraws  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-own-made-withdraws  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -171,7 +171,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-btcalpha.fetchWithdrawals (code[, since, limit, params])
+alp.fetchWithdrawals (code[, since, limit, params])
 ```
 
 
@@ -180,10 +180,10 @@ btcalpha.fetchWithdrawals (code[, since, limit, params])
 ### fetchOHLCV{docsify-ignore}
 fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://btc-alpha.github.io/api-docs/#charts  
+**See**: https://alpcomdev.github.io/alp-api-docs/#charts  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -195,7 +195,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-btcalpha.fetchOHLCV (symbol, timeframe[, since, limit, params])
+alp.fetchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 
@@ -204,10 +204,10 @@ btcalpha.fetchOHLCV (symbol, timeframe[, since, limit, params])
 ### fetchBalance{docsify-ignore}
 query for balance and get the amount of funds available for trading or funds locked in orders
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#list-own-wallets  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-own-wallets  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -215,7 +215,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-btcalpha.fetchBalance ([params])
+alp.fetchBalance ([params])
 ```
 
 
@@ -224,10 +224,10 @@ btcalpha.fetchBalance ([params])
 ### createOrder{docsify-ignore}
 create a trade order
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#create-order  
+**See**: https://alpcomdev.github.io/alp-api-docs/#create-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -240,7 +240,7 @@ create a trade order
 
 
 ```javascript
-btcalpha.createOrder (symbol, type, side, amount[, price, params])
+alp.createOrder (symbol, type, side, amount[, price, params])
 ```
 
 
@@ -249,10 +249,10 @@ btcalpha.createOrder (symbol, type, side, amount[, price, params])
 ### cancelOrder{docsify-ignore}
 cancels an open order
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#cancel-order  
+**See**: https://alpcomdev.github.io/alp-api-docs/#cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -262,7 +262,7 @@ cancels an open order
 
 
 ```javascript
-btcalpha.cancelOrder (id, symbol[, params])
+alp.cancelOrder (id, symbol[, params])
 ```
 
 
@@ -271,20 +271,20 @@ btcalpha.cancelOrder (id, symbol[, params])
 ### fetchOrder{docsify-ignore}
 fetches information on an order made by the user
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#retrieve-single-order  
+**See**: https://alpcomdev.github.io/alp-api-docs/#retrieve-single-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | Yes | not used by btcalpha fetchOrder |
+| symbol | <code>string</code> | Yes | not used by alp fetchOrder |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-btcalpha.fetchOrder (id, symbol[, params])
+alp.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -293,10 +293,10 @@ btcalpha.fetchOrder (id, symbol[, params])
 ### fetchOrders{docsify-ignore}
 fetches information on multiple orders made by the user
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#list-own-orders  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-own-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -307,7 +307,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-btcalpha.fetchOrders (symbol[, since, limit, params])
+alp.fetchOrders (symbol[, since, limit, params])
 ```
 
 
@@ -316,10 +316,10 @@ btcalpha.fetchOrders (symbol[, since, limit, params])
 ### fetchOpenOrders{docsify-ignore}
 fetch all unfilled currently open orders
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#list-own-orders  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-own-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -330,7 +330,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-btcalpha.fetchOpenOrders (symbol[, since, limit, params])
+alp.fetchOpenOrders (symbol[, since, limit, params])
 ```
 
 
@@ -339,10 +339,10 @@ btcalpha.fetchOpenOrders (symbol[, since, limit, params])
 ### fetchClosedOrders{docsify-ignore}
 fetches information on multiple closed orders made by the user
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#list-own-orders  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-own-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -353,7 +353,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-btcalpha.fetchClosedOrders (symbol[, since, limit, params])
+alp.fetchClosedOrders (symbol[, since, limit, params])
 ```
 
 
@@ -362,10 +362,10 @@ btcalpha.fetchClosedOrders (symbol[, since, limit, params])
 ### fetchMyTrades{docsify-ignore}
 fetch all trades made by the user
 
-**Kind**: instance method of [<code>btcalpha</code>](#btcalpha)  
+**Kind**: instance method of [<code>alp</code>](#alp)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://btc-alpha.github.io/api-docs/#list-own-exchanges  
+**See**: https://alpcomdev.github.io/alp-api-docs/#list-own-exchanges  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -376,6 +376,6 @@ fetch all trades made by the user
 
 
 ```javascript
-btcalpha.fetchMyTrades (symbol[, since, limit, params])
+alp.fetchMyTrades (symbol[, since, limit, params])
 ```
 

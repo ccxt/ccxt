@@ -186,26 +186,22 @@ func (this *AsterCore) Describe() interface{} {
 		},
 		"api": map[string]interface{}{
 			"fapiPublic": map[string]interface{}{
-				"get":    []interface{}{"v1/ping", "v1/time", "v1/exchangeInfo", "v1/depth", "v1/trades", "v1/historicalTrades", "v1/aggTrades", "v1/klines", "v1/indexPriceKlines", "v1/markPriceKlines", "v1/premiumIndex", "v1/fundingRate", "v1/fundingInfo", "v1/ticker/24hr", "v1/ticker/price", "v1/ticker/bookTicker", "v1/adlQuantile", "v1/forceOrders"},
-				"post":   []interface{}{"v1/listenKey"},
-				"put":    []interface{}{"v1/listenKey"},
-				"delete": []interface{}{"v1/listenKey"},
+				"get": []interface{}{"v1/ping", "v1/time", "v1/exchangeInfo", "v1/depth", "v1/trades", "v1/historicalTrades", "v1/aggTrades", "v1/klines", "v1/indexPriceKlines", "v1/markPriceKlines", "v1/premiumIndex", "v1/fundingRate", "v1/fundingInfo", "v1/ticker/24hr", "v1/ticker/price", "v1/ticker/bookTicker", "v1/adlQuantile", "v1/forceOrders"},
 			},
 			"fapiPrivate": map[string]interface{}{
 				"get":    []interface{}{"v1/positionSide/dual", "v1/multiAssetsMargin", "v1/order", "v1/openOrder", "v1/openOrders", "v1/allOrders", "v2/balance", "v3/balance", "v3/account", "v4/account", "v1/positionMargin/history", "v2/positionRisk", "v3/positionRisk", "v1/userTrades", "v1/income", "v1/leverageBracket", "v1/commissionRate"},
-				"post":   []interface{}{"v1/positionSide/dual", "v1/multiAssetsMargin", "v1/order", "v1/order/test", "v1/batchOrders", "v1/asset/wallet/transfer", "v1/countdownCancelAll", "v1/leverage", "v1/marginType", "v1/positionMargin"},
-				"delete": []interface{}{"v1/order", "v1/allOpenOrders", "v1/batchOrders"},
+				"post":   []interface{}{"v1/positionSide/dual", "v1/multiAssetsMargin", "v1/order", "v1/order/test", "v1/batchOrders", "v1/asset/wallet/transfer", "v1/countdownCancelAll", "v1/leverage", "v1/marginType", "v1/positionMargin", "v1/listenKey"},
+				"put":    []interface{}{"v1/listenKey"},
+				"delete": []interface{}{"v1/order", "v1/allOpenOrders", "v1/batchOrders", "v1/listenKey"},
 			},
 			"sapiPublic": map[string]interface{}{
-				"get":    []interface{}{"v1/ping", "v1/time", "v1/exchangeInfo", "v1/depth", "v1/trades", "v1/historicalTrades", "v1/aggTrades", "v1/klines", "v1/ticker/24hr", "v1/ticker/price", "v1/ticker/bookTicker", "v1/aster/withdraw/estimateFee"},
-				"post":   []interface{}{"v1/getNonce", "v1/createApiKey", "v1/listenKey"},
-				"put":    []interface{}{"v1/listenKey"},
-				"delete": []interface{}{"v1/listenKey"},
+				"get": []interface{}{"v1/ping", "v1/time", "v1/exchangeInfo", "v1/depth", "v1/trades", "v1/historicalTrades", "v1/aggTrades", "v1/klines", "v1/ticker/24hr", "v1/ticker/price", "v1/ticker/bookTicker", "v1/aster/withdraw/estimateFee"},
 			},
 			"sapiPrivate": map[string]interface{}{
 				"get":    []interface{}{"v1/commissionRate", "v1/order", "v1/openOrders", "v1/allOrders", "v1/transactionHistory", "v1/account", "v1/userTrades"},
-				"post":   []interface{}{"v1/order", "v1/asset/wallet/transfer", "v1/asset/sendToAddress", "v1/aster/user-withdraw"},
-				"delete": []interface{}{"v1/order", "v1/allOpenOrders"},
+				"post":   []interface{}{"v1/order", "v1/asset/wallet/transfer", "v1/asset/sendToAddress", "v1/aster/user-withdraw", "v1/listenKey"},
+				"put":    []interface{}{"v1/listenKey"},
+				"delete": []interface{}{"v1/order", "v1/allOpenOrders", "v1/listenKey"},
 			},
 		},
 		"timeframes": map[string]interface{}{
@@ -239,6 +235,7 @@ func (this *AsterCore) Describe() interface{} {
 			},
 		},
 		"options": map[string]interface{}{
+			"defaultType":        "spot",
 			"recvWindow":         Multiply(10, 1000),
 			"defaultTimeInForce": "GTC",
 			"zeroAddress":        "0x0000000000000000000000000000000000000000",
@@ -844,8 +841,8 @@ func (this *AsterCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a symbol argument")))
 		}
 
-		retRes9108 := (<-this.LoadMarkets())
-		PanicOnError(retRes9108)
+		retRes9018 := (<-this.LoadMarkets())
+		PanicOnError(retRes9018)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -1021,8 +1018,8 @@ func (this *AsterCore) FetchTrades(symbol interface{}, optionalArgs ...interface
 			panic(ArgumentsRequired(Add(this.Id, " fetchTrades() requires a symbol argument")))
 		}
 
-		retRes10598 := (<-this.LoadMarkets())
-		PanicOnError(retRes10598)
+		retRes10508 := (<-this.LoadMarkets())
+		PanicOnError(retRes10508)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1081,8 +1078,8 @@ func (this *AsterCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes11188 := (<-this.LoadMarkets())
-		PanicOnError(retRes11188)
+		retRes11098 := (<-this.LoadMarkets())
+		PanicOnError(retRes11098)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1161,8 +1158,8 @@ func (this *AsterCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrderBook() requires a symbol argument")))
 		}
 
-		retRes11778 := (<-this.LoadMarkets())
-		PanicOnError(retRes11778)
+		retRes11688 := (<-this.LoadMarkets())
+		PanicOnError(retRes11688)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1238,8 +1235,8 @@ func (this *AsterCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes12318 := (<-this.LoadMarkets())
-		PanicOnError(retRes12318)
+		retRes12228 := (<-this.LoadMarkets())
+		PanicOnError(retRes12228)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			var market interface{} = this.Market(symbol)
@@ -1403,8 +1400,8 @@ func (this *AsterCore) FetchTicker(symbol interface{}, optionalArgs ...interface
 			panic(ArgumentsRequired(Add(this.Id, " fetchTicker() requires a symbol argument")))
 		}
 
-		retRes13788 := (<-this.LoadMarkets())
-		PanicOnError(retRes13788)
+		retRes13698 := (<-this.LoadMarkets())
+		PanicOnError(retRes13698)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1449,8 +1446,8 @@ func (this *AsterCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14498 := (<-this.LoadMarkets())
-		PanicOnError(retRes14498)
+		retRes14408 := (<-this.LoadMarkets())
+		PanicOnError(retRes14408)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market interface{} = this.GetMarketFromSymbols(symbols)
 		var typeVar interface{} = nil
@@ -1575,8 +1572,8 @@ func (this *AsterCore) FetchFundingRate(symbol interface{}, optionalArgs ...inte
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRate() requires a symbol argument")))
 		}
 
-		retRes15538 := (<-this.LoadMarkets())
-		PanicOnError(retRes15538)
+		retRes15448 := (<-this.LoadMarkets())
+		PanicOnError(retRes15448)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1623,8 +1620,8 @@ func (this *AsterCore) FetchFundingRates(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15848 := (<-this.LoadMarkets())
-		PanicOnError(retRes15848)
+		retRes15758 := (<-this.LoadMarkets())
+		PanicOnError(retRes15758)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.FapiPublicGetV1PremiumIndex(this.Extend(params)))
@@ -1670,8 +1667,8 @@ func (this *AsterCore) FetchFundingIntervals(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes16148 := (<-this.LoadMarkets())
-		PanicOnError(retRes16148)
+		retRes16058 := (<-this.LoadMarkets())
+		PanicOnError(retRes16058)
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
 		}
@@ -1793,8 +1790,8 @@ func (this *AsterCore) SetMarginMode(marginMode interface{}, optionalArgs ...int
 			panic(BadRequest(Add(this.Id, " marginMode must be either isolated or cross")))
 		}
 
-		retRes17298 := (<-this.LoadMarkets())
-		PanicOnError(retRes17298)
+		retRes17208 := (<-this.LoadMarkets())
+		PanicOnError(retRes17208)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":     GetValue(market, "id"),
@@ -1880,15 +1877,15 @@ func (this *AsterCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
 			"dualSidePosition": hedged,
 		}
 
-		retRes179015 := (<-this.FapiPrivatePostV1PositionSideDual(this.Extend(request, params)))
-		PanicOnError(retRes179015)
+		retRes178115 := (<-this.FapiPrivatePostV1PositionSideDual(this.Extend(request, params)))
+		PanicOnError(retRes178115)
 		//
 		//     {
 		//         "code": 200,
 		//         "msg": "success"
 		//     }
 		//
-		ch <- retRes179015
+		ch <- retRes178115
 		return nil
 
 	}()
@@ -1928,8 +1925,8 @@ func (this *AsterCore) FetchTradingFee(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18188 := (<-this.LoadMarkets())
-		PanicOnError(retRes18188)
+		retRes18098 := (<-this.LoadMarkets())
+		PanicOnError(retRes18098)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2093,8 +2090,8 @@ func (this *AsterCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes19658 := (<-this.LoadMarkets())
-		PanicOnError(retRes19658)
+		retRes19568 := (<-this.LoadMarkets())
+		PanicOnError(retRes19568)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2147,8 +2144,8 @@ func (this *AsterCore) FetchOpenOrder(id interface{}, optionalArgs ...interface{
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
 		}
 
-		retRes20008 := (<-this.LoadMarkets())
-		PanicOnError(retRes20008)
+		retRes19918 := (<-this.LoadMarkets())
+		PanicOnError(retRes19918)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2198,8 +2195,8 @@ func (this *AsterCore) FetchOrders(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20308 := (<-this.LoadMarkets())
-		PanicOnError(retRes20308)
+		retRes20218 := (<-this.LoadMarkets())
+		PanicOnError(retRes20218)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
@@ -2265,8 +2262,8 @@ func (this *AsterCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20728 := (<-this.LoadMarkets())
-		PanicOnError(retRes20728)
+		retRes20638 := (<-this.LoadMarkets())
+		PanicOnError(retRes20638)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		var typeVar interface{} = nil
@@ -2362,8 +2359,8 @@ func (this *AsterCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21468 := (<-this.LoadMarkets())
-		PanicOnError(retRes21468)
+		retRes21378 := (<-this.LoadMarkets())
+		PanicOnError(retRes21378)
 		var market interface{} = this.Market(symbol)
 		var test interface{} = this.SafeBool(params, "test", false)
 		params = this.Omit(params, "test")
@@ -2409,8 +2406,8 @@ func (this *AsterCore) CreateOrders(orders interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes21748 := (<-this.LoadMarkets())
-		PanicOnError(retRes21748)
+		retRes21658 := (<-this.LoadMarkets())
+		PanicOnError(retRes21658)
 		var ordersRequests interface{} = []interface{}{}
 		var orderSymbols interface{} = []interface{}{}
 		if IsTrue(IsGreaterThan(GetArrayLength(orders), 5)) {
@@ -2633,8 +2630,8 @@ func (this *AsterCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes23788 := (<-this.LoadMarkets())
-		PanicOnError(retRes23788)
+		retRes23698 := (<-this.LoadMarkets())
+		PanicOnError(retRes23698)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2689,8 +2686,8 @@ func (this *AsterCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes24178 := (<-this.LoadMarkets())
-		PanicOnError(retRes24178)
+		retRes24088 := (<-this.LoadMarkets())
+		PanicOnError(retRes24088)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2747,8 +2744,8 @@ func (this *AsterCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes24568 := (<-this.LoadMarkets())
-		PanicOnError(retRes24568)
+		retRes24478 := (<-this.LoadMarkets())
+		PanicOnError(retRes24478)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(Add(Add(this.Id, " cancelOrders() does not support "), GetValue(market, "type")), " orders")))
@@ -2831,8 +2828,8 @@ func (this *AsterCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
 			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 125")))
 		}
 
-		retRes25238 := (<-this.LoadMarkets())
-		PanicOnError(retRes25238)
+		retRes25148 := (<-this.LoadMarkets())
+		PanicOnError(retRes25148)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":   GetValue(market, "id"),
@@ -2875,8 +2872,8 @@ func (this *AsterCore) FetchLeverages(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25508 := (<-this.LoadMarkets())
-		PanicOnError(retRes25508)
+		retRes25418 := (<-this.LoadMarkets())
+		PanicOnError(retRes25418)
 
 		response := (<-this.FapiPrivateGetV2PositionRisk(params))
 		PanicOnError(response)
@@ -2972,8 +2969,8 @@ func (this *AsterCore) FetchMarginModes(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes26298 := (<-this.LoadMarkets())
-		PanicOnError(retRes26298)
+		retRes26208 := (<-this.LoadMarkets())
+		PanicOnError(retRes26208)
 
 		response := (<-this.FapiPrivateGetV2PositionRisk(params))
 		PanicOnError(response)
@@ -3067,8 +3064,8 @@ func (this *AsterCore) FetchMarginAdjustmentHistory(optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes27008 := (<-this.LoadMarkets())
-		PanicOnError(retRes27008)
+		retRes26918 := (<-this.LoadMarkets())
+		PanicOnError(retRes26918)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
 		}
@@ -3161,8 +3158,8 @@ func (this *AsterCore) ModifyMarginHelper(symbol interface{}, amount interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27798 := (<-this.LoadMarkets())
-		PanicOnError(retRes27798)
+		retRes27708 := (<-this.LoadMarkets())
+		PanicOnError(retRes27708)
 		var market interface{} = this.Market(symbol)
 		amount = this.AmountToPrecision(symbol, amount)
 		var request interface{} = map[string]interface{}{
@@ -3210,9 +3207,9 @@ func (this *AsterCore) ReduceMargin(symbol interface{}, amount interface{}, opti
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes281315 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-		PanicOnError(retRes281315)
-		ch <- retRes281315
+		retRes280415 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+		PanicOnError(retRes280415)
+		ch <- retRes280415
 		return nil
 
 	}()
@@ -3237,9 +3234,9 @@ func (this *AsterCore) AddMargin(symbol interface{}, amount interface{}, optiona
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes282715 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-		PanicOnError(retRes282715)
-		ch <- retRes282715
+		retRes281815 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+		PanicOnError(retRes281815)
+		ch <- retRes281815
 		return nil
 
 	}()
@@ -3302,8 +3299,8 @@ func (this *AsterCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes28728 := (<-this.LoadMarkets())
-		PanicOnError(retRes28728)
+		retRes28638 := (<-this.LoadMarkets())
+		PanicOnError(retRes28638)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{
 			"incomeType": "FUNDING_FEE",
@@ -3416,8 +3413,8 @@ func (this *AsterCore) FetchLedger(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes29638 := (<-this.LoadMarkets())
-		PanicOnError(retRes29638)
+		retRes29548 := (<-this.LoadMarkets())
+		PanicOnError(retRes29548)
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -3654,11 +3651,11 @@ func (this *AsterCore) FetchPositionsRisk(optionalArgs ...interface{}) <-chan in
 			}
 		}
 
-		retRes31838 := (<-this.LoadMarkets())
-		PanicOnError(retRes31838)
+		retRes31748 := (<-this.LoadMarkets())
+		PanicOnError(retRes31748)
 
-		retRes31848 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes31848)
+		retRes31758 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes31758)
 		var request interface{} = map[string]interface{}{}
 
 		response := (<-this.FapiPrivateGetV2PositionRisk(this.Extend(request, params)))
@@ -3732,15 +3729,15 @@ func (this *AsterCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
 		}
 		if IsTrue(IsEqual(defaultMethod, "positionRisk")) {
 
-			retRes324019 := (<-this.FetchPositionsRisk(symbols, params))
-			PanicOnError(retRes324019)
-			ch <- retRes324019
+			retRes323119 := (<-this.FetchPositionsRisk(symbols, params))
+			PanicOnError(retRes323119)
+			ch <- retRes323119
 			return nil
 		} else if IsTrue(IsEqual(defaultMethod, "account")) {
 
-			retRes324219 := (<-this.FetchAccountPositions(symbols, params))
-			PanicOnError(retRes324219)
-			ch <- retRes324219
+			retRes323319 := (<-this.FetchAccountPositions(symbols, params))
+			PanicOnError(retRes323319)
+			ch <- retRes323319
 			return nil
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")))
@@ -3978,11 +3975,11 @@ func (this *AsterCore) FetchAccountPositions(optionalArgs ...interface{}) <-chan
 			}
 		}
 
-		retRes34658 := (<-this.LoadMarkets())
-		PanicOnError(retRes34658)
+		retRes34568 := (<-this.LoadMarkets())
+		PanicOnError(retRes34568)
 
-		retRes34668 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes34668)
+		retRes34578 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes34578)
 
 		response := (<-this.FapiPrivateGetV4Account(params))
 		PanicOnError(response)
@@ -4009,8 +4006,8 @@ func (this *AsterCore) LoadLeverageBrackets(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes34768 := (<-this.LoadMarkets())
-		PanicOnError(retRes34768)
+		retRes34678 := (<-this.LoadMarkets())
+		PanicOnError(retRes34678)
 		// by default cache the leverage bracket
 		// it contains useful stuff like the maintenance margin and initial margin for positions
 		var leverageBrackets interface{} = this.SafeDict(this.Options, "leverageBrackets")
@@ -4124,8 +4121,8 @@ func (this *AsterCore) Withdraw(code interface{}, amount interface{}, address in
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes35608 := (<-this.LoadMarkets())
-		PanicOnError(retRes35608)
+		retRes35518 := (<-this.LoadMarkets())
+		PanicOnError(retRes35518)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"asset":    GetValue(currency, "id"),
@@ -4206,8 +4203,8 @@ func (this *AsterCore) Transfer(code interface{}, amount interface{}, fromAccoun
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes36278 := (<-this.LoadMarkets())
-		PanicOnError(retRes36278)
+		retRes36188 := (<-this.LoadMarkets())
+		PanicOnError(retRes36188)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"asset":  GetValue(currency, "id"),
@@ -4314,10 +4311,12 @@ func (this *AsterCore) Sign(path interface{}, optionalArgs ...interface{}) inter
 		headers = map[string]interface{}{
 			"X-MBX-APIKEY": this.ApiKey,
 		}
-		var nonce interface{} = this.Milliseconds()
+		var timestamp interface{} = this.Milliseconds()
+		// Nonce is in microseconds
+		var nonce interface{} = this.Microseconds()
 		var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
 		var extendedParams interface{} = this.Extend(map[string]interface{}{
-			"timestamp": nonce,
+			"timestamp": timestamp,
 		}, params)
 		if IsTrue(!IsEqual(defaultRecvWindow, nil)) {
 			AddElementToObject(extendedParams, "recvWindow", defaultRecvWindow)

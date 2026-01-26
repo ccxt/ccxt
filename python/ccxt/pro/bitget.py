@@ -897,7 +897,16 @@ class bitget(ccxt.async_support.bitget):
                     return
         else:
             orderbook = self.order_book({})
-            parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp)
+            bidsKey = 'bids'
+            asksKey = 'asks'
+            # bitget UTA has `a` and `b` instead of `asks` and `bids`
+            if 'a' in rawOrderBook:
+                if not ('asks' in rawOrderBook):
+                    asksKey = 'a'
+            if 'b' in rawOrderBook:
+                if not ('bids' in rawOrderBook):
+                    bidsKey = 'b'
+            parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
             orderbook.reset(parsedOrderbook)
             self.orderbooks[symbol] = orderbook
         client.resolve(self.orderbooks[symbol], messageHash)

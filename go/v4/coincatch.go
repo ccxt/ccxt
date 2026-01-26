@@ -5706,7 +5706,7 @@ func (this *CoincatchCore) ParseMarginModification(data interface{}, optionalArg
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *CoincatchCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5735,7 +5735,7 @@ func (this *CoincatchCore) ReduceMargin(symbol interface{}, amount interface{}, 
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *CoincatchCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6104,7 +6104,7 @@ func (this *CoincatchCore) SafeMarketCustom(marketId interface{}, optionalArgs .
  * @param {string} [params.business] *swap only*
  * @param {string} [params.lastEndId] *swap only*
  * @param {bool} [params.next] *swap only*
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *CoincatchCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

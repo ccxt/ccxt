@@ -1,9 +1,30 @@
 {
+    "alp": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "todo"
+            },
+            "orderBook": {
+                "spread":"bids[0][0] is not < asks[0][0]",
+                "timestamp":""
+            },
+            "ticker": {
+                "spread": "messed bid-ask",
+                "compareOHLC": "fix implementation"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "fetchOHLCV": "new api doesnt work atm"
+        }
+    },
     "alpaca": {
         "skip": "private endpoints, todo",
         "skipWs": "private endpoints, todo"
     },
     "arkham": {
+        "preferredSpotSymbol": "ETH/USDT",
+        "preferredSwapSymbol": "ETH/USDT:USDT",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
@@ -84,13 +105,17 @@
             },
             "fetchCurrencies": {
                 "precision":"not provided",
-                "maxInactiveCurrenciesPercentage": 77
+                "maxInactiveCurrenciesPercentage": 98
             },
             "fetchTrades": {
                 "side": "not provided"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1415",
+                "skipNonActiveMarkets": "non market entries have weird values"
             },
             "watchTrades": {
                 "timestampSort": "confirmed that exchange's engine has an issue: https://github.com/ccxt/ccxt/actions/runs/17983223256/job/51155199567?pr=25258#step:11:1120"
@@ -564,24 +589,6 @@
             },
             "ticker": {
                 "spread":"broken bid-ask"
-            }
-        }
-    },
-    "btcalpha": {
-        "skipMethods": {
-            "fetchCurrencies": {
-                "activeMajorCurrencies": "todo"
-            },
-            "orderBook": {
-                "spread":"bids[0][0] is not < asks[0][0]",
-                "timestamp":""
-            },
-            "ticker": {
-                "spread": "messed bid-ask",
-                "compareOHLC": "fix implementation"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -1142,6 +1149,13 @@
             },
             "ticker": {
                 "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:528"
+            }
+        }
+    },
+    "foxbit": {
+        "skipMethods": {
+            "fetchOHLCV": {
+                "compareOHLCV": "api engine broken : https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1479"
             }
         }
     },
@@ -1792,6 +1806,9 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo",
                 "average": "sometimes zero"
+            },
+            "fetchOHLCV": {
+                "compareOHLCV": "broken https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1505"
             }
 	    }
     },

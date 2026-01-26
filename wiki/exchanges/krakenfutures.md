@@ -18,6 +18,8 @@
 * [cancelAllOrders](#cancelallorders)
 * [cancelAllOrdersAfter](#cancelallordersafter)
 * [fetchOpenOrders](#fetchopenorders)
+* [fetchOrders](#fetchorders)
+* [fetchOrder](#fetchorder)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchCanceledOrders](#fetchcanceledorders)
 * [fetchMyTrades](#fetchmytrades)
@@ -336,6 +338,51 @@ Gets all open orders, including trigger orders, for an account from the exchange
 
 ```javascript
 krakenfutures.fetchOpenOrders (symbol[, since, limit, params])
+```
+
+
+<a name="fetchOrders" id="fetchorders"></a>
+
+### fetchOrders{docsify-ignore}
+Gets all orders for an account from the exchange api
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified market symbol |
+| since | <code>int</code> | No | Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT) |
+| limit | <code>int</code> | No | How many orders to return. (Not used by kraken api but filtered internally by CCXT) |
+| params | <code>object</code> | No | Exchange specific parameters |
+
+
+```javascript
+krakenfutures.fetchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
+| symbol | <code>string</code> | Yes | unified market symbol that the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+krakenfutures.fetchOrder (id, symbol[, params])
 ```
 
 

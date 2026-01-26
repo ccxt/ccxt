@@ -79,18 +79,6 @@ func (this *AsterCore) FapiPublicGetV1ForceOrders(args ...interface{}) <-chan in
 	return this.callEndpointAsync("fapiPublicGetV1ForceOrders", args...)
 }
 
-func (this *AsterCore) FapiPublicPostV1ListenKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiPublicPostV1ListenKey", args...)
-}
-
-func (this *AsterCore) FapiPublicPutV1ListenKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiPublicPutV1ListenKey", args...)
-}
-
-func (this *AsterCore) FapiPublicDeleteV1ListenKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiPublicDeleteV1ListenKey", args...)
-}
-
 func (this *AsterCore) FapiPrivateGetV1PositionSideDual(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateGetV1PositionSideDual", args...)
 }
@@ -199,6 +187,14 @@ func (this *AsterCore) FapiPrivatePostV1PositionMargin(args ...interface{}) <-ch
 	return this.callEndpointAsync("fapiPrivatePostV1PositionMargin", args...)
 }
 
+func (this *AsterCore) FapiPrivatePostV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePostV1ListenKey", args...)
+}
+
+func (this *AsterCore) FapiPrivatePutV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivatePutV1ListenKey", args...)
+}
+
 func (this *AsterCore) FapiPrivateDeleteV1Order(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateDeleteV1Order", args...)
 }
@@ -209,6 +205,10 @@ func (this *AsterCore) FapiPrivateDeleteV1AllOpenOrders(args ...interface{}) <-c
 
 func (this *AsterCore) FapiPrivateDeleteV1BatchOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("fapiPrivateDeleteV1BatchOrders", args...)
+}
+
+func (this *AsterCore) FapiPrivateDeleteV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fapiPrivateDeleteV1ListenKey", args...)
 }
 
 func (this *AsterCore) SapiPublicGetV1Ping(args ...interface{}) <-chan interface{} {
@@ -259,26 +259,6 @@ func (this *AsterCore) SapiPublicGetV1AsterWithdrawEstimateFee(args ...interface
 	return this.callEndpointAsync("sapiPublicGetV1AsterWithdrawEstimateFee", args...)
 }
 
-func (this *AsterCore) SapiPublicPostV1GetNonce(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("sapiPublicPostV1GetNonce", args...)
-}
-
-func (this *AsterCore) SapiPublicPostV1CreateApiKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("sapiPublicPostV1CreateApiKey", args...)
-}
-
-func (this *AsterCore) SapiPublicPostV1ListenKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("sapiPublicPostV1ListenKey", args...)
-}
-
-func (this *AsterCore) SapiPublicPutV1ListenKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("sapiPublicPutV1ListenKey", args...)
-}
-
-func (this *AsterCore) SapiPublicDeleteV1ListenKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("sapiPublicDeleteV1ListenKey", args...)
-}
-
 func (this *AsterCore) SapiPrivateGetV1CommissionRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPrivateGetV1CommissionRate", args...)
 }
@@ -323,10 +303,22 @@ func (this *AsterCore) SapiPrivatePostV1AsterUserWithdraw(args ...interface{}) <
 	return this.callEndpointAsync("sapiPrivatePostV1AsterUserWithdraw", args...)
 }
 
+func (this *AsterCore) SapiPrivatePostV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPrivatePostV1ListenKey", args...)
+}
+
+func (this *AsterCore) SapiPrivatePutV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPrivatePutV1ListenKey", args...)
+}
+
 func (this *AsterCore) SapiPrivateDeleteV1Order(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPrivateDeleteV1Order", args...)
 }
 
 func (this *AsterCore) SapiPrivateDeleteV1AllOpenOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPrivateDeleteV1AllOpenOrders", args...)
+}
+
+func (this *AsterCore) SapiPrivateDeleteV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPrivateDeleteV1ListenKey", args...)
 }

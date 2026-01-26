@@ -891,6 +891,10 @@ func (this *BinanceusCore) SapiGetPortfolioEarnAssetBalance(args ...interface{})
 	return this.callEndpointAsync("sapiGetPortfolioEarnAssetBalance", args...)
 }
 
+func (this *BinanceusCore) SapiGetPortfolioDeltaMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetPortfolioDeltaMode", args...)
+}
+
 func (this *BinanceusCore) SapiGetStakingProductList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiGetStakingProductList", args...)
 }
@@ -1585,6 +1589,10 @@ func (this *BinanceusCore) SapiPostPortfolioRedeem(args ...interface{}) <-chan i
 
 func (this *BinanceusCore) SapiPostPortfolioEarnAssetTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostPortfolioEarnAssetTransfer", args...)
+}
+
+func (this *BinanceusCore) SapiPostPortfolioDeltaMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostPortfolioDeltaMode", args...)
 }
 
 func (this *BinanceusCore) SapiPostLendingAutoInvestPlanAdd(args ...interface{}) <-chan interface{} {
@@ -2885,6 +2893,14 @@ func (this *BinanceusCore) PrivatePostOrderListOto(args ...interface{}) <-chan i
 
 func (this *BinanceusCore) PrivatePostOrderListOtoco(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostOrderListOtoco", args...)
+}
+
+func (this *BinanceusCore) PrivatePostOrderListOpo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOpo", args...)
+}
+
+func (this *BinanceusCore) PrivatePostOrderListOpoco(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderListOpoco", args...)
 }
 
 func (this *BinanceusCore) PrivatePostSorOrder(args ...interface{}) <-chan interface{} {

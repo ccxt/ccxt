@@ -1292,6 +1292,7 @@ public partial class Exchange
     }
 }
 // class wrappers
+public class  Alp: alp { public Alp(object args = null) : base(args) { } }
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
 public class  Arkham: arkham { public Arkham(object args = null) : base(args) { } }
@@ -1323,7 +1324,6 @@ public class  Bittrade: bittrade { public Bittrade(object args = null) : base(ar
 public class  Bitvavo: bitvavo { public Bitvavo(object args = null) : base(args) { } }
 public class  Blockchaincom: blockchaincom { public Blockchaincom(object args = null) : base(args) { } }
 public class  Blofin: blofin { public Blofin(object args = null) : base(args) { } }
-public class  Btcalpha: btcalpha { public Btcalpha(object args = null) : base(args) { } }
 public class  Btcbox: btcbox { public Btcbox(object args = null) : base(args) { } }
 public class  Btcmarkets: btcmarkets { public Btcmarkets(object args = null) : base(args) { } }
 public class  Btcturk: btcturk { public Btcturk(object args = null) : base(args) { } }

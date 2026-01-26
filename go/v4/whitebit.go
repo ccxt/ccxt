@@ -2995,7 +2995,7 @@ func (this *WhitebitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
 		//         { ... }                                 // More withdrawal transactions
 		//     ]
 		//
-		ch <- this.ParseTransactions(response, currency, since, limit)
+		ch <- this.ParseTransactions(this.SafeList(response, "records", []interface{}{}), currency, since, limit)
 		return nil
 
 	}()
@@ -3458,9 +3458,9 @@ func (this *WhitebitCore) Withdraw(code interface{}, amount interface{}, address
 		//
 		//     []
 		//
-		ch <- this.Extend(map[string]interface{}{
+		ch <- this.Extend(this.ParseTransaction(response, currency), map[string]interface{}{
 			"id": uniqueId,
-		}, this.ParseTransaction(response, currency))
+		})
 		return nil
 
 	}()
@@ -3521,7 +3521,7 @@ func (this *WhitebitCore) ParseTransaction(transaction interface{}, optionalArgs
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
 		"tagFrom":     nil,
-		"tag":         nil,
+		"tag":         this.SafeString(transaction, "memo"),
 		"tagTo":       nil,
 		"comment":     this.SafeString(transaction, "description"),
 		"internal":    nil,

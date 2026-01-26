@@ -345,7 +345,7 @@ coinbase.fetchBalance ([params])
 Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions  
 

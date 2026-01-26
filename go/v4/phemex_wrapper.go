@@ -874,7 +874,7 @@ func (this *Phemex) FetchFundingRate(symbol string, options ...FetchFundingRateO
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
  * @param {object} [params] parameters specific to the exchange API endpoint
- * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *Phemex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 

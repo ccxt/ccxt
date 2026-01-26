@@ -670,11 +670,11 @@ class coinbase extends coinbase$1["default"] {
         //     }
         //
         const accounts = this.safeList(response, 'accounts', []);
-        const length = accounts.length;
-        const lastIndex = length - 1;
-        const last = this.safeDict(accounts, lastIndex);
+        const accountsLength = accounts.length;
         const cursor = this.safeString(response, 'cursor');
-        if ((cursor !== undefined) && (cursor !== '')) {
+        if ((accountsLength > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = accountsLength - 1;
+            const last = this.safeDict(accounts, lastIndex);
             last['cursor'] = cursor;
             accounts[lastIndex] = last;
         }
@@ -2214,7 +2214,8 @@ class coinbase extends coinbase$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'trades', []);
-        const ticker = this.parseTicker(data[0], market);
+        const first = this.safeDict(data, 0, {});
+        const ticker = this.parseTicker(first, market);
         ticker['bid'] = this.safeNumber(response, 'best_bid');
         ticker['ask'] = this.safeNumber(response, 'best_ask');
         return ticker;
@@ -2523,7 +2524,7 @@ class coinbase extends coinbase$1["default"] {
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

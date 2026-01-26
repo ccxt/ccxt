@@ -9,6 +9,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		ExchangeItf := NewExchange()
 		ExchangeItf.Init(exchangeArgs)
 		return ExchangeItf, true
+	case "alp":
+		alpItf := NewAlpCore()
+		alpItf.Init(exchangeArgs)
+		return alpItf, true
 	case "alpaca":
 		alpacaItf := NewAlpacaCore()
 		alpacaItf.Init(exchangeArgs)
@@ -133,10 +137,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		blofinItf := NewBlofinCore()
 		blofinItf.Init(exchangeArgs)
 		return blofinItf, true
-	case "btcalpha":
-		btcalphaItf := NewBtcalphaCore()
-		btcalphaItf.Init(exchangeArgs)
-		return btcalphaItf, true
 	case "btcbox":
 		btcboxItf := NewBtcboxCore()
 		btcboxItf.Init(exchangeArgs)
