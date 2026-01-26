@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Usage: npm run transpile
+// Usage: npm run transpileRest
 // ---------------------------------------------------------------------------
 
 import fs from 'fs'
@@ -217,11 +217,11 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
-            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as
             // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
             // left side `x = `will be removed and only `y.reverse()` will end up in python
-            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -914,7 +914,7 @@ class Transpiler {
     // ========================================================================
     // exchange capabilities ordering
 
-    sortExchangeCapabilities (code: string) {
+    sortExchangeCapabilities (code: string): string | false {
         const lineBreak = '\n';
         const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n(\s+}))/;
         const found = capabilitiesObjectRegex.exec (code);
@@ -2176,7 +2176,7 @@ class Transpiler {
                 phpFileAsync: baseFolders.phpAsync + unCamelCasedFileName + '.php',
             };
             // Add ArrayCache imports if the test uses cache classes
-            if (tsContent.includes('ArrayCache') || tsContent.includes('ArrayCacheByTimestamp') || 
+            if (tsContent.includes('ArrayCache') || tsContent.includes('ArrayCacheByTimestamp') ||
                 tsContent.includes('ArrayCacheBySymbolById') || tsContent.includes('ArrayCacheBySymbolBySide')) {
                 test.pyHeaders = ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402'];
                 test.phpHeaders = ['use ccxt\\pro\\ArrayCache;', 'use ccxt\\pro\\ArrayCacheByTimestamp;', 'use ccxt\\pro\\ArrayCacheBySymbolById;', 'use ccxt\\pro\\ArrayCacheBySymbolBySide;'];
@@ -2514,11 +2514,15 @@ class Transpiler {
             const pyDirsAmount = getDirLevelForPath('python', test.pyFileAsync || test.pyFileSync, 3);
             const phpDirsAmount = getDirLevelForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
-            // In PHP preable, for specifically WS tests, we need to avoid php namespace differences for tests, for example, if WATCH methods use ccxt\\pro, then the inlcuded non-pro test methods (like "test_trade" etc) are under ccxt, causing the purely transpiled code to have namespace conflicts specifically in PHP. so, for now, let's just leave all watch method tests under `ccxt` namespace, not `ccxt\pro`
-            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs); 
+
+            // In PHP preamble, for specifically WS tests, we need to avoid php namespace differences for tests,
+            // for example, if WATCH methods use ccxt\\pro, then the included non-pro test methods (like "test_trade" etc)
+            // are under ccxt, causing the purely transpiled code to have namespace conflicts specifically in PHP.
+            // so, for now, let's just leave all watch method tests under `ccxt` namespace, not `ccxt\pro`
+            // let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs);
             const includePath = isWs && test.base;
             const addProNs = isWs && test.base; // only for base CACHE and ORDERBOOK tests
-            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs); 
+            let phpPreamble = this.getPHPPreamble (includePath, phpDirsAmount, addProNs);
 
 
             let pythonHeaderSync: string[] = []
