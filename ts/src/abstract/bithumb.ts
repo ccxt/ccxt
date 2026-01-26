@@ -37,6 +37,17 @@ interface Exchange {
     privatePostTradeMarketBuy (params?: {}): Promise<implicitReturnType>;
     privatePostTradeMarketSell (params?: {}): Promise<implicitReturnType>;
     privatePostTradeStopLimit (params?: {}): Promise<implicitReturnType>;
+    v2publicGetMarketAll (params?: {}): Promise<implicitReturnType>;
+    v2publicGetTicker (params?: {}): Promise<implicitReturnType>;
+    v2publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
+    v2publicGetTradesRecent (params?: {}): Promise<implicitReturnType>;
+    v2publicGetCandlestickMarketInterval (params?: {}): Promise<implicitReturnType>;
+    v2privateGetAccounts (params?: {}): Promise<implicitReturnType>;
+    v2privateGetOrdersChance (params?: {}): Promise<implicitReturnType>;
+    v2privateGetOrder (params?: {}): Promise<implicitReturnType>;
+    v2privateGetOrders (params?: {}): Promise<implicitReturnType>;
+    v2privatePostOrders (params?: {}): Promise<implicitReturnType>;
+    v2privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
