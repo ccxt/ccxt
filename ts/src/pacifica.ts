@@ -23,7 +23,7 @@ export default class pacifica extends Exchange {
             'version': 'v1',
             'rateLimit': 50, // 125 requests per minute without api-key (300 with api-key) ~ 2 req/sec = 1 req/500 ms.
             'certified': false,
-            'pro': false, // Actually not (Pro = WS, Basic = Rest)
+            'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,
@@ -251,6 +251,7 @@ export default class pacifica extends Exchange {
                 'defaultType': 'swap',
                 'sandboxMode': false,
                 'defaultSlippage': 0.5,
+                'expiryWindow': 5000,
                 'maxCostHugeWithApiKey': 3,
                 'marketHelperProps': [ ],
                 'defaultMarginMode': 'cross',
@@ -442,8 +443,7 @@ export default class pacifica extends Exchange {
         const meta = this.safeList (response, 'data', []);
         const results = [];
         for (let i = 0; i < meta.length; i++) {
-            const metaItem = meta[i];
-            results.push (metaItem);
+            results.push (meta[i]);
         }
         return this.parseMarkets (results);
     }
@@ -629,13 +629,12 @@ export default class pacifica extends Exchange {
             'account': userAccount,
         };
         const settings = await this.fetchAccountSettings (this.extend (request, params));
-        const settingsLen = settings.length;
-        if (settingsLen === 0) {
+        const setting = this.safeDict (settings, symbol, undefined);
+        if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return this.parseLeverageFromMarket (market);
         } else {
-            const setting = this.safeDict (settings, symbol, {});
             return this.parseLeverageFromSetting (symbol, setting);
         }
     }
@@ -668,7 +667,7 @@ export default class pacifica extends Exchange {
         return {
             'info': market,
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': this.handleOption ('defaultMarginMode', undefined),
+            'marginMode': this.handleOption ('fetchLeverage', 'defaultMarginMode'),
             'longLeverage': this.safeInteger (leverageLimits, 'max'),
             'shortLeverage': this.safeInteger (leverageLimits, 'max'),
         } as Leverage;
@@ -747,16 +746,15 @@ export default class pacifica extends Exchange {
         //       "updated_at": 1758086074002
         //    },
         // }
-        const settingsLen = settings.length;
-        if (settingsLen === 0) {
+        const setting = this.safeDict (settings, symbol, undefined);
+        if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return {
                 'symbol': symbol,
-                'marginMode': this.handleOption ('defaultMarginMode', undefined),
+                'marginMode': this.handleOption ('fetchMarginMode', 'defaultMarginMode', 'cross'),
             } as MarginMode;
         } else {
-            const setting = this.safeDict (settings, symbol, {});
             return this.parseMarginModeFromSetting (symbol, setting);
         }
     }
@@ -1303,6 +1301,8 @@ export default class pacifica extends Exchange {
         if (orderSide !== undefined) {
             sigPayload['side'] = orderSide;
         }
+        amount = this.parseNumber (amount);
+        price = this.parseNumber (price);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -1315,7 +1315,7 @@ export default class pacifica extends Exchange {
         if (isMarket) {
             operationType = 'create_market_order';
             sigPayload['reduce_only'] = reduceOnly;
-            const defaultSlippage = this.handleOption ('defaultSlippage', '0.5');
+            const defaultSlippage = this.handleOption ('createOrder', 'defaultSlippage', '0.5');
             const slippage = this.safeString2 (params, 'slippage', 'slippage_percent', defaultSlippage);
             sigPayload['slippage_percent'] = slippage;
         } else if ((isTakeProfitOrder || isStopLossOrder) && (price === undefined)) { // there is no arg 'price' for tpsl endpoint
@@ -1429,6 +1429,7 @@ export default class pacifica extends Exchange {
                 throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
             }
         }
+        this.log (this.json (actions));
         return {
             'actions': actions,
         };
@@ -1436,20 +1437,23 @@ export default class pacifica extends Exchange {
 
     createOrdersRequest (orders: OrderRequest[], params = {}) {
         const actions = [];
+        const timestamp = this.milliseconds (); // unified sequence
         for (let i = 0; i < orders.length; i++) {
-            const symbol = this.safeString (orders, 'symbol');
-            const side = this.safeString (orders, 'side');
-            const price = this.safeNumber (orders, 'price');
-            const type = this.safeString (orders, 'type', 'limit');
-            const orderParams = this.safeDict (orders, 'params');
-            const amount = this.safeNumber (orders, 'amount');
+            const order = orders[i];
+            const symbol = this.safeString (order, 'symbol');
+            const side = this.safeString (order, 'side');
+            const price = this.safeNumber (order, 'price');
+            const type = this.safeString (order, 'type', 'limit');
+            const orderParams = this.safeDict (order, 'params', {});
+            orderParams['timestamp'] = timestamp;
+            const amount = this.safeNumber (order, 'amount');
             if (type !== 'limit') {
-                throw new NotSupported (this.id + ' createOrders() supports only type = "limit"! Your value: ' + type);
+                throw new NotSupported (this.id + ' createOrders() supports only type = "limit"! Your value type=' + type);
             }
-            const request = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            const requestList = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             const action = {
                 'type': 'Create',
-                'data': request,
+                'data': requestList[0],
             };
             actions.push (action);
         }
@@ -1691,7 +1695,7 @@ export default class pacifica extends Exchange {
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         } else {
-            sigPayload['order_id'] = id;
+            sigPayload['order_id'] = this.parseNumber (id);
         }
         const request = this.postActionRequest (operationType, sigPayload, params);
         return request;
@@ -1704,8 +1708,8 @@ export default class pacifica extends Exchange {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/edit-order
      * @param {string} id edit order id
      * @param {string} symbol unified symbol of the market to edit an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
+     * @param {string} type 'market' or 'limit' WARN is not usable
+     * @param {string} side 'buy' or 'sell' WARN is not usable
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1737,6 +1741,18 @@ export default class pacifica extends Exchange {
     }
 
     editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params = {}) {
+        if (side !== undefined) {
+            throw new NotSupported (this.id + ' editOrder() do not supports side');
+        }
+        if (type !== undefined) {
+            throw new NotSupported (this.id + ' editOrder() do not supports type');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount!');
+        }
+        if (price === undefined) {
+            throw new NotSupported (this.id + ' editOrder() requires a price');
+        }
         const operationType = 'edit_order';
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const symbolExc = market['id'];
@@ -1753,7 +1769,7 @@ export default class pacifica extends Exchange {
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         } else {
-            sigPayload['order_id'] = id;
+            sigPayload['order_id'] = this.parseNumber (id);
         }
         const request = this.postActionRequest (operationType, sigPayload, params);
         return request;
@@ -2404,7 +2420,7 @@ export default class pacifica extends Exchange {
         const symbolExc = this.safeString (position, 'symbol');
         const localSymbol = this.symbolExcToLocal (symbolExc);
         const margin = this.safeString (position, 'margin');
-        const marginMode = (margin !== undefined) ? 'isolated' : 'cross';
+        const marginMode = (margin !== undefined && margin !== '0') ? 'isolated' : 'cross';
         const isIsolated = (marginMode === 'isolated');
         let side = this.safeString (position, 'side');
         if (side !== undefined) {
@@ -2525,7 +2541,7 @@ export default class pacifica extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const sigPayload: Dict = {
-            'amount': amount,
+            'amount': amount.toString (),
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
@@ -2970,7 +2986,7 @@ export default class pacifica extends Exchange {
         }
         const timestamp = this.milliseconds ();
         let expiryWindow = undefined;
-        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000); // Hardcoded but 5000 default by exchange.
+        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccount_signature_header = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
@@ -3044,7 +3060,7 @@ export default class pacifica extends Exchange {
         const operationType = 'approve_builder_code';
         const sigPayload = {
             'builder_code': builderCode,
-            'max_fee_rate': maxFeeRate,
+            'max_fee_rate': maxFeeRate.toString (),
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
@@ -3054,7 +3070,7 @@ export default class pacifica extends Exchange {
         const request = {
             'account': address,
         };
-        return await this.privatePostAgentBind (this.extend (request));
+        return await this.publicGetAccountBuilderCodesApprovals (this.extend (request));
     }
 
     async revokeBuilderCode (builderCode: string, params = {}) {
@@ -3205,9 +3221,10 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
         }
         let expiryWindow = undefined;
-        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000); // Hardcoded but 5000 default by exchange.
+        [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
+        const timestamp = this.safeInteger (params, 'timestamp', this.milliseconds ());
         const signatureHeader = {
-            'timestamp': this.milliseconds (),
+            'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': operationType,
         };
