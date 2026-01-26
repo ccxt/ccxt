@@ -3014,71 +3014,74 @@ To get a list of all available methods with an exchange instance, you can simply
 Unified API
 ===========
 
-The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
+* `fetchMarkets() <#fetchmarkets>`__: Retrieve all available trading markets supported by the exchange.
+* `fetchCurrencies() <#fetchcurrencies>`__: Retrieve all supported currencies and their metadata.
+* `loadMarkets([reload]) <#loadmarkets>`__: Load and cache market definitions, optionally forcing a reload.
+* `fetchOrderBook(symbol[, limit[, params]]) <#fetchorderbook>`__: Fetch the current order book for a trading symbol.
+* `fetchStatus([params]) <#fetchstatus>`__: Retrieve the operational status of the exchange.
+* `fetchL2OrderBook(symbol[, limit[, params]]) <#fetchl2orderbook>`__: Fetch a price-aggregated (level 2) order book.
+* `fetchTrades(symbol[, since[, limit[, params]]]) <#fetchtrades>`__: Fetch recent public trades for a symbol.
+* `fetchTicker(symbol) <#fetchticker>`__: Fetch the latest ticker information for a trading symbol.
+* `fetchBalance() <#fetchbalance>`__: Fetch account balances for all currencies.
 
-* [`fetchMarkets()`](#fetchmarkets): Retrieve all available trading markets supported by the exchange.
-* [`fetchCurrencies()`](#fetchcurrencies): Retrieve all supported currencies and their metadata.
-* [`loadMarkets([reload])`](#loadmarkets): Load and cache market definitions, optionally forcing a reload.
-* [`fetchOrderBook(symbol[, limit[, params]])`](#fetchorderbook): Fetch the current order book for a trading symbol.
-* [`fetchStatus([params])`](#fetchstatus): Retrieve the operational status of the exchange.
-* [`fetchL2OrderBook(symbol[, limit[, params]])`](#fetchl2orderbook): Fetch a price-aggregated (level 2) order book.
-* [`fetchTrades(symbol[, since[, limit[, params]]])`](#fetchtrades): Fetch recent public trades for a symbol.
-* [`fetchTicker(symbol)`](#fetchticker): Fetch the latest ticker information for a symbol.
-* [`fetchBalance()`](#fetchbalance): Fetch account balances for all currencies.
+Orders
+------
 
-### Orders
+* `createOrder(symbol, type, side, amount[, price[, params]]) <#createorder>`__: Create a new trade order.
+* `createOrders(orders[, params]) <#createorders>`__: Create multiple orders in a single call (if supported).
+* `createLimitBuyOrder(symbol, amount, price[, params]) <#createlimitbuyorder>`__: Create a limit buy order.
+* `createLimitSellOrder(symbol, amount, price[, params]) <#createlimitsellorder>`__: Create a limit sell order.
+* `createMarketBuyOrder(symbol, amount[, params]) <#createmarketbuyorder>`__: Create a market buy order.
+* `createMarketSellOrder(symbol, amount[, params]) <#createmarketsellorder>`__: Create a market sell order.
+* `cancelOrder(id[, symbol[, params]]) <#cancelorder>`__: Cancel an existing order.
+* `fetchOrder(id[, symbol[, params]]) <#fetchorder>`__: Retrieve details of a specific order.
+* `fetchOrders([symbol[, since[, limit[, params]]]]) <#fetchorders>`__: Fetch historical orders.
+* `fetchOpenOrders([symbol[, since[, limit[, params]]]]) <#fetchopenorders>`__: Fetch currently open orders.
+* `fetchCanceledOrders([symbol[, since[, limit[, params]]]]) <#fetchcanceledorders>`__: Fetch canceled orders.
+* `fetchClosedOrders([symbol[, since[, limit[, params]]]]) <#fetchclosedorders>`__: Fetch closed (filled) orders.
+* `fetchMyTrades([symbol[, since[, limit[, params]]]]) <#fetchmytrades>`__: Fetch account trade history.
 
-* [`createOrder(symbol, type, side, amount[, price[, params]])`](#createorder): Create a new trade order.
-* [`createOrders(orders[, params])`](#createorders): Create multiple orders in a single call (if supported).
-* [`createLimitBuyOrder(symbol, amount, price[, params])`](#createlimitbuyorder): Create a limit buy order.
-* [`createLimitSellOrder(symbol, amount, price[, params])`](#createlimitsellorder): Create a limit sell order.
-* [`createMarketBuyOrder(symbol, amount[, params])`](#createmarketbuyorder): Create a market buy order.
-* [`createMarketSellOrder(symbol, amount[, params])`](#createmarketsellorder): Create a market sell order.
-* [`cancelOrder(id[, symbol[, params]])`](#cancelorder): Cancel an existing order.
-* [`fetchOrder(id[, symbol[, params]])`](#fetchorder): Retrieve details of a specific order.
-* [`fetchOrders([symbol[, since[, limit[, params]]]])`](#fetchorders): Fetch historical orders.
-* [`fetchOpenOrders([symbol[, since[, limit[, params]]]])`](#fetchopenorders): Fetch currently open orders.
-* [`fetchCanceledOrders([symbol[, since[, limit[, params]]]])`](#fetchcanceledorders): Fetch canceled orders.
-* [`fetchClosedOrders([symbol[, since[, limit[, params]]]])`](#fetchclosedorders): Fetch closed (filled) orders.
-* [`fetchMyTrades([symbol[, since[, limit[, params]]]])`](#fetchmytrades): Fetch account trade history.
+Derivatives & Funding
+--------------------
 
-### Derivatives & Funding
+* `fetchOpenInterest(symbol[, params]) <#fetchopeninterest>`__: Fetch open interest for a derivatives market.
+* `fetchFundingRate(symbol[, params]) <#fetchfundingrate>`__: Fetch the current funding rate.
+* `fetchFundingRates([symbols[, params]]) <#fetchfundingrates>`__: Fetch funding rates for multiple symbols.
+* `fetchFundingRateHistory(symbol[, since[, limit[, params]]]) <#fetchfundingratehistory>`__: Fetch historical funding rates.
+* `fetchFundingRateInterval(symbol[, params]) <#fetchfundingrateinterval>`__: Fetch the funding interval configuration.
+* `fetchFundingRateIntervals([symbols[, params]]) <#fetchfundingrateintervals>`__: Fetch funding intervals for multiple symbols.
+* `fetchLongShortRatio(symbol[, params]) <#fetchlongshortratio>`__: Fetch long/short position ratios.
 
-* [`fetchOpenInterest(symbol[, params])`](#fetchopeninterest): Fetch open interest for a derivatives market.
-* [`fetchFundingRate(symbol[, params])`](#fetchfundingrate): Fetch the current funding rate.
-* [`fetchFundingRates([symbols[, params]])`](#fetchfundingrates): Fetch funding rates for multiple symbols.
-* [`fetchFundingRateHistory(symbol[, since[, limit[, params]]])`](#fetchfundingratehistory): Fetch historical funding rates.
-* [`fetchFundingRateInterval(symbol[, params])`](#fetchfundingrateinterval): Fetch the funding interval configuration.
-* [`fetchFundingRateIntervals([symbols[, params]])`](#fetchfundingrateintervals): Fetch funding intervals for multiple symbols.
-* [`fetchLongShortRatio(symbol[, params])`](#fetchlongshortratio): Fetch long/short position ratios.
+Options
+-------
 
-### Options
+* `fetchOption(symbol[, params]) <#fetchoption>`__: Fetch details for a specific option contract.
+* `fetchOptionChain(code[, params]) <#fetchoptionchain>`__: Fetch the full option chain for an underlying asset.
+* `fetchGreeks(symbol[, params]) <#fetchgreeks>`__: Fetch option Greeks for a contract.
+* `fetchAllGreeks([symbols[, params]]) <#fetchallgreeks>`__: Fetch option Greeks for multiple contracts.
 
-* [`fetchOption(symbol[, params])`](#fetchoption): Fetch details for a specific option contract.
-* [`fetchOptionChain(code[, params])`](#fetchoptionchain): Fetch the full option chain for an underlying asset.
-* [`fetchGreeks(symbol[, params])`](#fetchgreeks): Fetch option Greeks for a contract.
-* [`fetchAllGreeks([symbols[, params]])`](#fetchallgreeks): Fetch option Greeks for multiple contracts.
+Borrowing & Lending
+-------------------
 
-### Borrowing & Lending
+* `fetchCrossBorrowRate(code[, params]) <#fetchcrossborrowrate>`__: Fetch cross-margin borrow rate for a currency.
+* `fetchCrossBorrowRates([params]) <#fetchcrossborrowrates>`__: Fetch cross-margin borrow rates for all currencies.
+* `fetchIsolatedBorrowRate(symbol[, params]) <#fetchisolatedborrowrate>`__: Fetch isolated-margin borrow rate for a symbol.
+* `fetchIsolatedBorrowRates([params]) <#fetchisolatedborrowrates>`__: Fetch isolated-margin borrow rates.
 
-* [`fetchCrossBorrowRate(code[, params])`](#fetchcrossborrowrate): Fetch cross-margin borrow rate for a currency.
-* [`fetchCrossBorrowRates([params])`](#fetchcrossborrowrates): Fetch cross-margin borrow rates for all currencies.
-* [`fetchIsolatedBorrowRate(symbol[, params])`](#fetchisolatedborrowrate): Fetch isolated-margin borrow rate for a symbol.
-* [`fetchIsolatedBorrowRates([params])`](#fetchisolatedborrowrates): Fetch isolated-margin borrow rates.
+Conversions
+-----------
 
-### Conversions
+* `fetchConvertQuote(fromCode, toCode, amount[, params]) <#fetchconvertquote>`__: Fetch a conversion quote between currencies.
+* `createConvertTrade(id, fromCode, toCode, amount[, params]) <#createconverttrade>`__: Execute a currency conversion trade.
 
-* [`fetchConvertQuote(fromCode, toCode, amount[, params])`](#fetchconvertquote): Fetch a conversion quote between currencies.
-* [`createConvertTrade(id, fromCode, toCode, amount[, params])`](#createconverttrade): Execute a currency conversion trade.
+Miscellaneous
+-------------
 
-### Miscellaneous
-
-* [`fetchVolatilityHistory(code[, params])`](#fetchvolatilityhistory): Fetch historical volatility data.
-* [`fetchUnderlyingAssets()`](#fetchunderlyingassets): Fetch underlying assets for derivative products.
-* [`fetchSettlementHistory(symbol[, since[, limit[, params]]])`](#fetchsettlementhistory): Fetch settlement history for a symbol.
-* [`fetchLiquidations(symbol[, since[, limit[, params]]])`](#fetchliquidations): Fetch public liquidation data.
-* [`fetchMyLiquidations(symbol[, since[, limit[, params]]])`](#fetchmyliquidations): Fetch account liquidation history.
-
+* `fetchVolatilityHistory(code[, params]) <#fetchvolatilityhistory>`__: Fetch historical volatility data.
+* `fetchUnderlyingAssets() <#fetchunderlyingassets>`__: Fetch underlying assets for derivative products.
+* `fetchSettlementHistory(symbol[, since[, limit[, params]]]) <#fetchsettlementhistory>`__: Fetch settlement history for a symbol.
+* `fetchLiquidations(symbol[, since[, limit[, params]]]) <#fetchliquidations>`__: Fetch public liquidation data.
+* `fetchMyLiquidations(symbol[, since[, limit[, params]]]) <#fetchmyliquidations>`__: Fetch account liquidation history.
 
 Overriding Unified API Params
 -----------------------------
