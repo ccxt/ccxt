@@ -684,6 +684,17 @@
         ],
         "fetchTickers": [
             {
+                "description": "fetch tickers for swap",
+                "method": "fetchTickers",
+                "url": "https://api-futures.kucoin.com/api/v1/contracts/active",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch tickers",
                 "method": "fetchTickers",
                 "url": "https://api.kucoin.com/api/v1/market/allTickers",
@@ -707,6 +718,15 @@
             }
         ],
         "fetchTicker": [
+            {
+                "description": "fetch ticker for swap",
+                "method": "fetchTicker",
+                "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "fetchTicker",
                 "method": "fetchTicker",
@@ -801,6 +821,15 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv for swap market",
+                "method": "fetchOHLCV",
+                "url": "https://api-futures.kucoin.com/api/v1/kline/query?symbol=XBTUSDTM&to=1769405902836&granularity=1",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "fetch ohlcv",
                 "method": "fetchOHLCV",
