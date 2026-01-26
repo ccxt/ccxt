@@ -1,6398 +1,3291 @@
-
-// ---------------------------------------------------------------------------
-
-import Exchange from './abstract/kucoin.js';
-import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
-import { Precise } from './base/Precise.js';
-import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, BorrowInterest, FundingRate } from './base/types.js';
-
-//  ---------------------------------------------------------------------------
-
-/**
- * @class kucoin
- * @augments Exchange
- */
-export default class kucoin extends Exchange {
-    describe (): any {
-        return this.deepExtend (super.describe (), {
-            'id': 'kucoin',
-            'name': 'KuCoin',
-            'countries': [ 'SC' ],
-            'rateLimit': 10, // 100 requests per second => ( 1000ms / 100 ) = 10 ms between requests on average
-            'version': 'v2',
-            'certified': true,
-            'pro': true,
-            'comment': 'Platform 2.0',
-            'quoteJsonNumbers': false,
-            'has': {
-                'CORS': undefined,
-                'spot': true,
-                'margin': true,
-                'swap': true,
-                'future': false,
-                'option': false,
-                'borrowCrossMargin': true,
-                'borrowIsolatedMargin': true,
-                'cancelAllOrders': true,
-                'cancelOrder': true,
-                'closeAllPositions': false,
-                'closePosition': false,
-                'createDepositAddress': true,
-                'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': true,
-                'createMarketSellOrderWithCost': true,
-                'createOrder': true,
-                'createOrders': true,
-                'createPostOnlyOrder': true,
-                'createStopLimitOrder': true,
-                'createStopMarketOrder': true,
-                'createStopOrder': true,
-                'createTriggerOrder': true,
-                'editOrder': true,
-                'fetchAccounts': true,
-                'fetchBalance': true,
-                'fetchBorrowInterest': true,
-                'fetchBorrowRateHistories': true,
-                'fetchBorrowRateHistory': true,
-                'fetchClosedOrders': true,
-                'fetchCrossBorrowRate': false,
-                'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
-                'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
-                'fetchDepositAddressesByNetwork': true,
-                'fetchDeposits': true,
-                'fetchDepositWithdrawFee': true,
-                'fetchDepositWithdrawFees': true,
-                'fetchFundingHistory': false,
-                'fetchFundingRate': true,
-                'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
-                'fetchIsolatedBorrowRate': false,
-                'fetchIsolatedBorrowRates': false,
-                'fetchL3OrderBook': true,
-                'fetchLedger': true,
-                'fetchLeverageTiers': false,
-                'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
-                'fetchMarketLeverageTiers': false,
-                'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
-                'fetchMarkPrice': true,
-                'fetchMarkPrices': true,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'fetchOpenInterest': false,
-                'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchOrderBook': true,
-                'fetchOrderBooks': false,
-                'fetchOrdersByStatus': true,
-                'fetchOrderTrades': true,
-                'fetchPositionHistory': false,
-                'fetchPositionMode': false,
-                'fetchPositionsHistory': false,
-                'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTime': true,
-                'fetchTrades': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': false,
-                'fetchTransactionFee': true,
-                'fetchTransfers': true,
-                'fetchWithdrawals': true,
-                'repayCrossMargin': true,
-                'repayIsolatedMargin': true,
-                'setLeverage': true,
-                'setMarginMode': false,
-                'setPositionMode': false,
-                'signIn': false,
-                'transfer': true,
-                'withdraw': true,
-            },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
-                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
-                'api': {
-                    'public': 'https://api.kucoin.com',
-                    'private': 'https://api.kucoin.com',
-                    'futuresPrivate': 'https://api-futures.kucoin.com',
-                    'futuresPublic': 'https://api-futures.kucoin.com',
-                    'webExchange': 'https://kucoin.com/_api',
-                    'broker': 'https://api-broker.kucoin.com',
-                    'earn': 'https://api.kucoin.com',
-                    'uta': 'https://api.kucoin.com',
+{
+    "exchange": "kucoin",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 500,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "id": "694fb52b8e7d350007b00c64",
+                                "currency": "USDT",
+                                "amount": "100",
+                                "fee": "0",
+                                "balance": "0",
+                                "accountType": "MAIN",
+                                "bizType": "Transfer",
+                                "direction": "out",
+                                "createdAt": 1766831403876,
+                                "context": ""
+                            }
+                        ]
+                    }
                 },
-                'www': 'https://www.kucoin.com',
-                'doc': [
-                    'https://docs.kucoin.com',
+                "parsedResponse": [
+                    {
+                        "id": "694fb52b8e7d350007b00c64",
+                        "currency": "USDT",
+                        "timestamp": 1766831403876,
+                        "datetime": "2025-12-27T10:30:03.876Z",
+                        "amount": 100,
+                        "fromAccount": "main",
+                        "toAccount": null,
+                        "status": null,
+                        "info": {
+                            "id": "694fb52b8e7d350007b00c64",
+                            "currency": "USDT",
+                            "amount": "100",
+                            "fee": "0",
+                            "balance": "0",
+                            "accountType": "MAIN",
+                            "bizType": "Transfer",
+                            "direction": "out",
+                            "createdAt": 1766831403876,
+                            "context": ""
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch spot open order",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 50,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "id": "6556088034d111000738f7b8",
+                                "symbol": "LTC-USDT",
+                                "opType": "DEAL",
+                                "type": "limit",
+                                "side": "buy",
+                                "price": "55",
+                                "size": "0.1",
+                                "funds": "0",
+                                "dealFunds": "0",
+                                "dealSize": "0",
+                                "fee": "0",
+                                "feeCurrency": "USDT",
+                                "stp": "",
+                                "stop": "",
+                                "stopTriggered": false,
+                                "stopPrice": "0",
+                                "timeInForce": "GTC",
+                                "postOnly": false,
+                                "hidden": false,
+                                "iceberg": false,
+                                "visibleSize": "0",
+                                "cancelAfter": 0,
+                                "channel": "API",
+                                "clientOid": "168ea0a0-0cf2-493d-be18-b606be913ce6",
+                                "remark": null,
+                                "tags": "partner:ccxt",
+                                "isActive": true,
+                                "cancelExist": false,
+                                "createdAt": 1700137089012,
+                                "tradeType": "TRADE"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "6556088034d111000738f7b8",
+                            "symbol": "LTC-USDT",
+                            "opType": "DEAL",
+                            "type": "limit",
+                            "side": "buy",
+                            "price": "55",
+                            "size": "0.1",
+                            "funds": "0",
+                            "dealFunds": "0",
+                            "dealSize": "0",
+                            "fee": "0",
+                            "feeCurrency": "USDT",
+                            "stp": "",
+                            "stop": "",
+                            "stopTriggered": false,
+                            "stopPrice": "0",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "hidden": false,
+                            "iceberg": false,
+                            "visibleSize": "0",
+                            "cancelAfter": 0,
+                            "channel": "API",
+                            "clientOid": "168ea0a0-0cf2-493d-be18-b606be913ce6",
+                            "remark": null,
+                            "tags": "partner:ccxt",
+                            "isActive": true,
+                            "cancelExist": false,
+                            "createdAt": 1700137089012,
+                            "tradeType": "TRADE"
+                        },
+                        "id": "6556088034d111000738f7b8",
+                        "clientOrderId": "168ea0a0-0cf2-493d-be18-b606be913ce6",
+                        "symbol": "LTC/USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "amount": 0.1,
+                        "price": 55,
+                        "stopPrice": 0,
+                        "triggerPrice": 0,
+                        "cost": 0,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "timestamp": 1700137089012,
+                        "datetime": "2023-11-16T12:18:09.012Z",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        },
+                        "status": "open",
+                        "lastTradeTimestamp": null,
+                        "average": null,
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch spot trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    10
                 ],
-            },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'password': true,
-            },
-            'api': {
-                // level VIP0
-                // Spot => 3000/30s => 100/s
-                // Weight = x => 100/(100/x) = x
-                // Futures Management Public => 2000/30s => 200/3/s
-                // Weight = x => 100/(200/3/x) = x*1.5
-                'public': {
-                    'get': {
-                        // spot trading
-                        'currencies': 4.5, // 3PW
-                        'currencies/{currency}': 4.5, // 3PW
-                        'symbols': 6, // 4PW
-                        'market/orderbook/level1': 3, // 2PW
-                        'market/allTickers': 22.5, // 15PW
-                        'market/stats': 22.5, // 15PW
-                        'markets': 4.5, // 3PW
-                        'market/orderbook/level{level}_{limit}': 6, // 4PW
-                        'market/orderbook/level2_20': 3, // 2PW
-                        'market/orderbook/level2_100': 6, // 4PW
-                        'market/histories': 4.5, // 3PW
-                        'market/candles': 4.5, // 3PW
-                        'prices': 4.5, // 3PW
-                        'timestamp': 4.5, // 3PW
-                        'status': 4.5, // 3PW
-                        // margin trading
-                        'mark-price/{symbol}/current': 3, // 2PW
-                        'mark-price/all-symbols': 3,
-                        'margin/config': 25, // 25SW
-                        'announcements': 20, // 20W
-                        'margin/collateralRatio': 10,
-                        // convert
-                        'convert/symbol': 5,
-                        'convert/currencies': 5,
-                    },
-                    'post': {
-                        // ws
-                        'bullet-public': 15, // 10PW
-                    },
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 10,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "symbol": "LTC-USDT",
+                                "tradeId": "3607194733924353",
+                                "orderId": "65560a018b40f60007d5fe93",
+                                "counterOrderId": "65560a017bbc4b0001fed90a",
+                                "side": "buy",
+                                "liquidity": "taker",
+                                "forceTaker": false,
+                                "price": "72.8",
+                                "size": "0.010055",
+                                "funds": "0.732004",
+                                "fee": "0.000732004",
+                                "feeRate": "0.001",
+                                "feeCurrency": "USDT",
+                                "stop": "",
+                                "tradeType": "TRADE",
+                                "type": "market",
+                                "createdAt": 1700137473000
+                            }
+                        ]
+                    }
                 },
-                'private': {
-                    'get': {
-                        // account
-                        'user-info': 30, // 20MW
-                        'accounts': 7.5, // 5MW
-                        'accounts/{accountId}': 7.5, // 5MW
-                        'accounts/ledgers': 3, // 2MW
-                        'hf/accounts/ledgers': 2, // 2SW
-                        'hf/margin/account/ledgers': 2, // 2SW
-                        'transaction-history': 3, // 2MW
-                        'sub/user': 30, // 20MW
-                        'sub-accounts/{subUserId}': 22.5, // 15MW
-                        'sub-accounts': 30, // 20MW
-                        'sub/api-key': 30, // 20MW
-                        // funding
-                        'margin/account': 40, // 40SW
-                        'margin/accounts': 15, // 15SW
-                        'isolated/accounts': 15, // 15SW
-                        'deposit-addresses': 7.5, // 5MW
-                        'deposits': 7.5, // 5MW
-                        'hist-deposits': 7.5, // 5MW
-                        'withdrawals': 30, // 20MW
-                        'hist-withdrawals': 30, // 20MW
-                        'withdrawals/quotas': 30, // 20MW
-                        'accounts/transferable': 30, // 20MW
-                        'transfer-list': 30, // 20MW
-                        'base-fee': 3, // 3SW
-                        'trade-fees': 3, // 3SW
-                        // spot trading
-                        'market/orderbook/level{level}': 3, // 3SW
-                        'market/orderbook/level2': 3, // 3SW
-                        'market/orderbook/level3': 3, // 3SW
-                        'hf/accounts/opened': 2, //
-                        'hf/orders/active': 2, // 2SW
-                        'hf/orders/active/symbols': 2, // 2SW
-                        'hf/margin/order/active/symbols': 2, // 2SW
-                        'hf/orders/done': 2, // 2SW
-                        'hf/orders/{orderId}': 2, // 2SW
-                        'hf/orders/client-order/{clientOid}': 2, // 2SW
-                        'hf/orders/dead-cancel-all/query': 2, // 2SW
-                        'hf/fills': 2, // 2SW
-                        'orders': 2, // 2SW
-                        'limit/orders': 3, // 3SW
-                        'orders/{orderId}': 2, // 2SW
-                        'order/client-order/{clientOid}': 3, // 3SW
-                        'fills': 10, // 10SW
-                        'limit/fills': 20, // 20SW
-                        'stop-order': 8, // 8SW
-                        'stop-order/{orderId}': 3, // 3SW
-                        'stop-order/queryOrderByClientOid': 3, // 3SW
-                        'oco/order/{orderId}': 2, // 2SW
-                        'oco/order/details/{orderId}': 2, // 2SW
-                        'oco/client-order/{clientOid}': 2, // 2SW
-                        'oco/orders': 2, // 2SW
-                        // margin trading
-                        'hf/margin/orders/active': 4, // 4SW
-                        'hf/margin/orders/done': 10, // 10SW
-                        'hf/margin/orders/{orderId}': 4, // 4SW
-                        'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
-                        'hf/margin/fills': 5, // 5SW
-                        'etf/info': 25, // 25SW
-                        'margin/currencies': 20, // 20SW
-                        'risk/limit/strategy': 20, // 20SW (Deprecate)
-                        'isolated/symbols': 20, // 20SW
-                        'margin/symbols': 5,
-                        'isolated/account/{symbol}': 50, // 50SW
-                        'margin/borrow': 15, // 15SW
-                        'margin/repay': 15, // 15SW
-                        'margin/interest': 20, // 20SW
-                        'project/list': 10, // 10SW
-                        'project/marketInterestRate': 7.5, // 5PW
-                        'redeem/orders': 10, // 10SW
-                        'purchase/orders': 10, // 10SW
-                        // broker
-                        'broker/api/rebase/download': 3,
-                        'broker/queryMyCommission': 3,
-                        'broker/queryUser': 3,
-                        'broker/queryDetailByUid': 3,
-                        'migrate/user/account/status': 3,
-                        // convert
-                        'convert/quote': 20,
-                        'convert/order/detail': 5,
-                        'convert/order/history': 5,
-                        'convert/limit/quote': 20,
-                        'convert/limit/order/detail': 5,
-                        'convert/limit/orders': 5,
-                        // affiliate
-                        'affiliate/inviter/statistics': 30,
-                    },
-                    'post': {
-                        // account
-                        'sub/user/created': 22.5, // 15MW
-                        'sub/api-key': 30, // 20MW
-                        'sub/api-key/update': 45, // 30MW
-                        // funding
-                        'deposit-addresses': 30, // 20MW
-                        'withdrawals': 7.5, // 5MW
-                        'accounts/universal-transfer': 6, // 4MW
-                        'accounts/sub-transfer': 45, // 30MW
-                        'accounts/inner-transfer': 15, // 10MW
-                        'transfer-out': 30, // 20MW
-                        'transfer-in': 30, // 20MW
-                        // spot trading
-                        'hf/orders': 1, // 1SW
-                        'hf/orders/test': 1, // 1SW
-                        'hf/orders/sync': 1, // 1SW
-                        'hf/orders/multi': 1, // 1SW
-                        'hf/orders/multi/sync': 1, // 1SW
-                        'hf/orders/alter': 3, // 3SW
-                        'hf/orders/dead-cancel-all': 2, // 2SW
-                        'orders': 2, // 2SW
-                        'orders/test': 2, // 2SW
-                        'orders/multi': 3, // 3SW
-                        'stop-order': 2, // 2SW
-                        'oco/order': 2, // 2SW
-                        // margin trading
-                        'hf/margin/order': 5, // 5SW
-                        'hf/margin/order/test': 5, // 5SW
-                        'margin/order': 5, // 5SW
-                        'margin/order/test': 5, // 5SW
-                        'margin/borrow': 15, // 15SW
-                        'margin/repay': 10, // 10SW
-                        'purchase': 15, // 15SW
-                        'redeem': 15, // 15SW
-                        'lend/purchase/update': 10, // 10SW
-                        // convert
-                        'convert/order': 20,
-                        'convert/limit/order': 20,
-                        // ws
-                        'bullet-private': 10, // 10SW
-                        'position/update-user-leverage': 5,
-                        'deposit-address/create': 20,
-                    },
-                    'delete': {
-                        // account
-                        'sub/api-key': 45, // 30MW
-                        // funding
-                        'withdrawals/{withdrawalId}': 30, // 20MW
-                        // spot trading
-                        'hf/orders/{orderId}': 1, // 1SW
-                        'hf/orders/sync/{orderId}': 1, // 1SW
-                        'hf/orders/client-order/{clientOid}': 1, // 1SW
-                        'hf/orders/sync/client-order/{clientOid}': 1, // 1SW
-                        'hf/orders/cancel/{orderId}': 2, // 2SW
-                        'hf/orders': 2, // 2SW
-                        'hf/orders/cancelAll': 30, // 30SW
-                        'orders/{orderId}': 3, // 3SW
-                        'order/client-order/{clientOid}': 5, // 5SW
-                        'orders': 20, // 20SW
-                        'stop-order/{orderId}': 3, // 3SW
-                        'stop-order/cancelOrderByClientOid': 5, // 5SW
-                        'stop-order/cancel': 3, // 3SW
-                        'oco/order/{orderId}': 3, // 3SW
-                        'oco/client-order/{clientOid}': 3, // 3SW
-                        'oco/orders': 3, // 3SW
-                        // margin trading
-                        'hf/margin/orders/{orderId}': 5, // 5SW
-                        'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
-                        'hf/margin/orders': 10, // 10SW
-                        // convert
-                        'convert/limit/order/cancel': 5,
-                    },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTC-USDT",
+                            "tradeId": "3607194733924353",
+                            "orderId": "65560a018b40f60007d5fe93",
+                            "counterOrderId": "65560a017bbc4b0001fed90a",
+                            "side": "buy",
+                            "liquidity": "taker",
+                            "forceTaker": false,
+                            "price": "72.8",
+                            "size": "0.010055",
+                            "funds": "0.732004",
+                            "fee": "0.000732004",
+                            "feeRate": "0.001",
+                            "feeCurrency": "USDT",
+                            "stop": "",
+                            "tradeType": "TRADE",
+                            "type": "market",
+                            "createdAt": 1700137473000
+                        },
+                        "id": "3607194733924353",
+                        "order": "65560a018b40f60007d5fe93",
+                        "timestamp": 1700137473000,
+                        "datetime": "2023-11-16T12:24:33.000Z",
+                        "symbol": "LTC/USDT",
+                        "type": "market",
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 72.8,
+                        "amount": 0.010055,
+                        "cost": 0.732004,
+                        "fee": {
+                            "cost": 0.000732004,
+                            "currency": "USDT",
+                            "rate": 0.001
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.000732004,
+                                "currency": "USDT",
+                                "rate": 0.001
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "spot closed orders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    10
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 10,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "id": "65ba3fc497c9e300079f2003",
+                                "symbol": "LTC-USDT",
+                                "opType": "DEAL",
+                                "type": "market",
+                                "side": "buy",
+                                "price": "0",
+                                "size": "0.1",
+                                "funds": "0",
+                                "dealFunds": "6.81",
+                                "dealSize": "0.1",
+                                "fee": "0.00681",
+                                "feeCurrency": "USDT",
+                                "stp": "",
+                                "stop": "",
+                                "stopTriggered": false,
+                                "stopPrice": "0",
+                                "timeInForce": "GTC",
+                                "postOnly": false,
+                                "hidden": false,
+                                "iceberg": false,
+                                "visibleSize": "0",
+                                "cancelAfter": 0,
+                                "channel": "API",
+                                "clientOid": "ce802c82-3b80-4adb-8da5-c39103f102af",
+                                "remark": null,
+                                "tags": "partner:ccxt",
+                                "isActive": false,
+                                "cancelExist": false,
+                                "createdAt": 1706704836933,
+                                "tradeType": "TRADE"
+                            }
+                        ]
+                    }
                 },
-                'futuresPublic': {
-                    'get': {
-                        'contracts/active': 4.5, // 3PW
-                        'contracts/{symbol}': 4.5, // 3PW
-                        'ticker': 3, // 2PW
-                        'allTickers': 7.5, // 5PW
-                        'level2/snapshot': 4.5, // 3PW
-                        'level2/depth20': 7.5, // 5PW
-                        'level2/depth100': 15, // 10PW
-                        'trade/history': 7.5, // 5PW
-                        'kline/query': 4.5, // 3PW
-                        'interest/query': 7.5, // 5PW
-                        'index/query': 3, // 2PW
-                        'mark-price/{symbol}/current': 4.5, // 3PW
-                        'premium/query': 4.5, // 3PW
-                        'trade-statistics': 4.5, // 3PW
-                        'funding-rate/{symbol}/current': 3, // 2PW
-                        'contract/funding-rates': 7.5, // 5PW
-                        'timestamp': 3, // 2PW
-                        'status': 6, // 4PW
-                        // ?
-                        'level2/message/query': 1.3953,
-                    },
-                    'post': {
-                        // ws
-                        'bullet-public': 15, // 10PW
-                    },
-                },
-                'futuresPrivate': {
-                    'get': {
-                        // account
-                        'transaction-history': 3, // 2MW
-                        // funding
-                        'account-overview': 7.5, // 5FW
-                        'account-overview-all': 9, // 6FW
-                        'transfer-list': 30, // 20MW
-                        // futures
-                        'orders': 3, // 2FW
-                        'stopOrders': 9, // 6FW
-                        'recentDoneOrders': 7.5, // 5FW
-                        'orders/{orderId}': 7.5, // 5FW
-                        'orders/byClientOid': 7.5, // 5FW
-                        'fills': 7.5, // 5FW
-                        'recentFills': 4.5, // 3FW
-                        'openOrderStatistics': 15, // 10FW
-                        'position': 3, // 2FW
-                        'positions': 3, // 2FW
-                        'margin/maxWithdrawMargin': 15, // 10FW
-                        'contracts/risk-limit/{symbol}': 7.5, // 5FW
-                        'funding-history': 7.5, // 5FW
-                        'copy-trade/futures/get-max-open-size': 6, // 4FW
-                        'copy-trade/futures/position/margin/max-withdraw-margin': 15, // 10FW
-                    },
-                    'post': {
-                        // funding
-                        'transfer-out': 30, // 20MW
-                        'transfer-in': 30, // 20MW
-                        // futures
-                        'orders': 3, // 2FW
-                        'orders/test': 3, // 2FW
-                        'orders/multi': 4.5, // 3FW
-                        'position/margin/auto-deposit-status': 6, // 4FW
-                        'margin/withdrawMargin': 15, // 10FW
-                        'position/margin/deposit-margin': 6, // 4FW
-                        'position/risk-limit-level/change': 6, // 4FW
-                        'copy-trade/futures/orders': 3, // 2FW
-                        'copy-trade/futures/orders/test': 3, // 2FW
-                        'copy-trade/futures/st-orders': 3, // 2FW
-                        'copy-trade/futures/position/margin/deposit-margin': 6, // 4FW
-                        'copy-trade/futures/position/margin/withdraw-margin': 15, // 10FW
-                        'copy-trade/futures/position/risk-limit-level/change': 3, // 2FW
-                        'copy-trade/futures/position/margin/auto-deposit-status': 6, // 4FW
-                        'copy-trade/futures/position/changeMarginMode': 3, // 2FW
-                        'copy-trade/futures/position/changeCrossUserLeverage': 3, // 2FW
-                        'copy-trade/getCrossModeMarginRequirement': 4.5, // 3FW
-                        'copy-trade/position/switchPositionMode': 3, // 2FW
-                        // ws
-                        'bullet-private': 15, // 10FW
-                    },
-                    'delete': {
-                        'orders/{orderId}': 1.5, // 1FW
-                        'orders/client-order/{clientOid}': 1.5, // 1FW
-                        'orders': 45, // 30FW
-                        'stopOrders': 22.5, // 15FW
-                        'copy-trade/futures/orders': 1.5, // 1FW
-                        'copy-trade/futures/orders/client-order': 1.5, // 1FW
-                    },
-                },
-                'webExchange': {
-                    'get': {
-                        'currency/currency/chain-info': 1, // this is temporary from webApi
-                    },
-                },
-                'broker': {
-                    'get': {
-                        'broker/nd/info': 2,
-                        'broker/nd/account': 2,
-                        'broker/nd/account/apikey': 2,
-                        'broker/nd/rebase/download': 3,
-                        'asset/ndbroker/deposit/list': 1,
-                        'broker/nd/transfer/detail': 1,
-                        'broker/nd/deposit/detail': 1,
-                        'broker/nd/withdraw/detail': 1,
-                    },
-                    'post': {
-                        'broker/nd/transfer': 1,
-                        'broker/nd/account': 3,
-                        'broker/nd/account/apikey': 3,
-                        'broker/nd/account/update-apikey': 3,
-                    },
-                    'delete': {
-                        'broker/nd/account/apikey': 3,
-                    },
-                },
-                'earn': {
-                    'get': {
-                        'otc-loan/discount-rate-configs': 10,
-                        'otc-loan/loan': 1,
-                        'otc-loan/accounts': 1,
-                        'earn/redeem-preview': 7.5, // 5EW
-                        'earn/saving/products': 7.5, // 5EW
-                        'earn/hold-assets': 7.5, // 5EW
-                        'earn/promotion/products': 7.5, // 5EW
-                        'earn/kcs-staking/products': 7.5, // 5EW
-                        'earn/staking/products': 7.5, // 5EW
-                        'earn/eth-staking/products': 7.5, // 5EW
-                        'struct-earn/dual/products': 4.5,
-                        'struct-earn/orders': 7.5,
-                    },
-                    'post': {
-                        'earn/orders': 7.5, // 5EW
-                        'struct-earn/orders': 7.5,
-                    },
-                    'delete': {
-                        'earn/orders': 7.5, // 5EW
-                    },
-                },
-                'uta': {
-                    'get': {
-                        'market/announcement': 20,
-                        'market/currency': 3,
-                        'market/instrument': 4,
-                        'market/ticker': 15,
-                        'market/orderbook': 3,
-                        'market/trade': 3,
-                        'market/kline': 3,
-                        'market/funding-rate': 2,
-                        'market/funding-rate-history': 5,
-                        'market/cross-config': 25,
-                        'server/status': 3,
-                    },
-                },
-            },
-            'timeframes': {
-                '1m': '1min', // spot and uta
-                '3m': '3min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '8h': '8hour',
-                '12h': '12hour',
-                '1d': '1day',
-                '1w': '1week',
-                '1M': '1month',
-            },
-            'precisionMode': TICK_SIZE,
-            'exceptions': {
-                'exact': {
-                    'Order not exist or not allow to be cancelled': OrderNotFound,
-                    'The order does not exist.': OrderNotFound,
-                    'order not exist': OrderNotFound,
-                    'order not exist.': OrderNotFound, // duplicated error temporarily
-                    'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                    'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
-                    'Order size increment invalid.': InvalidOrder, // {"msg":"Order size increment invalid.","code":"600100"}
-                    'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                    'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
-                    'The amount increment is invalid.': BadRequest,
-                    'The quantity is below the minimum requirement.': InvalidOrder, // {"msg":"The quantity is below the minimum requirement.","code":"400100"}
-                    'not in the given range!': BadRequest, // {"msg":"price not in the given range!","code":"400100"}
-                    'recAccountType not in the given range': BadRequest, // {"msg":"recAccountType not in the given range","code":"400100"}
-                    'Unsupported trading pair.': BadSymbol, // {"msg":"Unsupported trading pair.","code":"400100"}
-                    '400': BadRequest,
-                    '401': AuthenticationError,
-                    '403': NotSupported,
-                    '404': NotSupported,
-                    '405': NotSupported,
-                    '415': NotSupported,
-                    '429': RateLimitExceeded,
-                    '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
-                    '503': ExchangeNotAvailable,
-                    '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
-                    '103000': InvalidOrder, // {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
-                    '130101': BadRequest, // Parameter error
-                    '130102': ExchangeError, // Maximum subscription amount has been exceeded.
-                    '130103': OrderNotFound, // Subscription order does not exist.
-                    '130104': ExchangeError, // Maximum number of subscription orders has been exceeded.
-                    '130105': InsufficientFunds, // Insufficient balance.
-                    '130106': NotSupported, // The currency does not support redemption.
-                    '130107': ExchangeError, // Redemption amount exceeds subscription amount.
-                    '130108': OrderNotFound, // Redemption order does not exist.
-                    '130201': PermissionDenied, // Your account has restricted access to certain features. Please contact customer service for further assistance
-                    '130202': ExchangeError, // The system is renewing the loan automatically. Please try again later
-                    '130203': InsufficientFunds, // Insufficient account balance
-                    '130204': BadRequest, // As the total lending amount for platform leverage reaches the platform's maximum position limit, the system suspends the borrowing function of leverage
-                    '130301': InsufficientFunds, // Insufficient account balance
-                    '130302': PermissionDenied, // Your relevant permission rights have been restricted, you can contact customer service for processing
-                    '130303': NotSupported, // The current trading pair does not support isolated positions
-                    '130304': NotSupported, // The trading function of the current trading pair is not enabled
-                    '130305': NotSupported, // The current trading pair does not support cross position
-                    '130306': NotSupported, // The account has not opened leveraged trading
-                    '130307': NotSupported, // Please reopen the leverage agreement
-                    '130308': InvalidOrder, // Position renewal freeze
-                    '130309': InvalidOrder, // Position forced liquidation freeze
-                    '130310': ExchangeError, // Abnormal leverage account status
-                    '130311': InvalidOrder, // Failed to place an order, triggering buy limit
-                    '130312': InvalidOrder, // Trigger global position limit, suspend buying
-                    '130313': InvalidOrder, // Trigger global position limit, suspend selling
-                    '130314': InvalidOrder, // Trigger the global position limit and prompt the remaining quantity available for purchase
-                    '130315': NotSupported, // This feature has been suspended due to country restrictions
-                    '126000': ExchangeError, // Abnormal margin trading
-                    '126001': NotSupported, // Users currently do not support high frequency
-                    '126002': ExchangeError, // There is a risk problem in your account and transactions are temporarily not allowed!
-                    '126003': InvalidOrder, // The commission amount is less than the minimum transaction amount for a single commission
-                    '126004': ExchangeError, // Trading pair does not exist or is prohibited
-                    '126005': PermissionDenied, // This trading pair requires advanced KYC certification before trading
-                    '126006': ExchangeError, // Trading pair is not available
-                    '126007': ExchangeError, // Trading pair suspended
-                    '126009': ExchangeError, // Trading pair is suspended from creating orders
-                    '126010': ExchangeError, // Trading pair suspended order cancellation
-                    '126011': ExchangeError, // There are too many orders in the order
-                    '126013': InsufficientFunds, // Insufficient account balance
-                    '126015': ExchangeError, // It is prohibited to place orders on this trading pair
-                    '126021': NotSupported, // This digital asset does not support user participation in your region, thank you for your understanding!
-                    '126022': InvalidOrder, // The final transaction price of your order will trigger the price protection strategy. To protect the price from deviating too much, please place an order again.
-                    '126027': InvalidOrder, // Only limit orders are supported
-                    '126028': InvalidOrder, // Only limit orders are supported before the specified time
-                    '126029': InvalidOrder, // The maximum order price is: xxx
-                    '126030': InvalidOrder, // The minimum order price is: xxx
-                    '126033': InvalidOrder, // Duplicate order
-                    '126034': InvalidOrder, // Failed to create take profit and stop loss order
-                    '126036': InvalidOrder, // Failed to create margin order
-                    '126037': ExchangeError, // Due to country and region restrictions, this function has been suspended!
-                    '126038': ExchangeError, // Third-party service call failed (internal exception)
-                    '126039': ExchangeError, // Third-party service call failed, reason: xxx
-                    '126041': ExchangeError, // clientTimestamp parameter error
-                    '126042': ExchangeError, // Exceeded maximum position limit
-                    '126043': OrderNotFound, // Order does not exist
-                    '126044': InvalidOrder, // clientOid duplicate
-                    '126045': NotSupported, // This digital asset does not support user participation in your region, thank you for your understanding!
-                    '126046': NotSupported, // This digital asset does not support your IP region, thank you for your understanding!
-                    '126047': PermissionDenied, // Please complete identity verification
-                    '126048': PermissionDenied, // Please complete authentication for the master account
-                    '135005': ExchangeError, // Margin order query business abnormality
-                    '135018': ExchangeError, // Margin order query service abnormality
-                    '200004': InsufficientFunds,
-                    '210014': InvalidOrder, // {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
-                    '210021': InsufficientFunds, // {"code":"210021","msg":"Balance not enough"}
-                    '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
-                    '260000': InvalidAddress, // {"code":"260000","msg":"Deposit address already exists."}
-                    '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
-                    '300000': InvalidOrder,
-                    '400000': BadSymbol,
-                    '400001': AuthenticationError,
-                    '400002': InvalidNonce,
-                    '400003': AuthenticationError,
-                    '400004': AuthenticationError,
-                    '400005': AuthenticationError,
-                    '400006': AuthenticationError,
-                    '400007': AuthenticationError,
-                    '400008': NotSupported,
-                    '400100': InsufficientFunds, // {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"}
-                    '400200': InvalidOrder, // {"code":"400200","msg":"Forbidden to place an order"}
-                    '400330': InvalidOrder, // {"msg":"Order price can't deviate from NAV by 50%","code":"400330"}
-                    '400350': InvalidOrder, // {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
-                    '400370': InvalidOrder, // {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
-                    '400400': BadRequest, // Parameter error
-                    '400401': AuthenticationError, // User is not logged in
-                    '400500': InvalidOrder, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
-                    '400600': BadSymbol, // {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
-                    '400760': InvalidOrder, // {"code":"400760","msg":"order price should be more than XX"}
-                    '401000': BadRequest, // {"code":"401000","msg":"The interface has been deprecated"}
-                    '408000': BadRequest, // Network timeout, please try again later
-                    '411100': AccountSuspended,
-                    '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
-                    '400303': PermissionDenied, // {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
-                    '500000': ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
-                    '260220': InvalidAddress, // { "code": "260220", "msg": "deposit.address.not.exists" }
-                    '600100': InsufficientFunds, // {"msg":"Funds below the minimum requirement.","code":"600100"}
-                    '600101': InvalidOrder, // {"msg":"The order funds should more then 0.1 USDT.","code":"600101"}
-                    '900014': BadRequest, // {"code":"900014","msg":"Invalid chainId"}
-                },
-                'broad': {
-                    'Exceeded the access frequency': RateLimitExceeded,
-                    'require more permission': PermissionDenied,
-                },
-            },
-            'fees': {
-                'trading': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'taker': this.parseNumber ('0.001'),
-                    'maker': this.parseNumber ('0.001'),
-                    'tiers': {
-                        'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
-                            [ this.parseNumber ('50'), this.parseNumber ('0.001') ],
-                            [ this.parseNumber ('200'), this.parseNumber ('0.0009') ],
-                            [ this.parseNumber ('500'), this.parseNumber ('0.0008') ],
-                            [ this.parseNumber ('1000'), this.parseNumber ('0.0007') ],
-                            [ this.parseNumber ('2000'), this.parseNumber ('0.0007') ],
-                            [ this.parseNumber ('4000'), this.parseNumber ('0.0006') ],
-                            [ this.parseNumber ('8000'), this.parseNumber ('0.0005') ],
-                            [ this.parseNumber ('15000'), this.parseNumber ('0.00045') ],
-                            [ this.parseNumber ('25000'), this.parseNumber ('0.0004') ],
-                            [ this.parseNumber ('40000'), this.parseNumber ('0.00035') ],
-                            [ this.parseNumber ('60000'), this.parseNumber ('0.0003') ],
-                            [ this.parseNumber ('80000'), this.parseNumber ('0.00025') ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "65ba3fc497c9e300079f2003",
+                            "symbol": "LTC-USDT",
+                            "opType": "DEAL",
+                            "type": "market",
+                            "side": "buy",
+                            "price": "0",
+                            "size": "0.1",
+                            "funds": "0",
+                            "dealFunds": "6.81",
+                            "dealSize": "0.1",
+                            "fee": "0.00681",
+                            "feeCurrency": "USDT",
+                            "stp": "",
+                            "stop": "",
+                            "stopTriggered": false,
+                            "stopPrice": "0",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "hidden": false,
+                            "iceberg": false,
+                            "visibleSize": "0",
+                            "cancelAfter": 0,
+                            "channel": "API",
+                            "clientOid": "ce802c82-3b80-4adb-8da5-c39103f102af",
+                            "remark": null,
+                            "tags": "partner:ccxt",
+                            "isActive": false,
+                            "cancelExist": false,
+                            "createdAt": 1706704836933,
+                            "tradeType": "TRADE"
+                        },
+                        "id": "65ba3fc497c9e300079f2003",
+                        "clientOrderId": "ce802c82-3b80-4adb-8da5-c39103f102af",
+                        "symbol": "LTC/USDT",
+                        "type": "market",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "amount": 0.1,
+                        "price": 68.1,
+                        "stopPrice": 0,
+                        "triggerPrice": 0,
+                        "cost": 6.81,
+                        "filled": 0.1,
+                        "remaining": 0,
+                        "timestamp": 1706704836933,
+                        "datetime": "2024-01-31T12:40:36.933Z",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.00681
+                        },
+                        "status": "closed",
+                        "lastTradeTimestamp": null,
+                        "average": 68.1,
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.00681
+                            }
                         ],
-                        'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
-                            [ this.parseNumber ('50'), this.parseNumber ('0.0009') ],
-                            [ this.parseNumber ('200'), this.parseNumber ('0.0007') ],
-                            [ this.parseNumber ('500'), this.parseNumber ('0.0005') ],
-                            [ this.parseNumber ('1000'), this.parseNumber ('0.0003') ],
-                            [ this.parseNumber ('2000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('4000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('8000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('15000'), this.parseNumber ('-0.00005') ],
-                            [ this.parseNumber ('25000'), this.parseNumber ('-0.00005') ],
-                            [ this.parseNumber ('40000'), this.parseNumber ('-0.00005') ],
-                            [ this.parseNumber ('60000'), this.parseNumber ('-0.00005') ],
-                            [ this.parseNumber ('80000'), this.parseNumber ('-0.00005') ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv for swap market",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1769402280000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        [
+                            1769402280000,
+                            87842.5,
+                            87897.4,
+                            87842.5,
+                            87897.4,
+                            475,
+                            41736.3593
                         ],
-                    },
+                        [
+                            1769402340000,
+                            87897.3,
+                            87897.3,
+                            87863.7,
+                            87863.7,
+                            380,
+                            33394.8441
+                        ]
+                    ]
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {},
-                    'deposit': {},
-                },
+                "parsedResponse": [
+                    [
+                        1769402280000,
+                        87842.5,
+                        87842.5,
+                        87897.4,
+                        87897.4,
+                        475
+                    ]
+                ]
             },
-            'commonCurrencies': {
-                'BIFI': 'BIFIF',
-                'VAI': 'VAIOT',
-                'WAX': 'WAXP',
-                'ALT': 'APTOSLAUNCHTOKEN',
-                'KALT': 'ALT', // ALTLAYER
-                'FUD': 'FTX Users\' Debt',
-            },
-            'options': {
-                'hf': undefined, // would be auto set to `true/false` after first load
-                'version': 'v1',
-                'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'private_get_fills',
-                'timeDifference': 0, // the difference between system clock and Binance clock
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'fetchCurrencies': {
-                    'webApiEnable': true, // fetches from WEB
-                    'webApiRetries': 1,
-                    'webApiMuteFailure': true,
+            {
+                "description": "spot ohlcv with since and limit",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1706628191000,
+                    3
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        [
+                            "1706637600",
+                            "43396.4",
+                            "43369.4",
+                            "43491.9",
+                            "43285.2",
+                            "135.02905655",
+                            "5859577.939581874"
+                        ],
+                        [
+                            "1706634000",
+                            "43501.1",
+                            "43396.4",
+                            "43598.9",
+                            "43305.2",
+                            "101.11170513",
+                            "4390218.48746545"
+                        ],
+                        [
+                            "1706630400",
+                            "43383.7",
+                            "43501",
+                            "43521.9",
+                            "43222.8",
+                            "101.30420492",
+                            "4391287.808186813"
+                        ]
+                    ]
                 },
-                'fetchMarkets': {
-                    'fetchTickersFees': true,
-                    'fetchContractMarkets': true,
-                },
-                'withdraw': {
-                    'includeFee': false,
-                },
-                'transfer': {
-                    'fillResponseFromRequest': true,
-                },
-                'timeframes': {
-                    'swap': {
-                        '1m': 1,
-                        '3m': undefined,
-                        '5m': 5,
-                        '15m': 15,
-                        '30m': 30,
-                        '1h': 60,
-                        '2h': 120,
-                        '4h': 240,
-                        '6h': undefined,
-                        '8h': 480,
-                        '12h': 720,
-                        '1d': 1440,
-                        '1w': 10080,
-                    },
-                },
-                // endpoint versions
-                'versions': {
-                    'public': {
-                        'GET': {
-                            // spot trading
-                            'currencies': 'v3',
-                            'currencies/{currency}': 'v3',
-                            'symbols': 'v2',
-                            'mark-price/all-symbols': 'v3',
-                            'announcements': 'v3',
-                        },
-                    },
-                    'private': {
-                        'GET': {
-                            // account
-                            'user-info': 'v2',
-                            'hf/margin/account/ledgers': 'v3',
-                            'sub/user': 'v2',
-                            'sub-accounts': 'v2',
-                            // funding
-                            'margin/accounts': 'v3',
-                            'isolated/accounts': 'v3',
-                            // 'deposit-addresses': 'v2',
-                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
-                            // spot trading
-                            'market/orderbook/level2': 'v3',
-                            'market/orderbook/level3': 'v3',
-                            'market/orderbook/level{level}': 'v3',
-                            'oco/order/{orderId}': 'v3',
-                            'oco/order/details/{orderId}': 'v3',
-                            'oco/client-order/{clientOid}': 'v3',
-                            'oco/orders': 'v3',
-                            // margin trading
-                            'hf/margin/orders/active': 'v3',
-                            'hf/margin/order/active/symbols': 'v3',
-                            'hf/margin/orders/done': 'v3',
-                            'hf/margin/orders/{orderId}': 'v3',
-                            'hf/margin/orders/client-order/{clientOid}': 'v3',
-                            'hf/margin/fills': 'v3',
-                            'etf/info': 'v3',
-                            'margin/currencies': 'v3',
-                            'margin/borrow': 'v3',
-                            'margin/repay': 'v3',
-                            'margin/interest': 'v3',
-                            'project/list': 'v3',
-                            'project/marketInterestRate': 'v3',
-                            'redeem/orders': 'v3',
-                            'purchase/orders': 'v3',
-                            'migrate/user/account/status': 'v3',
-                            'margin/symbols': 'v3',
-                            'affiliate/inviter/statistics': 'v2',
-                            'asset/ndbroker/deposit/list': 'v1',
-                        },
-                        'POST': {
-                            // account
-                            'sub/user/created': 'v2',
-                            // funding
-                            'accounts/universal-transfer': 'v3',
-                            'accounts/sub-transfer': 'v2',
-                            'accounts/inner-transfer': 'v2',
-                            'transfer-out': 'v3',
-                            'deposit-address/create': 'v3',
-                            // spot trading
-                            'oco/order': 'v3',
-                            // margin trading
-                            'hf/margin/order': 'v3',
-                            'hf/margin/order/test': 'v3',
-                            'margin/borrow': 'v3',
-                            'margin/repay': 'v3',
-                            'purchase': 'v3',
-                            'redeem': 'v3',
-                            'lend/purchase/update': 'v3',
-                            'position/update-user-leverage': 'v3',
-                            'withdrawals': 'v3',
-                        },
-                        'DELETE': {
-                            // account
-                            // funding
-                            // spot trading
-                            'hf/margin/orders/{orderId}': 'v3',
-                            'hf/margin/orders/client-order/{clientOid}': 'v3',
-                            'hf/margin/orders': 'v3',
-                            'oco/order/{orderId}': 'v3',
-                            'oco/client-order/{clientOid}': 'v3',
-                            'oco/orders': 'v3',
-                            // margin trading
-                        },
-                    },
-                    'futuresPrivate': {
-                        'POST': {
-                            'transfer-out': 'v3',
-                        },
-                    },
-                },
-                'partner': {
-                    // the support for spot and future exchanges as separate settings
-                    'spot': {
-                        'id': 'ccxt',
-                        'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
-                    },
-                    'future': {
-                        'id': 'ccxtfutures',
-                        'key': '1b327198-f30c-4f14-a0ac-918871282f15',
-                    },
-                    // exchange-wide settings are also supported
-                    // 'id': 'ccxt'
-                    // 'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
-                },
-                'accountsByType': {
-                    'spot': 'trade',
-                    'margin': 'margin',
-                    'cross': 'margin',
-                    'isolated': 'isolated',
-                    'main': 'main',
-                    'funding': 'main',
-                    'future': 'contract',
-                    'swap': 'contract',
-                    'mining': 'pool',
-                    'hf': 'trade_hf',
-                },
-                'networks': {
-                    'BRC20': 'btc',
-                    'BTCNATIVESEGWIT': 'bech32',
-                    'ERC20': 'eth',
-                    'TRC20': 'trx',
-                    'HRC20': 'heco',
-                    'MATIC': 'matic',
-                    'KCC': 'kcc', // kucoin community chain
-                    'SOL': 'sol',
-                    'ALGO': 'algo',
-                    'EOS': 'eos',
-                    'BEP20': 'bsc',
-                    'BEP2': 'bnb',
-                    'ARBONE': 'arbitrum',
-                    'AVAXX': 'avax',
-                    'AVAXC': 'avaxc',
-                    'TLOS': 'tlos', // tlosevm is different
-                    'CFX': 'cfx',
-                    'ACA': 'aca',
-                    'OPTIMISM': 'optimism',
-                    'ONT': 'ont',
-                    'GLMR': 'glmr',
-                    'CSPR': 'cspr',
-                    'KLAY': 'klay',
-                    'XRD': 'xrd',
-                    'RVN': 'rvn',
-                    'NEAR': 'near',
-                    'APT': 'aptos',
-                    'ETHW': 'ethw',
-                    'TON': 'ton',
-                    'BCH': 'bch',
-                    'BSV': 'bchsv',
-                    'BCHA': 'bchabc',
-                    'OSMO': 'osmo',
-                    'NANO': 'nano',
-                    'XLM': 'xlm',
-                    'VET': 'vet',
-                    'IOST': 'iost',
-                    'ZIL': 'zil',
-                    'XRP': 'xrp',
-                    'TOMO': 'tomo',
-                    'XMR': 'xmr',
-                    'COTI': 'coti',
-                    'XTZ': 'xtz',
-                    'ADA': 'ada',
-                    'WAX': 'waxp',
-                    'THETA': 'theta',
-                    'ONE': 'one',
-                    'IOTEX': 'iotx',
-                    'NULS': 'nuls',
-                    'KSM': 'ksm',
-                    'LTC': 'ltc',
-                    'WAVES': 'waves',
-                    'DOT': 'dot',
-                    'STEEM': 'steem',
-                    'QTUM': 'qtum',
-                    'DOGE': 'doge',
-                    'FIL': 'fil',
-                    'XYM': 'xym',
-                    'FLUX': 'flux',
-                    'ATOM': 'atom',
-                    'XDC': 'xdc',
-                    'KDA': 'kda',
-                    'ICP': 'icp',
-                    'CELO': 'celo',
-                    'LSK': 'lsk',
-                    'VSYS': 'vsys',
-                    'KAR': 'kar',
-                    'XCH': 'xch',
-                    'FLOW': 'flow',
-                    'BAND': 'band',
-                    'EGLD': 'egld',
-                    'HBAR': 'hbar',
-                    'XPR': 'xpr',
-                    'AR': 'ar',
-                    'FTM': 'ftm',
-                    'KAVA': 'kava',
-                    'KMA': 'kma',
-                    'XEC': 'xec',
-                    'IOTA': 'iota',
-                    'HNT': 'hnt',
-                    'ASTR': 'astr',
-                    'PDEX': 'pdex',
-                    'METIS': 'metis',
-                    'ZEC': 'zec',
-                    'POKT': 'pokt',
-                    'OASYS': 'oas',
-                    'OASIS': 'oasis', // a.k.a. ROSE
-                    'ETC': 'etc',
-                    'AKT': 'akt',
-                    'FSN': 'fsn',
-                    'SCRT': 'scrt',
-                    'CFG': 'cfg',
-                    'ICX': 'icx',
-                    'KMD': 'kmd',
-                    'NEM': 'NEM',
-                    'STX': 'stx',
-                    'DGB': 'dgb',
-                    'DCR': 'dcr',
-                    'CKB': 'ckb', // ckb2 is just odd entry
-                    'ELA': 'ela', // esc might be another chain elastos smart chain
-                    'HYDRA': 'hydra',
-                    'BTM': 'btm',
-                    'KARDIA': 'kai',
-                    'SXP': 'sxp', // a.k.a. solar swipe
-                    'NEBL': 'nebl',
-                    'ZEN': 'zen',
-                    'SDN': 'sdn',
-                    'LTO': 'lto',
-                    'WEMIX': 'wemix',
-                    // 'BOBA': 'boba', // tbd
-                    'EVER': 'ever',
-                    'BNC': 'bnc',
-                    'BNCDOT': 'bncdot',
-                    // 'CMP': 'cmp', // todo: after consensus
-                    'AION': 'aion',
-                    'GRIN': 'grin',
-                    'LOKI': 'loki',
-                    'QKC': 'qkc',
-                    'TT': 'TT',
-                    'PIVX': 'pivx',
-                    'SERO': 'sero',
-                    'METER': 'meter',
-                    'STATEMINE': 'statemine', // a.k.a. RMRK
-                    'DVPN': 'dvpn',
-                    'XPRT': 'xprt',
-                    'MOVR': 'movr',
-                    'ERGO': 'ergo',
-                    'ABBC': 'abbc',
-                    'DIVI': 'divi',
-                    'PURA': 'pura',
-                    'DFI': 'dfi',
-                    // 'NEO': 'neo', // tbd neo legacy
-                    'NEON3': 'neon3',
-                    'DOCK': 'dock',
-                    'TRUE': 'true',
-                    'CS': 'cs',
-                    'ORAI': 'orai',
-                    'BASE': 'base',
-                    'TARA': 'tara',
-                    // below will be uncommented after consensus
-                    // 'BITCOINDIAMON': 'bcd',
-                    // 'BITCOINGOLD': 'btg',
-                    // 'HTR': 'htr',
-                    // 'DEROHE': 'derohe',
-                    // 'NDAU': 'ndau',
-                    // 'HPB': 'hpb',
-                    // 'AXE': 'axe',
-                    // 'BITCOINPRIVATE': 'btcp',
-                    // 'EDGEWARE': 'edg',
-                    // 'JUPITER': 'jup',
-                    // 'VELAS': 'vlx', // vlxevm is different
-                    // // 'terra' luna lunc TBD
-                    // 'DIGITALBITS': 'xdb',
-                    // // fra is fra-emv on kucoin
-                    // 'PASTEL': 'psl',
-                    // // sysevm
-                    // 'CONCORDIUM': 'ccd',
-                    // 'AURORA': 'aurora',
-                    // 'PHA': 'pha', // a.k.a. khala
-                    // 'PAL': 'pal',
-                    // 'RSK': 'rbtc',
-                    // 'NIX': 'nix',
-                    // 'NIM': 'nim',
-                    // 'NRG': 'nrg',
-                    // 'RFOX': 'rfox',
-                    // 'PIONEER': 'neer',
-                    // 'PIXIE': 'pix',
-                    // 'ALEPHZERO': 'azero',
-                    // 'ACHAIN': 'act', // actevm is different
-                    // 'BOSCOIN': 'bos',
-                    // 'ELECTRONEUM': 'etn',
-                    // 'GOCHAIN': 'go',
-                    // 'SOPHIATX': 'sphtx',
-                    // 'WANCHAIN': 'wan',
-                    // 'ZEEPIN': 'zpt',
-                    // 'MATRIXAI': 'man',
-                    // 'METADIUM': 'meta',
-                    // 'METAHASH': 'mhc',
-                    // // eosc --"eosforce" tbd
-                    // 'IOTCHAIN': 'itc',
-                    // 'CONTENTOS': 'cos',
-                    // 'CPCHAIN': 'cpc',
-                    // 'INTCHAIN': 'int',
-                    // // 'DASH': 'dash', tbd digita-cash
-                    // 'WALTONCHAIN': 'wtc',
-                    // 'CONSTELLATION': 'dag',
-                    // 'ONELEDGER': 'olt',
-                    // 'AIRDAO': 'amb', // a.k.a. AMBROSUS
-                    // 'ENERGYWEB': 'ewt',
-                    // 'WAVESENTERPRISE': 'west',
-                    // 'HYPERCASH': 'hc',
-                    // 'ENECUUM': 'enq',
-                    // 'HAVEN': 'xhv',
-                    // 'CHAINX': 'pcx',
-                    // // 'FLUXOLD': 'zel', // zel seems old chain (with uppercase FLUX in kucoin UI and with id 'zel')
-                    // 'BUMO': 'bu',
-                    // 'DEEPONION': 'onion',
-                    // 'ULORD': 'ut',
-                    // 'ASCH': 'xas',
-                    // 'SOLARIS': 'xlr',
-                    // 'APOLLO': 'apl',
-                    // 'PIRATECHAIN': 'arrr',
-                    // 'ULTRA': 'uos',
-                    // 'EMONEY': 'ngm',
-                    // 'AURORACHAIN': 'aoa',
-                    // 'KLEVER': 'klv',
-                    // undetermined: xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
-                },
-                'marginModes': {
-                    'cross': 'MARGIN_TRADE',
-                    'isolated': 'MARGIN_ISOLATED_TRADE',
-                    'spot': 'TRADE',
-                },
-            },
-            'features': {
-                'spot': {
-                    'sandbox': false,
-                    'createOrder': {
-                        'marginMode': true,
-                        'triggerPrice': true,
-                        'triggerPriceType': undefined,
-                        'triggerDirection': false,
-                        'stopLossPrice': true,
-                        'takeProfitPrice': true,
-                        'attachedStopLossTakeProfit': undefined, // not supported
-                        'timeInForce': {
-                            'IOC': true,
-                            'FOK': true,
-                            'PO': true,
-                            'GTD': true,
-                        },
-                        'hedged': false,
-                        'trailing': false,
-                        'leverage': false,
-                        'marketBuyByCost': true,
-                        'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true, // todo implement
-                        'iceberg': true, // todo implement
-                    },
-                    'createOrders': {
-                        'max': 5,
-                    },
-                    'fetchMyTrades': {
-                        'marginMode': true,
-                        'limit': undefined,
-                        'daysBack': undefined,
-                        'untilDays': 7, // per  implementation comments
-                        'symbolRequired': true,
-                    },
-                    'fetchOrder': {
-                        'marginMode': false,
-                        'trigger': true,
-                        'trailing': false,
-                        'symbolRequired': true,
-                    },
-                    'fetchOpenOrders': {
-                        'marginMode': true,
-                        'limit': 500,
-                        'trigger': true,
-                        'trailing': false,
-                        'symbolRequired': true,
-                    },
-                    'fetchOrders': undefined,
-                    'fetchClosedOrders': {
-                        'marginMode': true,
-                        'limit': 500,
-                        'daysBack': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': 7,
-                        'trigger': true,
-                        'trailing': false,
-                        'symbolRequired': true,
-                    },
-                    'fetchOHLCV': {
-                        'limit': 1500,
-                    },
-                },
-                'swap': {
-                    'linear': undefined,
-                    'inverse': undefined,
-                },
-                'future': {
-                    'linear': undefined,
-                    'inverse': undefined,
-                },
-            },
-        });
-    }
-
-    nonce () {
-        return this.milliseconds () - this.options['timeDifference'];
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the exchange server
-     */
-    async fetchTime (params = {}): Promise<Int> {
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
-        let response = undefined;
-        if (type !== 'spot') {
-            //
-            //    {
-            //        "code": "200000",
-            //        "data": 1637385119302,
-            //    }
-            //
-            response = await this.futuresPublicGetTimestamp (params);
-        } else {
-            //
-            //     {
-            //         "code":"200000",
-            //         "msg":"success",
-            //         "data":1546837113087
-            //     }
-            //
-            response = await this.publicGetTimestamp (params);
-        }
-        return this.safeInteger (response, 'data');
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchStatus
-     * @description the latest known information on the availability of the exchange API
-     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-service-status
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] spot or swap
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
-     */
-    async fetchStatus (params = {}) {
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchStatus', 'uta', false);
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
-        let response = undefined;
-        if (uta) {
-            const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-            const defaultTradeType = (defaultType === 'spot') ? 'SPOT' : 'FUTURES';
-            const tradeType = this.safeStringUpper (params, 'tradeType', defaultTradeType);
-            const request = {
-                'tradeType': tradeType,
-            };
-            response = await this.utaGetServerStatus (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "tradeType": "SPOT",
-            //             "serverStatus": "open",
-            //             "msg": ""
-            //         }
-            //     }
-            //
-        } else if (type !== 'spot') {
-            response = await this.futuresPublicGetStatus (params);
-            //
-            //    {
-            //        "code": "200000",
-            //        "data": {
-            //            "status": "open", //open, close, cancelonly
-            //            "msg": "upgrade match engine" //remark for operation
-            //        }
-            //    }
-            //
-        } else {
-            response = await this.publicGetStatus (params);
-            //
-            //     {
-            //         "code":"200000",
-            //         "data":{
-            //             "status":"open", //open, close, cancelonly
-            //             "msg":"upgrade match engine" //remark for operation
-            //         }
-            //     }
-            //
-        }
-        const data = this.safeDict (response, 'data', {});
-        const status = this.safeString2 (data, 'status', 'serverStatus');
-        return {
-            'status': (status === 'open') ? 'ok' : 'maintenance',
-            'updated': undefined,
-            'eta': undefined,
-            'url': undefined,
-            'info': response,
-        };
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchMarkets
-     * @description retrieves data on all markets for kucoin
-     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-symbol
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} an array of objects representing market data
-     */
-    async fetchMarkets (params = {}): Promise<Market[]> {
-        let fetchTickersFees = undefined;
-        [ fetchTickersFees, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
-        let fetchContractMarkets = true;
-        [ fetchContractMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchContractMarkets', fetchContractMarkets);
-        if (uta) {
-            return await this.fetchUtaMarkets (params);
-        }
-        const promises = [];
-        promises.push (this.publicGetSymbols (params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "symbol": "XLM-USDT",
-        //                 "name": "XLM-USDT",
-        //                 "baseCurrency": "XLM",
-        //                 "quoteCurrency": "USDT",
-        //                 "feeCurrency": "USDT",
-        //                 "market": "USDS",
-        //                 "baseMinSize": "0.1",
-        //                 "quoteMinSize": "0.01",
-        //                 "baseMaxSize": "10000000000",
-        //                 "quoteMaxSize": "99999999",
-        //                 "baseIncrement": "0.0001",
-        //                 "quoteIncrement": "0.000001",
-        //                 "priceIncrement": "0.000001",
-        //                 "priceLimitRate": "0.1",
-        //                 "isMarginEnabled": true,
-        //                 "enableTrading": true
-        //             },
-        //
-        const credentialsSet = this.checkRequiredCredentials (false);
-        const requestMarginables = credentialsSet && this.safeBool (params, 'marginables', true);
-        if (requestMarginables) {
-            promises.push (this.privateGetMarginSymbols (params)); // cross margin symbols
-            //
-            //    {
-            //        "code": "200000",
-            //        "data": {
-            //            "timestamp": 1719393213421,
-            //            "items": [
-            //                {
-            //                    // same object as in market, with one additional field:
-            //                    "minFunds": "0.1"
-            //                },
-            //
-            promises.push (this.privateGetIsolatedSymbols (params)); // isolated margin symbols
-            //
-            //    {
-            //        "code": "200000",
-            //        "data": [
-            //            {
-            //                "symbol": "NKN-USDT",
-            //                "symbolName": "NKN-USDT",
-            //                "baseCurrency": "NKN",
-            //                "quoteCurrency": "USDT",
-            //                "maxLeverage": 5,
-            //                "flDebtRatio": "0.97",
-            //                "tradeEnable": true,
-            //                "autoRenewMaxDebtRatio": "0.96",
-            //                "baseBorrowEnable": true,
-            //                "quoteBorrowEnable": true,
-            //                "baseTransferInEnable": true,
-            //                "quoteTransferInEnable": true,
-            //                "baseBorrowCoefficient": "1",
-            //                "quoteBorrowCoefficient": "1"
-            //            },
-            //
-        }
-        if (fetchTickersFees) {
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "time":1602832092060,
-            //             "ticker":[
-            //                 {
-            //                     "symbol": "BTC-USDT",   // symbol
-            //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
-            //                     "buy": "11328.9",   // bestAsk
-            //                     "sell": "11329",    // bestBid
-            //                     "changeRate": "-0.0055",    // 24h change rate
-            //                     "changePrice": "-63.6", // 24h change price
-            //                     "high": "11610",    // 24h highest price
-            //                     "low": "11200", // 24h lowest price
-            //                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-            //                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-            //                     "last": "11328.9",  // last price
-            //                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
-            //                     "takerFeeRate": "0.001",    // Basic Taker Fee
-            //                     "makerFeeRate": "0.001",    // Basic Maker Fee
-            //                     "takerCoefficient": "1",    // Taker Fee Coefficient
-            //                     "makerCoefficient": "1" // Maker Fee Coefficient
-            //                 }
-            //
-            promises.push (this.publicGetMarketAllTickers (params));
-        }
-        if (fetchContractMarkets) {
-            promises.push (this.fetchContractMarkets (params));
-        }
-        if (credentialsSet) {
-            // load migration status for account
-            promises.push (this.loadMigrationStatus ());
-        }
-        const responses = await Promise.all (promises);
-        const symbolsData = this.safeList (responses[0], 'data');
-        const crossData = requestMarginables ? this.safeDict (responses[1], 'data', {}) : {};
-        const crossItems = this.safeList (crossData, 'items', []);
-        const crossById = this.indexBy (crossItems, 'symbol');
-        const isolatedData = requestMarginables ? responses[2] : {};
-        const isolatedItems = this.safeList (isolatedData, 'data', []);
-        const isolatedById = this.indexBy (isolatedItems, 'symbol');
-        const tickersIdx = requestMarginables ? 3 : 1;
-        const tickersResponse = this.safeDict (responses, tickersIdx, {});
-        const tickerItems = this.safeList (this.safeDict (tickersResponse, 'data', {}), 'ticker', []);
-        const tickersById = this.indexBy (tickerItems, 'symbol');
-        let result = [];
-        for (let i = 0; i < symbolsData.length; i++) {
-            const market = symbolsData[i];
-            const id = this.safeString (market, 'symbol');
-            const [ baseId, quoteId ] = id.split ('-');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const ticker = this.safeDict (tickersById, id, {});
-            const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
-            const takerFeeRate = this.safeString (ticker, 'takerFeeRate');
-            const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
-            const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
-            const hasCrossMargin = (id in crossById);
-            const hasIsolatedMargin = (id in isolatedById);
-            const isMarginable = this.safeBool (market, 'isMarginEnabled', false) || hasCrossMargin || hasIsolatedMargin;
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': isMarginable,
-                'marginModes': {
-                    'cross': hasCrossMargin,
-                    'isolated': hasIsolatedMargin,
-                },
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': this.safeBool (market, 'enableTrading'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient)),
-                'maker': this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient)),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'baseIncrement'),
-                    'price': this.safeNumber (market, 'priceIncrement'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'baseMinSize'),
-                        'max': this.safeNumber (market, 'baseMaxSize'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'quoteMinSize'),
-                        'max': this.safeNumber (market, 'quoteMaxSize'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        if (fetchContractMarkets) {
-            const increment = fetchTickersFees ? 1 : 0;
-            const contractIdx = tickersIdx + increment;
-            const contractMarkets = this.safeList (responses, contractIdx, []);
-            result = this.arrayConcat (result, contractMarkets);
-        }
-        if (this.options['adjustForTimeDifference']) {
-            await this.loadTimeDifference ();
-        }
-        return result;
-    }
-
-    async fetchContractMarkets (params = {}): Promise<Market[]> {
-        const response = await this.futuresPublicGetContractsActive (params);
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "symbol": "ETHUSDTM",
-        //            "rootSymbol": "USDT",
-        //            "type": "FFWCSX",
-        //            "firstOpenDate": 1591086000000,
-        //            "expireDate": null,
-        //            "settleDate": null,
-        //            "baseCurrency": "ETH",
-        //            "quoteCurrency": "USDT",
-        //            "settleCurrency": "USDT",
-        //            "maxOrderQty": 1000000,
-        //            "maxPrice": 1000000.0000000000,
-        //            "lotSize": 1,
-        //            "tickSize": 0.05,
-        //            "indexPriceTickSize": 0.01,
-        //            "multiplier": 0.01,
-        //            "initialMargin": 0.01,
-        //            "maintainMargin": 0.005,
-        //            "maxRiskLimit": 1000000,
-        //            "minRiskLimit": 1000000,
-        //            "riskStep": 500000,
-        //            "makerFeeRate": 0.00020,
-        //            "takerFeeRate": 0.00060,
-        //            "takerFixFee": 0.0000000000,
-        //            "makerFixFee": 0.0000000000,
-        //            "settlementFee": null,
-        //            "isDeleverage": true,
-        //            "isQuanto": true,
-        //            "isInverse": false,
-        //            "markMethod": "FairPrice",
-        //            "fairMethod": "FundingRate",
-        //            "fundingBaseSymbol": ".ETHINT8H",
-        //            "fundingQuoteSymbol": ".USDTINT8H",
-        //            "fundingRateSymbol": ".ETHUSDTMFPI8H",
-        //            "indexSymbol": ".KETHUSDT",
-        //            "settlementSymbol": "",
-        //            "status": "Open",
-        //            "fundingFeeRate": 0.000535,
-        //            "predictedFundingFeeRate": 0.002197,
-        //            "openInterest": "8724443",
-        //            "turnoverOf24h": 341156641.03354263,
-        //            "volumeOf24h": 74833.54000000,
-        //            "markPrice": 4534.07,
-        //            "indexPrice":4531.92,
-        //            "lastTradePrice": 4545.4500000000,
-        //            "nextFundingRateTime": 25481884,
-        //            "maxLeverage": 100,
-        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
-        //            "premiumsSymbol1M": ".ETHUSDTMPI",
-        //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
-        //            "fundingBaseSymbol1M": ".ETHINT",
-        //            "fundingQuoteSymbol1M": ".USDTINT",
-        //            "lowPrice": 4456.90,
-        //            "highPrice":  4674.25,
-        //            "priceChgPct": 0.0046,
-        //            "priceChg": 21.15
-        //        }
-        //    }
-        //
-        const result = [];
-        const data = this.safeList (response, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const id = this.safeString (market, 'symbol');
-            const expiry = this.safeInteger (market, 'expireDate');
-            const future = this.safeString (market, 'nextFundingRateTime') === undefined;
-            const swap = !future;
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'settleCurrency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            let symbol = base + '/' + quote + ':' + settle;
-            let type = 'swap';
-            if (future) {
-                symbol = symbol + '-' + this.yymmdd (expiry, '');
-                type = 'future';
+                "parsedResponse": [
+                    [
+                        1706630400000,
+                        43383.7,
+                        43521.9,
+                        43222.8,
+                        43501,
+                        101.30420492
+                    ],
+                    [
+                        1706634000000,
+                        43501.1,
+                        43598.9,
+                        43305.2,
+                        43396.4,
+                        101.11170513
+                    ],
+                    [
+                        1706637600000,
+                        43396.4,
+                        43491.9,
+                        43285.2,
+                        43369.4,
+                        135.02905655
+                    ]
+                ]
             }
-            const inverse = this.safeValue (market, 'isInverse');
-            const status = this.safeString (market, 'status');
-            const multiplier = this.safeString (market, 'multiplier');
-            const tickSize = this.safeNumber (market, 'tickSize');
-            const lotSize = this.safeNumber (market, 'lotSize');
-            let limitAmountMin = lotSize;
-            if (limitAmountMin === undefined) {
-                limitAmountMin = this.safeNumber (market, 'baseMinSize');
-            }
-            let limitAmountMax = this.safeNumber (market, 'maxOrderQty');
-            if (limitAmountMax === undefined) {
-                limitAmountMax = this.safeNumber (market, 'baseMaxSize');
-            }
-            let limitPriceMax = this.safeNumber (market, 'maxPrice');
-            if (limitPriceMax === undefined) {
-                const baseMinSizeString = this.safeString (market, 'baseMinSize');
-                const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
-                limitPriceMax = this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString));
-            }
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': false,
-                'margin': false,
-                'swap': swap,
-                'future': future,
-                'option': false,
-                'active': (status === 'Open'),
-                'contract': true,
-                'linear': !inverse,
-                'inverse': inverse,
-                'taker': this.safeNumber (market, 'takerFeeRate'),
-                'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': lotSize,
-                    'price': tickSize,
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch usdt ledger",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 50,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "id": "65ca404f77c7250007b8ddd7",
+                                "currency": "USDT",
+                                "amount": "5",
+                                "fee": "0",
+                                "balance": "0",
+                                "accountType": "TRADE",
+                                "bizType": "Transfer",
+                                "direction": "out",
+                                "createdAt": 1707753551875,
+                                "context": ""
+                            }
+                        ]
+                    }
                 },
-                'limits': {
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.safeNumber (market, 'maxLeverage'),
-                    },
-                    'amount': {
-                        'min': limitAmountMin,
-                        'max': limitAmountMax,
-                    },
-                    'price': {
-                        'min': tickSize,
-                        'max': limitPriceMax,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'quoteMinSize'),
-                        'max': this.safeNumber (market, 'quoteMaxSize'),
-                    },
-                },
-                'created': this.safeInteger (market, 'firstOpenDate'),
-                'info': market,
-            });
-        }
-        return result;
-    }
-
-    async fetchUtaMarkets (params = {}): Promise<Market[]> {
-        const promises = [];
-        promises.push (this.utaGetMarketInstrument (this.extend (params, { 'tradeType': 'SPOT' })));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "tradeType": "SPOT",
-        //             "list": [
-        //                 {
-        //                     "symbol": "AVA-USDT",
-        //                     "name": "AVA-USDT",
-        //                     "baseCurrency": "AVA",
-        //                     "quoteCurrency": "USDT",
-        //                     "market": "USDS",
-        //                     "minBaseOrderSize": "0.1",
-        //                     "minQuoteOrderSize": "0.1",
-        //                     "maxBaseOrderSize": "10000000000",
-        //                     "maxQuoteOrderSize": "99999999",
-        //                     "baseOrderStep": "0.01",
-        //                     "quoteOrderStep": "0.0001",
-        //                     "tickSize": "0.0001",
-        //                     "feeCurrency": "USDT",
-        //                     "tradingStatus": "1",
-        //                     "marginMode": "2",
-        //                     "priceLimitRatio": "0.05",
-        //                     "feeCategory": 1,
-        //                     "makerFeeCoefficient": "1.00",
-        //                     "takerFeeCoefficient": "1.00",
-        //                     "st": false
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        promises.push (this.utaGetMarketInstrument (this.extend (params, { 'tradeType': 'FUTURES' })));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "tradeType": "FUTURES",
-        //             "list": [
-        //                 {
-        //                     "symbol": "XBTUSDTM",
-        //                     "baseCurrency": "XBT",
-        //                     "quoteCurrency": "USDT",
-        //                     "maxBaseOrderSize": "1000000",
-        //                     "tickSize": "0.1",
-        //                     "tradingStatus": "1",
-        //                     "settlementCurrency": "USDT",
-        //                     "contractType": "0",
-        //                     "isInverse": false,
-        //                     "launchTime": 1585555200000,
-        //                     "expiryTime": null,
-        //                     "settlementTime": null,
-        //                     "maxPrice": "1000000.0",
-        //                     "lotSize": "1",
-        //                     "unitSize": "0.001",
-        //                     "makerFeeRate": "0.00020",
-        //                     "takerFeeRate": "0.00060",
-        //                     "settlementFeeRate": null,
-        //                     "maxLeverage": 125,
-        //                     "indexSourceExchanges": ["okex","binance","kucoin","bybit","bitmart","gateio"],
-        //                     "k": "490.0",
-        //                     "m": "300.0",
-        //                     "f": "1.3",
-        //                     "mmrLimit": "0.3",
-        //                     "mmrLevConstant": "125.0"
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const responses = await Promise.all (promises);
-        const data = this.safeDict (responses[0], 'data', {});
-        const contractData = this.safeDict (responses[1], 'data', {});
-        const spotData = this.safeList (data, 'list', []);
-        const contractSymbolsData = this.safeList (contractData, 'list', []);
-        const symbolsData = this.arrayConcat (spotData, contractSymbolsData);
-        const result = [];
-        for (let i = 0; i < symbolsData.length; i++) {
-            const market = symbolsData[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'settlementCurrency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            const hasMargin = this.safeString (market, 'marginMode');
-            const isMarginable = (hasMargin === '1') ? true : false;
-            let symbol = base + '/' + quote;
-            if (settle !== undefined) {
-                symbol += ':' + settle;
+                "parsedResponse": [
+                    {
+                        "id": "65ca404f77c7250007b8ddd7",
+                        "direction": "out",
+                        "account": "TRADE",
+                        "referenceId": null,
+                        "referenceAccount": "TRADE",
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": 5,
+                        "timestamp": 1707753551875,
+                        "datetime": "2024-02-12T15:59:11.875Z",
+                        "before": null,
+                        "after": null,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "id": "65ca404f77c7250007b8ddd7",
+                            "currency": "USDT",
+                            "amount": "5",
+                            "fee": "0",
+                            "balance": "0",
+                            "accountType": "TRADE",
+                            "bizType": "Transfer",
+                            "direction": "out",
+                            "createdAt": 1707753551875,
+                            "context": ""
+                        }
+                    }
+                ]
             }
-            const contractType = this.safeString (market, 'contractType');
-            const expiry = this.safeInteger (market, 'expiryTime');
-            const active = this.safeString (market, 'tradingStatus');
-            let type = undefined;
-            let spot = false;
-            let swap = false;
-            let future = false;
-            let contract = false;
-            let linear = false;
-            let inverse = false;
-            if (contractType !== undefined) {
-                contract = true;
-                if (quote === settle) {
-                    linear = true;
-                } else {
-                    inverse = true;
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "input": [
+                    "65e371dd0ddaa40007cb437b",
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "id": "65e371dd0ddaa40007cb437b",
+                        "symbol": "LTC-USDT",
+                        "opType": "DEAL",
+                        "type": "market",
+                        "side": "buy",
+                        "price": "0",
+                        "size": "0.01",
+                        "funds": "0",
+                        "dealFunds": "0.91937",
+                        "dealSize": "0.01",
+                        "fee": "0.00091937",
+                        "feeCurrency": "USDT",
+                        "stp": "",
+                        "stop": "",
+                        "stopTriggered": false,
+                        "stopPrice": "0",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "hidden": false,
+                        "iceberg": false,
+                        "visibleSize": "0",
+                        "cancelAfter": 0,
+                        "channel": "API",
+                        "clientOid": "6d92a4dc-7c44-40e9-afd8-a25cfb86384a",
+                        "remark": null,
+                        "tags": "partner:ccxt",
+                        "isActive": false,
+                        "cancelExist": false,
+                        "createdAt": 1709404637667,
+                        "tradeType": "TRADE"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "65e371dd0ddaa40007cb437b",
+                        "symbol": "LTC-USDT",
+                        "opType": "DEAL",
+                        "type": "market",
+                        "side": "buy",
+                        "price": "0",
+                        "size": "0.01",
+                        "funds": "0",
+                        "dealFunds": "0.91937",
+                        "dealSize": "0.01",
+                        "fee": "0.00091937",
+                        "feeCurrency": "USDT",
+                        "stp": "",
+                        "stop": "",
+                        "stopTriggered": false,
+                        "stopPrice": "0",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "hidden": false,
+                        "iceberg": false,
+                        "visibleSize": "0",
+                        "cancelAfter": 0,
+                        "channel": "API",
+                        "clientOid": "6d92a4dc-7c44-40e9-afd8-a25cfb86384a",
+                        "remark": null,
+                        "tags": "partner:ccxt",
+                        "isActive": false,
+                        "cancelExist": false,
+                        "createdAt": 1709404637667,
+                        "tradeType": "TRADE"
+                    },
+                    "id": "65e371dd0ddaa40007cb437b",
+                    "clientOrderId": "6d92a4dc-7c44-40e9-afd8-a25cfb86384a",
+                    "symbol": "LTC/USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "amount": 0.01,
+                    "price": 91.937,
+                    "stopPrice": 0,
+                    "triggerPrice": 0,
+                    "cost": 0.91937,
+                    "filled": 0.01,
+                    "remaining": 0,
+                    "timestamp": 1709404637667,
+                    "datetime": "2024-03-02T18:37:17.667Z",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": 0.00091937
+                    },
+                    "status": "closed",
+                    "lastTradeTimestamp": null,
+                    "average": 91.937,
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": 0.00091937
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
                 }
-                if (contractType === '0') {
-                    type = 'swap';
-                    swap = true;
-                } else {
-                    type = 'future';
-                    future = true;
-                }
-            } else {
-                type = 'spot';
-                spot = true;
             }
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': isMarginable,
-                'swap': swap,
-                'future': future,
-                'option': false,
-                'active': (active === '1'),
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': this.safeNumber (market, 'makerFeeRate'),
-                'maker': this.safeNumber (market, 'takerFeeRate'),
-                'contractSize': this.safeNumber (market, 'unitSize'),
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
-                    'price': this.safeNumber (market, 'tickSize'),
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "disabledGO": true,
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "sequence": "7613805866401793",
+                            "price": "67347.4",
+                            "size": "0.00453030",
+                            "side": "sell",
+                            "time": 1709897616745000000
+                        }
+                    ]
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': this.safeInteger (market, 'maxLeverage'),
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minBaseOrderSize'),
-                        'max': this.safeNumber (market, 'maxBaseOrderSize'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': this.safeNumber (market, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'minQuoteOrderSize'),
-                        'max': this.safeNumber (market, 'maxQuoteOrderSize'),
-                    },
-                },
-                'created': this.safeInteger (market, 'launchTime'),
-                'info': market,
-            });
-        }
-        if (this.options['adjustForTimeDifference']) {
-            await this.loadTimeDifference ();
-        }
-        return result;
-    }
-
-    /**
-     * @method
-     * @name kucoin#loadMigrationStatus
-     * @param {boolean} force load account state for non hf
-     * @description loads the migration status for the account (hf or not)
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
-     * @returns {any} ignore
-     */
-    async loadMigrationStatus (force: boolean = false) {
-        if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
-            const result: Dict = await this.privateGetHfAccountsOpened ();
-            this.options['hf'] = this.safeBool (result, 'data');
-        }
-        return true;
-    }
-
-    handleHfAndParams (params = {}) {
-        const migrated: Bool = this.safeBool (this.options, 'hf', false);
-        let loadedHf: Bool = undefined;
-        if (migrated !== undefined) {
-            if (migrated) {
-                loadedHf = true;
-            } else {
-                loadedHf = false;
-            }
-        }
-        const hf: Bool = this.safeBool (params, 'hf', loadedHf);
-        params = this.omit (params, 'hf');
-        return [ hf, params ];
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetCurrencies (params);
-        //
-        //    {
-        //        "code":"200000",
-        //        "data":[
-        //           {
-        //              "currency":"CSP",
-        //              "name":"CSP",
-        //              "fullName":"Caspian",
-        //              "precision":8,
-        //              "confirms":null,
-        //              "contractAddress":null,
-        //              "isMarginEnabled":false,
-        //              "isDebitEnabled":false,
-        //              "chains":[
-        //                 {
-        //                    "chainName":"ERC20",
-        //                    "chainId": "eth"
-        //                    "withdrawalMinSize":"2999",
-        //                    "depositMinSize":null,
-        //                    "withdrawFeeRate":"0",
-        //                    "withdrawalMinFee":"2999",
-        //                    "isWithdrawEnabled":false,
-        //                    "isDepositEnabled":false,
-        //                    "confirms":12,
-        //                    "preConfirms":12,
-        //                    "withdrawPrecision": 8,
-        //                    "maxWithdraw": null,
-        //                    "maxDeposit": null,
-        //                    "needTag": false,
-        //                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
-        //                    "depositFeeRate": "0.001", // present for some currencies/networks
-        //                 }
-        //              ]
-        //           },
-        //        ]
-        //    }
-        //
-        const currenciesData = this.safeList (response, 'data', []);
-        const brokenCurrencies = this.safeList (this.options, 'brokenCurrencies', [ '00', 'OPEN_ERROR', 'HUF', 'BDT' ]);
-        const result: Dict = {};
-        for (let i = 0; i < currenciesData.length; i++) {
-            const entry = currenciesData[i];
-            const id = this.safeString (entry, 'currency');
-            if (this.inArray (id, brokenCurrencies)) {
-                continue; // skip buggy entries: https://t.me/KuCoin_API/217798
-            }
-            const code = this.safeCurrencyCode (id);
-            const networks: Dict = {};
-            const chains = this.safeList (entry, 'chains', []);
-            const chainsLength = chains.length;
-            for (let j = 0; j < chainsLength; j++) {
-                const chain = chains[j];
-                const chainId = this.safeString (chain, 'chainId');
-                const networkCode = this.networkIdToCode (chainId, code);
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': chainId,
-                    'name': this.safeString (chain, 'chainName'),
-                    'code': networkCode,
-                    'active': undefined,
-                    'fee': this.safeNumber (chain, 'withdrawalMinFee'),
-                    'deposit': this.safeBool (chain, 'isDepositEnabled'),
-                    'withdraw': this.safeBool (chain, 'isWithdrawEnabled'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawPrecision'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (chain, 'withdrawalMinSize'),
-                            'max': this.safeNumber (chain, 'maxWithdraw'),
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequence": "7613805866401793",
+                            "price": "67347.4",
+                            "size": "0.00453030",
+                            "side": "sell",
+                            "time": 1709897616745000000
                         },
-                        'deposit': {
-                            'min': this.safeNumber (chain, 'depositMinSize'),
-                            'max': this.safeNumber (chain, 'maxDeposit'),
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1709897616745,
+                        "datetime": "2024-03-08T11:33:36.745Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 67347.4,
+                        "amount": 0.0045303,
+                        "cost": 305.10392622,
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "uta fetchTrades",
+                "method": "fetchTrades",
+                "disabledGO": true,
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    3,
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "SPOT",
+                        "list": [
+                            {
+                                "sequence": "18746257407492097",
+                                "tradeId": "18746257407492097",
+                                "price": "104495",
+                                "size": "0.00001247",
+                                "side": "buy",
+                                "ts": 1762243236252000000
+                            },
+                            {
+                                "sequence": "18746257668980737",
+                                "tradeId": "18746257668980737",
+                                "price": "104495",
+                                "size": "0.00001251",
+                                "side": "buy",
+                                "ts": 1762243236933000000
+                            },
+                            {
+                                "sequence": "18746257731502081",
+                                "tradeId": "18746257731502081",
+                                "price": "104494.9",
+                                "size": "0.00002661",
+                                "side": "sell",
+                                "ts": 1762243237081000000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequence": "18746257407492097",
+                            "tradeId": "18746257407492097",
+                            "price": "104495",
+                            "size": "0.00001247",
+                            "side": "buy",
+                            "ts": 1762243236252000000
                         },
+                        "id": "18746257407492097",
+                        "order": null,
+                        "timestamp": 1762243236252,
+                        "datetime": "2025-11-04T08:00:36.252Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "buy",
+                        "price": 104495,
+                        "amount": 0.00001247,
+                        "cost": 1.30305265,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
                     },
-                };
+                    {
+                        "info": {
+                            "sequence": "18746257668980737",
+                            "tradeId": "18746257668980737",
+                            "price": "104495",
+                            "size": "0.00001251",
+                            "side": "buy",
+                            "ts": 1762243236933000000
+                        },
+                        "id": "18746257668980737",
+                        "order": null,
+                        "timestamp": 1762243236933,
+                        "datetime": "2025-11-04T08:00:36.933Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "buy",
+                        "price": 104495,
+                        "amount": 0.00001251,
+                        "cost": 1.30723245,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "sequence": "18746257731502081",
+                            "tradeId": "18746257731502081",
+                            "price": "104494.9",
+                            "size": "0.00002661",
+                            "side": "sell",
+                            "ts": 1762243237081000000
+                        },
+                        "id": "18746257731502081",
+                        "order": null,
+                        "timestamp": 1762243237081,
+                        "datetime": "2025-11-04T08:00:37.081Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 104494.9,
+                        "amount": 0.00002661,
+                        "cost": 2.780609289,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
             }
-            // kucoin has determined 'fiat' currencies with below logic
-            const rawPrecision = this.safeString (entry, 'precision');
-            const precision = this.parseNumber (this.parsePrecision (rawPrecision));
-            const isFiat = chainsLength === 0;
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'name': this.safeString (entry, 'fullName'),
-                'code': code,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'precision': precision,
-                'info': entry,
-                'networks': networks,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'active': undefined,
-                'fee': undefined,
-                'limits': undefined,
-            });
-        }
-        return result;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchAccounts
-     * @description fetch all the accounts associated with a profile
-     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
-     */
-    async fetchAccounts (params = {}): Promise<Account[]> {
-        const response = await this.privateGetAccounts (params);
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "balance": "0.00009788",
-        //                 "available": "0.00009788",
-        //                 "holds": "0",
-        //                 "currency": "BTC",
-        //                 "id": "5c6a4fd399a1d81c4f9cc4d0",
-        //                 "type": "trade"
-        //             },
-        //             {
-        //                 "balance": "0.00000001",
-        //                 "available": "0.00000001",
-        //                 "holds": "0",
-        //                 "currency": "ETH",
-        //                 "id": "5c6a49ec99a1d819392e8e9f",
-        //                 "type": "trade"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const account = data[i];
-            const accountId = this.safeString (account, 'id');
-            const currencyId = this.safeString (account, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const type = this.safeString (account, 'type');  // main or trade
-            result.push ({
-                'id': accountId,
-                'type': type,
-                'currency': code,
-                'code': code,
-                'info': account,
-            });
-        }
-        return result;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchTransactionFee
-     * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
-     * @see https://docs.kucoin.com/#get-withdrawal-quotas
-     * @param {string} code unified currency code
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    async fetchTransactionFee (code: string, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
-        }
-        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const withdrawFees: Dict = {};
-        withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        };
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchDepositWithdrawFee
-     * @description fetch the fee for deposits and withdrawals
-     * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    async fetchDepositWithdrawFee (code: string, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
-        }
-        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "currency": "USDT",
-        //            "limitBTCAmount": "1.00000000",
-        //            "usedBTCAmount": "0.00000000",
-        //            "remainAmount": "16548.072149",
-        //            "availableAmount": "0",
-        //            "withdrawMinFee": "25",
-        //            "innerWithdrawMinFee": "0",
-        //            "withdrawMinSize": "50",
-        //            "isWithdrawEnabled": true,
-        //            "precision": 6,
-        //            "chain": "ERC20"
-        //        }
-        //    }
-        //
-        const data = this.safeDict (response, 'data');
-        return this.parseDepositWithdrawFee (data, currency) as any;
-    }
-
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
-        //
-        //    {
-        //        "currency": "USDT",
-        //        "limitBTCAmount": "1.00000000",
-        //        "usedBTCAmount": "0.00000000",
-        //        "remainAmount": "16548.072149",
-        //        "availableAmount": "0",
-        //        "withdrawMinFee": "25",
-        //        "innerWithdrawMinFee": "0",
-        //        "withdrawMinSize": "50",
-        //        "isWithdrawEnabled": true,
-        //        "precision": 6,
-        //        "chain": "ERC20"
-        //    }
-        //
-        if ('chains' in fee) {
-            // if data obtained through `currencies` endpoint
-            const resultNew: Dict = {
-                'info': fee,
-                'withdraw': {
-                    'fee': undefined,
-                    'percentage': false,
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for swap",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "sequence": 1733332266106,
+                        "symbol": "XBTUSDTM",
+                        "side": "buy",
+                        "size": 4,
+                        "tradeId": "1909834028316",
+                        "price": "87795",
+                        "bestBidPrice": "87794.9",
+                        "bestBidSize": 261,
+                        "bestAskPrice": "87795",
+                        "bestAskSize": 854,
+                        "ts": 1769406175763000000
+                    }
                 },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-                'networks': {},
-            };
-            const chains = this.safeList (fee, 'chains', []);
-            for (let i = 0; i < chains.length; i++) {
-                const chain = chains[i];
-                const networkCodeNew = this.networkIdToCode (this.safeString (chain, 'chainId'), this.safeString (currency, 'code'));
-                resultNew['networks'][networkCodeNew] = {
-                    'withdraw': {
-                        'fee': this.safeNumber2 (chain, 'withdrawalMinFee', 'withdrawMinFee'),
-                        'percentage': false,
-                    },
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
-            }
-            return resultNew;
-        }
-        const minWithdrawFee = this.safeNumber (fee, 'withdrawMinFee');
-        const result: Dict = {
-            'info': fee,
-            'withdraw': {
-                'fee': minWithdrawFee,
-                'percentage': false,
-            },
-            'deposit': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-            'networks': {},
-        };
-        const networkId = this.safeString (fee, 'chain');
-        const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
-        result['networks'][networkCode] = {
-            'withdraw': minWithdrawFee,
-            'deposit': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-        };
-        return result;
-    }
-
-    isFuturesMethod (methodName, params) {
-        //
-        // Helper
-        // @methodName (string): The name of the method
-        // @params (dict): The parameters passed into {methodName}
-        // @return: true if the method used is meant for futures trading, false otherwise
-        //
-        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'trade');
-        const requestedType = this.safeString (params, 'type', defaultType);
-        const accountsByType = this.safeDict (this.options, 'accountsByType');
-        const type = this.safeString (accountsByType, requestedType);
-        if (type === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' isFuturesMethod() type must be one of ' + keys.join (', '));
-        }
-        params = this.omit (params, 'type');
-        return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
-    }
-
-    parseSpotOrUtaTicker (ticker: Dict, market: Market = undefined): Ticker {
-        //
-        //     {
-        //         "symbol": "BTC-USDT",   // symbol
-        //         "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
-        //         "buy": "11328.9",   // bestAsk
-        //         "sell": "11329",    // bestBid
-        //         "changeRate": "-0.0055",    // 24h change rate
-        //         "changePrice": "-63.6", // 24h change price
-        //         "high": "11610",    // 24h highest price
-        //         "low": "11200", // 24h lowest price
-        //         "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-        //         "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-        //         "last": "11328.9",  // last price
-        //         "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
-        //         "takerFeeRate": "0.001",    // Basic Taker Fee
-        //         "makerFeeRate": "0.001",    // Basic Maker Fee
-        //         "takerCoefficient": "1",    // Taker Fee Coefficient
-        //         "makerCoefficient": "1" // Maker Fee Coefficient
-        //     }
-        //
-        //     {
-        //         "trading": true,
-        //         "symbol": "KCS-BTC",
-        //         "buy": 0.00011,
-        //         "sell": 0.00012,
-        //         "sort": 100,
-        //         "volValue": 3.13851792584,   //total
-        //         "baseCurrency": "KCS",
-        //         "market": "BTC",
-        //         "quoteCurrency": "BTC",
-        //         "symbolCode": "KCS-BTC",
-        //         "datetime": 1548388122031,
-        //         "high": 0.00013,
-        //         "vol": 27514.34842,
-        //         "low": 0.0001,
-        //         "changePrice": -1.0e-5,
-        //         "changeRate": -0.0769,
-        //         "lastTradedPrice": 0.00012,
-        //         "board": 0,
-        //         "mark": 0
-        //     }
-        //
-        // market/ticker ws subscription
-        //
-        //     {
-        //         "bestAsk": "62258.9",
-        //         "bestAskSize": "0.38579986",
-        //         "bestBid": "62258.8",
-        //         "bestBidSize": "0.0078381",
-        //         "price": "62260.7",
-        //         "sequence": "1621383297064",
-        //         "size": "0.00002841",
-        //         "time": 1634641777363
-        //     }
-        //
-        // uta
-        //
-        //     {
-        //         "symbol": "BTC-USDT",
-        //         "name": "BTC-USDT",
-        //         "bestBidSize": "0.69207954",
-        //         "bestBidPrice": "110417.5",
-        //         "bestAskSize": "0.08836606",
-        //         "bestAskPrice": "110417.6",
-        //         "lastPrice": "110417.5",
-        //         "size": "0.00016",
-        //         "open": "110105.1",
-        //         "high": "110838.9",
-        //         "low": "109705.5",
-        //         "baseVolume": "1882.10069442",
-        //         "quoteVolume": "207325626.822922498"
-        //     }
-        //
-        let percentage = this.safeString (ticker, 'changeRate');
-        if (percentage !== undefined) {
-            percentage = Precise.stringMul (percentage, '100');
-        }
-        let last = this.safeStringN (ticker, [ 'last', 'lastTradedPrice', 'lastPrice' ]);
-        last = this.safeString (ticker, 'price', last);
-        const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
-        const baseVolume = this.safeString2 (ticker, 'vol', 'baseVolume');
-        const quoteVolume = this.safeString2 (ticker, 'volValue', 'quoteVolume');
-        const timestamp = this.safeIntegerN (ticker, [ 'time', 'datetime', 'timePoint' ]);
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
-            'bid': this.safeStringN (ticker, [ 'buy', 'bestBid', 'bestBidPrice' ]),
-            'bidVolume': this.safeString (ticker, 'bestBidSize'),
-            'ask': this.safeStringN (ticker, [ 'sell', 'bestAsk', 'bestAskPrice' ]),
-            'askVolume': this.safeString (ticker, 'bestAskSize'),
-            'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeString (ticker, 'changePrice'),
-            'percentage': percentage,
-            'average': this.safeString (ticker, 'averagePrice'),
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'markPrice': this.safeString (ticker, 'value'),
-            'info': ticker,
-        }, market);
-    }
-
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        //
-        //     {
-        //         "symbol": "LTCUSDTM",
-        //         "granularity": 1000,
-        //         "timePoint": 1727967339000,
-        //         "value": 62.37, mark price
-        //         "indexPrice": 62.37
-        //      }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "sequence":  1629930362547,
-        //             "symbol": "ETHUSDTM",
-        //             "side": "buy",
-        //             "size":  130,
-        //             "price": "4724.7",
-        //             "bestBidSize":  5,
-        //             "bestBidPrice": "4724.6",
-        //             "bestAskPrice": "4724.65",
-        //             "tradeId": "618d2a5a77a0c4431d2335f4",
-        //             "ts":  1636641371963227600,
-        //             "bestAskSize":  1789
-        //          }
-        //     }
-        //
-        // from fetchTickers
-        //
-        // {
-        //     symbol: "XBTUSDTM",
-        //     rootSymbol: "USDT",
-        //     type: "FFWCSX",
-        //     firstOpenDate: 1585555200000,
-        //     expireDate: null,
-        //     settleDate: null,
-        //     baseCurrency: "XBT",
-        //     quoteCurrency: "USDT",
-        //     settleCurrency: "USDT",
-        //     maxOrderQty: 1000000,
-        //     maxPrice: 1000000,
-        //     lotSize: 1,
-        //     tickSize: 0.1,
-        //     indexPriceTickSize: 0.01,
-        //     multiplier: 0.001,
-        //     initialMargin: 0.008,
-        //     maintainMargin: 0.004,
-        //     maxRiskLimit: 100000,
-        //     minRiskLimit: 100000,
-        //     riskStep: 50000,
-        //     makerFeeRate: 0.0002,
-        //     takerFeeRate: 0.0006,
-        //     takerFixFee: 0,
-        //     makerFixFee: 0,
-        //     settlementFee: null,
-        //     isDeleverage: true,
-        //     isQuanto: true,
-        //     isInverse: false,
-        //     markMethod: "FairPrice",
-        //     fairMethod: "FundingRate",
-        //     fundingBaseSymbol: ".XBTINT8H",
-        //     fundingQuoteSymbol: ".USDTINT8H",
-        //     fundingRateSymbol: ".XBTUSDTMFPI8H",
-        //     indexSymbol: ".KXBTUSDT",
-        //     settlementSymbol: "",
-        //     status: "Open",
-        //     fundingFeeRate: 0.000297,
-        //     predictedFundingFeeRate: 0.000327,
-        //     fundingRateGranularity: 28800000,
-        //     openInterest: "8033200",
-        //     turnoverOf24h: 659795309.2524643,
-        //     volumeOf24h: 9998.54,
-        //     markPrice: 67193.51,
-        //     indexPrice: 67184.81,
-        //     lastTradePrice: 67191.8,
-        //     nextFundingRateTime: 20022985,
-        //     maxLeverage: 125,
-        //     premiumsSymbol1M: ".XBTUSDTMPI",
-        //     premiumsSymbol8H: ".XBTUSDTMPI8H",
-        //     fundingBaseSymbol1M: ".XBTINT",
-        //     fundingQuoteSymbol1M: ".USDTINT",
-        //     lowPrice: 64041.6,
-        //     highPrice: 67737.3,
-        //     priceChgPct: 0.0447,
-        //     priceChg: 2878.7
-        // }
-        //
-        const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market, '-');
-        const last = this.safeString2 (ticker, 'price', 'lastTradePrice');
-        const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
-        return this.safeTicker ({
-            'symbol': market['symbol'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'highPrice'),
-            'low': this.safeString (ticker, 'lowPrice'),
-            'bid': this.safeString (ticker, 'bestBidPrice'),
-            'bidVolume': this.safeString (ticker, 'bestBidSize'),
-            'ask': this.safeString (ticker, 'bestAskPrice'),
-            'askVolume': this.safeString (ticker, 'bestAskSize'),
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeString (ticker, 'priceChg'),
-            'percentage': this.safeString (ticker, 'priceChgPct'),
-            'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volumeOf24h'),
-            'quoteVolume': this.safeString (ticker, 'turnoverOf24h'),
-            'markPrice': this.safeString2 (ticker, 'markPrice', 'value'),
-            'indexPrice': this.safeString (ticker, 'indexPrice'),
-            'info': ticker,
-        }, market);
-    }
-
-    typeToTradeType (type: Str): Str {
-        const tradeTypes: Dict = {
-            'spot': 'SPOT',
-            'swap': 'FUTURES',
-        };
-        return this.safeString (tradeTypes, type, type);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
-     * @param {string[]|undefined} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {string} [params.type] spot or swap (default is spot)
-     * @param {string} [params.method] *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
-        const request: Dict = {};
-        symbols = this.marketSymbols (symbols, undefined, true, true);
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', false);
-        const tradeType = this.safeString (params, 'tradeType');
-        let firstMarket = undefined;
-        if (symbols !== undefined) {
-            const firstSymbol = this.safeString (symbols, 0);
-            firstMarket = this.market (firstSymbol);
-        }
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', firstMarket, params, type);
-        let response = undefined;
-        if ((tradeType !== undefined) || uta) {
-            if (tradeType === undefined) {
-                request['tradeType'] = this.typeToTradeType (type);
-            }
-            response = await this.utaGetMarketTicker (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "tradeType": "SPOT",
-            //             "ts": 1762061290067,
-            //             "list": [
-            //                 {
-            //                     "symbol": "BTC-USDT",
-            //                     "name": "BTC-USDT",
-            //                     "bestBidSize": "0.69207954",
-            //                     "bestBidPrice": "110417.5",
-            //                     "bestAskSize": "0.08836606",
-            //                     "bestAskPrice": "110417.6",
-            //                     "lastPrice": "110417.5",
-            //                     "size": "0.00016",
-            //                     "open": "110105.1",
-            //                     "high": "110838.9",
-            //                     "low": "109705.5",
-            //                     "baseVolume": "1882.10069442",
-            //                     "quoteVolume": "207325626.822922498"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-        } else if (type === 'swap') {
-            return await this.fetchContractTickers (symbols, params);
-        } else {
-            response = await this.publicGetMarketAllTickers (params);
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "time":1602832092060,
-            //             "ticker":[
-            //                 {
-            //                     "symbol": "BTC-USDT",   // symbol
-            //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
-            //                     "buy": "11328.9",   // bestAsk
-            //                     "sell": "11329",    // bestBid
-            //                     "changeRate": "-0.0055",    // 24h change rate
-            //                     "changePrice": "-63.6", // 24h change price
-            //                     "high": "11610",    // 24h highest price
-            //                     "low": "11200", // 24h lowest price
-            //                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-            //                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-            //                     "last": "11328.9",  // last price
-            //                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
-            //                     "takerFeeRate": "0.001",    // Basic Taker Fee
-            //                     "makerFeeRate": "0.001",    // Basic Maker Fee
-            //                     "takerCoefficient": "1",    // Taker Fee Coefficient
-            //                     "makerCoefficient": "1" // Maker Fee Coefficient
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-        }
-        const data = this.safeDict (response, 'data', {});
-        const tickers = this.safeList2 (data, 'ticker', 'list', []);
-        const time = this.safeInteger2 (data, 'time', 'ts');
-        const result: Dict = {};
-        for (let i = 0; i < tickers.length; i++) {
-            tickers[i]['time'] = time;
-            const ticker = this.parseSpotOrUtaTicker (tickers[i]);
-            const symbol = this.safeString (ticker, 'symbol');
-            if (symbol !== undefined) {
-                result[symbol] = ticker;
-            }
-        }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
-    }
-
-    async fetchContractTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive');
-        let response: Dict = undefined;
-        if (method === 'futuresPublicGetAllTickers') {
-            response = await this.futuresPublicGetAllTickers (params);
-        } else {
-            response = await this.futuresPublicGetContractsActive (params);
-        }
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "symbol": "ETHUSDTM",
-        //            "rootSymbol": "USDT",
-        //            "type": "FFWCSX",
-        //            "firstOpenDate": 1591086000000,
-        //            "expireDate": null,
-        //            "settleDate": null,
-        //            "baseCurrency": "ETH",
-        //            "quoteCurrency": "USDT",
-        //            "settleCurrency": "USDT",
-        //            "maxOrderQty": 1000000,
-        //            "maxPrice": 1000000.0000000000,
-        //            "lotSize": 1,
-        //            "tickSize": 0.05,
-        //            "indexPriceTickSize": 0.01,
-        //            "multiplier": 0.01,
-        //            "initialMargin": 0.01,
-        //            "maintainMargin": 0.005,
-        //            "maxRiskLimit": 1000000,
-        //            "minRiskLimit": 1000000,
-        //            "riskStep": 500000,
-        //            "makerFeeRate": 0.00020,
-        //            "takerFeeRate": 0.00060,
-        //            "takerFixFee": 0.0000000000,
-        //            "makerFixFee": 0.0000000000,
-        //            "settlementFee": null,
-        //            "isDeleverage": true,
-        //            "isQuanto": true,
-        //            "isInverse": false,
-        //            "markMethod": "FairPrice",
-        //            "fairMethod": "FundingRate",
-        //            "fundingBaseSymbol": ".ETHINT8H",
-        //            "fundingQuoteSymbol": ".USDTINT8H",
-        //            "fundingRateSymbol": ".ETHUSDTMFPI8H",
-        //            "indexSymbol": ".KETHUSDT",
-        //            "settlementSymbol": "",
-        //            "status": "Open",
-        //            "fundingFeeRate": 0.000535,
-        //            "predictedFundingFeeRate": 0.002197,
-        //            "openInterest": "8724443",
-        //            "turnoverOf24h": 341156641.03354263,
-        //            "volumeOf24h": 74833.54000000,
-        //            "markPrice": 4534.07,
-        //            "indexPrice":4531.92,
-        //            "lastTradePrice": 4545.4500000000,
-        //            "nextFundingRateTime": 25481884,
-        //            "maxLeverage": 100,
-        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
-        //            "premiumsSymbol1M": ".ETHUSDTMPI",
-        //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
-        //            "fundingBaseSymbol1M": ".ETHINT",
-        //            "fundingQuoteSymbol1M": ".USDTINT",
-        //            "lowPrice": 4456.90,
-        //            "highPrice":  4674.25,
-        //            "priceChgPct": 0.0046,
-        //            "priceChg": 21.15
-        //        }
-        //    }
-        //
-        const data = this.safeList (response, 'data');
-        const tickers = this.parseTickers (data, symbols);
-        return this.filterByArrayTickers (tickers, 'symbol', symbols);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchMarkPrices
-     * @description fetches the mark price for multiple markets
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetMarkPriceAllSymbols (params);
-        const data = this.safeList (response, 'data', []);
-        return this.parseTickers (data);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'uta', false);
-        let response = undefined;
-        let result = undefined;
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params, type);
-        if (uta) {
-            request['tradeType'] = this.typeToTradeType (type);
-            response = await this.utaGetMarketTicker (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "tradeType": "SPOT",
-            //             "ts": 1762061290067,
-            //             "list": [
-            //                 {
-            //                     "symbol": "BTC-USDT",
-            //                     "name": "BTC-USDT",
-            //                     "bestBidSize": "0.69207954",
-            //                     "bestBidPrice": "110417.5",
-            //                     "bestAskSize": "0.08836606",
-            //                     "bestAskPrice": "110417.6",
-            //                     "lastPrice": "110417.5",
-            //                     "size": "0.00016",
-            //                     "open": "110105.1",
-            //                     "high": "110838.9",
-            //                     "low": "109705.5",
-            //                     "baseVolume": "1882.10069442",
-            //                     "quoteVolume": "207325626.822922498"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            const data = this.safeDict (response, 'data', {});
-            const resultList = this.safeList (data, 'list', []);
-            result = this.safeDict (resultList, 0, {});
-        } else if (type === 'swap') {
-            response = await this.futuresPublicGetTicker (this.extend (request, params));
-            //
-            //    {
-            //        "code": "200000",
-            //        "data": {
-            //            "sequence": 1638444978558,
-            //            "symbol": "ETHUSDTM",
-            //            "side": "sell",
-            //            "size": 4,
-            //            "price": "4229.35",
-            //            "bestBidSize": 2160,
-            //            "bestBidPrice": "4229.0",
-            //            "bestAskPrice": "4229.05",
-            //            "tradeId": "61aaa8b777a0c43055fe4851",
-            //            "ts": 1638574296209786785,
-            //            "bestAskSize": 36,
-            //        }
-            //    }
-            //
-            const data = this.safeDict (response, 'data', {});
-            return this.parseTicker (data, market);
-        } else {
-            response = await this.publicGetMarketStats (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "time": 1602832092060,  // time
-            //             "symbol": "BTC-USDT",   // symbol
-            //             "buy": "11328.9",   // bestAsk
-            //             "sell": "11329",    // bestBid
-            //             "changeRate": "-0.0055",    // 24h change rate
-            //             "changePrice": "-63.6", // 24h change price
-            //             "high": "11610",    // 24h highest price
-            //             "low": "11200", // 24h lowest price
-            //             "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-            //             "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-            //             "last": "11328.9",  // last price
-            //             "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
-            //             "takerFeeRate": "0.001",    // Basic Taker Fee
-            //             "makerFeeRate": "0.001",    // Basic Maker Fee
-            //             "takerCoefficient": "1",    // Taker Fee Coefficient
-            //             "makerCoefficient": "1" // Maker Fee Coefficient
-            //         }
-            //     }
-            //
-            result = this.safeDict (response, 'data', {});
-        }
-        return this.parseSpotOrUtaTicker (result, market);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchMarkPrice
-     * @description fetches the mark price for a specific market
-     * @see https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrice', market, params, type);
-        let response = undefined;
-        if (type === 'swap') {
-            response = await this.futuresPublicGetMarkPriceSymbolCurrent (this.extend (request, params));
-            const data = this.safeDict (response, 'data', {});
-            return this.parseTicker (data, market);
-        } else {
-            response = await this.publicGetMarkPriceSymbolCurrent (this.extend (request, params));
-            const data = this.safeDict (response, 'data', {});
-            return this.parseSpotOrUtaTicker (data, market);
-        }
-    }
-
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        //
-        //     [
-        //         "1545904980",             // Start time of the candle cycle
-        //         "0.058",                  // opening price
-        //         "0.049",                  // closing price
-        //         "0.058",                  // highest price
-        //         "0.049",                  // lowest price
-        //         "0.018",                  // base volume
-        //         "0.000945",               // quote volume
-        //     ]
-        //
-        let timestampString = this.safeString (ohlcv, 0);
-        if (timestampString !== undefined && timestampString.length <= 10) {
-            // kucoin spot and uta return seconds timestamps
-            timestampString = Precise.stringMul (timestampString, '1000');
-        }
-        return [
-            this.parseToInt (timestampString),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 5),
-        ];
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
-     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-klines
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        // for spot and uta
-        let maxLimit = 1500;
-        let startKey = 'startAt';
-        let endKey = 'endAt';
-        let denominator = 1000;
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
-        const isFutures = (market['swap'] && (!uta));
-        if (isFutures) {
-            // for futures
-            maxLimit = 200;
-            startKey = 'from';
-            endKey = 'to';
-            denominator = 1;
-        }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
-        }
-        const marketId = market['id'];
-        const request: Dict = {
-            'symbol': marketId,
-        };
-        const duration = this.parseTimeframe (timeframe) * 1000;
-        let endAt = this.milliseconds (); // required param
-        if (since !== undefined) {
-            request[startKey] = this.parseToInt (Math.floor (since / denominator));
-            if (limit === undefined) {
-                // https://docs.kucoin.com/#get-klines
-                // https://docs.kucoin.com/#details
-                // For each query, the system would return at most 1500 pieces of data.
-                // To obtain more data, please page the data by time.
-                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit);
-            }
-            endAt = this.sum (since, limit * duration);
-        } else if (limit !== undefined) {
-            since = endAt - limit * duration;
-            request[startKey] = this.parseToInt (Math.floor (since / denominator));
-        }
-        request[endKey] = this.parseToInt (Math.floor (endAt / denominator));
-        let response = undefined;
-        let result = undefined;
-        if (isFutures) {
-            const timeframeOptions = this.safeDict (this.options, 'timeframes', {});
-            const swapTimeframes = this.safeDict (timeframeOptions, 'swap', {});
-            const parsedTimeframe = this.safeInteger (swapTimeframes, timeframe);
-            if (parsedTimeframe !== undefined) {
-                request['granularity'] = parsedTimeframe;
-            } else {
-                request['granularity'] = timeframe;
-            }
-            response = await this.futuresPublicGetKlineQuery (this.extend (request, params));
-            //
-            //    {
-            //        "code": "200000",
-            //        "data": [
-            //            [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
-            //            [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
-            //            [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
-            //        ]
-            //    }
-            //
-            result = this.safeList (response, 'data', []);
-        } else if (uta) {
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
-            if (type === 'spot') {
-                request['tradeType'] = 'SPOT';
-            } else {
-                request['tradeType'] = 'FUTURES';
-            }
-            request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-            response = await this.utaGetMarketKline (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "tradeType": "SPOT",
-            //             "symbol": "BTC-USDT",
-            //             "list": [
-            //                 ["1762240200","104581.4","104527.1","104620.1","104526.4","5.57665554","583263.661804122"],
-            //                 ["1762240140","104565.6","104581.3","104601.7","104511.3","6.48505114","677973.775916968"],
-            //                 ["1762240080","104621.5","104571.3","104704.7","104571.3","14.51713618","1519468.954060838"]
-            //             ]
-            //         }
-            //     }
-            //
-            const data = this.safeDict (response, 'data', {});
-            result = this.safeList (data, 'list', []);
-        } else {
-            request['type'] = this.safeString (this.timeframes, timeframe, timeframe);
-            response = await this.publicGetMarketCandles (this.extend (request, params));
-            //
-            //     {
-            //         "code":"200000",
-            //         "data":[
-            //             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
-            //             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
-            //             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
-            //         ]
-            //     }
-            //
-            result = this.safeList (response, 'data', []);
-        }
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
-    }
-
-    /**
-     * @method
-     * @name kucoin#createDepositAddress
-     * @see https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
-     * @description create a currency deposit address
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] the blockchain network name
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
-        }
-        const response = await this.privatePostDepositAddressCreate (this.extend (request, params));
-        // {"code":"260000","msg":"Deposit address already exists."}
-        //
-        //   {
-        //     "code": "200000",
-        //     "data": {
-        //       "address": "0x2336d1834faab10b2dac44e468f2627138417431",
-        //       "memo": null,
-        //       "chainId": "bsc",
-        //       "to": "MAIN",
-        //       "expirationDate": 0,
-        //       "currency": "BNB",
-        //       "chainName": "BEP20"
-        //     }
-        //   }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseDepositAddress (data, currency);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchDepositAddress
-     * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.kucoin.com/#get-deposit-addresses-v2
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] the blockchain network name
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-            // for USDT - OMNI, ERC20, TRC20, default is ERC20
-            // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
-            // 'chain': 'ERC20', // optional
-        };
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
-        }
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
-        this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
-        const response = await this.privateGetDepositAddresses (this.extend (request, params));
-        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
-        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const data = this.safeValue (response, 'data');
-        if (data === undefined) {
-            throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
-        }
-        return this.parseDepositAddress (data, currency);
-    }
-
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
-        let address = this.safeString (depositAddress, 'address');
-        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        if (address !== undefined) {
-            address = address.replace ('bitcoincash:', '');
-        }
-        let code = undefined;
-        if (currency !== undefined) {
-            code = this.safeCurrencyCode (currency['id']);
-            if (code !== 'NIM') {
-                // contains spaces
-                this.checkAddress (address);
-            }
-        }
-        return {
-            'info': depositAddress,
-            'currency': code,
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'chainId')),
-            'address': address,
-            'tag': this.safeString (depositAddress, 'memo'),
-        } as DepositAddress;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchDepositAddressesByNetwork
-     * @see https://docs.kucoin.com/#get-deposit-addresses-v2
-     * @description fetch the deposit address for a currency associated with this account
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
-        this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
-        const response = await this.privateGetDepositAddresses (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
-        //                 "memo": "",
-        //                 "chain": "BTC-Segwit",
-        //                 "contractAddress": ""
-        //             },
-        //             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
-        //             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
-        //         ]
-        //     }
-        //
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const chains = this.safeList (response, 'data', []);
-        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
-            'currency': currency['code'],
-        });
-        return this.indexBy (parsed, 'network') as DepositAddress[];
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
-     * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
-     */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const level = this.safeInteger (params, 'level', 2);
-        const request: Dict = { 'symbol': market['id'] };
-        const isAuthenticated = this.checkRequiredCredentials (false);
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
-        let response = undefined;
-        if (uta) {
-            if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a limit argument for uta, either 20, 50, 100 or FULL');
-            }
-            request['limit'] = limit;
-            request['symbol'] = market['id'];
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-            if (type === 'spot') {
-                request['tradeType'] = 'SPOT';
-            } else {
-                request['tradeType'] = 'FUTURES';
-            }
-            response = await this.utaGetMarketOrderbook (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "tradeType": "SPOT",
-            //             "symbol": "BTC-USDT",
-            //             "sequence": "23136002402",
-            //             "bids": [
-            //                 ["104700","10.25940068"],
-            //                 ["104698.9","0.00057076"],
-            //             ],
-            //             "asks": [
-            //                 ["104700.1","1.4082106"],
-            //                 ["104700.5","0.02866269"],
-            //             ]
-            //         }
-            //     }
-            //
-        } else if (!isAuthenticated || limit !== undefined) {
-            if (level === 2) {
-                request['level'] = level;
-                if (limit !== undefined) {
-                    if ((limit === 20) || (limit === 100)) {
-                        request['limit'] = limit;
-                    } else {
-                        throw new ExchangeError (this.id + ' fetchOrderBook() limit argument must be 20 or 100');
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1769406175763,
+                    "datetime": "2026-01-26T05:42:55.763Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 87794.9,
+                    "bidVolume": 261,
+                    "ask": 87795,
+                    "askVolume": 854,
+                    "vwap": null,
+                    "open": null,
+                    "close": 87795,
+                    "last": 87795,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "sequence": 1733332266106,
+                        "symbol": "XBTUSDTM",
+                        "side": "buy",
+                        "size": 4,
+                        "tradeId": "1909834028316",
+                        "price": "87795",
+                        "bestBidPrice": "87794.9",
+                        "bestBidSize": 261,
+                        "bestAskPrice": "87795",
+                        "bestAskSize": 854,
+                        "ts": 1769406175763000000
                     }
                 }
-                request['limit'] = limit ? limit : 100;
-            }
-            response = await this.publicGetMarketOrderbookLevelLevelLimit (this.extend (request, params));
-        } else {
-            response = await this.privateGetMarketOrderbookLevel2 (this.extend (request, params));
-        }
-        //
-        // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
-        //
-        //     {
-        //         "sequence": "3262786978",
-        //         "time": 1550653727731,
-        //         "bids": [
-        //             ["6500.12", "0.45054140"],
-        //             ["6500.11", "0.45054140"],
-        //         ],
-        //         "asks": [
-        //             ["6500.16", "0.57753524"],
-        //             ["6500.15", "0.57753524"],
-        //         ]
-        //     }
-        //
-        // private (v3) market/orderbook/level2
-        //
-        //     {
-        //         "sequence": "3262786978",
-        //         "time": 1550653727731,
-        //         "bids": [
-        //             ["6500.12", "0.45054140"],
-        //             ["6500.11", "0.45054140"],
-        //         ],
-        //         "asks": [
-        //             ["6500.16", "0.57753524"],
-        //             ["6500.15", "0.57753524"],
-        //         ]
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'time');
-        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1);
-        orderbook['nonce'] = this.safeInteger (data, 'sequence');
-        return orderbook;
-    }
-
-    handleTriggerPrices (params) {
-        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        if ((isStopLoss && isTakeProfit) || (triggerPrice && stopLossPrice) || (triggerPrice && isTakeProfit)) {
-            throw new ExchangeError (this.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
-        }
-        return [ triggerPrice, stopLossPrice, takeProfitPrice ];
-    }
-
-    /**
-     * @method
-     * @name kucoin#createOrder
-     * @description Create an order on the exchange
-     * @see https://docs.kucoin.com/spot#place-a-new-order
-     * @see https://docs.kucoin.com/spot#place-a-new-order-2
-     * @see https://docs.kucoin.com/spot#place-a-margin-order
-     * @see https://docs.kucoin.com/spot-hf/#place-hf-order
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
-     * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order
-     * @param {string} symbol Unified CCXT market symbol
-     * @param {string} type 'limit' or 'market'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount the amount of currency to trade
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-     * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
-     * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
-     *
-     * EXCHANGE SPECIFIC PARAMETERS
-     * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
-     * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
-     * @param {string} [params.tradeType] 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
-     * limit orders ---------------------------------------------------
-     * @param {float} [params.cancelAfter] long, // cancel after n seconds, requires timeInForce to be GTT
-     * @param {bool} [params.hidden] false, // Order will not be displayed in the order book
-     * @param {bool} [params.iceberg] false, // Only a portion of the order is displayed in the order book
-     * @param {string} [params.visibleSize] this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
-     * market orders --------------------------------------------------
-     * @param {string} [params.funds] // Amount of quote currency to use
-     * stop orders ----------------------------------------------------
-     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires triggerPrice to be defined
-     * margin orders --------------------------------------------------
-     * @param {float} [params.leverage] Leverage size of the order
-     * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
-     * @param {bool} [params.autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
-     * @param {bool} [params.hf] false, // true for hf order
-     * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
-     * @param {bool} [params.sync] set to true to use the hf sync call
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const testOrder = this.safeBool (params, 'test', false);
-        params = this.omit (params, 'test');
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        let useSync = false;
-        [ useSync, params ] = this.handleOptionAndParams (params, 'createOrder', 'sync', false);
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
-        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
-        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
-        const marginResult = this.handleMarginModeAndParams ('createOrder', params);
-        const marginMode = this.safeString (marginResult, 0);
-        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
-        // don't omit anything before calling createOrderRequest
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let response = undefined;
-        if (testOrder) {
-            if (isMarginOrder) {
-                response = await this.privatePostMarginOrderTest (orderRequest);
-            } else if (hf) {
-                response = await this.privatePostHfOrdersTest (orderRequest);
-            } else {
-                response = await this.privatePostOrdersTest (orderRequest);
-            }
-        } else if (isTriggerOrder) {
-            response = await this.privatePostStopOrder (orderRequest);
-        } else if (isMarginOrder) {
-            response = await this.privatePostMarginOrder (orderRequest);
-        } else if (useSync) {
-            response = await this.privatePostHfOrdersSync (orderRequest);
-        } else if (hf) {
-            response = await this.privatePostHfOrders (orderRequest);
-        } else {
-            response = await this.privatePostOrders (orderRequest);
-        }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "orderId": "5bd6e9286d99522a52e458de"
-        //         }
-        //    }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data, market);
-    }
-
-    /**
-     * @method
-     * @name kucoin#createMarketOrderWithCost
-     * @description create a market order by providing the symbol, side and cost
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} cost how much you want to trade in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
-        await this.loadMarkets ();
-        const req = {
-            'cost': cost,
-        };
-        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (req, params));
-    }
-
-    /**
-     * @method
-     * @name kucoin#createMarketBuyOrderWithCost
-     * @description create a market buy order by providing the symbol and cost
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {float} cost how much you want to trade in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        await this.loadMarkets ();
-        return await this.createMarketOrderWithCost (symbol, 'buy', cost, params);
-    }
-
-    /**
-     * @method
-     * @name kucoin#createMarketSellOrderWithCost
-     * @description create a market sell order by providing the symbol and cost
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {float} cost how much you want to trade in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
-        await this.loadMarkets ();
-        return await this.createMarketOrderWithCost (symbol, 'sell', cost, params);
-    }
-
-    /**
-     * @method
-     * @name kucoin#createOrders
-     * @description create a list of trade orders
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-     * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.hf] false, // true for hf orders
-     * @param {bool} [params.sync] false, // true to use the hf sync call
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
-        const ordersRequests = [];
-        let symbol = undefined;
-        for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
-            const marketId = this.safeString (rawOrder, 'symbol');
-            if (symbol === undefined) {
-                symbol = marketId;
-            } else {
-                if (symbol !== marketId) {
-                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
-                }
-            }
-            const type = this.safeString (rawOrder, 'type');
-            if (type !== 'limit') {
-                throw new BadRequest (this.id + ' createOrders() only supports limit orders');
-            }
-            const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
-            ordersRequests.push (orderRequest);
-        }
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-            'orderList': ordersRequests,
-        };
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        let useSync = false;
-        [ useSync, params ] = this.handleOptionAndParams (params, 'createOrders', 'sync', false);
-        let response = undefined;
-        if (useSync) {
-            response = await this.privatePostHfOrdersMultiSync (this.extend (request, params));
-        } else if (hf) {
-            response = await this.privatePostHfOrdersMulti (this.extend (request, params));
-        } else {
-            response = await this.privatePostOrdersMulti (this.extend (request, params));
-        }
-        //
-        // {
-        //     "code": "200000",
-        //     "data": {
-        //        "data": [
-        //           {
-        //              "symbol": "LTC-USDT",
-        //              "type": "limit",
-        //              "side": "sell",
-        //              "price": "90",
-        //              "size": "0.1",
-        //              "funds": null,
-        //              "stp": "",
-        //              "stop": "",
-        //              "stopPrice": null,
-        //              "timeInForce": "GTC",
-        //              "cancelAfter": 0,
-        //              "postOnly": false,
-        //              "hidden": false,
-        //              "iceberge": false,
-        //              "iceberg": false,
-        //              "visibleSize": null,
-        //              "channel": "API",
-        //              "id": "6539148443fcf500079d15e5",
-        //              "status": "success",
-        //              "failMsg": null,
-        //              "clientOid": "5c4c5398-8ab2-4b4e-af8a-e2d90ad2488f"
-        //           },
-        // }
-        //
-        let data = this.safeDict (response, 'data', {});
-        data = this.safeList (data, 'data', []);
-        return this.parseOrders (data);
-    }
-
-    marketOrderAmountToPrecision (symbol: string, amount) {
-        const market = this.market (symbol);
-        const result = this.decimalToPrecision (amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
-        if (result === '0') {
-            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
-        }
-        return result;
-    }
-
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        const market = this.market (symbol);
-        // required param, cannot be used twice
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
-        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const request: Dict = {
-            'clientOid': clientOrderId,
-            'side': side,
-            'symbol': market['id'],
-            'type': type, // limit or market
-        };
-        const quoteAmount = this.safeNumber2 (params, 'cost', 'funds');
-        let amountString = undefined;
-        let costString = undefined;
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (type === 'market') {
-            if (quoteAmount !== undefined) {
-                params = this.omit (params, [ 'cost', 'funds' ]);
-                // kucoin uses base precision even for quote values
-                costString = this.marketOrderAmountToPrecision (symbol, quoteAmount);
-                request['funds'] = costString;
-            } else {
-                amountString = this.amountToPrecision (symbol, amount);
-                request['size'] = this.amountToPrecision (symbol, amount);
-            }
-        } else {
-            amountString = this.amountToPrecision (symbol, amount);
-            request['size'] = amountString;
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
-        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
-        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
-        if (isTriggerOrder) {
-            if (triggerPrice) {
-                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            } else if (stopLossPrice || takeProfitPrice) {
-                if (stopLossPrice) {
-                    request['stop'] = (side === 'buy') ? 'entry' : 'loss';
-                    request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-                } else {
-                    request['stop'] = (side === 'buy') ? 'loss' : 'entry';
-                    request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
-                }
-            }
-            if (marginMode === 'isolated') {
-                throw new BadRequest (this.id + ' createOrder does not support isolated margin for stop orders');
-            } else if (marginMode === 'cross') {
-                request['tradeType'] = this.options['marginModes'][marginMode];
-            }
-        } else if (isMarginOrder) {
-            if (marginMode === 'isolated') {
-                request['marginModel'] = 'isolated';
-            }
-        }
-        let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
-        if (postOnly) {
-            request['postOnly'] = true;
-        }
-        return this.extend (request, params);
-    }
-
-    /**
-     * @method
-     * @name kucoin#editOrder
-     * @description edit an order, kucoin currently only supports the modification of HF orders
-     * @see https://docs.kucoin.com/spot-hf/#modify-order
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type not used
-     * @param {string} side not used
-     * @param {float} amount how much of the currency you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOid'] = clientOrderId;
-        } else {
-            request['orderId'] = id;
-        }
-        if (amount !== undefined) {
-            request['newSize'] = this.amountToPrecision (symbol, amount);
-        }
-        if (price !== undefined) {
-            request['newPrice'] = this.priceToPrecision (symbol, price);
-        }
-        const response = await this.privatePostHfOrdersAlter (this.extend (request, params));
-        //
-        // {
-        //     "code":"200000",
-        //     "data":{
-        //        "newOrderId":"6478d7a6c883280001e92d8b"
-        //     }
-        // }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data, market);
-    }
-
-    /**
-     * @method
-     * @name kucoin#cancelOrder
-     * @description cancels an open order
-     * @see https://docs.kucoin.com/spot#cancel-an-order
-     * @see https://docs.kucoin.com/spot#cancel-an-order-2
-     * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid
-     * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
-     * @see https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
-     * @see https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.trigger] True if cancelling a stop order
-     * @param {bool} [params.hf] false, // true for hf order
-     * @param {bool} [params.sync] false, // true to use the hf sync call
-     * @returns Response from the exchange
-     */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request: Dict = {};
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        let useSync = false;
-        [ useSync, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'sync', false);
-        if (hf || useSync) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol parameter for hf orders');
-            }
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        let response = undefined;
-        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger' ]);
-        if (clientOrderId !== undefined) {
-            request['clientOid'] = clientOrderId;
-            if (trigger) {
-                response = await this.privateDeleteStopOrderCancelOrderByClientOid (this.extend (request, params));
-                //
-                //    {
-                //        code: '200000',
-                //        data: {
-                //          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
-                //          clientOid: '123456'
-                //        }
-                //    }
-                //
-            } else if (useSync) {
-                response = await this.privateDeleteHfOrdersSyncClientOrderClientOid (this.extend (request, params));
-            } else if (hf) {
-                response = await this.privateDeleteHfOrdersClientOrderClientOid (this.extend (request, params));
-                //
-                //    {
-                //        "code": "200000",
-                //        "data": {
-                //          "clientOid": "6d539dc614db3"
-                //        }
-                //    }
-                //
-            } else {
-                response = await this.privateDeleteOrderClientOrderClientOid (this.extend (request, params));
-                //
-                //    {
-                //        code: '200000',
-                //        data: {
-                //          cancelledOrderId: '665e580f6660500007aba341',
-                //          clientOid: '1234567',
-                //          cancelledOcoOrderIds: null
-                //        }
-                //    }
-                //
-            }
-            response = this.safeDict (response, 'data');
-            return this.parseOrder (response);
-        } else {
-            request['orderId'] = id;
-            if (trigger) {
-                response = await this.privateDeleteStopOrderOrderId (this.extend (request, params));
-                //
-                //    {
-                //        code: '200000',
-                //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
-                //    }
-                //
-            } else if (useSync) {
-                response = await this.privateDeleteHfOrdersSyncOrderId (this.extend (request, params));
-            } else if (hf) {
-                response = await this.privateDeleteHfOrdersOrderId (this.extend (request, params));
-                //
-                //    {
-                //        "code": "200000",
-                //        "data": {
-                //          "orderId": "630625dbd9180300014c8d52"
-                //        }
-                //    }
-                //
-                response = this.safeDict (response, 'data');
-                return this.parseOrder (response);
-            } else {
-                response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-                //
-                //    {
-                //        code: '200000',
-                //        data: { cancelledOrderIds: [ '665e4fbe28051a0007245c41' ] }
-                //    }
-                //
-            }
-            const data = this.safeDict (response, 'data');
-            const orderIds = this.safeList (data, 'cancelledOrderIds', []);
-            const orderId = this.safeString (orderIds, 0);
-            return this.safeOrder ({
-                'info': data,
-                'id': orderId,
-            });
-        }
-    }
-
-    /**
-     * @method
-     * @name kucoin#cancelAllOrders
-     * @description cancel all open orders
-     * @see https://docs.kucoin.com/spot#cancel-all-orders
-     * @see https://docs.kucoin.com/spot#cancel-orders
-     * @see https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
-     * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.orderIds] *stop orders only* Comma seperated order IDs
-     * @param {bool} [params.hf] false, // true for hf order
-     * @returns Response from the exchange
-     */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request: Dict = {};
-        const trigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        params = this.omit (params, 'stop');
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
-        if (symbol !== undefined) {
-            request['symbol'] = this.marketId (symbol);
-        }
-        if (marginMode !== undefined) {
-            request['tradeType'] = this.options['marginModes'][marginMode];
-            if (marginMode === 'isolated' && trigger) {
-                throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
-            }
-        }
-        let response = undefined;
-        if (trigger) {
-            response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
-        } else if (hf) {
-            if (symbol === undefined) {
-                response = await this.privateDeleteHfOrdersCancelAll (this.extend (request, query));
-            } else {
-                response = await this.privateDeleteHfOrders (this.extend (request, query));
-            }
-        } else {
-            response = await this.privateDeleteOrders (this.extend (request, query));
-        }
-        return [ this.safeOrder ({ 'info': response }) ];
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchOrdersByStatus
-     * @description fetch a list of orders
-     * @see https://docs.kucoin.com/spot#list-orders
-     * @see https://docs.kucoin.com/spot#list-stop-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
-     * @param {string} status *not used for stop orders* 'open' or 'closed'
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] timestamp in ms of the earliest order
-     * @param {int} [limit] max number of orders to return
-     * @param {object} [params] exchange specific params
-     * @param {int} [params.until] end time in ms
-     * @param {string} [params.side] buy or sell
-     * @param {string} [params.type] limit, market, limit_stop or market_stop
-     * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *trigger orders only* current page
-     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
-     * @param {bool} [params.trigger] True if fetching a trigger order
-     * @param {bool} [params.hf] false, // true for hf order
-     * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let lowercaseStatus = status.toLowerCase ();
-        const until = this.safeInteger (params, 'until');
-        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        if (hf && (symbol === undefined)) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol parameter for hf orders');
-        }
-        params = this.omit (params, [ 'stop', 'trigger', 'till', 'until' ]);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
-        if (lowercaseStatus === 'open') {
-            lowercaseStatus = 'active';
-        } else if (lowercaseStatus === 'closed') {
-            lowercaseStatus = 'done';
-        }
-        const request: Dict = {
-            'status': lowercaseStatus,
-        };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
-        if (until) {
-            request['endAt'] = until;
-        }
-        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
-        let response = undefined;
-        if (trigger) {
-            response = await this.privateGetStopOrder (this.extend (request, query));
-        } else if (hf) {
-            if (lowercaseStatus === 'active') {
-                response = await this.privateGetHfOrdersActive (this.extend (request, query));
-            } else if (lowercaseStatus === 'done') {
-                response = await this.privateGetHfOrdersDone (this.extend (request, query));
-            }
-        } else {
-            response = await this.privateGetOrders (this.extend (request, query));
-        }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "currentPage": 1,
-        //             "pageSize": 1,
-        //             "totalNum": 153408,
-        //             "totalPage": 153408,
-        //             "items": [
-        //                 {
-        //                     "id": "5c35c02703aa673ceec2a168",   //orderid
-        //                     "symbol": "BTC-USDT",   //symbol
-        //                     "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
-        //                     "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
-        //                     "side": "buy",         // transaction direction,include buy and sell
-        //                     "price": "10",         // order price
-        //                     "size": "2",           // order quantity
-        //                     "funds": "0",          // order funds
-        //                     "dealFunds": "0.166",  // deal funds
-        //                     "dealSize": "2",       // deal quantity
-        //                     "fee": "0",            // fee
-        //                     "feeCurrency": "USDT", // charge fee currency
-        //                     "stp": "",             // self trade prevention,include CN,CO,DC,CB
-        //                     "stop": "",            // stop type
-        //                     "stopTriggered": false,  // stop order is triggered
-        //                     "stopPrice": "0",      // stop price
-        //                     "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
-        //                     "postOnly": false,     // postOnly
-        //                     "hidden": false,       // hidden order
-        //                     "iceberg": false,      // iceberg order
-        //                     "visibleSize": "0",    // display quantity for iceberg order
-        //                     "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
-        //                     "channel": "IOS",      // order source
-        //                     "clientOid": "",       // user-entered order unique mark
-        //                     "remark": "",          // remark
-        //                     "tags": "",            // tag order source
-        //                     "isActive": false,     // status before unfilled or uncancelled
-        //                     "cancelExist": false,   // order cancellation transaction record
-        //                     "createdAt": 1547026471000  // time
-        //                 },
-        //             ]
-        //         }
-        //    }
-        const listData = this.safeList (response, 'data');
-        if (listData !== undefined) {
-            return this.parseOrders (listData, market, since, limit);
-        }
-        const responseData = this.safeDict (response, 'data', {});
-        const orders = this.safeList (responseData, 'items', []);
-        return this.parseOrders (orders, market, since, limit);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.kucoin.com/spot#list-orders
-     * @see https://docs.kucoin.com/spot#list-stop-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] end time in ms
-     * @param {string} [params.side] buy or sell
-     * @param {string} [params.type] limit, market, limit_stop or market_stop
-     * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {bool} [params.trigger] True if fetching a trigger order
-     * @param {bool} [params.hf] false, // true for hf order
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
-        }
-        return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://docs.kucoin.com/spot#list-orders
-     * @see https://docs.kucoin.com/spot#list-stop-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of  open orders structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] end time in ms
-     * @param {bool} [params.trigger] true if fetching trigger orders
-     * @param {string} [params.side] buy or sell
-     * @param {string} [params.type] limit, market, limit_stop or market_stop
-     * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *trigger orders only* current page
-     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
-     * @param {bool} [params.hf] false, // true for hf order
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params) as Order[];
-        }
-        return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchOrder
-     * @description fetch an order
-     * @see https://docs.kucoin.com/spot#get-an-order
-     * @see https://docs.kucoin.com/spot#get-single-active-order-by-clientoid
-     * @see https://docs.kucoin.com/spot#get-single-order-info
-     * @see https://docs.kucoin.com/spot#get-single-order-by-clientoid
-     * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
-     * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
-     * @param {string} id Order id
-     * @param {string} symbol not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
-     * @param {object} [params] exchange specific parameters
-     * @param {bool} [params.trigger] true if fetching a trigger order
-     * @param {bool} [params.hf] false, // true for hf order
-     * @param {bool} [params.clientOid] unique order id created by users to identify their orders
-     * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request: Dict = {};
-        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        if (hf) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol parameter for hf orders');
-            }
-            request['symbol'] = market['id'];
-        }
-        params = this.omit (params, [ 'stop', 'clientOid', 'clientOrderId', 'trigger' ]);
-        let response = undefined;
-        if (clientOrderId !== undefined) {
-            request['clientOid'] = clientOrderId;
-            if (trigger) {
-                if (symbol !== undefined) {
-                    request['symbol'] = market['id'];
-                }
-                response = await this.privateGetStopOrderQueryOrderByClientOid (this.extend (request, params));
-            } else if (hf) {
-                response = await this.privateGetHfOrdersClientOrderClientOid (this.extend (request, params));
-            } else {
-                response = await this.privateGetOrderClientOrderClientOid (this.extend (request, params));
-            }
-        } else {
-            // a special case for undefined ids
-            // otherwise a wrong endpoint for all orders will be triggered
-            // https://github.com/ccxt/ccxt/issues/7234
-            if (id === undefined) {
-                throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
-            }
-            request['orderId'] = id;
-            if (trigger) {
-                response = await this.privateGetStopOrderOrderId (this.extend (request, params));
-            } else if (hf) {
-                response = await this.privateGetHfOrdersOrderId (this.extend (request, params));
-            } else {
-                response = await this.privateGetOrdersOrderId (this.extend (request, params));
-            }
-        }
-        let responseData = this.safeDict (response, 'data', {});
-        if (Array.isArray (responseData)) {
-            responseData = this.safeValue (responseData, 0);
-        }
-        return this.parseOrder (responseData, market);
-    }
-
-    parseOrder (order: Dict, market: Market = undefined): Order {
-        //
-        // createOrder
-        //
-        //    {
-        //        "orderId": "63c97e47d686c5000159a656"
-        //    }
-        //
-        // cancelOrder
-        //
-        //    {
-        //        "cancelledOrderIds": [ "63c97e47d686c5000159a656" ]
-        //    }
-        //
-        // fetchOpenOrders, fetchClosedOrders
-        //
-        //    {
-        //        "id": "63c97ce8d686c500015793bb",
-        //        "symbol": "USDC-USDT",
-        //        "opType": "DEAL",
-        //        "type": "limit",
-        //        "side": "sell",
-        //        "price": "1.05",
-        //        "size": "1",
-        //        "funds": "0",
-        //        "dealFunds": "0",
-        //        "dealSize": "0",
-        //        "fee": "0",
-        //        "feeCurrency": "USDT",
-        //        "stp": "",
-        //        "stop": "",
-        //        "stopTriggered": false,
-        //        "stopPrice": "0",
-        //        "timeInForce": "GTC",
-        //        "postOnly": false,
-        //        "hidden": false,
-        //        "iceberg": false,
-        //        "visibleSize": "0",
-        //        "cancelAfter": 0,
-        //        "channel": "API",
-        //        "clientOid": "d602d73f-5424-4751-bef0-8debce8f0a82",
-        //        "remark": null,
-        //        "tags": "partner:ccxt",
-        //        "isActive": true,
-        //        "cancelExist": false,
-        //        "createdAt": 1674149096927,
-        //        "tradeType": "TRADE"
-        //    }
-        //
-        // stop orders (fetchOpenOrders, fetchClosedOrders)
-        //
-        //    {
-        //        "id": "vs9f6ou9e864rgq8000t4qnm",
-        //        "symbol": "USDC-USDT",
-        //        "userId": "613a896885d8660006151f01",
-        //        "status": "NEW",
-        //        "type": "market",
-        //        "side": "sell",
-        //        "price": null,
-        //        "size": "1.00000000000000000000",
-        //        "funds": null,
-        //        "stp": null,
-        //        "timeInForce": "GTC",
-        //        "cancelAfter": -1,
-        //        "postOnly": false,
-        //        "hidden": false,
-        //        "iceberg": false,
-        //        "visibleSize": null,
-        //        "channel": "API",
-        //        "clientOid": "5d3fd727-6456-438d-9550-40d9d85eee0b",
-        //        "remark": null,
-        //        "tags": "partner:ccxt",
-        //        "relatedNo": null,
-        //        "orderTime": 1674146316994000028,
-        //        "domainId": "kucoin",
-        //        "tradeSource": "USER",
-        //        "tradeType": "MARGIN_TRADE",
-        //        "feeCurrency": "USDT",
-        //        "takerFeeRate": "0.00100000000000000000",
-        //        "makerFeeRate": "0.00100000000000000000",
-        //        "createdAt": 1674146316994,
-        //        "stop": "loss",
-        //        "stopTriggerTime": null,
-        //        "stopPrice": "0.97000000000000000000"
-        //    }
-        // hf order
-        //    {
-        //        "id":"6478cf1439bdfc0001528a1d",
-        //        "symbol":"LTC-USDT",
-        //        "opType":"DEAL",
-        //        "type":"limit",
-        //        "side":"buy",
-        //        "price":"50",
-        //        "size":"0.1",
-        //        "funds":"5",
-        //        "dealSize":"0",
-        //        "dealFunds":"0",
-        //        "fee":"0",
-        //        "feeCurrency":"USDT",
-        //        "stp":null,
-        //        "timeInForce":"GTC",
-        //        "postOnly":false,
-        //        "hidden":false,
-        //        "iceberg":false,
-        //        "visibleSize":"0",
-        //        "cancelAfter":0,
-        //        "channel":"API",
-        //        "clientOid":"d4d2016b-8e3a-445c-aa5d-dc6df5d1678d",
-        //        "remark":null,
-        //        "tags":"partner:ccxt",
-        //        "cancelExist":false,
-        //        "createdAt":1685638932074,
-        //        "lastUpdatedAt":1685639013735,
-        //        "tradeType":"TRADE",
-        //        "inOrderBook":true,
-        //        "cancelledSize":"0",
-        //        "cancelledFunds":"0",
-        //        "remainSize":"0.1",
-        //        "remainFunds":"5",
-        //        "active":true
-        //    }
-        //
-        const marketId = this.safeString (order, 'symbol');
-        const timestamp = this.safeInteger (order, 'createdAt');
-        const feeCurrencyId = this.safeString (order, 'feeCurrency');
-        const cancelExist = this.safeBool (order, 'cancelExist', false);
-        const responseStop = this.safeString (order, 'stop');
-        const trigger = responseStop !== undefined;
-        const stopTriggered = this.safeBool (order, 'stopTriggered', false);
-        const isActive = this.safeBool2 (order, 'isActive', 'active');
-        const responseStatus = this.safeString (order, 'status');
-        let status = undefined;
-        if (isActive !== undefined) {
-            if (isActive === true) {
-                status = 'open';
-            } else {
-                status = 'closed';
-            }
-        }
-        if (trigger) {
-            if (responseStatus === 'NEW') {
-                status = 'open';
-            } else if (!isActive && !stopTriggered) {
-                status = 'cancelled';
-            }
-        }
-        if (cancelExist) {
-            status = 'canceled';
-        }
-        if (responseStatus === 'fail') {
-            status = 'rejected';
-        }
-        return this.safeOrder ({
-            'info': order,
-            'id': this.safeStringN (order, [ 'id', 'orderId', 'newOrderId', 'cancelledOrderId' ]),
-            'clientOrderId': this.safeString (order, 'clientOid'),
-            'symbol': this.safeSymbol (marketId, market, '-'),
-            'type': this.safeString (order, 'type'),
-            'timeInForce': this.safeString (order, 'timeInForce'),
-            'postOnly': this.safeBool (order, 'postOnly'),
-            'side': this.safeString (order, 'side'),
-            'amount': this.safeString (order, 'size'),
-            'price': this.safeString (order, 'price'), // price is zero for market order, omitZero is called in safeOrder2
-            'triggerPrice': this.safeNumber (order, 'stopPrice'),
-            'cost': this.safeString (order, 'dealFunds'),
-            'filled': this.safeString (order, 'dealSize'),
-            'remaining': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': {
-                'currency': this.safeCurrencyCode (feeCurrencyId),
-                'cost': this.safeNumber (order, 'fee'),
             },
-            'status': status,
-            'lastTradeTimestamp': undefined,
-            'average': this.safeString (order, 'avgDealPrice'),
-            'trades': undefined,
-        }, market);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchOrderTrades
-     * @description fetch all the trades made from a single order
-     * @see https://docs.kucoin.com/#list-fills
-     * @see https://docs.kucoin.com/spot-hf/#transaction-details
-     * @param {string} id order id
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const request: Dict = {
-            'orderId': id,
-        };
-        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchMyTrades
-     * @see https://docs.kucoin.com/#list-fills
-     * @see https://docs.kucoin.com/spot-hf/#transaction-details
-     * @description fetch all trades made by the user
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {bool} [params.hf] false, // true for hf order
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
-        }
-        let request: Dict = {};
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        if (hf && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol parameter for hf orders');
-        }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        const method = this.options['fetchMyTradesMethod'];
-        let parseResponseData = false;
-        let response = undefined;
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        if (hf) {
-            // does not return trades earlier than 2019-02-18T00:00:00Z
-            if (limit !== undefined) {
-                request['limit'] = limit;
+            {
+                "description": "fetch ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "time": 1709897710012,
+                        "symbol": "BTC-USDT",
+                        "buy": "67399.9",
+                        "sell": "67400",
+                        "changeRate": "0.0089",
+                        "changePrice": "597.9",
+                        "high": "67978.8",
+                        "low": "66541.4",
+                        "vol": "6442.17728633",
+                        "volValue": "433203364.463489651",
+                        "last": "67400",
+                        "averagePrice": "66654.25518537",
+                        "takerFeeRate": "0.001",
+                        "makerFeeRate": "0.001",
+                        "takerCoefficient": "1",
+                        "makerCoefficient": "1"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1709897710012,
+                    "datetime": "2024-03-08T11:35:10.012Z",
+                    "high": 67978.8,
+                    "low": 66541.4,
+                    "bid": 67399.9,
+                    "bidVolume": null,
+                    "ask": 67400,
+                    "askVolume": null,
+                    "vwap": 67244.86849853185,
+                    "open": 66802.1,
+                    "close": 67400,
+                    "last": 67400,
+                    "previousClose": null,
+                    "change": 597.9,
+                    "percentage": 0.89,
+                    "average": 66654.25518537,
+                    "baseVolume": 6442.17728633,
+                    "quoteVolume": 433203364.46348965,
+                    "markPrice":  null,
+                    "indexPrice": null,
+                    "info": {
+                        "time": 1709897710012,
+                        "symbol": "BTC-USDT",
+                        "buy": "67399.9",
+                        "sell": "67400",
+                        "changeRate": "0.0089",
+                        "changePrice": "597.9",
+                        "high": "67978.8",
+                        "low": "66541.4",
+                        "vol": "6442.17728633",
+                        "volValue": "433203364.463489651",
+                        "last": "67400",
+                        "averagePrice": "66654.25518537",
+                        "takerFeeRate": "0.001",
+                        "makerFeeRate": "0.001",
+                        "takerCoefficient": "1",
+                        "makerCoefficient": "1"
+                    }
+                }
+            },
+            {
+                "description": "uta fetch ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "SPOT",
+                        "ts": 1762061949931,
+                        "list": [
+                            {
+                                "symbol": "BTC-USDT",
+                                "name": "BTC-USDT",
+                                "bestBidSize": "0.56078571",
+                                "bestBidPrice": "110290.4",
+                                "bestAskSize": "0.61175745",
+                                "bestAskPrice": "110290.5",
+                                "lastPrice": "110290.5",
+                                "size": "0.00011243",
+                                "open": "110366.6",
+                                "high": "110838.9",
+                                "low": "109705.5",
+                                "baseVolume": "1892.04447258",
+                                "quoteVolume": "208426563.495947932"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 110838.9,
+                    "low": 109705.5,
+                    "bid": 110290.4,
+                    "bidVolume": 0.56078571,
+                    "ask": 110290.5,
+                    "askVolume": 0.61175745,
+                    "vwap": 110159.44208316445,
+                    "open": 110366.6,
+                    "close": 110290.5,
+                    "last": 110290.5,
+                    "previousClose": null,
+                    "change": -76.1,
+                    "percentage": -0.0689520199045725,
+                    "average": 110328.5,
+                    "baseVolume": 1892.04447258,
+                    "quoteVolume": 208426563.49594793,
+                    "markPrice": null,
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "name": "BTC-USDT",
+                        "bestBidSize": "0.56078571",
+                        "bestBidPrice": "110290.4",
+                        "bestAskSize": "0.61175745",
+                        "bestAskPrice": "110290.5",
+                        "lastPrice": "110290.5",
+                        "size": "0.00011243",
+                        "open": "110366.6",
+                        "high": "110838.9",
+                        "low": "109705.5",
+                        "baseVolume": "1892.04447258",
+                        "quoteVolume": "208426563.495947932"
+                    },
+                    "indexPrice": null
+                }
             }
-            if (since !== undefined) {
-                // only returns trades up to one week after the since param
-                request['startAt'] = since;
+        ],
+        "withdraw": [
+            {
+                "description": "with networkCode",
+                "method": "withdraw",
+                "input": [
+                  "USDT",
+                  3,
+                  "0x62d35481cb74fa959aec61d33a5d4507a1234567",
+                  null,
+                  {
+                    "network": "OP"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "withdrawalId": "6717ed803a3595000738e671"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "withdrawalId": "6717ed803a3595000738e671"
+                  },
+                  "id": "6717ed803a3595000738e671",
+                  "timestamp": null,
+                  "datetime": null,
+                  "network": null,
+                  "address": null,
+                  "addressTo": null,
+                  "addressFrom": null,
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "currency": "USDT",
+                  "amount": null,
+                  "txid": null,
+                  "type": "deposit",
+                  "status": null,
+                  "comment": null,
+                  "internal": null,
+                  "fee": null,
+                  "updated": null
+                }
             }
-            response = await this.privateGetHfFills (this.extend (request, params));
-        } else if (method === 'private_get_fills') {
-            // does not return trades earlier than 2019-02-18T00:00:00Z
-            if (since !== undefined) {
-                // only returns trades up to one week after the since param
-                request['startAt'] = since;
-            }
-            response = await this.privateGetFills (this.extend (request, params));
-        } else if (method === 'private_get_limit_fills') {
-            // does not return trades earlier than 2019-02-18T00:00:00Z
-            // takes no params
-            // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
-            parseResponseData = true;
-            response = await this.privateGetLimitFills (this.extend (request, params));
-        } else {
-            throw new ExchangeError (this.id + ' fetchMyTradesMethod() invalid method');
-        }
-        //
-        //     {
-        //         "currentPage": 1,
-        //         "pageSize": 50,
-        //         "totalNum": 1,
-        //         "totalPage": 1,
-        //         "items": [
-        //             {
-        //                 "symbol":"BTC-USDT",       // symbol
-        //                 "tradeId":"5c35c02709e4f67d5266954e",        // trade id
-        //                 "orderId":"5c35c02703aa673ceec2a168",        // order id
-        //                 "counterOrderId":"5c1ab46003aa676e487fa8e3", // counter order id
-        //                 "side":"buy",              // transaction direction,include buy and sell
-        //                 "liquidity":"taker",       // include taker and maker
-        //                 "forceTaker":true,         // forced to become taker
-        //                 "price":"0.083",           // order price
-        //                 "size":"0.8424304",        // order quantity
-        //                 "funds":"0.0699217232",    // order funds
-        //                 "fee":"0",                 // fee
-        //                 "feeRate":"0",             // fee rate
-        //                 "feeCurrency":"USDT",      // charge fee currency
-        //                 "stop":"",                 // stop type
-        //                 "type":"limit",            // order type, e.g. limit, market, stop_limit.
-        //                 "createdAt":1547026472000  // time
-        //             },
-        //             //------------------------------------------------------
-        //             // v1 (historical) trade response structure
-        //             {
-        //                 "symbol": "SNOV-ETH",
-        //                 "dealPrice": "0.0000246",
-        //                 "dealValue": "0.018942",
-        //                 "amount": "770",
-        //                 "fee": "0.00001137",
-        //                 "side": "sell",
-        //                 "createdAt": 1540080199
-        //                 "id":"5c4d389e4c8c60413f78e2e5",
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        let trades = undefined;
-        if (parseResponseData) {
-            trades = data;
-        } else {
-            trades = this.safeList (data, 'items', []);
-        }
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-trades
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        // pagination is not supported on the exchange side anymore
-        // if (since !== undefined) {
-        //     request['startAt'] = Math.floor (since / 1000);
-        // }
-        // if (limit !== undefined) {
-        //     request['pageSize'] = limit;
-        // }
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'uta', false);
-        let response = undefined;
-        let trades = undefined;
-        if (uta) {
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
-            if (type === 'spot') {
-                request['tradeType'] = 'SPOT';
-            } else {
-                request['tradeType'] = 'FUTURES';
-            }
-            response = await this.utaGetMarketTrade (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "tradeType": "SPOT",
-            //             "list": [
-            //                 {
-            //                     "sequence": "18746044393340932",
-            //                     "tradeId": "18746044393340932",
-            //                     "price": "104355.6",
-            //                     "size": "0.00011886",
-            //                     "side": "sell",
-            //                     "ts": 1762242540829000000
-            //                 },
-            //             ]
-            //         }
-            //     }
-            //
-            const data = this.safeDict (response, 'data', {});
-            trades = this.safeList (data, 'list', []);
-        } else {
-            response = await this.publicGetMarketHistories (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": [
-            //             {
-            //                 "sequence": "1548764654235",
-            //                 "side": "sell",
-            //                 "size":"0.6841354",
-            //                 "price":"0.03202",
-            //                 "time":1548848575203567174
-            //             }
-            //         ]
-            //     }
-            //
-            trades = this.safeList (response, 'data', []);
-        }
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
-        //
-        // fetchTrades (public)
-        //
-        //     {
-        //         "sequence": "1548764654235",
-        //         "side": "sell",
-        //         "size":"0.6841354",
-        //         "price":"0.03202",
-        //         "time":1548848575203567174
-        //     }
-        //
-        //     {
-        //         "sequence": "1568787654360",
-        //         "symbol": "BTC-USDT",
-        //         "side": "buy",
-        //         "size": "0.00536577",
-        //         "price": "9345",
-        //         "takerOrderId": "5e356c4a9f1a790008f8d921",
-        //         "time": "1580559434436443257",
-        //         "type": "match",
-        //         "makerOrderId": "5e356bffedf0010008fa5d7f",
-        //         "tradeId": "5e356c4aeefabd62c62a1ece"
-        //     }
-        //
-        // fetchMyTrades (private) v2
-        //
-        //     {
-        //         "symbol":"BTC-USDT",
-        //         "tradeId":"5c35c02709e4f67d5266954e",
-        //         "orderId":"5c35c02703aa673ceec2a168",
-        //         "counterOrderId":"5c1ab46003aa676e487fa8e3",
-        //         "side":"buy",
-        //         "liquidity":"taker",
-        //         "forceTaker":true,
-        //         "price":"0.083",
-        //         "size":"0.8424304",
-        //         "funds":"0.0699217232",
-        //         "fee":"0",
-        //         "feeRate":"0",
-        //         "feeCurrency":"USDT",
-        //         "stop":"",
-        //         "type":"limit",
-        //         "createdAt":1547026472000
-        //     }
-        //
-        // fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
-        //
-        //     {
-        //         "symbol": "OPEN-BTC",
-        //         "forceTaker":  false,
-        //         "orderId": "5ce36420054b4663b1fff2c9",
-        //         "fee": "0",
-        //         "feeCurrency": "",
-        //         "type": "",
-        //         "feeRate": "0",
-        //         "createdAt": 1558417615000,
-        //         "size": "12.8206",
-        //         "stop": "",
-        //         "price": "0",
-        //         "funds": "0",
-        //         "tradeId": "5ce390cf6e0db23b861c6e80"
-        //     }
-        //
-        // fetchMyTrades (private) v1 (historical)
-        //
-        //     {
-        //         "symbol": "SNOV-ETH",
-        //         "dealPrice": "0.0000246",
-        //         "dealValue": "0.018942",
-        //         "amount": "770",
-        //         "fee": "0.00001137",
-        //         "side": "sell",
-        //         "createdAt": 1540080199
-        //         "id":"5c4d389e4c8c60413f78e2e5",
-        //     }
-        //
-        // uta fetchTrades
-        //
-        //     {
-        //         "sequence": "18746044393340932",
-        //         "tradeId": "18746044393340932",
-        //         "price": "104355.6",
-        //         "size": "0.00011886",
-        //         "side": "sell",
-        //         "ts": 1762242540829000000
-        //     }
-        //
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, '-');
-        const id = this.safeString2 (trade, 'tradeId', 'id');
-        const orderId = this.safeString (trade, 'orderId');
-        const takerOrMaker = this.safeString (trade, 'liquidity');
-        let timestamp = this.safeInteger2 (trade, 'time', 'ts');
-        if (timestamp !== undefined) {
-            timestamp = this.parseToInt (timestamp / 1000000);
-        } else {
-            timestamp = this.safeInteger (trade, 'createdAt');
-            // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if (('dealValue' in trade) && (timestamp !== undefined)) {
-                timestamp = timestamp * 1000;
-            }
-        }
-        const priceString = this.safeString2 (trade, 'price', 'dealPrice');
-        const amountString = this.safeString2 (trade, 'size', 'amount');
-        const side = this.safeString (trade, 'side');
-        let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
-            let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-            if (feeCurrency === undefined) {
-                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-            }
-            fee = {
-                'cost': feeCostString,
-                'currency': feeCurrency,
-                'rate': this.safeString (trade, 'feeRate'),
-            };
-        }
-        let type = this.safeString (trade, 'type');
-        if (type === 'match') {
-            type = undefined;
-        }
-        const costString = this.safeString2 (trade, 'funds', 'dealValue');
-        return this.safeTrade ({
-            'info': trade,
-            'id': id,
-            'order': orderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': type,
-            'takerOrMaker': takerOrMaker,
-            'side': side,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': fee,
-        }, market);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchTradingFee
-     * @description fetch the trading fees for a market
-     * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbols': market['id'],
-        };
-        const response = await this.privateGetTradeFees (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //           {
-        //             "symbol": "BTC-USDT",
-        //             "takerFeeRate": "0.001",
-        //             "makerFeeRate": "0.001"
-        //           }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
-        const first = this.safeDict (data, 0);
-        const marketId = this.safeString (first, 'symbol');
-        return {
-            'info': response,
-            'symbol': this.safeSymbol (marketId, market),
-            'maker': this.safeNumber (first, 'makerFeeRate'),
-            'taker': this.safeNumber (first, 'takerFeeRate'),
-            'percentage': true,
-            'tierBased': true,
-        };
-    }
-
-    /**
-     * @method
-     * @name kucoin#withdraw
-     * @description make a withdrawal
-     * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        await this.loadMarkets ();
-        this.checkAddress (address);
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-            'toAddress': address,
-            'withdrawType': 'ADDRESS',
-            // 'memo': tag,
-            // 'isInner': false, // internal transfer or external withdrawal
-            // 'remark': 'optional',
-            // 'chain': 'OMNI', // 'ERC20', 'TRC20', default is ERC20, This only apply for multi-chain currency, and there is no need for single chain currency.
-        };
-        if (tag !== undefined) {
-            request['memo'] = tag;
-        }
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
-        }
-        request['amount'] = parseFloat (this.currencyToPrecision (code, amount, networkCode));
-        let includeFee = undefined;
-        [ includeFee, params ] = this.handleOptionAndParams (params, 'withdraw', 'includeFee', false);
-        if (includeFee) {
-            request['feeDeductType'] = 'INTERNAL';
-        }
-        const response = await this.privatePostWithdrawals (this.extend (request, params));
-        //
-        // the id is inside "data"
-        //
-        //     {
-        //         "code":  200000,
-        //         "data": {
-        //             "withdrawalId":  "5bffb63303aa675e8bbe18f9"
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseTransaction (data, currency);
-    }
-
-    parseTransactionStatus (status: Str) {
-        const statuses: Dict = {
-            'SUCCESS': 'ok',
-            'PROCESSING': 'pending',
-            'WALLET_PROCESSING': 'pending',
-            'FAILURE': 'failed',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        //
-        // fetchDeposits
-        //
-        //     {
-        //         "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
-        //         "memo": "5c247c8a03aa677cea2a251d",
-        //         "amount": 1,
-        //         "fee": 0.0001,
-        //         "currency": "KCS",
-        //         "chain": "",
-        //         "isInner": false,
-        //         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
-        //         "status": "SUCCESS",
-        //         "createdAt": 1544178843000,
-        //         "updatedAt": 1544178891000
-        //         "remark":"foobar"
-        //     }
-        //
-        // fetchWithdrawals
-        //
-        //     {
-        //         "id": "5c2dc64e03aa675aa263f1ac",
-        //         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
-        //         "memo": "",
-        //         "currency": "ETH",
-        //         "chain": "",
-        //         "amount": 1.0000000,
-        //         "fee": 0.0100000,
-        //         "walletTxId": "3e2414d82acce78d38be7fe9",
-        //         "isInner": false,
-        //         "status": "FAILURE",
-        //         "createdAt": 1546503758000,
-        //         "updatedAt": 1546504603000
-        //         "remark":"foobar"
-        //     }
-        //
-        // withdraw
-        //
-        //     {
-        //         "withdrawalId":  "5bffb63303aa675e8bbe18f9"
-        //     }
-        //
-        const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        let address = this.safeString (transaction, 'address');
-        const amount = this.safeString (transaction, 'amount');
-        let txid = this.safeString (transaction, 'walletTxId');
-        if (txid !== undefined) {
-            const txidParts = txid.split ('@');
-            const numTxidParts = txidParts.length;
-            if (numTxidParts > 1) {
-                if (address === undefined) {
-                    if (txidParts[1].length > 1) {
-                        address = txidParts[1];
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "id": "64feeeb6b4f1fb0007948e80",
+                            "currency": "USDT",
+                            "type": "trade",
+                            "balance": "40.12618754",
+                            "available": "40.12618754",
+                            "holds": "0"
+                        },
+                        {
+                            "id": "64feeec4cd03f30007aa5a8f",
+                            "currency": "LTC",
+                            "type": "trade",
+                            "balance": "0.171021",
+                            "available": "0.171021",
+                            "holds": "0"
+                        },
+                        {
+                            "id": "64ff093e478dba00072d3bc7",
+                            "currency": "BTC",
+                            "type": "trade",
+                            "balance": "0",
+                            "available": "0",
+                            "holds": "0"
+                        },
+                        {
+                            "id": "655e450a1245b90007517903",
+                            "currency": "TRX",
+                            "type": "trade",
+                            "balance": "0",
+                            "available": "0",
+                            "holds": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": [
+                            {
+                                "id": "64feeeb6b4f1fb0007948e80",
+                                "currency": "USDT",
+                                "type": "trade",
+                                "balance": "40.12618754",
+                                "available": "40.12618754",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "64feeec4cd03f30007aa5a8f",
+                                "currency": "LTC",
+                                "type": "trade",
+                                "balance": "0.171021",
+                                "available": "0.171021",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "64ff093e478dba00072d3bc7",
+                                "currency": "BTC",
+                                "type": "trade",
+                                "balance": "0",
+                                "available": "0",
+                                "holds": "0"
+                            },
+                            {
+                                "id": "655e450a1245b90007517903",
+                                "currency": "TRX",
+                                "type": "trade",
+                                "balance": "0",
+                                "available": "0",
+                                "holds": "0"
+                            }
+                        ]
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "USDT": {
+                        "free": 40.12618754,
+                        "used": 0,
+                        "total": 40.12618754
+                    },
+                    "LTC": {
+                        "free": 0.171021,
+                        "used": 0,
+                        "total": 0.171021
+                    },
+                    "BTC": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "TRX": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "USDT": 40.12618754,
+                        "LTC": 0.171021,
+                        "BTC": 0,
+                        "TRX": 0
+                    },
+                    "used": {
+                        "USDT": 0,
+                        "LTC": 0,
+                        "BTC": 0,
+                        "TRX": 0
+                    },
+                    "total": {
+                        "USDT": 40.12618754,
+                        "LTC": 0.171021,
+                        "BTC": 0,
+                        "TRX": 0
+                    }
+                }
+            },
+            {
+                "description": "cross balance",
+                "method": "fetchBalance",
+                "input": [
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "debtRatio": "0",
+                    "accounts": [
+                      {
+                        "currency": "USDT",
+                        "totalBalance": "5",
+                        "availableBalance": "5",
+                        "holdBalance": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "20"
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "code": "200000",
+                    "data": {
+                      "debtRatio": "0",
+                      "accounts": [
+                        {
+                          "currency": "USDT",
+                          "totalBalance": "5",
+                          "availableBalance": "5",
+                          "holdBalance": "0",
+                          "liability": "0",
+                          "maxBorrowSize": "20"
+                        }
+                      ]
+                    }
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "USDT": {
+                    "free": 5,
+                    "used": 0,
+                    "total": 5,
+                    "debt": 0
+                  },
+                  "free": {
+                    "USDT": 5
+                  },
+                  "used": {
+                    "USDT": 0
+                  },
+                  "total": {
+                    "USDT": 5
+                  },
+                  "debt": {
+                    "USDT": 0
+                  }
+                }
+            },
+            {
+                "description": "isolated balance",
+                "method": "fetchBalance",
+                "input": [
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "totalAssetOfQuoteCurrency": "5",
+                        "totalLiabilityOfQuoteCurrency": "0",
+                        "timestamp": 1712086569939,
+                        "assets": [
+                            {
+                                "symbol": "LTC-USDT",
+                                "status": "EFFECTIVE",
+                                "debtRatio": "0",
+                                "baseAsset": {
+                                    "currency": "LTC",
+                                    "borrowEnabled": true,
+                                    "transferInEnabled": true,
+                                    "total": "0",
+                                    "hold": "0",
+                                    "available": "0",
+                                    "liability": "0",
+                                    "interest": "0",
+                                    "maxBorrowSize": "0.4"
+                                },
+                                "quoteAsset": {
+                                    "currency": "USDT",
+                                    "borrowEnabled": true,
+                                    "transferInEnabled": true,
+                                    "total": "5",
+                                    "hold": "0",
+                                    "available": "5",
+                                    "liability": "0",
+                                    "interest": "0",
+                                    "maxBorrowSize": "45"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "totalAssetOfQuoteCurrency": "5",
+                            "totalLiabilityOfQuoteCurrency": "0",
+                            "timestamp": 1712086569939,
+                            "assets": [
+                                {
+                                    "symbol": "LTC-USDT",
+                                    "status": "EFFECTIVE",
+                                    "debtRatio": "0",
+                                    "baseAsset": {
+                                        "currency": "LTC",
+                                        "borrowEnabled": true,
+                                        "transferInEnabled": true,
+                                        "total": "0",
+                                        "hold": "0",
+                                        "available": "0",
+                                        "liability": "0",
+                                        "interest": "0",
+                                        "maxBorrowSize": "0.4"
+                                    },
+                                    "quoteAsset": {
+                                        "currency": "USDT",
+                                        "borrowEnabled": true,
+                                        "transferInEnabled": true,
+                                        "total": "5",
+                                        "hold": "0",
+                                        "available": "5",
+                                        "liability": "0",
+                                        "interest": "0",
+                                        "maxBorrowSize": "45"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "LTC/USDT": {
+                        "LTC":{"free":0,"used":0,"total":0,"debt":0},
+                        "USDT":{"free":5,"used":0,"total":5,"debt":0},
+                        "free":{"LTC":0,"USDT":5},
+                        "used":{"LTC":0,"USDT":0},
+                        "total":{"LTC":0,"USDT":5},
+                        "debt":{"LTC":0,"USDT":0}
                     }
                 }
             }
-            txid = txidParts[0];
-        }
-        let type = (txid === undefined) ? 'withdrawal' : 'deposit';
-        const rawStatus = this.safeString (transaction, 'status');
-        let fee = undefined;
-        const feeCost = this.safeString (transaction, 'fee');
-        if (feeCost !== undefined) {
-            let rate = undefined;
-            if (amount !== undefined) {
-                rate = Precise.stringDiv (feeCost, amount);
-            }
-            fee = {
-                'cost': this.parseNumber (feeCost),
-                'rate': this.parseNumber (rate),
-                'currency': code,
-            };
-        }
-        let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
-        let updated = this.safeInteger (transaction, 'updatedAt');
-        const isV1 = !('createdAt' in transaction);
-        // if it's a v1 structure
-        if (isV1) {
-            type = ('address' in transaction) ? 'withdrawal' : 'deposit';
-            if (timestamp !== undefined) {
-                timestamp = timestamp * 1000;
-            }
-            if (updated !== undefined) {
-                updated = updated * 1000;
-            }
-        }
-        const internal = this.safeBool (transaction, 'isInner');
-        const tag = this.safeString (transaction, 'memo');
-        return {
-            'info': transaction,
-            'id': this.safeString2 (transaction, 'id', 'withdrawalId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (this.safeString (transaction, 'chain')),
-            'address': address,
-            'addressTo': address,
-            'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
-            'tagFrom': undefined,
-            'currency': code,
-            'amount': this.parseNumber (amount),
-            'txid': txid,
-            'type': type,
-            'status': this.parseTransactionStatus (rawStatus),
-            'comment': this.safeString (transaction, 'remark'),
-            'internal': internal,
-            'fee': fee,
-            'updated': updated,
-        } as Transaction;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
-     * @see https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
-        }
-        let request: Dict = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        let response = undefined;
-        if (since !== undefined && since < 1550448000000) {
-            // if since is earlier than 2019-02-18T00:00:00Z
-            request['startAt'] = this.parseToInt (since / 1000);
-            response = await this.privateGetHistDeposits (this.extend (request, params));
-        } else {
-            if (since !== undefined) {
-                request['startAt'] = since;
-            }
-            response = await this.privateGetDeposits (this.extend (request, params));
-        }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "currentPage": 1,
-        //             "pageSize": 5,
-        //             "totalNum": 2,
-        //             "totalPage": 1,
-        //             "items": [
-        //                 //--------------------------------------------------
-        //                 // version 2 deposit response structure
-        //                 {
-        //                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
-        //                     "memo": "5c247c8a03aa677cea2a251d",
-        //                     "amount": 1,
-        //                     "fee": 0.0001,
-        //                     "currency": "KCS",
-        //                     "isInner": false,
-        //                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
-        //                     "status": "SUCCESS",
-        //                     "createdAt": 1544178843000,
-        //                     "updatedAt": 1544178891000
-        //                     "remark":"foobar"
-        //                 },
-        //                 //--------------------------------------------------
-        //                 // version 1 (historical) deposit response structure
-        //                 {
-        //                     "currency": "BTC",
-        //                     "createAt": 1528536998,
-        //                     "amount": "0.03266638",
-        //                     "walletTxId": "55c643bc2c68d6f17266383ac1be9e454038864b929ae7cee0bc408cc5c869e8@12ffGWmMMD1zA1WbFm7Ho3JZ1w6NYXjpFk@234",
-        //                     "isInner": false,
-        //                     "status": "SUCCESS",
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
-        return this.parseTransactions (items, currency, since, limit, { 'type': 'deposit' });
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
-     * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
-        }
-        let request: Dict = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        let response = undefined;
-        if (since !== undefined && since < 1550448000000) {
-            // if since is earlier than 2019-02-18T00:00:00Z
-            request['startAt'] = this.parseToInt (since / 1000);
-            response = await this.privateGetHistWithdrawals (this.extend (request, params));
-        } else {
-            if (since !== undefined) {
-                request['startAt'] = since;
-            }
-            response = await this.privateGetWithdrawals (this.extend (request, params));
-        }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "currentPage": 1,
-        //             "pageSize": 5,
-        //             "totalNum": 2,
-        //             "totalPage": 1,
-        //             "items": [
-        //                 //--------------------------------------------------
-        //                 // version 2 withdrawal response structure
-        //                 {
-        //                     "id": "5c2dc64e03aa675aa263f1ac",
-        //                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
-        //                     "memo": "",
-        //                     "currency": "ETH",
-        //                     "amount": 1.0000000,
-        //                     "fee": 0.0100000,
-        //                     "walletTxId": "3e2414d82acce78d38be7fe9",
-        //                     "isInner": false,
-        //                     "status": "FAILURE",
-        //                     "createdAt": 1546503758000,
-        //                     "updatedAt": 1546504603000
-        //                 },
-        //                 //--------------------------------------------------
-        //                 // version 1 (historical) withdrawal response structure
-        //                 {
-        //                     "currency": "BTC",
-        //                     "createAt": 1526723468,
-        //                     "amount": "0.534",
-        //                     "address": "33xW37ZSW4tQvg443Pc7NLCAs167Yc2XUV",
-        //                     "walletTxId": "aeacea864c020acf58e51606169240e96774838dcd4f7ce48acf38e3651323f4",
-        //                     "isInner": false,
-        //                     "status": "SUCCESS"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
-        return this.parseTransactions (items, currency, since, limit, { 'type': 'withdrawal' });
-    }
-
-    parseBalanceHelper (entry) {
-        const account = this.account ();
-        account['used'] = this.safeString2 (entry, 'holdBalance', 'hold');
-        account['free'] = this.safeString2 (entry, 'availableBalance', 'available');
-        account['total'] = this.safeString2 (entry, 'totalBalance', 'total');
-        const debt = this.safeString (entry, 'liability');
-        const interest = this.safeString (entry, 'interest');
-        account['debt'] = Precise.stringAdd (debt, interest);
-        return account;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-     * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
-     * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
-     * @param {object} [params.type] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        const code = this.safeString (params, 'code');
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const requestedType = this.safeString (params, 'type', defaultType);
-        const accountsByType = this.safeDict (this.options, 'accountsByType');
-        let type = this.safeString (accountsByType, requestedType, requestedType);
-        params = this.omit (params, 'type');
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        if (hf && (type !== 'main')) {
-            type = 'trade_hf';
-        }
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let response = undefined;
-        const request: Dict = {};
-        const isolated = (marginMode === 'isolated') || (type === 'isolated');
-        const cross = (marginMode === 'cross') || (type === 'margin');
-        if (isolated) {
-            if (currency !== undefined) {
-                request['balanceCurrency'] = currency['id'];
-            }
-            response = await this.privateGetIsolatedAccounts (this.extend (request, query));
-        } else if (cross) {
-            response = await this.privateGetMarginAccount (this.extend (request, query));
-        } else {
-            if (currency !== undefined) {
-                request['currency'] = currency['id'];
-            }
-            request['type'] = type;
-            response = await this.privateGetAccounts (this.extend (request, query));
-        }
-        //
-        // Spot
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": [
-        //            {
-        //                "balance": "0.00009788",
-        //                "available": "0.00009788",
-        //                "holds": "0",
-        //                "currency": "BTC",
-        //                "id": "5c6a4fd399a1d81c4f9cc4d0",
-        //                "type": "trade",
-        //            },
-        //        ]
-        //    }
-        //
-        // Cross
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "debtRatio": "0",
-        //             "accounts": [
-        //                 {
-        //                     "currency": "USDT",
-        //                     "totalBalance": "5",
-        //                     "availableBalance": "5",
-        //                     "holdBalance": "0",
-        //                     "liability": "0",
-        //                     "maxBorrowSize": "20"
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        // Isolated
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "totalAssetOfQuoteCurrency": "0",
-        //            "totalLiabilityOfQuoteCurrency": "0",
-        //            "timestamp": 1712085661155,
-        //            "assets": [
-        //                {
-        //                    "symbol": "MANA-USDT",
-        //                    "status": "EFFECTIVE",
-        //                    "debtRatio": "0",
-        //                    "baseAsset": {
-        //                        "currency": "MANA",
-        //                        "borrowEnabled": true,
-        //                        "transferInEnabled": true,
-        //                        "total": "0",
-        //                        "hold": "0",
-        //                        "available": "0",
-        //                        "liability": "0",
-        //                        "interest": "0",
-        //                        "maxBorrowSize": "0"
-        //                    },
-        //                    "quoteAsset": {
-        //                        "currency": "USDT",
-        //                        "borrowEnabled": true,
-        //                        "transferInEnabled": true,
-        //                        "total": "0",
-        //                        "hold": "0",
-        //                        "available": "0",
-        //                        "liability": "0",
-        //                        "interest": "0",
-        //                        "maxBorrowSize": "0"
-        //                    }
-        //                },
-        //                ...
-        //            ]
-        //        }
-        //    }
-        //
-        let data = undefined;
-        const result: Dict = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        if (isolated) {
-            data = this.safeDict (response, 'data', {});
-            const assets = this.safeValue (data, 'assets', data);
-            for (let i = 0; i < assets.length; i++) {
-                const entry = assets[i];
-                const marketId = this.safeString (entry, 'symbol');
-                const symbol = this.safeSymbol (marketId, undefined, '_');
-                const base = this.safeDict (entry, 'baseAsset', {});
-                const quote = this.safeDict (entry, 'quoteAsset', {});
-                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
-                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                const subResult: Dict = {};
-                subResult[baseCode] = this.parseBalanceHelper (base);
-                subResult[quoteCode] = this.parseBalanceHelper (quote);
-                result[symbol] = this.safeBalance (subResult);
-            }
-        } else if (cross) {
-            data = this.safeDict (response, 'data', {});
-            const accounts = this.safeList (data, 'accounts', []);
-            for (let i = 0; i < accounts.length; i++) {
-                const balance = accounts[i];
-                const currencyId = this.safeString (balance, 'currency');
-                const codeInner = this.safeCurrencyCode (currencyId);
-                result[codeInner] = this.parseBalanceHelper (balance);
-            }
-        } else {
-            data = this.safeList (response, 'data', []);
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const balanceType = this.safeString (balance, 'type');
-                if (balanceType === type) {
-                    const currencyId = this.safeString (balance, 'currency');
-                    const codeInner2 = this.safeCurrencyCode (currencyId);
-                    const account = this.account ();
-                    account['total'] = this.safeString (balance, 'balance');
-                    account['free'] = this.safeString (balance, 'available');
-                    account['used'] = this.safeString (balance, 'holds');
-                    result[codeInner2] = account;
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    20
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "time": 1709898508055,
+                        "sequence": "11149534850",
+                        "bids": [
+                            [
+                                "67539.7",
+                                "1.1829567"
+                            ],
+                            [
+                                "67538.5",
+                                "0.25229199"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "67539.8",
+                                "1.08883964"
+                            ],
+                            [
+                                "67539.9",
+                                "0.0001"
+                            ]
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            67539.7,
+                            1.1829567
+                        ],
+                        [
+                            67538.5,
+                            0.25229199
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            67539.8,
+                            1.08883964
+                        ],
+                        [
+                            67539.9,
+                            0.0001
+                        ]
+                    ],
+                    "timestamp": 1709898508055,
+                    "datetime": "2024-03-08T11:48:28.055Z",
+                    "nonce": 11149534850
+                }
+            },
+            {
+                "description": "uta fetch orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    20,
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "SPOT",
+                        "symbol": "BTC-USDT",
+                        "sequence": "23136002402",
+                        "bids": [
+                            [
+                                "104700",
+                                "10.25940068"
+                            ],
+                            [
+                                "104698.9",
+                                "0.00057076"
+                            ],
+                            [
+                                "104681.2",
+                                "0.11997188"
+                            ],
+                            [
+                                "104680.6",
+                                "0.00955286"
+                            ],
+                            [
+                                "104679",
+                                "0.1305"
+                            ],
+                            [
+                                "104678.9",
+                                "0.02"
+                            ],
+                            [
+                                "104674.9",
+                                "0.11997188"
+                            ],
+                            [
+                                "104674.5",
+                                "0.35043125"
+                            ],
+                            [
+                                "104674.4",
+                                "0.80276955"
+                            ],
+                            [
+                                "104672.7",
+                                "0.01541272"
+                            ],
+                            [
+                                "104671.4",
+                                "0.0942"
+                            ],
+                            [
+                                "104670.8",
+                                "0.04554541"
+                            ],
+                            [
+                                "104670.4",
+                                "0.0000939"
+                            ],
+                            [
+                                "104670.3",
+                                "0.35455849"
+                            ],
+                            [
+                                "104670.2",
+                                "0.043019"
+                            ],
+                            [
+                                "104669.1",
+                                "0.80276955"
+                            ],
+                            [
+                                "104668.2",
+                                "0.1305"
+                            ],
+                            [
+                                "104667.9",
+                                "0.00215067"
+                            ],
+                            [
+                                "104667.2",
+                                "0.045291"
+                            ],
+                            [
+                                "104667",
+                                "0.043019"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "104700.1",
+                                "1.4082106"
+                            ],
+                            [
+                                "104700.5",
+                                "0.02866269"
+                            ],
+                            [
+                                "104700.6",
+                                "0.0056162"
+                            ],
+                            [
+                                "104700.7",
+                                "0.043019"
+                            ],
+                            [
+                                "104702.3",
+                                "0.0286622"
+                            ],
+                            [
+                                "104704",
+                                "0.29991282"
+                            ],
+                            [
+                                "104704.1",
+                                "0.80276955"
+                            ],
+                            [
+                                "104704.3",
+                                "0.043019"
+                            ],
+                            [
+                                "104705.2",
+                                "0.00765476"
+                            ],
+                            [
+                                "104706",
+                                "0.00020663"
+                            ],
+                            [
+                                "104708.4",
+                                "0.00235"
+                            ],
+                            [
+                                "104708.5",
+                                "0.03369116"
+                            ],
+                            [
+                                "104708.6",
+                                "0.02866045"
+                            ],
+                            [
+                                "104710.4",
+                                "0.00235"
+                            ],
+                            [
+                                "104710.6",
+                                "0.04324001"
+                            ],
+                            [
+                                "104711.5",
+                                "0.04778181"
+                            ],
+                            [
+                                "104712.9",
+                                "0.09552723"
+                            ],
+                            [
+                                "104713.6",
+                                "0.01203789"
+                            ],
+                            [
+                                "104713.7",
+                                "0.31783482"
+                            ],
+                            [
+                                "104713.8",
+                                "0.93899855"
+                            ]
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            104700,
+                            10.25940068
+                        ],
+                        [
+                            104698.9,
+                            0.00057076
+                        ],
+                        [
+                            104681.2,
+                            0.11997188
+                        ],
+                        [
+                            104680.6,
+                            0.00955286
+                        ],
+                        [
+                            104679,
+                            0.1305
+                        ],
+                        [
+                            104678.9,
+                            0.02
+                        ],
+                        [
+                            104674.9,
+                            0.11997188
+                        ],
+                        [
+                            104674.5,
+                            0.35043125
+                        ],
+                        [
+                            104674.4,
+                            0.80276955
+                        ],
+                        [
+                            104672.7,
+                            0.01541272
+                        ],
+                        [
+                            104671.4,
+                            0.0942
+                        ],
+                        [
+                            104670.8,
+                            0.04554541
+                        ],
+                        [
+                            104670.4,
+                            0.0000939
+                        ],
+                        [
+                            104670.3,
+                            0.35455849
+                        ],
+                        [
+                            104670.2,
+                            0.043019
+                        ],
+                        [
+                            104669.1,
+                            0.80276955
+                        ],
+                        [
+                            104668.2,
+                            0.1305
+                        ],
+                        [
+                            104667.9,
+                            0.00215067
+                        ],
+                        [
+                            104667.2,
+                            0.045291
+                        ],
+                        [
+                            104667,
+                            0.043019
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            104700.1,
+                            1.4082106
+                        ],
+                        [
+                            104700.5,
+                            0.02866269
+                        ],
+                        [
+                            104700.6,
+                            0.0056162
+                        ],
+                        [
+                            104700.7,
+                            0.043019
+                        ],
+                        [
+                            104702.3,
+                            0.0286622
+                        ],
+                        [
+                            104704,
+                            0.29991282
+                        ],
+                        [
+                            104704.1,
+                            0.80276955
+                        ],
+                        [
+                            104704.3,
+                            0.043019
+                        ],
+                        [
+                            104705.2,
+                            0.00765476
+                        ],
+                        [
+                            104706,
+                            0.00020663
+                        ],
+                        [
+                            104708.4,
+                            0.00235
+                        ],
+                        [
+                            104708.5,
+                            0.03369116
+                        ],
+                        [
+                            104708.6,
+                            0.02866045
+                        ],
+                        [
+                            104710.4,
+                            0.00235
+                        ],
+                        [
+                            104710.6,
+                            0.04324001
+                        ],
+                        [
+                            104711.5,
+                            0.04778181
+                        ],
+                        [
+                            104712.9,
+                            0.09552723
+                        ],
+                        [
+                            104713.6,
+                            0.01203789
+                        ],
+                        [
+                            104713.7,
+                            0.31783482
+                        ],
+                        [
+                            104713.8,
+                            0.93899855
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": 23136002402
                 }
             }
-        }
-        let returnType = result;
-        if (!isolated) {
-            returnType = this.safeBalance (result);
-        }
-        return returnType as Balances;
-    }
-
-    /**
-     * @method
-     * @name kucoin#transfer
-     * @description transfer currency internally between wallets on the same account
-     * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
-     * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT
-     * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const requestedAmount = this.currencyToPrecision (code, amount);
-        const request: Dict = {
-            'currency': currency['id'],
-            'amount': requestedAmount,
-        };
-        let transferType = 'INTERNAL';
-        [ transferType, params ] = this.handleParamString2 (params, 'transferType', 'type', transferType);
-        if (transferType === 'PARENT_TO_SUB') {
-            if (!('toUserId' in params)) {
-                throw new ExchangeError (this.id + ' transfer() requires a toUserId param for PARENT_TO_SUB transfers');
-            }
-        } else if (transferType === 'SUB_TO_PARENT') {
-            if (!('fromUserId' in params)) {
-                throw new ExchangeError (this.id + ' transfer() requires a fromUserId param for SUB_TO_PARENT transfers');
-            }
-        }
-        if (!('clientOid' in params)) {
-            request['clientOid'] = this.uuid ();
-        }
-        let fromId = this.convertTypeToAccount (fromAccount);
-        let toId = this.convertTypeToAccount (toAccount);
-        const fromIsolated = this.inArray (fromId, this.ids);
-        const toIsolated = this.inArray (toId, this.ids);
-        if (fromIsolated) {
-            request['fromAccountTag'] = fromId;
-            fromId = 'isolated';
-        }
-        if (toIsolated) {
-            request['toAccountTag'] = toId;
-            toId = 'isolated';
-        }
-        const hfOrMining = this.isHfOrMining (fromId, toId);
-        let response = undefined;
-        if (hfOrMining) {
-            // new endpoint does not support hf and mining transfers
-            // use old endpoint for hf and mining transfers
-            request['from'] = fromId;
-            request['to'] = toId;
-            response = await this.privatePostAccountsInnerTransfer (this.extend (request, params));
-        } else {
-            request['type'] = transferType;
-            request['fromAccountType'] = fromId.toUpperCase ();
-            request['toAccountType'] = toId.toUpperCase ();
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "orderId": "694fcb5b08bb1600015cda75"
-            //         }
-            //     }
-            //
-            response = await this.privatePostAccountsUniversalTransfer (this.extend (request, params));
-        }
-        const data = this.safeDict (response, 'data');
-        const transfer = this.parseTransfer (data, currency);
-        const transferOptions = this.safeDict (this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
-            transfer['amount'] = amount;
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
-            transfer['status'] = 'ok';
-        }
-        return transfer;
-    }
-
-    isHfOrMining (fromId: Str, toId: Str): boolean {
-        return (fromId === 'trade_hf' || toId === 'trade_hf' || fromId === 'pool' || toId === 'pool');
-    }
-
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        //
-        // transfer (spot)
-        //
-        //    {
-        //        "orderId": "605a6211e657f00006ad0ad6"
-        //    }
-        //
-        //    {
-        //        "code": "200000",
-        //        "msg": "Failed to transfer out. The amount exceeds the upper limit"
-        //    }
-        //
-        // transfer (futures)
-        //
-        //     {
-        //         "applyId": "605a87217dff1500063d485d",
-        //         "bizNo": "bcd6e5e1291f4905af84dc",
-        //         "payAccountType": "CONTRACT",
-        //         "payTag": "DEFAULT",
-        //         "remark": '',
-        //         "recAccountType": "MAIN",
-        //         "recTag": "DEFAULT",
-        //         "recRemark": '',
-        //         "recSystem": "KUCOIN",
-        //         "status": "PROCESSING",
-        //         "currency": "XBT",
-        //         "amount": "0.00001",
-        //         "fee": "0",
-        //         "sn": "573688685663948",
-        //         "reason": '',
-        //         "createdAt": 1616545569000,
-        //         "updatedAt": 1616545569000
-        //     }
-        //
-        // ledger entry - from account ledgers API (for fetchTransfers)
-        //
-        // {
-        //     "id": "611a1e7c6a053300067a88d9",
-        //     "currency": "USDT",
-        //     "amount": "10.00059547",
-        //     "fee": "0",
-        //     "balance": "0",
-        //     "accountType": "MAIN",
-        //     "bizType": "Transfer",
-        //     "direction": "in",
-        //     "createdAt": 1629101692950,
-        //     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
-        // }
-        //
-        const timestamp = this.safeInteger (transfer, 'createdAt');
-        const currencyId = this.safeString (transfer, 'currency');
-        const rawStatus = this.safeString (transfer, 'status');
-        const bizType = this.safeString (transfer, 'bizType');
-        const isLedgerEntry = (bizType !== undefined);
-        let accountFromRaw = undefined;
-        let accountToRaw = undefined;
-        if (isLedgerEntry) {
-            // Ledger entry format: uses accountType + direction
-            const accountType = this.safeStringLower (transfer, 'accountType');
-            const direction = this.safeString (transfer, 'direction');
-            if (direction === 'out') {
-                accountFromRaw = accountType;
-            } else if (direction === 'in') {
-                accountToRaw = accountType;
-            }
-        } else {
-            // Transfer API format: uses payAccountType/recAccountType
-            accountFromRaw = this.safeStringLower (transfer, 'payAccountType');
-            accountToRaw = this.safeStringLower (transfer, 'recAccountType');
-        }
-        const accountsByType = this.safeDict (this.options, 'accountsByType');
-        const accountFrom = this.safeString (accountsByType, accountFromRaw, accountFromRaw);
-        const accountTo = this.safeString (accountsByType, accountToRaw, accountToRaw);
-        return {
-            'id': this.safeStringN (transfer, [ 'id', 'applyId', 'orderId' ]),
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': accountFrom,
-            'toAccount': accountTo,
-            'status': this.parseTransferStatus (rawStatus),
-            'info': transfer,
-        };
-    }
-
-    parseTransferStatus (status: Str): Str {
-        const statuses: Dict = {
-            'PROCESSING': 'pending',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseLedgerEntryType (type) {
-        const types: Dict = {
-            'Assets Transferred in After Upgrading': 'transfer', // Assets Transferred in After V1 to V2 Upgrading
-            'Deposit': 'transaction', // Deposit
-            'Withdrawal': 'transaction', // Withdrawal
-            'Transfer': 'transfer', // Transfer
-            'Trade_Exchange': 'trade', // Trade
-            // 'Vote for Coin': 'Vote for Coin', // Vote for Coin
-            'KuCoin Bonus': 'bonus', // KuCoin Bonus
-            'Referral Bonus': 'referral', // Referral Bonus
-            'Rewards': 'bonus', // Activities Rewards
-            // 'Distribution': 'Distribution', // Distribution, such as get GAS by holding NEO
-            'Airdrop/Fork': 'airdrop', // Airdrop/Fork
-            'Other rewards': 'bonus', // Other rewards, except Vote, Airdrop, Fork
-            'Fee Rebate': 'rebate', // Fee Rebate
-            'Buy Crypto': 'trade', // Use credit card to buy crypto
-            'Sell Crypto': 'sell', // Use credit card to sell crypto
-            'Public Offering Purchase': 'trade', // Public Offering Purchase for Spotlight
-            // 'Send red envelope': 'Send red envelope', // Send red envelope
-            // 'Open red envelope': 'Open red envelope', // Open red envelope
-            // 'Staking': 'Staking', // Staking
-            // 'LockDrop Vesting': 'LockDrop Vesting', // LockDrop Vesting
-            // 'Staking Profits': 'Staking Profits', // Staking Profits
-            // 'Redemption': 'Redemption', // Redemption
-            'Refunded Fees': 'fee', // Refunded Fees
-            'KCS Pay Fees': 'fee', // KCS Pay Fees
-            'Margin Trade': 'trade', // Margin Trade
-            'Loans': 'Loans', // Loans
-            // 'Borrowings': 'Borrowings', // Borrowings
-            // 'Debt Repayment': 'Debt Repayment', // Debt Repayment
-            // 'Loans Repaid': 'Loans Repaid', // Loans Repaid
-            // 'Lendings': 'Lendings', // Lendings
-            // 'Pool transactions': 'Pool transactions', // Pool-X transactions
-            'Instant Exchange': 'trade', // Instant Exchange
-            'Sub-account transfer': 'transfer', // Sub-account transfer
-            'Liquidation Fees': 'fee', // Liquidation Fees
-            // 'Soft Staking Profits': 'Soft Staking Profits', // Soft Staking Profits
-            // 'Voting Earnings': 'Voting Earnings', // Voting Earnings on Pool-X
-            // 'Redemption of Voting': 'Redemption of Voting', // Redemption of Voting on Pool-X
-            // 'Voting': 'Voting', // Voting on Pool-X
-            // 'Convert to KCS': 'Convert to KCS', // Convert to KCS
-        };
-        return this.safeString (types, type, type);
-    }
-
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
-        //
-        //     {
-        //         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
-        //         "currency": "USDT", //Currency
-        //         "amount": "10.00059547", //The total amount of assets (fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
-        //         "fee": "0", //Deposit or withdrawal fee
-        //         "balance": "0", //Total assets of a currency remaining funds after transaction
-        //         "accountType": "MAIN", //Account Type
-        //         "bizType": "Loans Repaid", //business type
-        //         "direction": "in", //side, in or out
-        //         "createdAt": 1629101692950, //Creation time
-        //         "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}" //Business core parameters
-        //     }
-        //
-        const id = this.safeString (item, 'id');
-        const currencyId = this.safeString (item, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
-        const amount = this.safeNumber (item, 'amount');
-        const balanceAfter = undefined;
-        // const balanceAfter = this.safeNumber (item, 'balance'); only returns zero string
-        const bizType = this.safeString (item, 'bizType');
-        const type = this.parseLedgerEntryType (bizType);
-        const direction = this.safeString (item, 'direction');
-        const timestamp = this.safeInteger (item, 'createdAt');
-        const datetime = this.iso8601 (timestamp);
-        const account = this.safeString (item, 'accountType'); // MAIN, TRADE, MARGIN, or CONTRACT
-        const context = this.safeString (item, 'context'); // contains other information about the ledger entry
-        //
-        // withdrawal transaction
-        //
-        //     "{\"orderId\":\"617bb2d09e7b3b000196dac8\",\"txId\":\"0x79bb9855f86b351a45cab4dc69d78ca09586a94c45dde49475722b98f401b054\"}"
-        //
-        // deposit to MAIN, trade via MAIN
-        //
-        //     "{\"orderId\":\"617ab9949e7b3b0001948081\",\"txId\":\"0x7a06b16bbd6b03dbc3d96df5683b15229fc35e7184fd7179a5f3a310bd67d1fa@default@0\"}"
-        //
-        // sell trade
-        //
-        //     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
-        //
-        let referenceId = undefined;
-        if (context !== undefined && context !== '') {
-            try {
-                const parsed = JSON.parse (context);
-                const orderId = this.safeString (parsed, 'orderId');
-                const tradeId = this.safeString (parsed, 'tradeId');
-                // transactions only have an orderId but for trades we wish to use tradeId
-                if (tradeId !== undefined) {
-                    referenceId = tradeId;
-                } else {
-                    referenceId = orderId;
-                }
-            } catch (exc) {
-                referenceId = context;
-            }
-        }
-        let fee = undefined;
-        const feeCost = this.safeString (item, 'fee');
-        let feeCurrency = undefined;
-        if (feeCost !== '0') {
-            feeCurrency = code;
-            fee = { 'cost': this.parseNumber (feeCost), 'currency': feeCurrency };
-        }
-        return this.safeLedgerEntry ({
-            'info': item,
-            'id': id,
-            'direction': direction,
-            'account': account,
-            'referenceId': referenceId,
-            'referenceAccount': account,
-            'type': type,
-            'currency': code,
-            'amount': amount,
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'before': undefined,
-            'after': balanceAfter, // undefined
-            'status': undefined,
-            'fee': fee,
-        }, currency) as LedgerEntry;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchLedger
-     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
-     * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
-     * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
-     * @param {string} [code] unified currency code, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-     * @param {int} [limit] max number of ledger entries to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
-     */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
-        let hf = undefined;
-        [ hf, params ] = this.handleHfAndParams (params);
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params) as LedgerEntry[];
-        }
-        let request: Dict = {
-            // 'currency': currency['id'], // can choose up to 10, if not provided returns for all currencies by default
-            // 'direction': 'in', // 'out'
-            // 'bizType': 'DEPOSIT', // DEPOSIT, WITHDRAW, TRANSFER, SUB_TRANSFER,TRADE_EXCHANGE, MARGIN_EXCHANGE, KUCOIN_BONUS (optional)
-            // 'startAt': since,
-            // 'endAt': exchange.milliseconds (),
-        };
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
-        // atm only single currency retrieval is supported
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
-        let response = undefined;
-        if (hf) {
-            if (marginMode !== undefined) {
-                response = await this.privateGetHfMarginAccountLedgers (this.extend (request, params));
-            } else {
-                response = await this.privateGetHfAccountsLedgers (this.extend (request, params));
-            }
-        } else {
-            response = await this.privateGetAccountsLedgers (this.extend (request, params));
-        }
-        //
-        //     {
-        //         "code":"200000",
-        //         "data":{
-        //             "currentPage":1,
-        //             "pageSize":50,
-        //             "totalNum":1,
-        //             "totalPage":1,
-        //             "items":[
-        //                 {
-        //                     "id":"617cc528729f5f0001c03ceb",
-        //                     "currency":"GAS",
-        //                     "amount":"0.00000339",
-        //                     "fee":"0",
-        //                     "balance":"0",
-        //                     "accountType":"MAIN",
-        //                     "bizType":"Distribution",
-        //                     "direction":"in",
-        //                     "createdAt":1635566888183,
-        //                     "context":"{\"orderId\":\"617cc47a1c47ed0001ce3606\",\"description\":\"Holding NEO,distribute GAS(2021/10/30)\"}"
-        //                 }
-        //                 {
-        //                     "id": "611a1e7c6a053300067a88d9",//unique key
-        //                     "currency": "USDT", //Currency
-        //                     "amount": "10.00059547", //Change amount of the funds
-        //                     "fee": "0", //Deposit or withdrawal fee
-        //                     "balance": "0", //Total assets of a currency
-        //                     "accountType": "MAIN", //Account Type
-        //                     "bizType": "Loans Repaid", //business type
-        //                     "direction": "in", //side, in or out
-        //                     "createdAt": 1629101692950, //Creation time
-        //                     "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}"
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const dataList = this.safeList (response, 'data');
-        if (dataList !== undefined) {
-            return this.parseLedger (dataList, currency, since, limit);
-        }
-        const data = this.safeDict (response, 'data');
-        const items = this.safeList (data, 'items', []);
-        return this.parseLedger (items, currency, since, limit);
-    }
-
-    calculateRateLimiterCost (api, method, path, params, config = {}) {
-        const versions = this.safeDict (this.options, 'versions', {});
-        const apiVersions = this.safeDict (versions, api, {});
-        const methodVersions = this.safeDict (apiVersions, method, {});
-        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
-        const version = this.safeString (params, 'version', defaultVersion);
-        if (version === 'v3' && ('v3' in config)) {
-            return config['v3'];
-        } else if (version === 'v2' && ('v2' in config)) {
-            return config['v2'];
-        } else if (version === 'v1' && ('v1' in config)) {
-            return config['v1'];
-        }
-        return this.safeValue (config, 'cost', 1);
-    }
-
-    parseBorrowRate (info, currency: Currency = undefined) {
-        //
-        //     {
-        //         "tradeId": "62db2dcaff219600012b56cd",
-        //         "currency": "USDT",
-        //         "size": "10",
-        //         "dailyIntRate": "0.00003",
-        //         "term": 7,
-        //         "timestamp": 1658531274508488480
-        //     },
-        //
-        //     {
-        //         "createdAt": 1697783812257,
-        //         "currency": "XMR",
-        //         "interestAmount": "0.1",
-        //         "dayRatio": "0.001"
-        //     }
-        //
-        const timestampId = this.safeString2 (info, 'createdAt', 'timestamp');
-        const timestamp = this.parseToInt (timestampId.slice (0, 13));
-        const currencyId = this.safeString (info, 'currency');
-        return {
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'rate': this.safeNumber2 (info, 'dailyIntRate', 'dayRatio'),
-            'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchBorrowInterest
-     * @description fetch the interest owed by the user for borrowing currency for margin trading
-     * @see https://docs.kucoin.com/#get-repay-record
-     * @see https://docs.kucoin.com/#query-isolated-margin-account-info
-     * @param {string} [code] unified currency code
-     * @param {string} [symbol] unified market symbol, required for isolated margin
-     * @param {int} [since] the earliest time in ms to fetch borrrow interest for
-     * @param {int} [limit] the maximum number of structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
-     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
-     */
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
-        await this.loadMarkets ();
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, 'cross');
-        const request: Dict = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            if (marginMode === 'isolated') {
-                request['balanceCurrency'] = currency['id'];
-            } else {
-                request['quoteCurrency'] = currency['id'];
-            }
-        }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        let response = undefined;
-        if (marginMode === 'isolated') {
-            response = await this.privateGetIsolatedAccounts (this.extend (request, params));
-        } else {
-            response = await this.privateGetMarginAccounts (this.extend (request, params));
-        }
-        //
-        // Cross
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "totalAssetOfQuoteCurrency": "0",
-        //             "totalLiabilityOfQuoteCurrency": "0",
-        //             "debtRatio": "0",
-        //             "status": "EFFECTIVE",
-        //             "accounts": [
-        //                 {
-        //                     "currency": "1INCH",
-        //                     "total": "0",
-        //                     "available": "0",
-        //                     "hold": "0",
-        //                     "liability": "0",
-        //                     "maxBorrowSize": "0",
-        //                     "borrowEnabled": true,
-        //                     "transferInEnabled": true
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        // Isolated
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "totalConversionBalance": "0.02138647",
-        //             "liabilityConversionBalance": "0.01480001",
-        //             "assets": [
-        //                 {
-        //                     "symbol": "MANA-USDT",
-        //                     "debtRatio": "0",
-        //                     "status": "BORROW",
-        //                     "baseAsset": {
-        //                         "currency": "MANA",
-        //                         "borrowEnabled": true,
-        //                         "repayEnabled": true,
-        //                         "transferEnabled": true,
-        //                         "borrowed": "0",
-        //                         "totalAsset": "0",
-        //                         "available": "0",
-        //                         "hold": "0",
-        //                         "maxBorrowSize": "1000"
-        //                     },
-        //                     "quoteAsset": {
-        //                         "currency": "USDT",
-        //                         "borrowEnabled": true,
-        //                         "repayEnabled": true,
-        //                         "transferEnabled": true,
-        //                         "borrowed": "0",
-        //                         "totalAsset": "0",
-        //                         "available": "0",
-        //                         "hold": "0",
-        //                         "maxBorrowSize": "50000"
-        //                     }
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const assets = (marginMode === 'isolated') ? this.safeList (data, 'assets', []) : this.safeList (data, 'accounts', []);
-        const interest = this.parseBorrowInterests (assets, market);
-        const filteredByCurrency = this.filterByCurrencySinceLimit (interest, code, since, limit);
-        return this.filterBySymbolSinceLimit (filteredByCurrency, symbol, since, limit);
-    }
-
-    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
-        //
-        // Cross
-        //
-        //     {
-        //         "currency": "1INCH",
-        //         "total": "0",
-        //         "available": "0",
-        //         "hold": "0",
-        //         "liability": "0",
-        //         "maxBorrowSize": "0",
-        //         "borrowEnabled": true,
-        //         "transferInEnabled": true
-        //     }
-        //
-        // Isolated
-        //
-        //     {
-        //         "symbol": "MANA-USDT",
-        //         "debtRatio": "0",
-        //         "status": "BORROW",
-        //         "baseAsset": {
-        //             "currency": "MANA",
-        //             "borrowEnabled": true,
-        //             "repayEnabled": true,
-        //             "transferEnabled": true,
-        //             "borrowed": "0",
-        //             "totalAsset": "0",
-        //             "available": "0",
-        //             "hold": "0",
-        //             "maxBorrowSize": "1000"
-        //         },
-        //         "quoteAsset": {
-        //             "currency": "USDT",
-        //             "borrowEnabled": true,
-        //             "repayEnabled": true,
-        //             "transferEnabled": true,
-        //             "borrowed": "0",
-        //             "totalAsset": "0",
-        //             "available": "0",
-        //             "hold": "0",
-        //             "maxBorrowSize": "50000"
-        //         }
-        //     }
-        //
-        const marketId = this.safeString (info, 'symbol');
-        const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
-        const timestamp = this.safeInteger (info, 'createdAt');
-        const isolatedBase = this.safeDict (info, 'baseAsset', {});
-        let amountBorrowed = undefined;
-        let interest = undefined;
-        let currencyId = undefined;
-        if (marginMode === 'isolated') {
-            amountBorrowed = this.safeNumber (isolatedBase, 'liability');
-            interest = this.safeNumber (isolatedBase, 'interest');
-            currencyId = this.safeString (isolatedBase, 'currency');
-        } else {
-            amountBorrowed = this.safeNumber (info, 'liability');
-            interest = this.safeNumber (info, 'accruedInterest');
-            currencyId = this.safeString (info, 'currency');
-        }
-        return {
-            'info': info,
-            'symbol': symbol,
-            'currency': this.safeCurrencyCode (currencyId),
-            'interest': interest,
-            'interestRate': this.safeNumber (info, 'dailyIntRate'),
-            'amountBorrowed': amountBorrowed,
-            'marginMode': marginMode,
-            'timestamp': timestamp,  // create time
-            'datetime': this.iso8601 (timestamp),
-        } as BorrowInterest;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchBorrowRateHistories
-     * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
-     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
-     * @param {int} [limit] max number of borrow rate prices to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
-     */
-    async fetchBorrowRateHistories (codes = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        const marginResult = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params);
-        const marginMode = this.safeString (marginResult, 0, 'cross');
-        const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
-        let request: Dict = {
-            'isIsolated': isIsolated,
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        if (limit !== undefined) {
-            request['pageSize'] = limit; // default:50, min:10, max:500
-        }
-        const response = await this.privateGetMarginInterest (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "timestamp": 1710829939673,
-        //             "currentPage": 1,
-        //             "pageSize": 50,
-        //             "totalNum": 0,
-        //             "totalPage": 0,
-        //             "items": [
-        //                 {
-        //                     "createdAt": 1697783812257,
-        //                     "currency": "XMR",
-        //                     "interestAmount": "0.1",
-        //                     "dayRatio": "0.001"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data');
-        const rows = this.safeList (data, 'items', []);
-        return this.parseBorrowRateHistories (rows, codes, since, limit);
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchBorrowRateHistory
-     * @description retrieves a history of a currencies borrow interest rate at specific time slots
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
-     * @param {string} code unified currency code
-     * @param {int} [since] timestamp for the earliest borrow rate
-     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
-     */
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        const marginResult = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params);
-        const marginMode = this.safeString (marginResult, 0, 'cross');
-        const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
-        const currency = this.currency (code);
-        let request: Dict = {
-            'isIsolated': isIsolated,
-            'currency': currency['id'],
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        if (limit !== undefined) {
-            request['pageSize'] = limit; // default:50, min:10, max:500
-        }
-        const response = await this.privateGetMarginInterest (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "timestamp": 1710829939673,
-        //             "currentPage": 1,
-        //             "pageSize": 50,
-        //             "totalNum": 0,
-        //             "totalPage": 0,
-        //             "items": [
-        //                 {
-        //                     "createdAt": 1697783812257,
-        //                     "currency": "XMR",
-        //                     "interestAmount": "0.1",
-        //                     "dayRatio": "0.001"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data');
-        const rows = this.safeList (data, 'items', []);
-        return this.parseBorrowRateHistory (rows, code, since, limit);
-    }
-
-    parseBorrowRateHistories (response, codes, since, limit) {
-        //
-        //     [
-        //         {
-        //             "createdAt": 1697783812257,
-        //             "currency": "XMR",
-        //             "interestAmount": "0.1",
-        //             "dayRatio": "0.001"
-        //         }
-        //     ]
-        //
-        const borrowRateHistories: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const code = this.safeCurrencyCode (this.safeString (item, 'currency'));
-            if (codes === undefined || this.inArray (code, codes)) {
-                if (!(code in borrowRateHistories)) {
-                    borrowRateHistories[code] = [];
-                }
-                const borrowRateStructure = this.parseBorrowRate (item);
-                const borrowRateHistoriesCode = borrowRateHistories[code];
-                borrowRateHistoriesCode.push (borrowRateStructure);
-            }
-        }
-        const keys = Object.keys (borrowRateHistories);
-        for (let i = 0; i < keys.length; i++) {
-            const code = keys[i];
-            borrowRateHistories[code] = this.filterByCurrencySinceLimit (borrowRateHistories[code], code, since, limit);
-        }
-        return borrowRateHistories;
-    }
-
-    /**
-     * @method
-     * @name kucoin#borrowCrossMargin
-     * @description create a loan to borrow margin
-     * @see https://docs.kucoin.com/#1-margin-borrowing
-     * @param {string} code unified currency code of the currency to borrow
-     * @param {float} amount the amount to borrow
-     * @param {object} [params] extra parameters specific to the exchange API endpoints
-     * @param {string} [params.timeInForce] either IOC or FOK
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
-     */
-    async borrowCrossMargin (code: string, amount: number, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-            'size': this.currencyToPrecision (code, amount),
-            'timeInForce': 'FOK',
-        };
-        const response = await this.privatePostMarginBorrow (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "code": "200",
-        //         "msg": "success",
-        //         "retry": false,
-        //         "data": {
-        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
-        //             "actualSize": 10
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseMarginLoan (data, currency);
-    }
-
-    /**
-     * @method
-     * @name kucoin#borrowIsolatedMargin
-     * @description create a loan to borrow margin
-     * @see https://docs.kucoin.com/#1-margin-borrowing
-     * @param {string} symbol unified market symbol, required for isolated margin
-     * @param {string} code unified currency code of the currency to borrow
-     * @param {float} amount the amount to borrow
-     * @param {object} [params] extra parameters specific to the exchange API endpoints
-     * @param {string} [params.timeInForce] either IOC or FOK
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
-     */
-    async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-            'size': this.currencyToPrecision (code, amount),
-            'symbol': market['id'],
-            'timeInForce': 'FOK',
-            'isIsolated': true,
-        };
-        const response = await this.privatePostMarginBorrow (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "code": "200",
-        //         "msg": "success",
-        //         "retry": false,
-        //         "data": {
-        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
-        //             "actualSize": 10
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseMarginLoan (data, currency);
-    }
-
-    /**
-     * @method
-     * @name kucoin#repayCrossMargin
-     * @description repay borrowed margin and interest
-     * @see https://docs.kucoin.com/#2-repayment
-     * @param {string} code unified currency code of the currency to repay
-     * @param {float} amount the amount to repay
-     * @param {object} [params] extra parameters specific to the exchange API endpoints
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
-     */
-    async repayCrossMargin (code: string, amount, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-            'size': this.currencyToPrecision (code, amount),
-        };
-        const response = await this.privatePostMarginRepay (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "code": "200",
-        //         "msg": "success",
-        //         "retry": false,
-        //         "data": {
-        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
-        //             "actualSize": 10
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseMarginLoan (data, currency);
-    }
-
-    /**
-     * @method
-     * @name kucoin#repayIsolatedMargin
-     * @description repay borrowed margin and interest
-     * @see https://docs.kucoin.com/#2-repayment
-     * @param {string} symbol unified market symbol
-     * @param {string} code unified currency code of the currency to repay
-     * @param {float} amount the amount to repay
-     * @param {object} [params] extra parameters specific to the exchange API endpoints
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
-     */
-    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-            'size': this.currencyToPrecision (code, amount),
-            'symbol': market['id'],
-            'isIsolated': true,
-        };
-        const response = await this.privatePostMarginRepay (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "code": "200",
-        //         "msg": "success",
-        //         "retry": false,
-        //         "data": {
-        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
-        //             "actualSize": 10
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseMarginLoan (data, currency);
-    }
-
-    parseMarginLoan (info, currency: Currency = undefined) {
-        //
-        //     {
-        //         "orderNo": "5da6dba0f943c0c81f5d5db5",
-        //         "actualSize": 10
-        //     }
-        //
-        const timestamp = this.milliseconds ();
-        const currencyId = this.safeString (info, 'currency');
-        return {
-            'id': this.safeString (info, 'orderNo'),
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeNumber (info, 'actualSize'),
-            'symbol': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchDepositWithdrawFees
-     * @description fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
-     * @see https://docs.kucoin.com/#get-currencies
-     * @param {string[]|undefined} codes list of unified currency codes
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetCurrencies (params);
-        //
-        //  [
-        //      {
-        //        "currency": "CSP",
-        //        "name": "CSP",
-        //        "fullName": "Caspian",
-        //        "precision": 8,
-        //        "confirms": 12,
-        //        "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
-        //        "withdrawalMinSize": "2000",
-        //        "withdrawalMinFee": "1000",
-        //        "isWithdrawEnabled": true,
-        //        "isDepositEnabled": true,
-        //        "isMarginEnabled": false,
-        //        "isDebitEnabled": false
-        //      },
-        //  ]
-        //
-        const data = this.safeList (response, 'data', []);
-        return this.parseDepositWithdrawFees (data, codes, 'currency');
-    }
-
-    /**
-     * @method
-     * @name kucoin#setLeverage
-     * @description set the level of leverage for a market
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
-     * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
-     * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('setLeverage', undefined, params);
-        if ((symbol !== undefined) || marketType !== 'spot') {
-            market = this.market (symbol);
-            if (market['contract']) {
-                throw new NotSupported (this.id + ' setLeverage currently supports only spot margin');
-            }
-        }
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
-        if (marginMode === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage requires a marginMode parameter');
-        }
-        const request: Dict = {};
-        if (marginMode === 'isolated' && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage requires a symbol parameter for isolated margin');
-        }
-        if (symbol !== undefined) {
-            request['symbol'] = market['id'];
-        }
-        request['leverage'] = leverage.toString ();
-        request['isIsolated'] = (marginMode === 'isolated');
-        return await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchFundingRate
-     * @description fetch the current funding rate
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const response = await this.utaGetMarketFundingRate (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "symbol": ".XBTUSDTMFPI8H",
-        //             "nextFundingRate": 7.4E-5,
-        //             "fundingTime": 1762444800000,
-        //             "fundingRateCap": 0.003,
-        //             "fundingRateFloor": -0.003
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseFundingRate (data, market);
-    }
-
-    parseFundingRate (data, market: Market = undefined): FundingRate {
-        //
-        //     {
-        //         "symbol": ".XBTUSDTMFPI8H",
-        //         "nextFundingRate": 7.4E-5,
-        //         "fundingTime": 1762444800000,
-        //         "fundingRateCap": 0.003,
-        //         "fundingRateFloor": -0.003
-        //     }
-        //
-        const fundingTimestamp = this.safeInteger (data, 'fundingTime');
-        const marketId = this.safeString (data, 'symbol');
-        return {
-            'info': data,
-            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
-            'markPrice': undefined,
-            'indexPrice': undefined,
-            'interestRate': undefined,
-            'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'fundingRate': this.safeNumber (data, 'nextFundingRate'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': undefined,
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
-            'interval': undefined,
-        } as FundingRate;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] not used by kucuoinfutures
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] end time in ms
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a since argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
-        if (since !== undefined) {
-            request['startAt'] = since;
-            if (until === undefined) {
-                request['endAt'] = this.milliseconds ();
-            }
-        }
-        if (until !== undefined) {
-            request['endAt'] = until;
-        }
-        const response = await this.utaGetMarketFundingRateHistory (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "symbol": "XBTUSDTM",
-        //             "list": [
-        //                 {
-        //                     "fundingRate": 7.6E-5,
-        //                     "ts": 1706097600000
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'list', []);
-        return this.parseFundingRateHistories (result, market, since, limit);
-    }
-
-    parseFundingRateHistory (info, market: Market = undefined) {
-        //
-        //     {
-        //         "fundingRate": 7.6E-5,
-        //         "ts": 1706097600000
-        //     }
-        //
-        const timestamp = this.safeInteger (info, 'ts');
-        return {
-            'info': info,
-            'symbol': this.safeSymbol (undefined, market),
-            'fundingRate': this.safeNumber (info, 'fundingRate'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-    }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        //
-        // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-        //                                ↑                 ↑
-        //                                ↑                 ↑
-        //
-        const versions = this.safeDict (this.options, 'versions', {});
-        const apiVersions = this.safeDict (versions, api, {});
-        const methodVersions = this.safeDict (apiVersions, method, {});
-        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
-        const version = this.safeString (params, 'version', defaultVersion);
-        params = this.omit (params, 'version');
-        let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
-        if (api === 'webExchange') {
-            endpoint = '/' + this.implodeParams (path, params);
-        }
-        if (api === 'earn') {
-            endpoint = '/api/v1/' + this.implodeParams (path, params);
-        }
-        let isUtaPrivate = false;
-        if (api === 'uta') {
-            endpoint = '/api/ua/v1/' + this.implodeParams (path, params);
-            if (path === 'market/orderbook') {
-                isUtaPrivate = true;
-            }
-        }
-        const query = this.omit (params, this.extractParams (path));
-        let endpart = '';
-        headers = (headers !== undefined) ? headers : {};
-        let url = this.urls['api'][api];
-        if (!this.isEmpty (query)) {
-            if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
-                endpoint += '?' + this.rawencode (query);
-            } else {
-                body = this.json (query);
-                endpart = body;
-                headers['Content-Type'] = 'application/json';
-            }
-        }
-        url = url + endpoint;
-        const isFuturePrivate = (api === 'futuresPrivate');
-        const isPrivate = (api === 'private');
-        const isBroker = (api === 'broker');
-        const isEarn = (api === 'earn');
-        if (isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate) {
-            this.checkRequiredCredentials ();
-            const timestamp = this.nonce ().toString ();
-            headers = this.extend ({
-                'KC-API-KEY-VERSION': '2',
-                'KC-API-KEY': this.apiKey,
-                'KC-API-TIMESTAMP': timestamp,
-            }, headers);
-            const apiKeyVersion = this.safeString (headers, 'KC-API-KEY-VERSION');
-            if (apiKeyVersion === '2') {
-                const passphrase = this.hmac (this.encode (this.password), this.encode (this.secret), sha256, 'base64');
-                headers['KC-API-PASSPHRASE'] = passphrase;
-            } else {
-                headers['KC-API-PASSPHRASE'] = this.password;
-            }
-            const payload = timestamp + method + endpoint + endpart;
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-            headers['KC-API-SIGN'] = signature;
-            let partner = this.safeDict (this.options, 'partner', {});
-            partner = isFuturePrivate ? this.safeValue (partner, 'future', partner) : this.safeValue (partner, 'spot', partner);
-            const partnerId = this.safeString (partner, 'id');
-            const partnerSecret = this.safeString2 (partner, 'secret', 'key');
-            if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
-                const partnerPayload = timestamp + partnerId + this.apiKey;
-                const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), sha256, 'base64');
-                headers['KC-API-PARTNER-SIGN'] = partnerSignature;
-                headers['KC-API-PARTNER'] = partnerId;
-                headers['KC-API-PARTNER-VERIFY'] = 'true';
-            }
-            if (isBroker) {
-                const brokerName = this.safeString (partner, 'name');
-                if (brokerName !== undefined) {
-                    headers['KC-BROKER-NAME'] = brokerName;
+        ],
+        "fetchTransactionFee": [
+            {
+                "description": "Fetch transaction fee",
+                "method": "fetchTransactionFee",
+                "input": [
+                    "BTC"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currency": "BTC",
+                        "limitBTCAmount": "15.71610959",
+                        "usedBTCAmount": "0.00000000",
+                        "quotaCurrency": "USDT",
+                        "limitQuotaCurrencyAmount": "999999.00000000",
+                        "usedQuotaCurrencyAmount": "0",
+                        "remainAmount": "15.71610959",
+                        "availableAmount": "0",
+                        "withdrawMinFee": "0.0004",
+                        "innerWithdrawMinFee": "0",
+                        "withdrawMinSize": "0.001",
+                        "isWithdrawEnabled": true,
+                        "precision": 8,
+                        "chain": "BTC",
+                        "reason": null,
+                        "lockedAmount": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                        "currency": "BTC",
+                        "limitBTCAmount": "15.71610959",
+                        "usedBTCAmount": "0.00000000",
+                        "quotaCurrency": "USDT",
+                        "limitQuotaCurrencyAmount": "999999.00000000",
+                        "usedQuotaCurrencyAmount": "0",
+                        "remainAmount": "15.71610959",
+                        "availableAmount": "0",
+                        "withdrawMinFee": "0.0004",
+                        "innerWithdrawMinFee": "0",
+                        "withdrawMinSize": "0.001",
+                        "isWithdrawEnabled": true,
+                        "precision": 8,
+                        "chain": "BTC",
+                        "reason": null,
+                        "lockedAmount": "0"
+                        }
+                  },
+                  "withdraw": {
+                        "BTC": 0.0004
+                  },
+                  "deposit": {}
                 }
             }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
-            return undefined;
-        }
-        //
-        // bad
-        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
-        // good
-        //     { code: '200000', data: { ... }}
-        //
-        const errorCode = this.safeString (response, 'code');
-        const message = this.safeString2 (response, 'msg', 'data', '');
-        const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-        if (errorCode !== '200000' && errorCode !== '200') {
-            throw new ExchangeError (feedback);
-        }
-        return undefined;
-    }
-
-    /**
-     * @method
-     * @name kucoin#fetchTransfers
-     * @description fetch a history of internal transfers made on an account
-     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
-     * @param {string} [code] unified currency code of the currency transferred
-     * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfer structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch transfers for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params) as TransferEntry[];
-        }
-        let request: Dict = {
-            'bizType': 'TRANSFER',
-        };
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            params = this.omit (params, 'until');
-            request['endAt'] = until;
-        }
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        } else {
-            request['pageSize'] = 500;
-        }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this.privateGetAccountsLedgers (this.extend (request, params));
-        //
-        // {
-        //     "code": "200000",
-        //     "data": {
-        //         "currentPage": 1,
-        //         "pageSize": 50,
-        //         "totalNum": 1,
-        //         "totalPage": 1,
-        //         "items": [
-        //             {
-        //                 "id": "611a1e7c6a053300067a88d9",
-        //                 "currency": "USDT",
-        //                 "amount": "10.00059547",
-        //                 "fee": "0",
-        //                 "balance": "0",
-        //                 "accountType": "MAIN",
-        //                 "bizType": "Transfer",
-        //                 "direction": "in",
-        //                 "createdAt": 1629101692950,
-        //                 "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
-        //             }
-        //         ]
-        //     }
-        // }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
-        return this.parseTransfers (items, currency, since, limit);
+        ],
+        "createDepositAddress":[
+            {
+                "description": "with network",
+                "method": "createDepositAddress",
+                "input": [
+                  "BNB",
+                  {
+                    "networkCode": "BEP20"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                    "memo": null,
+                    "chainId": "bsc",
+                    "to": "MAIN",
+                    "expirationDate": 0,
+                    "currency": "BNB",
+                    "chainName": "BEP20"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                    "memo": null,
+                    "chainId": "bsc",
+                    "to": "MAIN",
+                    "expirationDate": 0,
+                    "currency": "BNB",
+                    "chainName": "BEP20"
+                  },
+                  "currency": "BNB",
+                  "network": "BEP20",
+                  "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                  "tag": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "currency": "USDT",
+                            "name": "USDT",
+                            "fullName": "Tether",
+                            "precision": 8,
+                            "confirms": null,
+                            "contractAddress": null,
+                            "isMarginEnabled": true,
+                            "isDebitEnabled": true,
+                            "chains": [
+                                {
+                                    "chainName": "APT",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1,
+                                    "preConfirms": 1,
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "aptos"
+                                },
+                                {
+                                    "chainName": "Asset Hub(Polkadot)",
+                                    "withdrawalMinSize": "10",
+                                    "depositMinSize": "0.7",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 30,
+                                    "preConfirms": 30,
+                                    "contractAddress": "1984",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "statemint"
+                                },
+                                {
+                                    "chainName": "OPTIMISM",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 500,
+                                    "preConfirms": 100,
+                                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "optimism"
+                                },
+                                {
+                                    "chainName": "KCC",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 20,
+                                    "preConfirms": 20,
+                                    "contractAddress": "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
+                                    "withdrawPrecision": 8,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "kcc"
+                                },
+                                {
+                                    "chainName": "SOL",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 200,
+                                    "preConfirms": 200,
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "sol"
+                                },
+                                {
+                                    "chainName": "TON",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": "0.1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1,
+                                    "preConfirms": 1,
+                                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": true,
+                                    "chainId": "ton"
+                                },
+                                {
+                                    "chainName": "BEP20",
+                                    "withdrawalMinSize": "10",
+                                    "depositMinSize": "1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 60,
+                                    "preConfirms": 15,
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
+                                    "withdrawPrecision": 8,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "bsc"
+                                },
+                                {
+                                    "chainName": "KAVA EVM Co-Chain",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 20,
+                                    "preConfirms": 20,
+                                    "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "kavaevm"
+                                },
+                                {
+                                    "chainName": "Polygon POS",
+                                    "withdrawalMinSize": "35",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "35",
+                                    "isWithdrawEnabled": false,
+                                    "isDepositEnabled": true,
+                                    "confirms": 800,
+                                    "preConfirms": 300,
+                                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "matic"
+                                },
+                                {
+                                    "chainName": "ERC20",
+                                    "withdrawalMinSize": "30",
+                                    "depositMinSize": "7.5",
+                                    "withdrawFeeRate": "0.002",
+                                    "withdrawMaxFee": "36",
+                                    "withdrawalMinFee": "5.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 96,
+                                    "preConfirms": 32,
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "eth"
+                                },
+                                {
+                                    "chainName": "AVAX C-Chain",
+                                    "withdrawalMinSize": "2",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 32,
+                                    "preConfirms": 32,
+                                    "contractAddress": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "avaxc"
+                                },
+                                {
+                                    "chainName": "NEAR",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 5,
+                                    "preConfirms": 5,
+                                    "contractAddress": "usdt.tether-token.near",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "near"
+                                },
+                                {
+                                    "chainName": "TRC20",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": "1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 3,
+                                    "preConfirms": 3,
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "trx"
+                                },
+                                {
+                                    "chainName": "XTZ",
+                                    "withdrawalMinSize": "2",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 10,
+                                    "preConfirms": 10,
+                                    "contractAddress": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "xtz"
+                                },
+                                {
+                                    "chainName": "ARBITRUM",
+                                    "withdrawalMinSize": "5",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": false,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1900,
+                                    "preConfirms": 120,
+                                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "arbitrum"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "currency": "USDT",
+                            "name": "USDT",
+                            "fullName": "Tether",
+                            "precision": 8,
+                            "confirms": null,
+                            "contractAddress": null,
+                            "isMarginEnabled": true,
+                            "isDebitEnabled": true,
+                            "chains": [
+                                {
+                                    "chainName": "APT",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1,
+                                    "preConfirms": 1,
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "aptos"
+                                },
+                                {
+                                    "chainName": "Asset Hub(Polkadot)",
+                                    "withdrawalMinSize": "10",
+                                    "depositMinSize": "0.7",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 30,
+                                    "preConfirms": 30,
+                                    "contractAddress": "1984",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "statemint"
+                                },
+                                {
+                                    "chainName": "OPTIMISM",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 500,
+                                    "preConfirms": 100,
+                                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "optimism"
+                                },
+                                {
+                                    "chainName": "KCC",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 20,
+                                    "preConfirms": 20,
+                                    "contractAddress": "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
+                                    "withdrawPrecision": 8,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "kcc"
+                                },
+                                {
+                                    "chainName": "SOL",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 200,
+                                    "preConfirms": 200,
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "sol"
+                                },
+                                {
+                                    "chainName": "TON",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": "0.1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1,
+                                    "preConfirms": 1,
+                                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": true,
+                                    "chainId": "ton"
+                                },
+                                {
+                                    "chainName": "BEP20",
+                                    "withdrawalMinSize": "10",
+                                    "depositMinSize": "1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 60,
+                                    "preConfirms": 15,
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
+                                    "withdrawPrecision": 8,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "bsc"
+                                },
+                                {
+                                    "chainName": "KAVA EVM Co-Chain",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 20,
+                                    "preConfirms": 20,
+                                    "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "kavaevm"
+                                },
+                                {
+                                    "chainName": "Polygon POS",
+                                    "withdrawalMinSize": "35",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "35",
+                                    "isWithdrawEnabled": false,
+                                    "isDepositEnabled": true,
+                                    "confirms": 800,
+                                    "preConfirms": 300,
+                                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "matic"
+                                },
+                                {
+                                    "chainName": "ERC20",
+                                    "withdrawalMinSize": "30",
+                                    "depositMinSize": "7.5",
+                                    "withdrawFeeRate": "0.002",
+                                    "withdrawMaxFee": "36",
+                                    "withdrawalMinFee": "5.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 96,
+                                    "preConfirms": 32,
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "eth"
+                                },
+                                {
+                                    "chainName": "AVAX C-Chain",
+                                    "withdrawalMinSize": "2",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 32,
+                                    "preConfirms": 32,
+                                    "contractAddress": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "avaxc"
+                                },
+                                {
+                                    "chainName": "NEAR",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 5,
+                                    "preConfirms": 5,
+                                    "contractAddress": "usdt.tether-token.near",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "near"
+                                },
+                                {
+                                    "chainName": "TRC20",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": "1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 3,
+                                    "preConfirms": 3,
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "trx"
+                                },
+                                {
+                                    "chainName": "XTZ",
+                                    "withdrawalMinSize": "2",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 10,
+                                    "preConfirms": 10,
+                                    "contractAddress": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "xtz"
+                                },
+                                {
+                                    "chainName": "ARBITRUM",
+                                    "withdrawalMinSize": "5",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": false,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1900,
+                                    "preConfirms": 120,
+                                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "arbitrum"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.5,
+                        "fees": {},
+                        "networks": {
+                            "APT": {
+                                "info": {
+                                    "chainName": "APT",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1,
+                                    "preConfirms": 1,
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "aptos"
+                                },
+                                "id": "aptos",
+                                "name": "APT",
+                                "code": "APT",
+                                "active": true,
+                                "fee": 0.5,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "statemint": {
+                                "info": {
+                                    "chainName": "Asset Hub(Polkadot)",
+                                    "withdrawalMinSize": "10",
+                                    "depositMinSize": "0.7",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 30,
+                                    "preConfirms": 30,
+                                    "contractAddress": "1984",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "statemint"
+                                },
+                                "id": "statemint",
+                                "name": "Asset Hub(Polkadot)",
+                                "code": "statemint",
+                                "active": true,
+                                "fee": 1,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.7,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OPTIMISM": {
+                                "info": {
+                                    "chainName": "OPTIMISM",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 500,
+                                    "preConfirms": 100,
+                                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "optimism"
+                                },
+                                "id": "optimism",
+                                "name": "OPTIMISM",
+                                "code": "OPTIMISM",
+                                "active": true,
+                                "fee": 1,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "KCC": {
+                                "info": {
+                                    "chainName": "KCC",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 20,
+                                    "preConfirms": 20,
+                                    "contractAddress": "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
+                                    "withdrawPrecision": 8,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "kcc"
+                                },
+                                "id": "kcc",
+                                "name": "KCC",
+                                "code": "KCC",
+                                "active": true,
+                                "fee": 0.5,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "chainName": "SOL",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 200,
+                                    "preConfirms": 200,
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "sol"
+                                },
+                                "id": "sol",
+                                "name": "SOL",
+                                "code": "SOL",
+                                "active": true,
+                                "fee": 1.5,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TON": {
+                                "info": {
+                                    "chainName": "TON",
+                                    "withdrawalMinSize": "1",
+                                    "depositMinSize": "0.1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1,
+                                    "preConfirms": 1,
+                                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": true,
+                                    "chainId": "ton"
+                                },
+                                "id": "ton",
+                                "name": "TON",
+                                "code": "TON",
+                                "active": true,
+                                "fee": 0.5,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.1,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BEP20": {
+                                "info": {
+                                    "chainName": "BEP20",
+                                    "withdrawalMinSize": "10",
+                                    "depositMinSize": "1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 60,
+                                    "preConfirms": 15,
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
+                                    "withdrawPrecision": 8,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "bsc"
+                                },
+                                "id": "bsc",
+                                "name": "BEP20",
+                                "code": "BEP20",
+                                "active": true,
+                                "fee": 1,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "kavaevm": {
+                                "info": {
+                                    "chainName": "KAVA EVM Co-Chain",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 20,
+                                    "preConfirms": 20,
+                                    "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "kavaevm"
+                                },
+                                "id": "kavaevm",
+                                "name": "KAVA EVM Co-Chain",
+                                "code": "kavaevm",
+                                "active": true,
+                                "fee": 1,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MATIC": {
+                                "info": {
+                                    "chainName": "Polygon POS",
+                                    "withdrawalMinSize": "35",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "35",
+                                    "isWithdrawEnabled": false,
+                                    "isDepositEnabled": true,
+                                    "confirms": 800,
+                                    "preConfirms": 300,
+                                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "matic"
+                                },
+                                "id": "matic",
+                                "name": "Polygon POS",
+                                "code": "MATIC",
+                                "active": false,
+                                "fee": 35,
+                                "deposit": true,
+                                "withdraw": false,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 35,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "info": {
+                                    "chainName": "ERC20",
+                                    "withdrawalMinSize": "30",
+                                    "depositMinSize": "7.5",
+                                    "withdrawFeeRate": "0.002",
+                                    "withdrawMaxFee": "36",
+                                    "withdrawalMinFee": "5.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 96,
+                                    "preConfirms": 32,
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "eth"
+                                },
+                                "id": "eth",
+                                "name": "ERC20",
+                                "code": "ERC20",
+                                "active": true,
+                                "fee": 5.5,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 30,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 7.5,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "AVAXC": {
+                                "info": {
+                                    "chainName": "AVAX C-Chain",
+                                    "withdrawalMinSize": "2",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 32,
+                                    "preConfirms": 32,
+                                    "contractAddress": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "avaxc"
+                                },
+                                "id": "avaxc",
+                                "name": "AVAX C-Chain",
+                                "code": "AVAXC",
+                                "active": true,
+                                "fee": 1,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "NEAR": {
+                                "info": {
+                                    "chainName": "NEAR",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "0.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 5,
+                                    "preConfirms": 5,
+                                    "contractAddress": "usdt.tether-token.near",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "near"
+                                },
+                                "id": "near",
+                                "name": "NEAR",
+                                "code": "NEAR",
+                                "active": true,
+                                "fee": 0.5,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "chainName": "TRC20",
+                                    "withdrawalMinSize": "3",
+                                    "depositMinSize": "1",
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1.5",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 3,
+                                    "preConfirms": 3,
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "trx"
+                                },
+                                "id": "trx",
+                                "name": "TRC20",
+                                "code": "TRC20",
+                                "active": true,
+                                "fee": 1.5,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "XTZ": {
+                                "info": {
+                                    "chainName": "XTZ",
+                                    "withdrawalMinSize": "2",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": true,
+                                    "isDepositEnabled": true,
+                                    "confirms": 10,
+                                    "preConfirms": 10,
+                                    "contractAddress": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "xtz"
+                                },
+                                "id": "xtz",
+                                "name": "XTZ",
+                                "code": "XTZ",
+                                "active": true,
+                                "fee": 1,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ARBONE": {
+                                "info": {
+                                    "chainName": "ARBITRUM",
+                                    "withdrawalMinSize": "5",
+                                    "depositMinSize": null,
+                                    "withdrawFeeRate": "0",
+                                    "withdrawalMinFee": "1",
+                                    "isWithdrawEnabled": false,
+                                    "isDepositEnabled": true,
+                                    "confirms": 1900,
+                                    "preConfirms": 120,
+                                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                                    "withdrawPrecision": 6,
+                                    "maxWithdraw": null,
+                                    "maxDeposit": null,
+                                    "needTag": false,
+                                    "chainId": "arbitrum"
+                                },
+                                "id": "arbitrum",
+                                "name": "ARBITRUM",
+                                "code": "ARBONE",
+                                "active": false,
+                                "fee": 1,
+                                "deposit": true,
+                                "withdraw": false,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 5,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": 0.1,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+         ],
+        "fetchBorrowInterest":[
+            {
+                "description": "cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "totalAssetOfQuoteCurrency": "5",
+                    "totalLiabilityOfQuoteCurrency": "0",
+                    "debtRatio": "0",
+                    "status": "EFFECTIVE",
+                    "accounts": [
+                      {
+                        "currency": "USDT",
+                        "total": "5",
+                        "available": "5",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "20",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      },
+                      {
+                        "currency": "1INCH",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "70",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      },
+                      {
+                        "currency": "ZRO",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "5",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "currency": "USDT",
+                      "total": "5",
+                      "available": "5",
+                      "hold": "0",
+                      "liability": "0",
+                      "maxBorrowSize": "20",
+                      "borrowEnabled": true,
+                      "transferInEnabled": true
+                    },
+                    "symbol": null,
+                    "currency": "USDT",
+                    "interest": null,
+                    "interestRate": null,
+                    "amountBorrowed": 0,
+                    "marginMode": "cross",
+                    "timestamp": null,
+                    "datetime": null
+                  }
+                ]
+            },
+            {
+                "description": "isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "BTC",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "totalAssetOfQuoteCurrency": "5",
+                    "totalLiabilityOfQuoteCurrency": "0",
+                    "timestamp": 1731485747638,
+                    "assets": [
+                      {
+                        "symbol": "LTC-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "LTC",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0.6"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "5",
+                          "available": "5",
+                          "hold": "0",
+                          "maxBorrowSize": "45"
+                        }
+                      },
+                      {
+                        "symbol": "BTC-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "BTC",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        }
+                      },
+                      {
+                        "symbol": "ZRO-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "ZRO",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "BTC-USDT",
+                      "status": "EFFECTIVE",
+                      "debtRatio": "0",
+                      "baseAsset": {
+                        "currency": "BTC",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true,
+                        "liability": "0",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "maxBorrowSize": "0"
+                      },
+                      "quoteAsset": {
+                        "currency": "USDT",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true,
+                        "liability": "0",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "maxBorrowSize": "0"
+                      }
+                    },
+                    "symbol": "BTC/USDT",
+                    "currency": "BTC",
+                    "interest": null,
+                    "interestRate": null,
+                    "amountBorrowed": 0,
+                    "marginMode": "isolated",
+                    "timestamp": null,
+                    "datetime": null
+                  }
+                ]
+            }
+        ],
+        "fetchStatus":[
+            {
+                "description": "fetch the server status",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "status": "open",
+                        "msg": ""
+                    }
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "status": "open",
+                            "msg": ""
+                        }
+                    }
+                }
+            },
+            {
+                "description": "uta fetch the server status",
+                "method": "fetchStatus",
+                "input": [
+                    {
+                        "uta": true,
+                        "tradeType": "SPOT"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "SPOT",
+                        "serverStatus": "open",
+                        "msg": ""
+                    }
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "tradeType": "SPOT",
+                            "serverStatus": "open",
+                            "msg": ""
+                        }
+                    }
+                }
+            }
+        ]
     }
 }
