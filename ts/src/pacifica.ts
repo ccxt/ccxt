@@ -297,11 +297,15 @@ export default class pacifica extends Exchange {
                         'iceberg': false,
                     },
                     'createOrders': {
-                        'max': 10, // todo pagination
+                        'max': 10,
+                    },
+                    'editOrder': {
+                        'side': false,
+                        'type': false,
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100, // todo pagination
+                        'limit': 100,
                         'daysBack': undefined,
                         'untilDays': undefined,
                         'symbolRequired': false,
@@ -314,14 +318,14 @@ export default class pacifica extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': 100, // todo pagination
+                        'limit': 100,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
-                        'limit': 100, // todo pagination
+                        'limit': 100,
                         'daysBack': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -330,7 +334,7 @@ export default class pacifica extends Exchange {
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
-                        'limit': 100, // todo pagination
+                        'limit': 100,
                         'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
@@ -339,7 +343,7 @@ export default class pacifica extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 100, // todo pagination
+                        'limit': 100,
                     },
                 },
                 'forPerps': {
@@ -682,7 +686,7 @@ export default class pacifica extends Exchange {
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
-    async fetchAccountSettings (params): Promise<Dict> {
+    async fetchAccountSettings (params = {}): Promise<Dict> {
         let userAccount = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchAccountSettings', params);
         const request: Dict = {
@@ -714,8 +718,8 @@ export default class pacifica extends Exchange {
         const settingsBySymbol = {};
         for (let i = 0; i < settings.length; i++) {
             const symbolExc = settings[i]['symbol'];
-            const localSymbol = this.symbolExcToLocal (symbolExc);
-            settingsBySymbol[localSymbol] = settings[i];
+            const symbolLocal = this.symbolExcToLocal (symbolExc);
+            settingsBySymbol[symbolLocal] = settings[i];
         }
         return settingsBySymbol;
     }
@@ -894,7 +898,7 @@ export default class pacifica extends Exchange {
         //       }
         //
         const symbolExc = this.safeString (info, 'symbol');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
         const funding = this.safeNumber (info, 'funding');
         const markPx = this.safeNumber (info, 'mark');
         const oraclePx = this.safeNumber (info, 'oracle');
@@ -903,7 +907,7 @@ export default class pacifica extends Exchange {
         const fundingTimestamp = (Math.floor (this.milliseconds () / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
         return {
             'info': info,
-            'symbol': localSymbol,
+            'symbol': symbolLocal,
             'markPrice': markPx,
             'indexPrice': oraclePx,
             'interestRate': undefined,
@@ -1063,64 +1067,130 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.until] timestamp in ms of the latest trade
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
-     * @param {string|undefined} [params.cursor] pagination cursor from prev request
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request (manual use)
+     * @param {boolean|undefined} [params.paginate] set to true to fetch all trades with pagination
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchMyTrades', params);
         let until = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'until');
         let cursor = undefined;
         [ cursor, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'cursor');
-        const request: Dict = { };
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+        const defaultLimit = 100;  // Default max limit
+        if (paginate) {
+            let allTrades = [];
+            let hasMore = true;
+            while (hasMore === true) {
+                const request: Dict = {};
+                request['account'] = userAddress;
+                if (symbol !== undefined) {
+                    request['symbol'] = market['id'];
+                }
+                if (since !== undefined) {
+                    request['start_time'] = since;
+                }
+                if (until !== undefined) {
+                    request['end_time'] = until;
+                }
+                request['limit'] = (limit !== undefined) ? Math.min (limit - allTrades.length, defaultLimit) : defaultLimit;
+                if (cursor !== undefined) {
+                    request['cursor'] = cursor;
+                }
+                const response = await this.publicGetTradesHistory (this.extend (request, params));
+                //
+                // {
+                //   "success": true,
+                //   "data": [
+                //     {
+                //       "history_id": 19329801,
+                //       "order_id": 315293920,
+                //       "client_order_id": "acf...",
+                //       "symbol": "LDO",
+                //       "amount": "0.1",
+                //       "price": "1.1904",
+                //       "entry_price": "1.176247",
+                //       "fee": "0",
+                //       "pnl": "-0.001415",
+                //       "event_type": "fulfill_maker",
+                //       "side": "close_short",
+                //       "created_at": 1759215599188,
+                //       "cause": "normal"
+                //     },
+                //     ...
+                //   ],
+                //   "next_cursor": "11111Z5RK", // not included to info!
+                //   "has_more": true   // not included to info!
+                // }
+                //
+                const data = this.safeList (response, 'data', []);
+                const parsedTrades = this.parseTrades (data, market);
+                allTrades = this.arrayConcat (allTrades, parsedTrades);
+                cursor = this.safeString (response, 'next_cursor');
+                hasMore = this.safeBool (response, 'has_more', false);
+                if (limit !== undefined && allTrades.length >= limit) {
+                    break;
+                }
+                if (!hasMore || cursor === undefined) {
+                    break;
+                }
+            }
+            return this.filterBySymbolSinceLimit (allTrades, symbol, since, limit);
+        } else {
+            const request: Dict = {};
+            request['account'] = userAddress;
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (cursor !== undefined) {
+                request['cursor'] = cursor;
+            }
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
+            if (until !== undefined) {
+                request['end_time'] = until;
+            }
+            const response = await this.publicGetTradesHistory (this.extend (request, params));
+            //
+            // {
+            //   "success": true,
+            //   "data": [
+            //     {
+            //       "history_id": 19329801,
+            //       "order_id": 315293920,
+            //       "client_order_id": "acf...",
+            //       "symbol": "LDO",
+            //       "amount": "0.1",
+            //       "price": "1.1904",
+            //       "entry_price": "1.176247",
+            //       "fee": "0",
+            //       "pnl": "-0.001415",
+            //       "event_type": "fulfill_maker",
+            //       "side": "close_short",
+            //       "created_at": 1759215599188,
+            //       "cause": "normal"
+            //     },
+            //     ...
+            //   ],
+            //   "next_cursor": "11111Z5RK", // not included to info!
+            //   "has_more": true   // not included to info!
+            // }
+            //
+            const data = this.safeList (response, 'data', []);
+            return this.parseTrades (data, market, since, limit);
         }
-        request['account'] = userAddress;
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (cursor !== undefined) {
-            request['cursor'] = cursor;
-        }
-        if (since !== undefined) {
-            request['start_time'] = since;
-        }
-        if (until !== undefined) {
-            request['end_time'] = until;
-        }
-        const response = await this.publicGetTradesHistory (this.extend (request, params));
-        //
-        // {
-        //   "success": true,
-        //   "data": [
-        //     {
-        //       "history_id": 19329801,
-        //       "order_id": 315293920,
-        //       "client_order_id": "acf...",
-        //       "symbol": "LDO",
-        //       "amount": "0.1",
-        //       "price": "1.1904",
-        //       "entry_price": "1.176247",
-        //       "fee": "0",
-        //       "pnl": "-0.001415",
-        //       "event_type": "fulfill_maker",
-        //       "side": "close_short",
-        //       "created_at": 1759215599188,
-        //       "cause": "normal"
-        //     },
-        //     ...
-        //   ],
-        //   "next_cursor": "11111Z5RK", // not included to info! todo
-        //   "has_more": true   // not included to info! todo
-        // }
-        //
-        const myTrades = this.safeList (response, 'data', []);
-        return this.parseTrades (myTrades, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1429,7 +1499,6 @@ export default class pacifica extends Exchange {
                 throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
             }
         }
-        this.log (this.json (actions));
         return {
             'actions': actions,
         };
@@ -1784,7 +1853,8 @@ export default class pacifica extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.cursor] pagination cursor from prev request
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request (manual use)
+     * @param {boolean|undefined} [params.paginate] set to true to fetch all funding rates with pagination
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1793,52 +1863,111 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        let cursor = undefined;
+        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'cursor');
+        const defaultLimit = 100;  // Default max limit
+        if (paginate) {
+            let allEntries = [];
+            let hasMore = true;
+            while (hasMore === true) {
+                const request: Dict = {
+                    'symbol': market['id'],
+                };
+                request['limit'] = (limit !== undefined) ? Math.min (limit - allEntries.length, defaultLimit) : defaultLimit;
+                if (cursor !== undefined) {
+                    request['cursor'] = cursor;
+                }
+                const response = await this.publicGetFundingRateHistory (this.extend (request, params));
+                //
+                // {
+                //   "success": true,
+                //   "data": [
+                //     {
+                //       "oracle_price": "117170.410304",
+                //       "bid_impact_price": "117126",
+                //       "ask_impact_price": "117142",
+                //       "funding_rate": "0.0000125",
+                //       "next_funding_rate": "0.0000125",
+                //       "created_at": 1753806934249
+                //     },
+                //     ...
+                //   ],
+                //   "next_cursor": "11114Lz77", // not included in info!
+                //   "has_more": true            // not included in info!
+                // }
+                //
+                const data = this.safeList (response, 'data', []);
+                const parsed = [];
+                for (let i = 0; i < data.length; i++) {
+                    const entry = data[i];
+                    const timestamp = this.safeInteger (entry, 'created_at');
+                    parsed.push ({
+                        'info': entry,
+                        'symbol': market['symbol'],
+                        'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                        'timestamp': timestamp,
+                        'datetime': this.iso8601 (timestamp),
+                    });
+                }
+                allEntries = this.arrayConcat (allEntries, parsed);
+                cursor = this.safeString (response, 'next_cursor');
+                hasMore = this.safeBool (response, 'has_more', false);
+                if (limit !== undefined && allEntries.length >= limit) {
+                    break;
+                }
+                if (!hasMore || cursor === undefined) {
+                    break;
+                }
+            }
+            const sorted = this.sortBy (allEntries, 'timestamp');
+            return this.filterBySinceLimit (sorted, since, limit, 'timestamp') as FundingRateHistory[];
+        } else {
+            const request: Dict = {
+                'symbol': market['id'],
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (cursor !== undefined) {
+                request['cursor'] = cursor;
+            }
+            const response = await this.publicGetFundingRateHistory (this.extend (request, params));
+            //
+            // {
+            //   "success": true,
+            //   "data": [
+            //     {
+            //       "oracle_price": "117170.410304",
+            //       "bid_impact_price": "117126",
+            //       "ask_impact_price": "117142",
+            //       "funding_rate": "0.0000125",
+            //       "next_funding_rate": "0.0000125",
+            //       "created_at": 1753806934249
+            //     },
+            //     ...
+            //   ],
+            //   "next_cursor": "11114Lz77", // not included in info!
+            //   "has_more": true            // not included in info!
+            // }
+            //
+            const data = this.safeList (response, 'data', []);
+            const result = [];
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                const timestamp = this.safeInteger (entry, 'created_at');
+                result.push ({
+                    'info': entry,
+                    'symbol': market['symbol'],
+                    'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                });
+            }
+            const sorted = this.sortBy (result, 'timestamp');
+            return this.filterBySinceLimit (sorted, since, limit, 'timestamp') as FundingRateHistory[];
         }
-        const cursor = this.safeString (params, 'cursor');
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (cursor !== undefined) {
-            request['cursor'] = cursor;
-        }
-        params = this.omit (params, [ 'cursor' ]);
-        const response = await this.publicGetFundingRateHistory (this.extend (request, params));
-        // {
-        //   "success": true,
-        //   "data": [
-        //     {
-        //       "oracle_price": "117170.410304",
-        //       "bid_impact_price": "117126",
-        //       "ask_impact_price": "117142",
-        //       "funding_rate": "0.0000125",
-        //       "next_funding_rate": "0.0000125",
-        //       "created_at": 1753806934249
-        //     },
-        //     ...
-        //   ],
-        //   "next_cursor": "11114Lz77", // todo pagination
-        //   "has_more": true            // todo pagination
-        // }
-        const data = this.safeList (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const timestamp = this.safeInteger (entry, 'created_at');
-            result.push ({
-                'info': entry,
-                'symbol': this.safeSymbol (undefined, market),
-                'fundingRate': this.safeNumber (entry, 'funding_rate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            });
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
     /**
@@ -1900,10 +2029,10 @@ export default class pacifica extends Exchange {
         //     }
         //
         const symbolExc = this.safeString (ticker, 'symbol');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
         const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
-            'symbol': localSymbol,
+            'symbol': symbolLocal,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'previousClose': this.safeNumber (ticker, 'yesterday_price'),
@@ -2031,57 +2160,89 @@ export default class pacifica extends Exchange {
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
-     * @param {string|undefined} [params.cursor] pagination cursor from prev request
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request (manual use)
+     * @param {boolean|undefined} [params.paginate] set to true to fetch all orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchOrders', params);
-        await this.loadMarkets ();
+        let cursor = undefined;
+        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'cursor');
         let market = undefined;
-        const request: Dict = {
-            'account': userAddress,
-        };
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        const defaultLimit = 100; // max default 100
+        if (paginate) {
+            let allOrders = [];
+            let hasMore = true;
+            while (hasMore === true) {
+                const request: Dict = {
+                    'account': userAddress,
+                };
+                request['limit'] = (limit !== undefined) ? Math.min (limit - allOrders.length, defaultLimit) : defaultLimit;
+                if (cursor !== undefined) {
+                    request['cursor'] = cursor;
+                }
+                const response = await this.publicGetOrdersHistory (this.extend (request, params));
+                // {
+                //   "success": true,
+                //   "data": [
+                //     {
+                //       "order_id": 315992721,
+                //       "client_order_id": "ade",
+                //       "symbol": "XPL",
+                //       "side": "ask",
+                //       "initial_price": "1.0865",
+                //       "average_filled_price": "0",
+                //       "amount": "984",
+                //       "filled_amount": "0",
+                //       "order_status": "open",
+                //       "order_type": "limit",
+                //       "stop_price": null,
+                //       "stop_parent_order_id": null,
+                //       "reduce_only": false,
+                //       "reason": null,
+                //       "created_at": 1759224893638,
+                //       "updated_at": 1759224893638
+                //     },
+                //     ...
+                //   ],
+                //   "next_cursor": "1111Hyd74",  // not included in info!
+                //   "has_more": true             // not included in info!
+                // }
+                const data = this.safeList (response, 'data', []);
+                const parsed = this.parseOrders (data, market);
+                allOrders = this.arrayConcat (allOrders, parsed);
+                cursor = this.safeString (response, 'next_cursor');
+                hasMore = this.safeBool (response, 'has_more', false);
+                if (limit !== undefined && allOrders.length >= limit) {
+                    break;
+                }
+                if (!hasMore || cursor === undefined) {
+                    break;
+                }
+            }
+            const sorted = this.sortBy (allOrders, 'timestamp');
+            return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        } else {
+            const request: Dict = {
+                'account': userAddress,
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (cursor !== undefined) {
+                request['cursor'] = cursor;
+            }
+            const response = await this.publicGetOrdersHistory (this.extend (request, params));
+            const data = this.safeList (response, 'data', []);
+            return this.parseOrders (data, market, since, limit);
         }
-        const cursor = this.safeString (params, 'cursor');
-        if (cursor !== undefined) {
-            request['cursor'] = cursor;
-        }
-        params = this.omit (params, [ 'cursor', 'account' ]);
-        const response = await this.publicGetOrdersHistory (this.extend (request, params));
-        // {
-        //   "success": true,
-        //   "data": [
-        //     {
-        //       "order_id": 315992721,
-        //       "client_order_id": "ade",
-        //       "symbol": "XPL",
-        //       "side": "ask",
-        //       "initial_price": "1.0865",
-        //       "average_filled_price": "0",
-        //       "amount": "984",
-        //       "filled_amount": "0",
-        //       "order_status": "open",
-        //       "order_type": "limit",
-        //       "stop_price": null,
-        //       "stop_parent_order_id": null,
-        //       "reduce_only": false,
-        //       "reason": null,
-        //       "created_at": 1759224893638,
-        //       "updated_at": 1759224893638
-        //     },
-        //     ...
-        //   ],
-        //   "next_cursor": "1111Hyd74",  // todo pagination
-        //   "has_more": true             // todo pagination
-        // }
-        const data = this.safeList (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -2302,9 +2463,9 @@ export default class pacifica extends Exchange {
         //     }
         //
         const symbolExc = this.safeString2 (order, 'symbol', 's');
-        let localSymbol = undefined;
+        let symbolLocal = undefined;
         if (symbolExc !== undefined) {
-            localSymbol = this.symbolExcToLocal (symbolExc);
+            symbolLocal = this.symbolExcToLocal (symbolExc);
         }
         const timestamp = this.safeInteger2 (order, 'created_at', 'ct');
         const status = this.safeString2 (order, 'order_status', 'os');
@@ -2323,7 +2484,7 @@ export default class pacifica extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger2 (order, 'updated_at', 'ut'),
-            'symbol': localSymbol,
+            'symbol': symbolLocal,
             'type': this.parseOrderType (this.safeStringLower2 (order, 'order_type', 'ot')),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -2418,7 +2579,7 @@ export default class pacifica extends Exchange {
         //     }
         //
         const symbolExc = this.safeString (position, 'symbol');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
         const margin = this.safeString (position, 'margin');
         const marginMode = (margin !== undefined && margin !== '0') ? 'isolated' : 'cross';
         const isIsolated = (marginMode === 'isolated');
@@ -2430,7 +2591,7 @@ export default class pacifica extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': localSymbol,
+            'symbol': symbolLocal,
             'timestamp': created_at,
             'datetime': this.iso8601 (created_at),
             'isolated': isIsolated,
@@ -2672,9 +2833,9 @@ export default class pacifica extends Exchange {
         //     }
         //
         const symbolExc = this.safeString (interest, 'symbol');
-        let localSymbol = undefined;
+        let symbolLocal = undefined;
         if (symbolExc !== undefined) {
-            localSymbol = this.symbolExcToLocal (symbolExc);
+            symbolLocal = this.symbolExcToLocal (symbolExc);
         }
         let interestValue = undefined;
         const markPrice = this.safeString (interest, 'mark');
@@ -2684,7 +2845,7 @@ export default class pacifica extends Exchange {
         }
         const timestamp = this.safeInteger (interest, 'timestamp');
         return this.safeOpenInterest ({
-            'symbol': this.safeSymbol (localSymbol),
+            'symbol': this.safeSymbol (symbolLocal),
             'openInterestAmount': this.parseNumber (openInterest),
             'openInterestValue': this.parseNumber (interestValue),
             'timestamp': timestamp,
@@ -2703,42 +2864,89 @@ export default class pacifica extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
-     * @param {string|undefined} [params.cursor] pagination cursor from prev request
+     * @param {string|undefined} [params.cursor] pagination cursor from prev request (manual use)
+     * @param {boolean|undefined} [params.paginate] set to true to fetch all ledger entries with pagination
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchLedger', params);
-        const request: Dict = {
-            'account': userAddress,
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        let cursor = undefined;
+        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'cursor');
+        const defaultLimit = 100; // Default max limit
+        if (paginate) {
+            let allEntries = [];
+            let hasMore = true;
+            while (hasMore === true) {
+                const request: Dict = {
+                    'account': userAddress,
+                };
+                request['limit'] = (limit !== undefined) ? Math.min (limit - allEntries.length, defaultLimit) : defaultLimit;
+                if (cursor !== undefined) {
+                    request['cursor'] = cursor;
+                }
+                const response = await this.publicGetAccountBalanceHistory (this.extend (request, params));
+                // {
+                //   "success": true,
+                //   "data": [
+                //     {
+                //       "amount": "100.000000",
+                //       "balance": "1200.000000",
+                //       "pending_balance": "0.000000",
+                //       "event_type": "deposit",
+                //       "created_at": 1716200000000
+                //     }
+                //     ...
+                //   ],
+                //   "next_cursor": "11114Lz77",      // not included in info!
+                //   "has_more": true                 // not included in info!
+                // }
+                const data = this.safeList (response, 'data', []);
+                const parsed = this.parseLedger (data);
+                allEntries = this.arrayConcat (allEntries, parsed);
+                cursor = this.safeString (response, 'next_cursor');
+                hasMore = this.safeBool (response, 'has_more', false);
+                if (limit !== undefined && allEntries.length >= limit) {
+                    break;
+                }
+                if (!hasMore || cursor === undefined) {
+                    break;
+                }
+            }
+            const sorted = this.sortBy (allEntries, 'timestamp');
+            return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+        } else {
+            const request: Dict = {
+                'account': userAddress,
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (cursor !== undefined) {
+                request['cursor'] = cursor;
+            }
+            const response = await this.publicGetAccountBalanceHistory (this.extend (request, params));
+            // {
+            //   "success": true,
+            //   "data": [
+            //     {
+            //       "amount": "100.000000",
+            //       "balance": "1200.000000",
+            //       "pending_balance": "0.000000",
+            //       "event_type": "deposit",
+            //       "created_at": 1716200000000
+            //     }
+            //     ...
+            //   ],
+            //   "next_cursor": "11114Lz77",      // not included in info!
+            //   "has_more": true                 // not included in info!
+            // }
+            const data = this.safeList (response, 'data', []);
+            return this.parseLedger (data, undefined, since, limit);
         }
-        const cursor = this.safeString (params, 'cursor');
-        if (cursor !== undefined) {
-            request['cursor'] = cursor;
-        }
-        params = this.omit (params, [ 'cursor', 'account' ]);
-        const response = await this.publicGetAccountBalanceHistory (this.extend (request, params));
-        // {
-        //   "success": true,
-        //   "data": [
-        //     {
-        //       "amount": "100.000000",
-        //       "balance": "1200.000000",
-        //       "pending_balance": "0.000000",
-        //       "event_type": "deposit",
-        //       "created_at": 1716200000000
-        //     }
-        //     ...
-        //   ],
-        //   "next_cursor": "11114Lz77",      // todo
-        //   "has_more": true                 // todo
-        // }
-        const data = this.safeList (response, 'data', []);
-        return this.parseLedger (data, undefined, since, limit);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -2841,8 +3049,8 @@ export default class pacifica extends Exchange {
         //     },
         //     ...
         //   ],
-        //   "next_cursor": "11114Lz77",     // todo
-        //   "has_more": true                // todo
+        //   "next_cursor": "11114Lz77",     // not included in info!
+        //   "has_more": true                // not included in info!
         // }
         const data = this.safeList (response, 'data', []);
         return this.parseIncomes (data, market, since, limit);
@@ -2863,13 +3071,13 @@ export default class pacifica extends Exchange {
         const id = this.safeString (income, 'history_id');
         const timestamp = this.safeInteger (income, 'created_at');
         const symbolExc = this.safeString (income, 'symbol');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
         const amount = this.safeString (income, 'amount');
         const code = this.safeCurrencyCode ('USDC');
         const rate = this.safeNumber (income, 'rate');
         return {
             'info': income,
-            'symbol': localSymbol,
+            'symbol': symbolLocal,
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2907,7 +3115,7 @@ export default class pacifica extends Exchange {
             'amount': amount,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
-        // todo omit
+        params = this.omit (params, [ 'expiryWindow', 'agentAddress', 'originAddress' ]);
         const response = this.privatePostAccountSubaccountTransfer (this.extend (request, params));
         //
         // {
@@ -3204,7 +3412,6 @@ export default class pacifica extends Exchange {
     }
 
     signMessage (header: Dict, payload: Dict, privateKey: string): string {
-        // Signing Official python implementation: https://github.com/pacifica-fi/python-sdk/blob/main/common/utils.py
         const message = this.prepareMessage (header, payload);
         const messageBytes = this.encode (message);
         const secretBytes = this.base58ToBinary (privateKey);

@@ -283,7 +283,7 @@ export default class pacifica extends pacificaRest {
             const error = this.safeString (order, 'error', undefined);
             const success = this.safeBool (order, 'success', false);
             const symbolExc = this.safeString (order, 'symbol');
-            const localSymbol = this.symbolExcToLocal (symbolExc);
+            const symbolLocal = this.symbolExcToLocal (symbolExc);
             const orderId = this.safeString (order, 'i');
             const clientOrderId = this.safeString (order, 'I');
             let status = undefined;
@@ -292,7 +292,7 @@ export default class pacifica extends pacificaRest {
             } else {
                 status = 'canceled';
             }
-            ordersToReturn.push (this.safeOrder ({ 'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': localSymbol }));
+            ordersToReturn.push (this.safeOrder ({ 'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': symbolLocal }));
         }
         return ordersToReturn as Order[];
     }
@@ -497,25 +497,25 @@ export default class pacifica extends pacificaRest {
         //
         const entry = this.safeDict (message, 'data', {});
         const symbolExc = this.safeString (entry, 's');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
         const levels = this.safeList (entry, 'l', []);
         const result: Dict = {
             'bids': this.safeList (levels, 0, []),
             'asks': this.safeList (levels, 1, []),
         };
         const timestamp = this.safeInteger (entry, 't');
-        const snapshot = this.parseOrderBook (result, localSymbol, timestamp, 'bids', 'asks', 'p', 'a');
+        const snapshot = this.parseOrderBook (result, symbolLocal, timestamp, 'bids', 'asks', 'p', 'a');
         const nonce = this.safeNumber (entry, 'li');
         if (nonce) {
             snapshot['nonce'] = nonce;
         }
-        if (!(localSymbol in this.orderbooks)) {
+        if (!(symbolLocal in this.orderbooks)) {
             const ob = this.orderBook (snapshot);
-            this.orderbooks[localSymbol] = ob;
+            this.orderbooks[symbolLocal] = ob;
         }
-        const orderbook = this.orderbooks[localSymbol];
+        const orderbook = this.orderbooks[symbolLocal];
         orderbook.reset (snapshot);
-        const messageHash = 'orderbook:' + localSymbol;
+        const messageHash = 'orderbook:' + symbolLocal;
         client.resolve (orderbook, messageHash);
     }
 
@@ -686,10 +686,10 @@ export default class pacifica extends pacificaRest {
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
             const symbolExc = this.safeString (info, 'symbol');
-            const localSymbol = this.symbolExcToLocal (symbolExc);
-            const market = this.safeMarket (localSymbol);
+            const symbolLocal = this.symbolExcToLocal (symbolExc);
+            const market = this.safeMarket (symbolLocal);
             const ticker = this.parseWsTicker (info, market);
-            this.tickers[localSymbol] = ticker;
+            this.tickers[symbolLocal] = ticker;
             parsedTickers.push (ticker);
         }
         const tickers = this.indexBy (parsedTickers, 'symbol');
@@ -838,19 +838,19 @@ export default class pacifica extends pacificaRest {
         const entry = this.safeList (message, 'data', []);
         const first = this.safeDict (entry, 0, {});
         const symbolExc = this.safeString (first, 's');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
-        if (!(localSymbol in this.trades)) {
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
+        if (!(symbolLocal in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
-            this.trades[localSymbol] = stored;
+            this.trades[symbolLocal] = stored;
         }
-        const trades = this.trades[localSymbol];
+        const trades = this.trades[symbolLocal];
         for (let i = 0; i < entry.length; i++) {
             const data = this.safeDict (entry, i);
             const trade = this.parseWsTrade (data);
             trades.append (trade);
         }
-        const messageHash = 'trade:' + localSymbol;
+        const messageHash = 'trade:' + symbolLocal;
         client.resolve (trades, messageHash);
     }
 
@@ -893,8 +893,8 @@ export default class pacifica extends pacificaRest {
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'a');
         const symbolExc = this.safeString (trade, 's');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
-        market = this.safeMarket (localSymbol, undefined);
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
+        market = this.safeMarket (symbolLocal, undefined);
         const id = this.safeString (trade, 'h');
         const fee = this.safeString (trade, 'f');
         let side = this.safeString2 (trade, 'ts', 'd');
@@ -921,7 +921,7 @@ export default class pacifica extends pacificaRest {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': localSymbol,
+            'symbol': symbolLocal,
             'id': id,
             'order': this.safeString (trade, 'i'),
             'type': undefined,
@@ -1021,20 +1021,20 @@ export default class pacifica extends pacificaRest {
         //
         const data = this.safeDict (message, 'data', {});
         const symbolExc = this.safeString (data, 's');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
         const timeframe = this.safeString (data, 'i');
-        if (!(localSymbol in this.ohlcvs)) {
-            this.ohlcvs[localSymbol] = {};
+        if (!(symbolLocal in this.ohlcvs)) {
+            this.ohlcvs[symbolLocal] = {};
         }
-        if (!(timeframe in this.ohlcvs[localSymbol])) {
+        if (!(timeframe in this.ohlcvs[symbolLocal])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[localSymbol][timeframe] = stored;
+            this.ohlcvs[symbolLocal][timeframe] = stored;
         }
-        const ohlcv = this.ohlcvs[localSymbol][timeframe];
+        const ohlcv = this.ohlcvs[symbolLocal][timeframe];
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
-        const messageHash = 'candles:' + timeframe + ':' + localSymbol;
+        const messageHash = 'candles:' + timeframe + ':' + symbolLocal;
         client.resolve (ohlcv, messageHash);
     }
 
@@ -1194,23 +1194,23 @@ export default class pacifica extends pacificaRest {
 
     handleOrderBookUnsubscription (client: Client, subscription: Dict) {
         const symbolExc = this.safeString2 (subscription, 'symbol', 's');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
-        const subMessageHash = 'orderbook:' + localSymbol;
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
+        const subMessageHash = 'orderbook:' + symbolLocal;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
-        if (localSymbol in this.orderbooks) {
-            delete this.orderbooks[localSymbol];
+        if (symbolLocal in this.orderbooks) {
+            delete this.orderbooks[symbolLocal];
         }
     }
 
     handleTradesUnsubscription (client: Client, subscription: Dict) {
         const symbolExc = this.safeString2 (subscription, 'symbol', 's');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
-        const subMessageHash = 'trade:' + localSymbol;
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
+        const subMessageHash = 'trade:' + symbolLocal;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
-        if (localSymbol in this.trades) {
-            delete this.trades[localSymbol];
+        if (symbolLocal in this.trades) {
+            delete this.trades[symbolLocal];
         }
     }
 
@@ -1226,15 +1226,15 @@ export default class pacifica extends pacificaRest {
 
     handleOHLCVUnsubscription (client: Client, subscription: Dict) {
         const symbolExc = this.safeString2 (subscription, 'symbol', 's');
-        const localSymbol = this.symbolExcToLocal (symbolExc);
+        const symbolLocal = this.symbolExcToLocal (symbolExc);
         const interval = this.safeString (subscription, 'interval');
         const timeframe = this.findTimeframe (interval);
-        const subMessageHash = 'candles:' + timeframe + ':' + localSymbol;
+        const subMessageHash = 'candles:' + timeframe + ':' + symbolLocal;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
-        if (localSymbol in this.ohlcvs) {
-            if (timeframe in this.ohlcvs[localSymbol]) {
-                delete this.ohlcvs[localSymbol][timeframe];
+        if (symbolLocal in this.ohlcvs) {
+            if (timeframe in this.ohlcvs[symbolLocal]) {
+                delete this.ohlcvs[symbolLocal][timeframe];
             }
         }
     }
