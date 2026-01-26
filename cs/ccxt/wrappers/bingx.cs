@@ -265,6 +265,46 @@ public partial class bingx
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
     /// <summary>
+    /// fetches historical funding received
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest funding to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
+    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+    }
+    /// <summary>
     /// retrieves the open interest of a trading pair
     /// </summary>
     /// <remarks>
