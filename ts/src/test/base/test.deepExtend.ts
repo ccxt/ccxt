@@ -10,7 +10,6 @@ function testDeepExtend () {
         'id': 'sampleexchange',
     });
 
-    assert ('GO_SKIP_START');
     const obj1 = {
         "a": 1,
         "b": [ 1, 2, 3 ],
@@ -71,11 +70,6 @@ function testDeepExtend () {
     // todo: results are different across langs.
     // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testDeepExtend', deepExtended, compareTo);
-    assert ('GO_SKIP_END');
-
-    // dummy for now, because of GO lang
-    assert (exchange.parseToNumeric ('1') === 1);
-    return true;
 }
 
 export default testDeepExtend;
