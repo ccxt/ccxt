@@ -3424,7 +3424,11 @@ func (this *KrakenfuturesCore) Sign(path interface{}, optionalArgs ...interface{
 		postData = Add("json=", this.Json(params))
 		body = postData
 	} else if IsTrue(GetArrayLength(ObjectKeys(params))) {
-		postData = this.Urlencode(params)
+		if IsTrue(InOp(params, "orderIds")) {
+			postData = this.UrlencodeWithArrayRepeat(params)
+		} else {
+			postData = this.Urlencode(params)
+		}
 		query = Add(query, Add("?", postData))
 	}
 	var url interface{} = Add(GetValue(GetValue(this.Urls, "api"), api), query)
