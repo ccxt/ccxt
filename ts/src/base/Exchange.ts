@@ -1020,6 +1020,10 @@ export default class Exchange {
         }
     }
 
+    jsonStringifyWithNull (obj) {
+        return JSON.stringify (obj, (key, value) => (value === undefined) ? null : value);
+    }
+
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
