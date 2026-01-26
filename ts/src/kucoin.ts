@@ -2753,19 +2753,28 @@ export default class kucoin extends Exchange {
         //         "0.000945",               // quote volume
         //     ]
         //
-        let timestampString = this.safeString (ohlcv, 0);
+        const timestampString = this.safeString (ohlcv, 0);
         if (timestampString !== undefined && timestampString.length <= 10) {
             // kucoin spot and uta return seconds timestamps
-            timestampString = Precise.stringMul (timestampString, '1000');
+            return [
+                this.safeTimestamp (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 5),
+            ];
+        } else {
+            // kucoin futures return milliseconds timestamps
+            return [
+                this.safeInteger (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
         }
-        return [
-            this.parseToInt (timestampString),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 5),
-        ];
     }
 
     /**
