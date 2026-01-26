@@ -131,7 +131,7 @@ export default class dydx extends dydxRest {
     parseWsTrade (trade, market = undefined) {
         //
         // {
-        //     "id": "02b6148d0000000200000005",
+        //     "id": "02b6148d0000000200000003",
         //     "side": "BUY",
         //     "size": "0.024",
         //     "price": "114581",

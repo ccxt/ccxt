@@ -1101,7 +1101,7 @@
                 "timestamp": "not provided"
             },
             "watchOrderBook": {
-                "compareBidAsk": "sometimes bid is greater than ask"
+                "spread": "sometimes bid is greater than ask https://github.com/ccxt/ccxt/actions/runs/21364685838/job/61493659809?pr=27750#step:11:499"
             }
         }
     },
