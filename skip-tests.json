@@ -1352,6 +1352,11 @@
             "watchOrderBookForSymbols": {
                 "timestamp": "not provided"
             }
+        },
+        "urls": {
+            "hostnames": {
+                "contract": "api.hbdm.vn"
+            }
         }
     },
     "bittrade": {

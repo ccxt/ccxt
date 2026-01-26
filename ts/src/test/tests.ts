@@ -239,6 +239,7 @@ class testMainClass {
             exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
         }
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
+        exchange.urls = exchange.deepExtend (exchange.urls, exchange.safeDict (skippedSettingsForExchange, 'urls', {}));
         this.checkedPublicTests = {};
     }
 

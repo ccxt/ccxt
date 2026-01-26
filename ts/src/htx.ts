@@ -2506,7 +2506,7 @@ export default class htx extends Exchange {
             //               "quantity": "40",
             //               "trade_turnover": "22.176",
             //               "ts": 1703697705028,
-            //               "id": 1000003558478170000,
+            //               "id": 1000003558478170001,
             //               "price": "0.5544",
             //               "direction": "buy",
             //               "contract_code": "MANA-USDT",
