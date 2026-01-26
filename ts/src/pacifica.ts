@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/pacifica.js';
-import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -787,7 +787,7 @@ export default class pacifica extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int|undefined} [params.aggLevel] Aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
+     * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -1168,12 +1168,13 @@ export default class pacifica extends Exchange {
             side = 'buy';
         }
         const fee = this.safeString (trade, 'fee');
+        const orderId = this.safeString (trade, 'order_id');
         let takerOrMaker = undefined;
         if (eventType !== undefined) {
             takerOrMaker = (eventType === 'fulfill_maker') ? 'maker' : 'taker';
         }
-        // public trades have no history_id
-        if (id === undefined) {
+        // public trades have no orderId
+        if (orderId === undefined) {
             takerOrMaker = undefined;
         }
         return this.safeTrade ({
@@ -1182,7 +1183,7 @@ export default class pacifica extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': this.safeString (trade, 'order_id'),
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -1258,8 +1259,8 @@ export default class pacifica extends Exchange {
             status = 'open';
         }
         const order = this.safeDict (response, 'data', {});
-        const order_id = this.safeString (order, 'order_id');
-        return this.safeOrder ({ 'id': order_id, 'status': status, 'info': response });
+        const orderId = this.safeString (order, 'order_id');
+        return this.safeOrder ({ 'id': orderId, 'status': status, 'info': response, 'symbol': symbol });
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1388,8 +1389,8 @@ export default class pacifica extends Exchange {
     }
 
     batchOrdersRequest (actions: any[]) {
-        // {
-        // "actions":[
+        //
+        // [
         //     {
         //         "type":"Create",
         //         "data":{
@@ -1418,14 +1419,14 @@ export default class pacifica extends Exchange {
         //         }
         //     }
         // ]
-        // }
+        //
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         const lenActions = actions.length;
         const maxLen = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
         if (maxLen !== undefined) {
             if (lenActions > maxLen) {
-                throw new ExchangeError (this.id + 'batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
+                throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
             }
         }
         return {
@@ -1439,9 +1440,12 @@ export default class pacifica extends Exchange {
             const symbol = this.safeString (orders, 'symbol');
             const side = this.safeString (orders, 'side');
             const price = this.safeNumber (orders, 'price');
-            const type = this.safeString (orders, 'type');
+            const type = this.safeString (orders, 'type', 'limit');
             const orderParams = this.safeDict (orders, 'params');
             const amount = this.safeNumber (orders, 'amount');
+            if (type !== 'limit') {
+                throw new NotSupported (this.id + ' createOrders() supports only type = "limit"! Your value: ' + type);
+            }
             const request = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             const action = {
                 'type': 'Create',
@@ -1455,9 +1459,9 @@ export default class pacifica extends Exchange {
     /**
      * @method
      * @name pacifica#createOrders
-     * @description create a list of trade orders.
+     * @description create a list of trade orders. It is supports only limit orders!
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type (optional or 'limit'), side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1517,7 +1521,7 @@ export default class pacifica extends Exchange {
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + 'cancelOrders() requires a "symbol" argument!');
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
@@ -1552,7 +1556,7 @@ export default class pacifica extends Exchange {
             } else {
                 status = 'canceled';
             }
-            ordersToReturn.push (this.safeOrder ({ 'info': order, 'status': status }));
+            ordersToReturn.push (this.safeOrder ({ 'info': order, 'status': status, 'symbol': symbol }));
         }
         return ordersToReturn as Order[];
     }
@@ -1561,6 +1565,10 @@ export default class pacifica extends Exchange {
         const actions = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
+            const isStopOrder = this.safeBool (params, 'isStopOrder', false);
+            if (isStopOrder) {
+                throw new NotSupported (this.id + ' cancelOrders() do not supports param "isStopOrder" (will be false only) !');
+            }
             const request = this.cancelOrderRequest (id, symbol, params);
             const action = {
                 'type': 'Cancel',
@@ -1660,7 +1668,7 @@ export default class pacifica extends Exchange {
         //
         const success = this.safeBool (response, 'success', false);
         const status = success ? 'canceled' : 'closed';
-        return this.safeOrder ({ 'id': id, 'status': status, 'info': response });
+        return this.safeOrder ({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
     }
 
     cancelOrderRequest (id: Str, symbol: Str = undefined, params = {}) {
@@ -1678,7 +1686,7 @@ export default class pacifica extends Exchange {
             'symbol': symbolExc,
         };
         if ((clientOrderId === undefined) && (id === undefined)) {
-            throw new ArgumentsRequired (this.id + 'cancelOrder() requires either "id" or "clientOrderId"');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires either "id" or "clientOrderId"');
         }
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
@@ -1725,7 +1733,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const order_id = this.safeString (data, 'order_id');
-        return this.safeOrder ({ 'id': order_id, 'info': response });
+        return this.safeOrder ({ 'id': order_id, 'info': response, 'symbol': symbol });
     }
 
     editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params = {}) {
@@ -2253,39 +2261,62 @@ export default class pacifica extends Exchange {
         //       "created_at": 1759224895038
         //     }
         //
-        const symbolExc = this.safeString (order, 'symbol');
+        // websocket watchOrders
+        //     {
+        //       "i": 1559665358,
+        //       "I": null,
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
+        //       "s": "BTC",
+        //       "d": "bid",
+        //       "p": "89501",
+        //       "ip": "89501",
+        //       "lp": "89501",
+        //       "a": "0.00012",
+        //       "f": "0.00012",
+        //       "oe": "fulfill_limit",
+        //       "os": "filled",
+        //       "ot": "limit",
+        //       "sp": null,
+        //       "si": null,
+        //       "r": false,
+        //       "ct": 1765017049008,
+        //       "ut": 1765017219639,
+        //       "li": 1559696133
+        //     }
+
+        const symbolExc = this.safeString2 (order, 'symbol', 's');
         let localSymbol = undefined;
         if (symbolExc !== undefined) {
             localSymbol = this.symbolExcToMarketSymbol (symbolExc);
         }
-        const timestamp = this.safeInteger (order, 'created_at');
-        const status = this.safeString (order, 'order_status');
-        let side = this.safeString (order, 'side');
+        const timestamp = this.safeInteger2 (order, 'created_at', 'ct');
+        const status = this.safeString2 (order, 'order_status', 'os');
+        let side = this.safeString (order, 'side', 'd');
         if (side !== undefined) {
             side = (side === 'bid') ? 'buy' : 'sell';
         }
-        const totalAmount = this.safeString (order, 'initial_amount');
-        const filledAmount = this.safeString (order, 'filled_amount');
+        const totalAmount = this.safeString2 (order, 'initial_amount', 'a');
+        const filledAmount = this.safeString2 (order, 'filled_amount', 'f');
         const remaining = Precise.stringSub (totalAmount, filledAmount);
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString (order, 'order_id'),
-            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'id': this.safeString2 (order, 'order_id', 'i'),
+            'clientOrderId': this.safeString2 (order, 'client_order_id', 'I'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': this.safeInteger (order, 'updated_at'),
+            'lastUpdateTimestamp': this.safeInteger2 (order, 'updated_at', 'ut'),
             'symbol': localSymbol,
-            'type': this.parseOrderType (this.safeStringLower (order, 'order_type')),
+            'type': this.parseOrderType (this.safeStringLower2 (order, 'order_type', 'ot')),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'reduceOnly': this.safeBool (order, 'reduce_only'),
+            'reduceOnly': this.safeBool2 (order, 'reduce_only', 'r'),
             'side': side,
-            'price': this.safeString (order, 'price'),
-            'triggerPrice': this.safeNumber (order, 'stop_price', undefined),
+            'price': this.safeString2 (order, 'price', 'lp'),
+            'triggerPrice': this.safeNumber2 (order, 'stop_price', 'sp'),
             'amount': totalAmount,
             'cost': undefined,
-            'average': this.safeString (order, 'average_filled_price', undefined),
+            'average': this.safeString2 (order, 'average_filled_price', 'p'),
             'filled': filledAmount,
             'remaining': remaining,
             'status': this.parseOrderStatus (status),
@@ -2849,10 +2880,10 @@ export default class pacifica extends Exchange {
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         const operationType = 'transfer_funds';
         if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + 'transfer() requires a "amount" argument!');
+            throw new ArgumentsRequired (this.id + ' transfer() requires a "amount" argument!');
         }
         if (toAccount === undefined) {
-            throw new ArgumentsRequired (this.id + 'transfer() requires a "toAccount" argument!');
+            throw new ArgumentsRequired (this.id + ' transfer() requires a "toAccount" argument!');
         }
         const sigPayload = {
             'to_account': toAccount,
@@ -2921,7 +2952,7 @@ export default class pacifica extends Exchange {
         let originAddress = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
         if (originAddress === undefined) {
-            throw new ArgumentsRequired (this.id + 'createSubAccount() requires "originAddress" in params or "walletAddress" in requiredCredentials');
+            throw new ArgumentsRequired (this.id + ' createSubAccount() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }
         if (agentAddress !== undefined) {
             finalHeaders['agent_wallet'] = agentAddress;
@@ -2931,10 +2962,10 @@ export default class pacifica extends Exchange {
         let subAccountPrivateKey = undefined;
         [ subAccountPrivateKey, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountPrivateKey');
         if (subAccountAddress === undefined) {
-            throw new ArgumentsRequired (this.id + 'createSubAccount() requires a "subAccountAddress"!');
+            throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountAddress"!');
         }
         if (subAccountPrivateKey === undefined) {
-            throw new ArgumentsRequired (this.id + 'createSubAccount() requires a "subAccountPrivateKey"!');
+            throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
         const timestamp = this.milliseconds ();
         let expiryWindow = undefined;
@@ -3019,7 +3050,6 @@ export default class pacifica extends Exchange {
     }
 
     async fetchBuilderApprovals (address: string) {
-        
         const request = {
             'account': address,
         };
@@ -3068,9 +3098,14 @@ export default class pacifica extends Exchange {
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
         //
-        const inCode = this.safeString (response, 'code'); // actually if all ok -> code = undefined
+        const inCode = this.safeNumber (response, 'code'); // actually if all ok -> code = undefined or code = 200
         const message = this.safeString (response, 'error');
-        const error = (inCode !== undefined);
+        let error = undefined;
+        if (inCode === undefined || inCode === 200) {
+            error = false;
+        } else {
+            error = true;
+        }
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         if (error || nonEmptyMessage) {
             const feedback = this.id + ' ' + body;
@@ -3166,7 +3201,7 @@ export default class pacifica extends Exchange {
     postActionRequest (operationType: Str, sigPayload: Dict, params: Dict): Dict {
         this.checkRequiredCredentials (); // check credentials every post action
         if (operationType === 'undefined') {
-            throw new ArgumentsRequired (this.id + 'action:' + operationType + ' postActionRequest() requires "operationType"');
+            throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
         }
         let expiryWindow = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000); // Hardcoded but 5000 default by exchange.
@@ -3182,7 +3217,7 @@ export default class pacifica extends Exchange {
         let originAddress = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('postActionRequest', params);
         if (originAddress === undefined) {
-            throw new ArgumentsRequired (this.id + 'action:' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
+            throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }
         finalHeaders['account'] = originAddress;
         if (agentAddress !== undefined) {
