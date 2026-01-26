@@ -2848,7 +2848,11 @@ class bybit(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 # end time is required when since is not empty
-                fundingInterval = 60 * 60 * 8 * 1000
+                fundingInterval = self.safe_integer(market['info'], 'fundingInterval')
+                if fundingInterval is not None:
+                    fundingInterval = fundingInterval * 60 * 1000
+                else:
+                    fundingInterval = 60 * 60 * 8 * 1000
                 request['endTime'] = since + limit * fundingInterval
         response = self.publicGetV5MarketFundingHistory(self.extend(request, params))
         #
