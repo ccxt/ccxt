@@ -68,7 +68,7 @@ export default class pacifica extends pacificaRest {
         });
     }
 
-    setupApiKeyIntoHeaders (key: string = undefined) {     // coded call at fetchTickers. Use if you want to setup/change rate limit api key.   
+    setupApiKeyIntoHeaders (key: string = undefined) {  // coded call at watchTickers. Use if you want to setup/change rate limit api key.
         const headers = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
@@ -283,7 +283,7 @@ export default class pacifica extends pacificaRest {
             const error = this.safeString (order, 'error', undefined);
             const success = this.safeBool (order, 'success', false);
             const symbolExc = this.safeString (order, 'symbol');
-            const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+            const localSymbol = this.symbolExcToLocal (symbolExc);
             const orderId = this.safeString (order, 'i');
             const clientOrderId = this.safeString (order, 'I');
             let status = undefined;
@@ -497,7 +497,7 @@ export default class pacifica extends pacificaRest {
         //
         const entry = this.safeDict (message, 'data', {});
         const symbolExc = this.safeString (entry, 's');
-        const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+        const localSymbol = this.symbolExcToLocal (symbolExc);
         const levels = this.safeList (entry, 'l', []);
         const result: Dict = {
             'bids': this.safeList (levels, 0, []),
@@ -686,7 +686,7 @@ export default class pacifica extends pacificaRest {
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
             const symbolExc = this.safeString (info, 'symbol');
-            const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+            const localSymbol = this.symbolExcToLocal (symbolExc);
             const market = this.safeMarket (localSymbol);
             const ticker = this.parseWsTicker (info, market);
             this.tickers[localSymbol] = ticker;
@@ -838,7 +838,7 @@ export default class pacifica extends pacificaRest {
         const entry = this.safeList (message, 'data', []);
         const first = this.safeDict (entry, 0, {});
         const symbolExc = this.safeString (first, 's');
-        const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+        const localSymbol = this.symbolExcToLocal (symbolExc);
         if (!(localSymbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
@@ -893,7 +893,7 @@ export default class pacifica extends pacificaRest {
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'a');
         const symbolExc = this.safeString (trade, 's');
-        const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+        const localSymbol = this.symbolExcToLocal (symbolExc);
         market = this.safeMarket (localSymbol, undefined);
         const id = this.safeString (trade, 'h');
         const fee = this.safeString (trade, 'f');
@@ -1021,7 +1021,7 @@ export default class pacifica extends pacificaRest {
         //
         const data = this.safeDict (message, 'data', {});
         const symbolExc = this.safeString (data, 's');
-        const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+        const localSymbol = this.symbolExcToLocal (symbolExc);
         const timeframe = this.safeString (data, 'i');
         if (!(localSymbol in this.ohlcvs)) {
             this.ohlcvs[localSymbol] = {};
@@ -1194,7 +1194,7 @@ export default class pacifica extends pacificaRest {
 
     handleOrderBookUnsubscription (client: Client, subscription: Dict) {
         const symbolExc = this.safeString2 (subscription, 'symbol', 's');
-        const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+        const localSymbol = this.symbolExcToLocal (symbolExc);
         const subMessageHash = 'orderbook:' + localSymbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
@@ -1205,7 +1205,7 @@ export default class pacifica extends pacificaRest {
 
     handleTradesUnsubscription (client: Client, subscription: Dict) {
         const symbolExc = this.safeString2 (subscription, 'symbol', 's');
-        const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+        const localSymbol = this.symbolExcToLocal (symbolExc);
         const subMessageHash = 'trade:' + localSymbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
@@ -1226,7 +1226,7 @@ export default class pacifica extends pacificaRest {
 
     handleOHLCVUnsubscription (client: Client, subscription: Dict) {
         const symbolExc = this.safeString2 (subscription, 'symbol', 's');
-        const localSymbol = this.symbolExcToMarketSymbol (symbolExc);
+        const localSymbol = this.symbolExcToLocal (symbolExc);
         const interval = this.safeString (subscription, 'interval');
         const timeframe = this.findTimeframe (interval);
         const subMessageHash = 'candles:' + timeframe + ':' + localSymbol;
