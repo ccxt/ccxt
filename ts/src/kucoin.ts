@@ -495,7 +495,7 @@ export default class kucoin extends Exchange {
                 },
             },
             'timeframes': {
-                '1m': '1min',
+                '1m': '1min', // spot and uta
                 '3m': '3min',
                 '5m': '5min',
                 '15m': '15min',
@@ -527,6 +527,7 @@ export default class kucoin extends Exchange {
                     'The quantity is below the minimum requirement.': InvalidOrder, // {"msg":"The quantity is below the minimum requirement.","code":"400100"}
                     'not in the given range!': BadRequest, // {"msg":"price not in the given range!","code":"400100"}
                     'recAccountType not in the given range': BadRequest, // {"msg":"recAccountType not in the given range","code":"400100"}
+                    'Unsupported trading pair.': BadSymbol, // {"msg":"Unsupported trading pair.","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -717,6 +718,23 @@ export default class kucoin extends Exchange {
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,
+                },
+                'timeframes': {
+                    'swap': {
+                        '1m': 1,
+                        '3m': undefined,
+                        '5m': 5,
+                        '15m': 15,
+                        '30m': 30,
+                        '1h': 60,
+                        '2h': 120,
+                        '4h': 240,
+                        '6h': undefined,
+                        '8h': 480,
+                        '12h': 720,
+                        '1d': 1440,
+                        '1w': 10080,
+                    },
                 },
                 // endpoint versions
                 'versions': {
@@ -2148,7 +2166,7 @@ export default class kucoin extends Exchange {
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
-    parseOriginalTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseSpotOrUtaTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "BTC-USDT",   // symbol
@@ -2483,7 +2501,7 @@ export default class kucoin extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             tickers[i]['time'] = time;
-            const ticker = this.parseOriginalTicker (tickers[i]);
+            const ticker = this.parseSpotOrUtaTicker (tickers[i]);
             const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
@@ -2690,14 +2708,15 @@ export default class kucoin extends Exchange {
             //
             result = this.safeDict (response, 'data', {});
         }
-        return this.parseOriginalTicker (result, market);
+        return this.parseSpotOrUtaTicker (result, market);
     }
 
     /**
      * @method
      * @name kucoin#fetchMarkPrice
      * @description fetches the mark price for a specific market
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2708,10 +2727,18 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetMarkPriceSymbolCurrent (this.extend (request, params));
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseTicker (data, market);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrice', market, params, type);
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.futuresPublicGetMarkPriceSymbolCurrent (this.extend (request, params));
+            const data = this.safeDict (response, 'data', {});
+            return this.parseTicker (data, market);
+        } else {
+            response = await this.publicGetMarkPriceSymbolCurrent (this.extend (request, params));
+            const data = this.safeDict (response, 'data', {});
+            return this.parseSpotOrUtaTicker (data, market);
+        }
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -2740,7 +2767,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kucoin.com/#get-klines
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
      * @see https://www.kucoin.com/docs-new/rest/ua/get-klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -2753,12 +2781,27 @@ export default class kucoin extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        // for spot and uta
+        let maxLimit = 1500;
+        let startKey = 'startAt';
+        let endKey = 'endAt';
+        let denominator = 1000;
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
+        const isFutures = (market['swap'] && (!uta));
+        if (isFutures) {
+            // for futures
+            maxLimit = 200;
+            startKey = 'from';
+            endKey = 'to';
+            denominator = 1;
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1500) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
-        const market = this.market (symbol);
         const marketId = market['id'];
         const request: Dict = {
             'symbol': marketId,
@@ -2766,25 +2809,44 @@ export default class kucoin extends Exchange {
         const duration = this.parseTimeframe (timeframe) * 1000;
         let endAt = this.milliseconds (); // required param
         if (since !== undefined) {
-            request['startAt'] = this.parseToInt (Math.floor (since / 1000));
+            request[startKey] = this.parseToInt (Math.floor (since / denominator));
             if (limit === undefined) {
                 // https://docs.kucoin.com/#get-klines
                 // https://docs.kucoin.com/#details
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
-                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', 1500);
+                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit);
             }
             endAt = this.sum (since, limit * duration);
         } else if (limit !== undefined) {
             since = endAt - limit * duration;
-            request['startAt'] = this.parseToInt (Math.floor (since / 1000));
+            request[startKey] = this.parseToInt (Math.floor (since / denominator));
         }
-        request['endAt'] = this.parseToInt (Math.floor (endAt / 1000));
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
+        request[endKey] = this.parseToInt (Math.floor (endAt / denominator));
         let response = undefined;
         let result = undefined;
-        if (uta) {
+        if (isFutures) {
+            const timeframeOptions = this.safeDict (this.options, 'timeframes', {});
+            const swapTimeframes = this.safeDict (timeframeOptions, 'swap', {});
+            const parsedTimeframe = this.safeInteger (swapTimeframes, timeframe);
+            if (parsedTimeframe !== undefined) {
+                request['granularity'] = parsedTimeframe;
+            } else {
+                request['granularity'] = timeframe;
+            }
+            response = await this.futuresPublicGetKlineQuery (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": [
+            //            [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
+            //            [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
+            //            [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
+            //        ]
+            //    }
+            //
+            result = this.safeList (response, 'data', []);
+        } else if (uta) {
             let type = undefined;
             [ type, params ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
             if (type === 'spot') {
