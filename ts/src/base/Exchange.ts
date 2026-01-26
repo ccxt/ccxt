@@ -1021,7 +1021,7 @@ export default class Exchange {
     }
 
     jsonStringifyWithNull (obj) {
-        return JSON.stringify(obj, (_, v) => v === undefined ? null : v);
+        return JSON.stringify (obj, (_, v) => (v === undefined ? null : v));
     }
 
     parseJson (jsonString) {
