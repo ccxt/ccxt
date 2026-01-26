@@ -2,13 +2,12 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bithumb.js';
-import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
-import { Precise } from './base/Precise.js';
+import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress } from './base/errors.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -647,7 +646,7 @@ export default class bithumb extends Exchange {
             request['market'] = this.marketId (symbol);
         }
         if (limit !== undefined) {
-             request['limit'] = limit;
+            request['limit'] = limit;
         }
         const response = await this.v2privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, undefined, since, limit);

@@ -70,53 +70,50 @@
             {
                 "description": "createOrder",
                 "method": "createOrder",
-                "url": "https://api.bithumb.com/trade/market_buy",
+                "url": "https://api.bithumb.com/v1/orders",
                 "input": [
                     "BTC/KRW",
-                    "market",
+                    "limit",
                     "buy",
                     0.01,
-                    67734000
+                    67000000
                 ],
-                "output": "endpoint=%2Ftrade%2Fmarket_buy&order_currency=BTC&payment_currency=KRW&units=0.01"
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"volume\":\"0.01\",\"ord_type\":\"limit\",\"price\":\"67000000\"}"
             }
         ],
         "fetchOrder": [
             {
                 "description": "fetchOrder",
                 "method": "fetchOrder",
-                "url": "https://api.bithumb.com/info/order_detail",
+                "url": "https://api.bithumb.com/v1/order?uuid=1429500241523",
                 "input": [
                     "1429500241523",
                     "BTC/KRW"
                 ],
-                "output": "endpoint=%2Finfo%2Forder_detail&order_id=1429500241523&count=1&order_currency=BTC&payment_currency=KRW"
+                "output": ""
             }
         ],
         "fetchOpenOrders": [
             {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.bithumb.com/info/orders",
+                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC",
                 "input": [
                     "BTC/KRW"
                 ],
-                "output": "endpoint=%2Finfo%2Forders&count=100&order_currency=BTC&payment_currency=KRW"
+                "output": ""
             }
         ],
         "cancelOrder": [
             {
                 "description": "cancelOrder",
                 "method": "cancelOrder",
-                "url": "https://api.bithumb.com/trade/cancel",
+                "url": "https://api.bithumb.com/v1/order?uuid=1429500241523",
                 "input": [
                     "1429500241523",
-                    "BTC/KRW",
-                    {
-                        "side": "buy"
-                    }
+                    "BTC/KRW"
                 ],
-                "output": "endpoint=%2Ftrade%2Fcancel&order_id=1429500241523&type=bid&order_currency=BTC&payment_currency=KRW"
+                "output": ""
             }
         ]
     }
