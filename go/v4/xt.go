@@ -2014,8 +2014,8 @@ func (this *XtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{})
 		"change":        this.SafeNumber(ticker, "cv"),
 		"percentage":    this.ParseNumber(percentage),
 		"average":       nil,
-		"baseVolume":    nil,
-		"quoteVolume":   this.SafeNumber2(ticker, "a", "v"),
+		"baseVolume":    this.SafeNumber(ticker, "a"),
+		"quoteVolume":   this.SafeNumber(ticker, "v"),
 		"info":          ticker,
 	}, market)
 }
