@@ -2415,8 +2415,8 @@ export default class xt extends Exchange {
      * @method
      * @name xt#createOrder
      * @description create a trade order
-     * @see https://doc.xt.com/#orderorderPost
-     * @see https://doc.xt.com/#futures_ordercreate
+     * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
+     * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
      * @see https://doc.xt.com/#futures_entrustcreatePlan
      * @see https://doc.xt.com/#futures_entrustcreateProfit
      * @param {string} symbol unified symbol of the market to create an order in
@@ -2527,11 +2527,11 @@ export default class xt extends Exchange {
         }
         let response = undefined;
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
-        const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
+        const stopLossPrice = this.safeNumber2 (params, 'stopLossPrice', 'triggerStopPrice');
+        const takeProfitPrice = this.safeNumber2 (params, 'takeProfitPrice', 'triggerProfitPrice');
         const isTrigger = (triggerPrice !== undefined);
-        const isStopLoss = (stopLoss !== undefined);
-        const isTakeProfit = (takeProfit !== undefined);
+        const isStopLoss = (stopLossPrice !== undefined);
+        const isTakeProfit = (takeProfitPrice !== undefined);
         if (price !== undefined) {
             if (!(isStopLoss) && !(isTakeProfit)) {
                 request['price'] = this.priceToPrecision (symbol, price);
@@ -2552,11 +2552,11 @@ export default class xt extends Exchange {
             }
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLoss);
+                request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
             } else {
-                request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfit);
+                request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             }
-            params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
+            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
             if (market['linear']) {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreateProfit (this.extend (request, params));
             } else if (market['inverse']) {
@@ -4938,11 +4938,11 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
-        const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
-        const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
-        params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
-        const isStopLoss = (stopLoss !== undefined);
-        const isTakeProfit = (takeProfit !== undefined);
+        const stopLossPrice = this.safeNumber2 (params, 'stopLossPrice', 'triggerStopPrice');
+        const takeProfitPrice = this.safeNumber2 (params, 'takeProfitPrice', 'triggerProfitPrice');
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+        const isStopLoss = (stopLossPrice !== undefined);
+        const isTakeProfit = (takeProfitPrice !== undefined);
         if (isStopLoss || isTakeProfit) {
             request['profitId'] = id;
         } else {
@@ -4952,9 +4952,9 @@ export default class xt extends Exchange {
         let response = undefined;
         if (market['swap']) {
             if (isStopLoss) {
-                request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLoss);
-            } else if (takeProfit !== undefined) {
-                request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfit);
+                request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+            } else if (takeProfitPrice !== undefined) {
+                request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             } else {
                 request['origQty'] = this.amountToPrecision (symbol, amount);
             }
