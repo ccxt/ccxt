@@ -1091,6 +1091,12 @@ export default class pacifica extends Exchange {
         const defaultLimit = 100;  // Default max limit
         limit = this.parseNumber (limit);
         since = this.parseNumber (since);
+        if (limit !== undefined) {
+            limit = this.parseToInt (limit);
+        }
+        if (since !== undefined) {
+            since = this.parseToInt (since);
+        }
         if (paginate) {
             let allTrades = [];
             let hasMore = true;
@@ -1769,7 +1775,7 @@ export default class pacifica extends Exchange {
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         } else {
-            sigPayload['order_id'] = this.parseNumber (id);
+            sigPayload['order_id'] = this.parseToInt (id);
         }
         const request = this.postActionRequest (operationType, sigPayload, params);
         return request;
@@ -1843,7 +1849,7 @@ export default class pacifica extends Exchange {
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         } else {
-            sigPayload['order_id'] = this.parseNumber (id);
+            sigPayload['order_id'] = this.parseToInt (id);
         }
         const request = this.postActionRequest (operationType, sigPayload, params);
         return request;
@@ -1875,6 +1881,12 @@ export default class pacifica extends Exchange {
         const defaultLimit = 100;  // Default max limit
         limit = this.parseNumber (limit);
         since = this.parseNumber (since);
+        if (limit !== undefined) {
+            limit = this.parseToInt (limit);
+        }
+        if (since !== undefined) {
+            since = this.parseToInt (since);
+        }
         if (paginate) {
             let allEntries = [];
             let hasMore = true;
@@ -2186,6 +2198,12 @@ export default class pacifica extends Exchange {
         const defaultLimit = 100; // max default 100
         limit = this.parseNumber (limit);
         since = this.parseNumber (since);
+        if (limit !== undefined) {
+            limit = this.parseToInt (limit);
+        }
+        if (since !== undefined) {
+            since = this.parseToInt (since);
+        }
         if (paginate) {
             let allOrders = [];
             let hasMore = true;
@@ -2888,6 +2906,14 @@ export default class pacifica extends Exchange {
         const defaultLimit = 100; // Default max limit
         limit = this.parseNumber (limit);
         since = this.parseNumber (since);
+        limit = this.parseNumber (limit);
+        since = this.parseNumber (since);
+        if (limit !== undefined) {
+            limit = this.parseToInt (limit);
+        }
+        if (since !== undefined) {
+            since = this.parseToInt (since);
+        }
         if (paginate) {
             let allEntries = [];
             let hasMore = true;
