@@ -390,6 +390,40 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "fetch ohlcv for swap market",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        [
+                            1769405940000,
+                            87753,
+                            87761.3,
+                            87741.9,
+                            87761.2,
+                            320,
+                            28079.376
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1769405940000000,
+                        87753,
+                        87741.9,
+                        87761.2,
+                        87761.3,
+                        320
+                    ]
+                ]
+            },
+            {
                 "description": "spot ohlcv with since and limit",
                 "method": "fetchOHLCV",
                 "input": [
@@ -806,6 +840,65 @@
             }
         ],
         "fetchTicker": [
+            {
+                "description": "fetch ticker for swap",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "sequence": 1733332266106,
+                        "symbol": "XBTUSDTM",
+                        "side": "buy",
+                        "size": 4,
+                        "tradeId": "1909834028316",
+                        "price": "87795",
+                        "bestBidPrice": "87794.9",
+                        "bestBidSize": 261,
+                        "bestAskPrice": "87795",
+                        "bestAskSize": 854,
+                        "ts": 1769406175763000000
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1769406175763,
+                    "datetime": "2026-01-26T05:42:55.763Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 87794.9,
+                    "bidVolume": 261,
+                    "ask": 87795,
+                    "askVolume": 854,
+                    "vwap": null,
+                    "open": null,
+                    "close": 87795,
+                    "last": 87795,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "sequence": 1733332266106,
+                        "symbol": "XBTUSDTM",
+                        "side": "buy",
+                        "size": 4,
+                        "tradeId": "1909834028316",
+                        "price": "87795",
+                        "bestBidPrice": "87794.9",
+                        "bestBidSize": 261,
+                        "bestAskPrice": "87795",
+                        "bestAskSize": 854,
+                        "ts": 1769406175763000000
+                    }
+                }
+            },
             {
                 "description": "fetch ticker",
                 "method": "fetchTicker",
