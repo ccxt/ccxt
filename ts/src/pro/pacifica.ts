@@ -1168,9 +1168,9 @@ export default class pacifica extends pacificaRest {
     }
 
     handleErrorMessage (client: Client, message): Bool {
-        const code = this.safeInteger (message, 'code'); // can be null
-        const error = this.safeString (message, 'err');
-        const postType = this.safeString (message, 'type');
+        const code = this.safeInteger (message, 'code', 0); // can be null thats ok status
+        const error = this.safeString (message, 'err', '');
+        const postType = this.safeString (message, 'type', '');
         const channel = this.safeString (message, 'channel', '');
         if (channel === 'error') {
             const ret_msg = this.safeString (message, 'data', '');
