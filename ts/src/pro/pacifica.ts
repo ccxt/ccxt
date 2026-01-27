@@ -110,7 +110,7 @@ export default class pacifica extends pacificaRest {
             'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'tif', 'stopPrice', 'triggerPrice', 'stopLossCloid', 'builderCode',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'expiry_window', 'agentAddress', 'originAddress',
         ]);
-        const isTestnet = this.handleOption ('createOrderWs', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (operationType, request);
@@ -190,7 +190,7 @@ export default class pacifica extends pacificaRest {
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, market, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
-        const isTestnet = this.handleOption ('editOrderWs', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (batchOperationType, request);
@@ -248,7 +248,7 @@ export default class pacifica extends pacificaRest {
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderIds' ]);
-        const isTestnet = this.handleOption ('cancelOrdersWs', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (batchOperationType, request);
@@ -319,7 +319,7 @@ export default class pacifica extends pacificaRest {
         }
         const request = this.cancelOrderRequest (id, symbol, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
-        const isTestnet = this.handleOption ('cancelOrderWs', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (operationType, request);
@@ -373,7 +373,7 @@ export default class pacifica extends pacificaRest {
         const operationType = 'cancel_all_orders';
         const request = this.cancelAllOrdersRequest (symbol, params);
         params = this.omit (params, [ 'excludeReduceOnly', 'exclude_reduce_only', 'agentAddress', 'originAddress', 'expiryWindow', 'expiry_window' ]);
-        const isTestnet = this.handleOption ('cancelAllOrdersWs', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const wsRequest = this.wrapAsPostAction (operationType, request);
@@ -414,7 +414,7 @@ export default class pacifica extends pacificaRest {
         let aggLevel = undefined;
         [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
-        const isTestnet = this.handleOption ('watchOrderBook', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -447,7 +447,7 @@ export default class pacifica extends pacificaRest {
         [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const isTestnet = this.handleOption ('unWatchOrderBook', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -548,7 +548,7 @@ export default class pacifica extends pacificaRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const messageHash = 'tickers';
-        const isTestnet = this.handleOption ('watchTickers', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -578,7 +578,7 @@ export default class pacifica extends pacificaRest {
         symbols = this.marketSymbols (symbols, undefined, true);
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const isTestnet = this.handleOption ('unWatchTickers', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -611,7 +611,7 @@ export default class pacifica extends pacificaRest {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const isTestnet = this.handleOption ('watchMyTrades', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -647,7 +647,7 @@ export default class pacifica extends pacificaRest {
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('unWatchMyTrades', params);
         const messageHash = 'unsubscribe:myTrades';
-        const isTestnet = this.handleOption ('unWatchMyTrades', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -771,7 +771,7 @@ export default class pacifica extends pacificaRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
-        const isTestnet = this.handleOption ('watchTrades', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -804,7 +804,7 @@ export default class pacifica extends pacificaRest {
         symbol = market['symbol'];
         const subMessageHash = 'trade:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const isTestnet = this.handleOption ('unWatchTrades', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -951,7 +951,7 @@ export default class pacifica extends pacificaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const isTestnet = this.handleOption ('watchOHLCV', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -985,7 +985,7 @@ export default class pacifica extends pacificaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const isTestnet = this.handleOption ('unWatchOHLCV', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -1063,7 +1063,7 @@ export default class pacifica extends pacificaRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        const isTestnet = this.handleOption ('watchOrders', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         const request: Dict = {
@@ -1097,7 +1097,7 @@ export default class pacifica extends pacificaRest {
             throw new NotSupported (this.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only');
         }
         const messageHash = 'unsubscribe:order';
-        const isTestnet = this.handleOption ('unWatchOrders', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
         let userAddress = undefined;

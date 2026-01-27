@@ -21,6 +21,7 @@ export default class pacifica extends Exchange {
             'name': 'pacifica',
             'countries': [ ],
             'version': 'v1',
+            'isSandboxModeEnabled': false, // is testnet api
             'rateLimit': 50, // 125 requests per minute without api-key (300 with api-key) ~ 2 req/sec = 1 req/500 ms.
             'certified': false,
             'pro': true,
@@ -249,7 +250,6 @@ export default class pacifica extends Exchange {
                 'builderCode': undefined,
                 'batchOrdersMax': 10,
                 'defaultType': 'swap',
-                'sandboxMode': false,
                 'defaultSlippage': 0.5,
                 'expiryWindow': 5000,
                 'maxCostHugeWithApiKey': 3,
@@ -376,11 +376,6 @@ export default class pacifica extends Exchange {
                 },
             },
         });
-    }
-
-    setSandboxMode (enabled) {
-        super.setSandboxMode (enabled);
-        this.options['sandboxMode'] = enabled;
     }
 
     market (symbol: string): MarketInterface {
@@ -3371,7 +3366,7 @@ export default class pacifica extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const isTestnet = this.handleOption ('sign', 'sandboxMode', false);
+        const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const host = this.implodeHostname (this.urls[urlKey][api]);
         let url = host + '/api/' + this.version + '/' + this.implodeParams (path, params);
