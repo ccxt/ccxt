@@ -3065,14 +3065,9 @@ export default class pacifica extends Exchange {
         const request: Dict = {
             'account': userAddress,
         };
-        const cursor = this.safeString (params, 'cursor');
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (cursor !== undefined) {
-            request['cursor'] = cursor;
-        }
-        params = this.omit (params, [ 'cursor' ]);
         const response = await this.publicGetFundingHistory (this.extend (request, params));
         // {
         //   "success": true,
