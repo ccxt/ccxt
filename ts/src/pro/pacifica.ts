@@ -72,7 +72,6 @@ export default class pacifica extends pacificaRest {
         const headers = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
-            this.apiKey = key;
         } else {
             if (this.apiKey !== undefined) {
                 headers['PF-API-KEY'] = this.apiKey;
@@ -1328,7 +1327,6 @@ export default class pacifica extends pacificaRest {
             'prices': this.handleWsTickers,
             'subscribe': this.handleSubscriptionResponse,
             'unsubscribe': this.handleSubscriptionResponse,
-
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {

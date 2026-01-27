@@ -1401,7 +1401,7 @@ export default class pacifica extends Exchange {
             const defaultSlippage = this.handleOption ('createOrder', 'defaultSlippage', '0.5');
             const slippage = this.safeString2 (params, 'slippage', 'slippage_percent', defaultSlippage);
             sigPayload['slippage_percent'] = slippage;
-        } else if ((isTakeProfitOrder || isStopLossOrder) && (price === undefined)) { /// the tpsl endpoint does not accept a 'price' parameter
+        } else if ((isTakeProfitOrder || isStopLossOrder) && (price === undefined)) { // the tpsl endpoint does not accept a 'price' parameter
             operationType = 'set_position_tpsl';
         } else if (isStopOrder) {
             operationType = 'create_stop_order';
