@@ -7101,6 +7101,17 @@ ex.number = typeof(String); // typeof(String) | typeof(float)
 <!-- tabs:end -->
 
 
+# Resource clean-up
+
+Depending programming language, when your script finishes its work with any exchange, you are advised to clean-up the resources:
+```python
+poloniex = ccxt.poloniex()
+print(await poloniex.fetch_ticker('ETH/USDT'))
+# ... your codes
+await polonix.close()  # close the exchange instance when you don't need it anymore
+poloniex.reset_data ()  # resets all fetched instance datas (markets, etc..)
+```
+Especially it is needed for all programming languages if you use Websockets.
 
 # Error Handling
 
