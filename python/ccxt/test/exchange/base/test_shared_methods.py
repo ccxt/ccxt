@@ -542,10 +542,10 @@ def assert_round_minute_timestamp(exchange, skipped_properties, method, entry, k
     assert Precise.string_mod(ts, '60000') == '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + log_text
 
 
-def deep_equal(a, b):
+def deep_equal(exchange, a, b):
     return json.dumps(a) == json.dumps(b)
 
 
 def assert_deep_equal(exchange, skipped_properties, method, a, b):
     log_text = log_template(exchange, method, {})
-    assert deep_equal(a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text
+    assert deep_equal(exchange, a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text
