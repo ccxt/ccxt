@@ -1908,8 +1908,8 @@ public partial class xt : Exchange
             { "change", this.safeNumber(ticker, "cv") },
             { "percentage", this.parseNumber(percentage) },
             { "average", null },
-            { "baseVolume", null },
-            { "quoteVolume", this.safeNumber2(ticker, "a", "v") },
+            { "baseVolume", this.safeNumber(ticker, "a") },
+            { "quoteVolume", this.safeNumber(ticker, "v") },
             { "info", ticker },
         }, market);
     }
