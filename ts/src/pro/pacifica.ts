@@ -68,7 +68,7 @@ export default class pacifica extends pacificaRest {
         });
     }
 
-    setupApiKey (key: string = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
+    setupApiKeyHeaders (key: string = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
         const headers = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
@@ -408,7 +408,7 @@ export default class pacifica extends pacificaRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        this.setupApiKey ();
+        this.setupApiKeyHeaders ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         let aggLevel = undefined;
@@ -544,7 +544,7 @@ export default class pacifica extends pacificaRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        this.setupApiKey ();
+        this.setupApiKeyHeaders ();
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const messageHash = 'tickers';
