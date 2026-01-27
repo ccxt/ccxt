@@ -8,6 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/mitchellh/mapstructure"
 	"github.com/vmihailenco/msgpack/v5"
@@ -40,17 +41,25 @@ type TimeInForce struct {
 	TIF string `mapstructure:"tif" msgpack:"tif"`
 }
 
-type Limit struct {
-	TimeInForce TimeInForce `mapstructure:"limit" msgpack:"limit"`
+type TriggerSpec struct {
+	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
+	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
+	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
+}
+
+type OrderKind struct {
+	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
+	Trigger *TriggerSpec `mapstructure:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
-	A int    `mapstructure:"a" msgpack:"a"`
-	B bool   `mapstructure:"b" msgpack:"b"`
-	P string `mapstructure:"p" msgpack:"p"`
-	S string `mapstructure:"s" msgpack:"s"`
-	R bool   `mapstructure:"r" msgpack:"r"`
-	T Limit  `mapstructure:"t" msgpack:"t"`
+	A int       `mapstructure:"a" msgpack:"a"`
+	B bool      `mapstructure:"b" msgpack:"b"`
+	P string    `mapstructure:"p" msgpack:"p"`
+	S string    `mapstructure:"s" msgpack:"s"`
+	R bool      `mapstructure:"r" msgpack:"r"`
+	T OrderKind `mapstructure:"t" msgpack:"t"`
+	C string    `mapstructure:"c,omitempty" msgpack:"c,omitempty"` // optional client order id
 }
 
 type OrderMessage struct {
@@ -81,6 +90,21 @@ type TransferMessage struct {
 	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
 	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
 }
+type SubAccountTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `mapstructure:"usd" msgpack:"usd"`
+}
+
+// Vault transfer message
+
+type VaultTransferMessage struct {
+	Type         string `mapstructure:"type" msgpack:"type"`
+	VaultAddress string `mapstructure:"vaultAddress" msgpack:"vaultAddress"`
+	IsDeposit    bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd          int    `mapstructure:"usd" msgpack:"usd"`
+}
 
 // withdraw
 // {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","destination":"0xc950889d14a3717f541ec246bc253d7a9e98c78f","amount":"100000","time":1737458231937,"type":"withdraw3"}
@@ -96,14 +120,44 @@ type WithdrawMessage struct {
 // editOrder
 // {"type":"batchModify","modifies":[{"oid":8553833906,"order":{"a":5,"b":true,"p":"151","s":"0.2","r":false,"t":{"limit":{"tif":"Gtc"}}}}]}
 type Modify struct {
-	OID   int64 `mapstructure:"oid" msgpack:"oid"`
-	Order Order `mapstructure:"order" msgpack:"order"`
+	OID   int              `mapstructure:"oid" msgpack:"oid"`
+	Order OrderHyperliquid `mapstructure:"order" msgpack:"order"`
 }
 
 // EditOrderMessage represents the batch modification message.
 type EditOrderMessage struct {
 	Type     string   `mapstructure:"type" msgpack:"type"`
 	Modifies []Modify `mapstructure:"modifies" msgpack:"modifies"`
+}
+
+// CreateSubAccount message
+
+type CreateSubAccountMessage struct {
+	Type string `mapstructure:"type" msgpack:"type"`
+	Name string `mapstructure:"name" msgpack:"name"`
+}
+
+// UpdateLeverage message
+
+type UpdateLeverageMessage struct {
+	Type     string `mapstructure:"type" msgpack:"type"`
+	Asset    int    `mapstructure:"asset" msgpack:"asset"`
+	IsCross  bool   `mapstructure:"isCross" msgpack:"isCross"`
+	Leverage int    `mapstructure:"leverage" msgpack:"leverage"`
+}
+
+// UpdateIsolatedMargin message
+
+type UpdateIsolatedMarginMessage struct {
+	Type  string `mapstructure:"type" msgpack:"type"`
+	Asset int    `mapstructure:"asset" msgpack:"asset"`
+	IsBuy bool   `mapstructure:"isBuy" msgpack:"isBuy"`
+	Ntli  int    `mapstructure:"Ntli" msgpack:"Ntli"`
+}
+
+type ReserveRequestWeightMessage struct {
+	Type   string `mapstructure:"type" msgpack:"type"`
+	Weight int    `mapstructure:"weight" msgpack:"weight"`
 }
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -400,6 +454,124 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "createSubAccount":
+		var createSubAccountMsg CreateSubAccountMessage
+
+		err := mapstructure.Decode(converted, &createSubAccountMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(createSubAccountMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "updateLeverage":
+		var leverageMsg UpdateLeverageMessage
+
+		err := mapstructure.Decode(converted, &leverageMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(leverageMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "updateIsolatedMargin":
+		var isolatedMarginMsg UpdateIsolatedMarginMessage
+
+		err := mapstructure.Decode(converted, &isolatedMarginMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(isolatedMarginMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "vaultTransfer":
+		var vaultTransferMsg VaultTransferMessage
+
+		err := mapstructure.Decode(converted, &vaultTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(vaultTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "reserveRequestWeight":
+		var reserveRequestWeightMsg ReserveRequestWeightMessage
+
+		err := mapstructure.Decode(converted, &reserveRequestWeightMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(reserveRequestWeightMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
 	}
 	return nil
+}
+func (this *Exchange) EthGetAddressFromPrivateKey(privateKey interface{}) string {
+	// Convert interface{} to string
+	privateKeyStr, ok := privateKey.(string)
+	if !ok {
+		panic("privateKey must be a string")
+	}
+
+	// Remove "0x" prefix if present
+	cleanPrivateKey := strings.TrimPrefix(privateKeyStr, "0x")
+
+	// Parse the hex string to bytes
+	privateKeyBytes, err := hexutil.Decode("0x" + cleanPrivateKey)
+	if err != nil {
+		panic(fmt.Sprintf("failed to decode private key: %v", err))
+	}
+
+	// Convert bytes to ECDSA private key
+	privKey, err := crypto.ToECDSA(privateKeyBytes)
+	if err != nil {
+		panic(fmt.Sprintf("failed to parse private key: %v", err))
+	}
+
+	// Get the uncompressed public key (remove the 0x04 prefix to get just the coordinates)
+	publicKeyBytes := crypto.FromECDSAPub(&privKey.PublicKey)
+	if publicKeyBytes == nil {
+		panic("failed to get public key bytes")
+	}
+
+	// Remove the first byte (0x04 prefix) - we only want the 64 bytes (X + Y coordinates)
+	publicKeyWithoutPrefix := publicKeyBytes[1:]
+
+	// Hash the public key with Keccak256
+	addressHash := crypto.Keccak256(publicKeyWithoutPrefix)
+
+	// Take the last 20 bytes (40 hex chars) as the address
+	addressBytes := addressHash[len(addressHash)-20:]
+
+	// Convert to hex and add 0x prefix
+	return "0x" + hexutil.Encode(addressBytes)[2:]
 }

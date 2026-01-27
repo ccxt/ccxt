@@ -241,9 +241,69 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync ("privateGetConversionsConversionId",parameters);
     }
 
+    public async Task<object> privateGetConversions (object parameters = null)
+    {
+        return await this.callAsync ("privateGetConversions",parameters);
+    }
+
     public async Task<object> privateGetConversionsFees (object parameters = null)
     {
         return await this.callAsync ("privateGetConversionsFees",parameters);
+    }
+
+    public async Task<object> privateGetLoansLendingOverview (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansLendingOverview",parameters);
+    }
+
+    public async Task<object> privateGetLoansLendingOverviewXm (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansLendingOverviewXm",parameters);
+    }
+
+    public async Task<object> privateGetLoansLoanPreview (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansLoanPreview",parameters);
+    }
+
+    public async Task<object> privateGetLoansLoanPreviewXm (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansLoanPreviewXm",parameters);
+    }
+
+    public async Task<object> privateGetLoansRepaymentPreview (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansRepaymentPreview",parameters);
+    }
+
+    public async Task<object> privateGetLoansRepaymentPreviewXm (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansRepaymentPreviewXm",parameters);
+    }
+
+    public async Task<object> privateGetLoansInterestLoanId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansInterestLoanId",parameters);
+    }
+
+    public async Task<object> privateGetLoansInterestHistoryLoanId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansInterestHistoryLoanId",parameters);
+    }
+
+    public async Task<object> privateGetLoansInterest (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansInterest",parameters);
+    }
+
+    public async Task<object> privateGetLoansAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoansAssets",parameters);
+    }
+
+    public async Task<object> privateGetLoans (object parameters = null)
+    {
+        return await this.callAsync ("privateGetLoans",parameters);
     }
 
     public async Task<object> privatePostConversions (object parameters = null)
@@ -314,6 +374,21 @@ public partial class coinbaseexchange : Exchange
     public async Task<object> privatePostWithdrawalsPaymentMethod (object parameters = null)
     {
         return await this.callAsync ("privatePostWithdrawalsPaymentMethod",parameters);
+    }
+
+    public async Task<object> privatePostLoansOpen (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLoansOpen",parameters);
+    }
+
+    public async Task<object> privatePostLoansRepayInterest (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLoansRepayInterest",parameters);
+    }
+
+    public async Task<object> privatePostLoansRepayPrincipal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLoansRepayPrincipal",parameters);
     }
 
     public async Task<object> privateDeleteOrders (object parameters = null)

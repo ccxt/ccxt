@@ -68,7 +68,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status  
 
@@ -153,7 +153,7 @@ kucoinfutures.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address  
 
@@ -174,7 +174,7 @@ kucoinfutures.fetchDepositAddress (code[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-part-order-book-level-2  
 
@@ -196,7 +196,7 @@ kucoinfutures.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker  
 
@@ -217,7 +217,7 @@ kucoinfutures.fetchTicker (symbol[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price  
 
@@ -238,7 +238,7 @@ kucoinfutures.fetchMarkPrice (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list  
 
@@ -260,7 +260,7 @@ kucoinfutures.fetchTickers ([symbols, params])
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -280,7 +280,7 @@ kucoinfutures.fetchBidsAsks ([symbols, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-funding-history  
 
@@ -303,7 +303,7 @@ kucoinfutures.fetchFundingHistory (symbol[, since, limit, params])
 fetch data on an open position
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.kucoin.com/futures/#get-position-details  
 
@@ -324,7 +324,7 @@ kucoinfutures.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.kucoin.com/futures/#get-position-list  
 
@@ -345,7 +345,7 @@ kucoinfutures.fetchPositions (symbols[, params])
 fetches historical positions
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history  
 
@@ -370,7 +370,7 @@ kucoinfutures.fetchPositionsHistory ([symbols, since, limit, params])
 Create an order on the exchange
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -420,7 +420,7 @@ kucoinfutures.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders  
 
@@ -441,7 +441,7 @@ kucoinfutures.createOrders (orders[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid  
 
@@ -464,7 +464,7 @@ kucoinfutures.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders  
 
@@ -513,7 +513,7 @@ kucoinfutures.cancelAllOrders (symbol[, params])
 add margin
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually  
 
@@ -535,7 +535,7 @@ kucoinfutures.addMargin (symbol, amount[, params])
 fetches a list of orders placed on the exchange
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: An [array of order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An [array of order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -568,7 +568,7 @@ kucoinfutures.fetchOrdersByStatus (status, symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kucoin.com/futures/#get-order-list  
 
@@ -595,7 +595,7 @@ kucoinfutures.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple open orders made by the user
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -627,7 +627,7 @@ kucoinfutures.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kucoin.com/futures/#get-details-of-a-single-order  
 
@@ -649,7 +649,7 @@ kucoinfutures.fetchOrder (id, symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate  
 
@@ -670,7 +670,7 @@ kucoinfutures.fetchFundingRate (symbol[, params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate  
 
@@ -691,7 +691,7 @@ kucoinfutures.fetchFundingInterval (symbol[, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures  
 
@@ -712,7 +712,7 @@ kucoinfutures.fetchBalance ([params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
@@ -740,7 +740,7 @@ kucoinfutures.transfer (code, amount, fromAccount, toAccount[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.kucoin.com/futures/#get-fills  
 
@@ -765,7 +765,7 @@ kucoinfutures.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-transaction-history  
 
@@ -788,7 +788,7 @@ kucoinfutures.fetchTrades (symbol[, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -810,7 +810,7 @@ kucoinfutures.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -832,7 +832,7 @@ kucoinfutures.fetchWithdrawals (code[, since, limit, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level  
 
@@ -853,7 +853,7 @@ kucoinfutures.fetchMarketLeverageTiers (symbol[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url  
 
@@ -861,7 +861,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | not used by kucuoinfutures |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | end time in ms |
 
@@ -877,7 +877,7 @@ kucoinfutures.fetchFundingRateHistory (symbol[, since, limit, params])
 closes open positions for a market
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/orders/place-order  
 
@@ -900,7 +900,7 @@ kucoinfutures.closePosition (symbol, side[, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures  
 
@@ -921,7 +921,7 @@ kucoinfutures.fetchTradingFee (symbol[, params])
 fetches the margin mode of a trading pair
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode  
 
@@ -986,7 +986,7 @@ kucoinfutures.setPositionMode (hedged[, symbol, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage  
 
@@ -1029,7 +1029,7 @@ kucoinfutures.setLeverage (leverage, symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker  
 
@@ -1050,7 +1050,7 @@ kucoinfutures.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -1070,7 +1070,7 @@ kucoinfutures.watchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker-v2  
 
@@ -1112,7 +1112,7 @@ kucoinfutures.watchPosition (symbol, params[])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.kucoin.com/futures/#execution-data  
 
@@ -1135,7 +1135,7 @@ kucoinfutures.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -1157,7 +1157,7 @@ kucoinfutures.watchTradesForSymbols (symbols[, since, limit, params])
 unWatches trades stream
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.kucoin.com/futures/#execution-data  
 
@@ -1178,7 +1178,7 @@ kucoinfutures.unWatchTrades (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -1228,7 +1228,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
   6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.kucoin.com/futures/#level-2-market-data  
 
@@ -1250,7 +1250,7 @@ kucoinfutures.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.kucoin.com/futures/#level-2-market-data  
 
@@ -1272,7 +1272,7 @@ kucoinfutures.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.kucoin.com/futures/#level-2-market-data  
 
@@ -1293,7 +1293,7 @@ kucoinfutures.unWatchOrderBook (symbol[, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -1313,7 +1313,7 @@ kucoinfutures.unWatchOrderBookForSymbols (symbols[, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.kucoin.com/futures/#trade-orders-according-to-the-market  
 
@@ -1336,7 +1336,7 @@ kucoinfutures.watchOrders (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.kucoin.com/futures/#account-balance-events  
 

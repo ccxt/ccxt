@@ -1,18 +1,25 @@
 package ccxt
 
 type Upbit struct {
-	*upbit
-	Core          *upbit
+	*UpbitCore
+	Core          *UpbitCore
 	exchangeTyped *ExchangeTyped
 }
 
 func NewUpbit(userConfig map[string]interface{}) *Upbit {
-	p := &upbit{}
+	p := NewUpbitCore()
 	p.Init(userConfig)
 	return &Upbit{
-		upbit:         p,
+		UpbitCore:     p,
 		Core:          p,
 		exchangeTyped: NewExchangeTyped(&p.Exchange),
+	}
+}
+func NewUpbitFromCore(core *UpbitCore) *Upbit {
+	return &Upbit{
+		UpbitCore:     core,
+		Core:          core,
+		exchangeTyped: NewExchangeTyped(&core.Exchange),
 	}
 }
 
@@ -95,8 +102,8 @@ func (this *Upbit) FetchMarketById(id string, options ...FetchMarketByIdOptions)
 /**
  * @method
  * @name upbit#fetchMarkets
- * @see https://docs.upbit.com/kr/reference/마켓-코드-조회
- * @see https://global-docs.upbit.com/reference/listing-market-list
+ * @see https://docs.upbit.com/kr/reference/list-trading-pairs
+ * @see https://global-docs.upbit.com/reference/list-trading-pairs
  * @description retrieves data on all markets for upbit
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -112,11 +119,11 @@ func (this *Upbit) FetchMarkets(params ...interface{}) ([]MarketInterface, error
 /**
  * @method
  * @name upbit#fetchBalance
- * @see https://docs.upbit.com/kr/reference/전체-계좌-조회
- * @see https://global-docs.upbit.com/reference/overall-account-inquiry
+ * @see https://docs.upbit.com/kr/reference/get-balance
+ * @see https://global-docs.upbit.com/reference/get-balance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Upbit) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -129,13 +136,13 @@ func (this *Upbit) FetchBalance(params ...interface{}) (Balances, error) {
 /**
  * @method
  * @name upbit#fetchOrderBooks
- * @see https://docs.upbit.com/kr/reference/호가-정보-조회
- * @see https://global-docs.upbit.com/reference/order-book-list
+ * @see https://docs.upbit.com/kr/reference/list-orderbooks
+ * @see https://global-docs.upbit.com/reference/list-orderbooks
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
  * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
- * @param {int} [limit] not used by upbit fetchOrderBooks ()
+ * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+ * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
 func (this *Upbit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 
@@ -169,13 +176,13 @@ func (this *Upbit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBook
 /**
  * @method
  * @name upbit#fetchOrderBook
- * @see https://docs.upbit.com/kr/reference/호가-정보-조회
- * @see https://global-docs.upbit.com/reference/order-book-list
+ * @see https://docs.upbit.com/kr/reference/list-orderbooks
+ * @see https://global-docs.upbit.com/reference/list-orderbooks
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Upbit) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -204,12 +211,12 @@ func (this *Upbit) FetchOrderBook(symbol string, options ...FetchOrderBookOption
 /**
  * @method
  * @name upbit#fetchTickers
- * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
- * @see https://global-docs.upbit.com/reference/tickers
+ * @see https://docs.upbit.com/kr/reference/list-tickers
+ * @see https://global-docs.upbit.com/reference/list-tickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Upbit) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -238,12 +245,12 @@ func (this *Upbit) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
 /**
  * @method
  * @name upbit#fetchTicker
- * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
- * @see https://global-docs.upbit.com/reference/tickers
+ * @see https://docs.upbit.com/kr/reference/list-tickers
+ * @see https://global-docs.upbit.com/reference/list-tickers
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Upbit) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -267,14 +274,14 @@ func (this *Upbit) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 /**
  * @method
  * @name upbit#fetchTrades
- * @see https://docs.upbit.com/kr/reference/최근-체결-내역
- * @see https://global-docs.upbit.com/reference/today-trades-history
+ * @see https://docs.upbit.com/kr/reference/list-pair-trades
+ * @see https://global-docs.upbit.com/reference/list-pair-trades
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Upbit) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -308,12 +315,12 @@ func (this *Upbit) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
 /**
  * @method
  * @name upbit#fetchTradingFee
- * @see https://docs.upbit.com/kr/reference/주문-가능-정보
+ * @see https://docs.upbit.com/kr/reference/available-order-information
  * @see https://global-docs.upbit.com/reference/available-order-information
  * @description fetch the trading fees for a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Upbit) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -339,7 +346,7 @@ func (this *Upbit) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
  * @name upbit#fetchTradingFees
  * @description fetch the trading fees for markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/#/?id=trading-fee-structure}
+ * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/?id=trading-fee-structure}
  */
 func (this *Upbit) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -352,8 +359,8 @@ func (this *Upbit) FetchTradingFees(params ...interface{}) (TradingFees, error) 
 /**
  * @method
  * @name upbit#fetchOHLCV
- * @see https://docs.upbit.com/kr/reference/분minute-캔들-1
- * @see https://global-docs.upbit.com/reference/minutes
+ * @see https://docs.upbit.com/kr/reference/list-candles-minutes
+ * @see https://global-docs.upbit.com/reference/list-candles-minutes
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -400,8 +407,10 @@ func (this *Upbit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @method
  * @name upbit#createOrder
  * @description create a trade order
- * @see https://docs.upbit.com/kr/reference/주문하기
- * @see https://global-docs.upbit.com/reference/order
+ * @see https://docs.upbit.com/kr/reference/new-order
+ * @see https://global-docs.upbit.com/reference/new-order
+ * @see https://docs.upbit.com/kr/reference/order-test
+ * @see https://global-docs.upbit.com/reference/order-test
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
  * @param {string} side 'buy' or 'sell'
@@ -410,8 +419,10 @@ func (this *Upbit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
  * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
- * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+ * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+ * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Upbit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -440,13 +451,13 @@ func (this *Upbit) CreateOrder(symbol string, typeVar string, side string, amoun
 /**
  * @method
  * @name upbit#cancelOrder
- * @see https://docs.upbit.com/kr/reference/주문-취소
- * @see https://global-docs.upbit.com/reference/order-cancel
+ * @see https://docs.upbit.com/kr/reference/cancel-order
+ * @see https://global-docs.upbit.com/reference/cancel-order
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol not used by upbit cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Upbit) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -475,8 +486,8 @@ func (this *Upbit) CancelOrder(id string, options ...CancelOrderOptions) (Order,
 /**
  * @method
  * @name upbit#editOrder
- * @see https://docs.upbit.com/kr/reference/취소-후-재주문
- * @see https://global-docs.upbit.com/reference/cancel-and-new
+ * @see https://docs.upbit.com/kr/reference/cancel-and-new-order
+ * @see https://global-docs.upbit.com/reference/cancel-and-new-order
  * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
  * @param {string} id the uuid of the previous order you want to edit.
  * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
@@ -487,10 +498,11 @@ func (this *Upbit) CancelOrder(id string, options ...CancelOrderOptions) (Order,
  * @param {object} [params] extra parameters specific to the exchange API endpoint.
  * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
  * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
- * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+ * @param {string} [params.newTimeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
  * @param {string} [params.newClientOrderId] the order ID that the user can define.
  * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Upbit) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -524,14 +536,14 @@ func (this *Upbit) EditOrder(id string, symbol string, typeVar string, side stri
 /**
  * @method
  * @name upbit#fetchDeposits
- * @see https://docs.upbit.com/kr/reference/입금-리스트-조회
- * @see https://global-docs.upbit.com/reference/deposit-list-inquiry
+ * @see https://docs.upbit.com/kr/reference/list-deposits
+ * @see https://global-docs.upbit.com/reference/list-deposits
  * @description fetch all deposits made to an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Upbit) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -571,13 +583,13 @@ func (this *Upbit) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction
  * @method
  * @name upbit#fetchDeposit
  * @description fetch information on a deposit
- * @see https://docs.upbit.com/kr/reference/개별-입금-조회
- * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+ * @see https://docs.upbit.com/kr/reference/get-deposit
+ * @see https://global-docs.upbit.com/reference/get-deposit
  * @param {string} id the unique id for the deposit
  * @param {string} [code] unified currency code of the currency deposited
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Upbit) FetchDeposit(id string, options ...FetchDepositOptions) (Transaction, error) {
 
@@ -606,14 +618,14 @@ func (this *Upbit) FetchDeposit(id string, options ...FetchDepositOptions) (Tran
 /**
  * @method
  * @name upbit#fetchWithdrawals
- * @see https://docs.upbit.com/kr/reference/전체-출금-조회
- * @see https://global-docs.upbit.com/reference/withdrawal-list-inquiry
+ * @see https://docs.upbit.com/kr/reference/list-withdrawals
+ * @see https://global-docs.upbit.com/reference/list-withdrawals
  * @description fetch all withdrawals made from an account
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Upbit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -653,13 +665,13 @@ func (this *Upbit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
  * @method
  * @name upbit#fetchWithdrawal
  * @description fetch data on a currency withdrawal via the withdrawal id
- * @see https://docs.upbit.com/kr/reference/개별-출금-조회
- * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+ * @see https://docs.upbit.com/kr/reference/get-withdrawal
+ * @see https://global-docs.upbit.com/reference/get-withdrawal
  * @param {string} id the unique id for the withdrawal
  * @param {string} [code] unified currency code of the currency withdrawn
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Upbit) FetchWithdrawal(id string, options ...FetchWithdrawalOptions) (Transaction, error) {
 
@@ -689,14 +701,14 @@ func (this *Upbit) FetchWithdrawal(id string, options ...FetchWithdrawalOptions)
  * @method
  * @name upbit#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://docs.upbit.com/kr/reference/대기-주문-조회
- * @see https://global-docs.upbit.com/reference/open-order
+ * @see https://docs.upbit.com/kr/reference/list-open-orders
+ * @see https://global-docs.upbit.com/reference/list-open-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.state] default is 'wait', set to 'watch' for stop limit orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Upbit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -736,14 +748,14 @@ func (this *Upbit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
  * @method
  * @name upbit#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.upbit.com/kr/reference/종료-주문-조회
- * @see https://global-docs.upbit.com/reference/closed-order
+ * @see https://docs.upbit.com/kr/reference/list-closed-orders
+ * @see https://global-docs.upbit.com/reference/list-closed-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest order
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Upbit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -783,14 +795,14 @@ func (this *Upbit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Ord
  * @method
  * @name upbit#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://docs.upbit.com/kr/reference/종료-주문-조회
- * @see https://global-docs.upbit.com/reference/closed-order
+ * @see https://docs.upbit.com/kr/reference/list-closed-orders
+ * @see https://global-docs.upbit.com/reference/list-closed-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest order
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Upbit) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -829,13 +841,13 @@ func (this *Upbit) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([
 /**
  * @method
  * @name upbit#fetchOrder
- * @see https://docs.upbit.com/kr/reference/개별-주문-조회
- * @see https://global-docs.upbit.com/reference/individual-order-inquiry
+ * @see https://docs.upbit.com/kr/reference/get-order
+ * @see https://global-docs.upbit.com/reference/get-order
  * @description fetches information on an order made by the user
  * @param {string} id order id
  * @param {string} symbol not used by upbit fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Upbit) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -864,12 +876,12 @@ func (this *Upbit) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
 /**
  * @method
  * @name upbit#fetchDepositAddresses
- * @see https://docs.upbit.com/kr/reference/전체-입금-주소-조회
- * @see https://global-docs.upbit.com/reference/general-deposit-address-inquiry
+ * @see https://docs.upbit.com/kr/reference/list-deposit-addresses
+ * @see https://global-docs.upbit.com/reference/list-deposit-addresses
  * @description fetch deposit addresses for multiple currencies and chain types
  * @param {string[]|undefined} codes list of unified currency codes, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Upbit) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 
@@ -898,13 +910,13 @@ func (this *Upbit) FetchDepositAddresses(options ...FetchDepositAddressesOptions
 /**
  * @method
  * @name upbit#fetchDepositAddress
- * @see https://docs.upbit.com/kr/reference/개별-입금-주소-조회
- * @see https://global-docs.upbit.com/reference/individual-deposit-address-inquiry
+ * @see https://docs.upbit.com/kr/reference/get-deposit-address
+ * @see https://global-docs.upbit.com/reference/get-deposit-address
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Upbit) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -928,12 +940,12 @@ func (this *Upbit) FetchDepositAddress(code string, options ...FetchDepositAddre
 /**
  * @method
  * @name upbit#createDepositAddress
- * @see https://docs.upbit.com/kr/reference/입금-주소-생성-요청
- * @see https://global-docs.upbit.com/reference/deposit-address-generation
+ * @see https://docs.upbit.com/kr/reference/create-deposit-address
+ * @see https://global-docs.upbit.com/reference/create-deposit-address
  * @description create a currency deposit address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Upbit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
@@ -957,15 +969,15 @@ func (this *Upbit) CreateDepositAddress(code string, options ...CreateDepositAdd
 /**
  * @method
  * @name upbit#withdraw
- * @see https://docs.upbit.com/kr/reference/디지털자산-출금하기
- * @see https://global-docs.upbit.com/reference/withdrawal-digital-assets
+ * @see https://docs.upbit.com/kr/reference/withdraw
+ * @see https://global-docs.upbit.com/reference/withdraw
  * @description make a withdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Upbit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -996,11 +1008,20 @@ func (this *Upbit) Withdraw(code string, amount float64, address string, options
 func (this *Upbit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Upbit) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *Upbit) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Upbit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
 func (this *Upbit) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Upbit) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Upbit) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -1079,6 +1100,9 @@ func (this *Upbit) EditLimitOrder(id string, symbol string, side string, amount 
 }
 func (this *Upbit) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
+}
+func (this *Upbit) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Upbit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -1236,6 +1260,9 @@ func (this *Upbit) FetchOption(symbol string, options ...FetchOptionOptions) (Op
 func (this *Upbit) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
+func (this *Upbit) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Upbit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrders(options...)
 }
@@ -1307,4 +1334,226 @@ func (this *Upbit) SetPositionMode(hedged bool, options ...SetPositionModeOption
 }
 func (this *Upbit) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 	return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)
+}
+func (this *Upbit) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelAllOrdersWs(options...)
+}
+func (this *Upbit) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWs(ids, options...)
+}
+func (this *Upbit) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWs(id, options...)
+}
+func (this *Upbit) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
+}
+func (this *Upbit) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
+}
+func (this *Upbit) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
+}
+func (this *Upbit) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
+}
+func (this *Upbit) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
+}
+func (this *Upbit) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
+}
+func (this *Upbit) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
+}
+func (this *Upbit) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CreateOrdersWs(orders, options...)
+}
+func (this *Upbit) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
+}
+func (this *Upbit) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
+}
+func (this *Upbit) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Upbit) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
+}
+func (this *Upbit) FetchBalanceWs(params ...interface{}) (Balances, error) {
+	return this.exchangeTyped.FetchBalanceWs(params...)
+}
+func (this *Upbit) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchClosedOrdersWs(options...)
+}
+func (this *Upbit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+	return this.exchangeTyped.FetchDepositsWs(options...)
+}
+func (this *Upbit) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchMyTradesWs(options...)
+}
+func (this *Upbit) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
+}
+func (this *Upbit) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOpenOrdersWs(options...)
+}
+func (this *Upbit) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
+	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
+}
+func (this *Upbit) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
+}
+func (this *Upbit) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersWs(options...)
+}
+func (this *Upbit) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWs(id, options...)
+}
+func (this *Upbit) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
+}
+func (this *Upbit) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsWs(options...)
+}
+func (this *Upbit) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionWs(symbol, options...)
+}
+func (this *Upbit) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
+	return this.exchangeTyped.FetchTickersWs(options...)
+}
+func (this *Upbit) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
+	return this.exchangeTyped.FetchTickerWs(symbol, options...)
+}
+func (this *Upbit) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchTradesWs(symbol, options...)
+}
+func (this *Upbit) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+	return this.exchangeTyped.FetchTradingFeesWs(params...)
+}
+func (this *Upbit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+	return this.exchangeTyped.FetchWithdrawalsWs(options...)
+}
+func (this *Upbit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchBidsAsks(options...)
+}
+func (this *Upbit) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchMyTrades(options...)
+}
+func (this *Upbit) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
+}
+func (this *Upbit) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *Upbit) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
+}
+func (this *Upbit) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
+}
+func (this *Upbit) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrders(options...)
+}
+func (this *Upbit) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTicker(symbol, options...)
+}
+func (this *Upbit) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTickers(options...)
+}
+func (this *Upbit) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTrades(symbol, options...)
+}
+func (this *Upbit) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
+}
+func (this *Upbit) WatchBalance(params ...interface{}) (Balances, error) {
+	return this.exchangeTyped.WatchBalance(params...)
+}
+func (this *Upbit) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchBidsAsks(options...)
+}
+func (this *Upbit) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchLiquidations(symbol, options...)
+}
+func (this *Upbit) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
+}
+func (this *Upbit) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchMarkPrices(options...)
+}
+func (this *Upbit) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
+}
+func (this *Upbit) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
+}
+func (this *Upbit) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchMyTrades(options...)
+}
+func (this *Upbit) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCV(symbol, options...)
+}
+func (this *Upbit) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *Upbit) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBook(symbol, options...)
+}
+func (this *Upbit) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
+}
+func (this *Upbit) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrders(options...)
+}
+func (this *Upbit) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
+}
+func (this *Upbit) WatchPosition(options ...WatchPositionOptions) (Position, error) {
+	return this.exchangeTyped.WatchPosition(options...)
+}
+func (this *Upbit) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
+	return this.exchangeTyped.WatchPositions(options...)
+}
+func (this *Upbit) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchTicker(symbol, options...)
+}
+func (this *Upbit) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchTickers(options...)
+}
+func (this *Upbit) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTrades(symbol, options...)
+}
+func (this *Upbit) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
+}
+func (this *Upbit) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
+	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

@@ -7,78 +7,78 @@
 
 package ccxt
 
-func (this *onetrading) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *onetrading) PublicGetCandlesticksInstrumentCode(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PublicGetCandlesticksInstrumentCode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCandlesticksInstrumentCode", args...)
 }
 
-func (this *onetrading) PublicGetFees(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PublicGetFees(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFees", args...)
 }
 
-func (this *onetrading) PublicGetInstruments(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PublicGetInstruments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetInstruments", args...)
 }
 
-func (this *onetrading) PublicGetOrderBookInstrumentCode(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PublicGetOrderBookInstrumentCode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetOrderBookInstrumentCode", args...)
 }
 
-func (this *onetrading) PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketTicker", args...)
 }
 
-func (this *onetrading) PublicGetMarketTickerInstrumentCode(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PublicGetMarketTickerInstrumentCode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketTickerInstrumentCode", args...)
 }
 
-func (this *onetrading) PublicGetTime(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PublicGetTime(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *onetrading) PrivateGetAccountBalances(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateGetAccountBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountBalances", args...)
 }
 
-func (this *onetrading) PrivateGetAccountFees(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateGetAccountFees(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountFees", args...)
 }
 
-func (this *onetrading) PrivateGetAccountOrders(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateGetAccountOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountOrders", args...)
 }
 
-func (this *onetrading) PrivateGetAccountOrdersOrderId(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateGetAccountOrdersOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountOrdersOrderId", args...)
 }
 
-func (this *onetrading) PrivateGetAccountOrdersOrderIdTrades(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateGetAccountOrdersOrderIdTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountOrdersOrderIdTrades", args...)
 }
 
-func (this *onetrading) PrivateGetAccountTrades(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateGetAccountTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountTrades", args...)
 }
 
-func (this *onetrading) PrivateGetAccountTradesTradeId(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateGetAccountTradesTradeId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountTradesTradeId", args...)
 }
 
-func (this *onetrading) PrivatePostAccountOrders(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivatePostAccountOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAccountOrders", args...)
 }
 
-func (this *onetrading) PrivateDeleteAccountOrders(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateDeleteAccountOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteAccountOrders", args...)
 }
 
-func (this *onetrading) PrivateDeleteAccountOrdersOrderId(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateDeleteAccountOrdersOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteAccountOrdersOrderId", args...)
 }
 
-func (this *onetrading) PrivateDeleteAccountOrdersClientClientId(args ...interface{}) <-chan interface{} {
+func (this *OnetradingCore) PrivateDeleteAccountOrdersClientClientId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteAccountOrdersClientClientId", args...)
 }

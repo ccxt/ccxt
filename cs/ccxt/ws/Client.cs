@@ -86,6 +86,11 @@ public partial class Exchange
             return future;
         }
 
+        public Future reusableFuture(object messageHash)
+        {
+            return this.future(messageHash);  // only used in go
+        }
+
         public void resolve(object content, object messageHash2)
         {
             if (this.verbose && (messageHash2 == null))
@@ -166,7 +171,7 @@ public partial class Exchange
         {
             try
             {
-                    
+
                 if (this.keepAlive != null)
                 {
                     await Task.Delay(Convert.ToInt32(this.keepAlive));
@@ -338,12 +343,15 @@ public partial class Exchange
         private void TryHandleMessage(string message)
         {
             object deserializedMessages = message;
-            try
+            if (isValidJson(message))
             {
-                deserializedMessages = JsonHelper.Deserialize(message);
-            }
-            catch (Exception e)
-            {
+                try
+                {
+                    deserializedMessages = JsonHelper.Deserialize(message);
+                }
+                catch (Exception e)
+                {
+                }
             }
             this.handleMessage(this, deserializedMessages);
         }
@@ -385,6 +393,7 @@ public partial class Exchange
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
 
+                        var msgBinary = buffer.Take(result.Count).ToArray();
                         // Handle binary message
                         // assume gunzip for now
 
@@ -395,9 +404,20 @@ public partial class Exchange
 
                         if (!this.decompressBinary)
                         {
-                            var msgBinary = buffer.Take(result.Count).ToArray();
                             this.handleMessage(this, msgBinary);
                             continue;
+                        }
+
+                        if (this.LooksLikeRawDeflate(msgBinary))
+                        {
+                            string decompressedString = System.Text.Encoding.UTF8.GetString(msgBinary);
+                            if (this.verbose)
+                            {
+                                Console.WriteLine($"On raw binary message decompressed {decompressedString}");
+                            }
+                            this.TryHandleMessage(decompressedString);
+                            continue;
+
                         }
 
                         using (MemoryStream compressedStream = new MemoryStream(buffer, 0, result.Count))
@@ -439,6 +459,15 @@ public partial class Exchange
                 this.isConnected = false;
                 this.onError(this, ex);
             }
+        }
+
+
+        private bool LooksLikeRawDeflate(ReadOnlySpan<byte> b)
+        {
+            if (b.Length < 1) return false;
+            byte first = b[0];
+            int btype = (first >> 1) & 0b11;
+            return btype == 0b01 || btype == 0b10;
         }
 
         public async Task Close()

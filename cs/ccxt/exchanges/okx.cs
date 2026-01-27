@@ -12,7 +12,7 @@ public partial class okx : Exchange
             { "name", "OKX" },
             { "countries", new List<object>() {"CN", "US"} },
             { "version", "v5" },
-            { "rateLimit", multiply(100, 1.03) },
+            { "rateLimit", multiply(100, 1.1) },
             { "pro", true },
             { "certified", true },
             { "has", new Dictionary<string, object>() {
@@ -173,7 +173,7 @@ public partial class okx : Exchange
                 { "doc", "https://www.okx.com/docs-v5/en/" },
                 { "fees", "https://www.okx.com/pages/products/fees.html" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.okx.com/join/CCXT2023" },
+                    { "url", "https://www.okx.com/join/CCXTCOM" },
                     { "discount", 0.2 },
                 } },
                 { "test", new Dictionary<string, object>() {
@@ -183,54 +183,65 @@ public partial class okx : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "market/books-full", 2 },
                         { "market/tickers", 1 },
                         { "market/ticker", 1 },
-                        { "market/index-tickers", 1 },
                         { "market/books", divide(1, 2) },
-                        { "market/books-lite", divide(5, 3) },
+                        { "market/books-full", 2 },
                         { "market/candles", divide(1, 2) },
                         { "market/history-candles", 1 },
-                        { "market/index-candles", 1 },
-                        { "market/history-index-candles", 2 },
-                        { "market/mark-price-candles", 1 },
-                        { "market/history-mark-price-candles", 2 },
                         { "market/trades", divide(1, 5) },
                         { "market/history-trades", 2 },
                         { "market/option/instrument-family-trades", 1 },
                         { "market/platform-24-volume", 10 },
-                        { "market/open-oracle", 50 },
-                        { "market/exchange-rate", 20 },
-                        { "market/index-components", 1 },
-                        { "public/market-data-history", 4 },
-                        { "public/economic-calendar", 50 },
+                        { "market/call-auction-detail", 1 },
+                        { "market/books-sbe", 10 },
                         { "market/block-tickers", 1 },
                         { "market/block-ticker", 1 },
+                        { "market/sprd-ticker", 1 },
+                        { "market/sprd-candles", divide(1, 2) },
+                        { "market/sprd-history-candles", 1 },
+                        { "market/index-tickers", 1 },
+                        { "market/index-candles", 1 },
+                        { "market/history-index-candles", 2 },
+                        { "market/mark-price-candles", 1 },
+                        { "market/history-mark-price-candles", 1 },
+                        { "market/exchange-rate", 20 },
+                        { "market/index-components", 1 },
+                        { "market/open-oracle", 50 },
+                        { "market/books-lite", divide(5, 3) },
+                        { "public/option-trades", 1 },
                         { "public/block-trades", 1 },
                         { "public/instruments", 1 },
+                        { "public/estimated-price", 2 },
                         { "public/delivery-exercise-history", divide(1, 2) },
+                        { "public/estimated-settlement-info", 2 },
+                        { "public/settlement-history", divide(1, 2) },
+                        { "public/funding-rate", 2 },
+                        { "public/funding-rate-history", 2 },
                         { "public/open-interest", 1 },
-                        { "public/funding-rate", 1 },
-                        { "public/funding-rate-history", 1 },
                         { "public/price-limit", 1 },
                         { "public/opt-summary", 1 },
-                        { "public/estimated-price", 2 },
                         { "public/discount-rate-interest-free-quota", 10 },
                         { "public/time", 2 },
                         { "public/mark-price", 2 },
                         { "public/position-tiers", 2 },
                         { "public/interest-rate-loan-quota", 10 },
-                        { "public/vip-interest-rate-loan-quota", 10 },
                         { "public/underlying", 1 },
                         { "public/insurance-fund", 2 },
                         { "public/convert-contract-coin", 2 },
-                        { "public/option-trades", 1 },
                         { "public/instrument-tick-bands", 4 },
+                        { "public/premium-history", 1 },
+                        { "public/economic-calendar", 50 },
+                        { "public/market-data-history", 4 },
+                        { "public/vip-interest-rate-loan-quota", 10 },
                         { "rubik/stat/trading-data/support-coin", 4 },
+                        { "rubik/stat/contracts/open-interest-history", 2 },
                         { "rubik/stat/taker-volume", 4 },
+                        { "rubik/stat/taker-volume-contract", 4 },
                         { "rubik/stat/margin/loan-ratio", 4 },
-                        { "rubik/stat/contracts/long-short-account-ratio", 4 },
+                        { "rubik/stat/contracts/long-short-account-ratio-contract-top-trader", 4 },
                         { "rubik/stat/contracts/long-short-account-ratio-contract", 4 },
+                        { "rubik/stat/contracts/long-short-account-ratio", 4 },
                         { "rubik/stat/contracts/open-interest-volume", 4 },
                         { "rubik/stat/option/open-interest-volume", 4 },
                         { "rubik/stat/option/open-interest-volume-ratio", 4 },
@@ -239,15 +250,13 @@ public partial class okx : Exchange
                         { "rubik/stat/option/taker-block-volume", 4 },
                         { "system/status", 50 },
                         { "sprd/spreads", 1 },
-                        { "sprd/books", divide(1, 2) },
+                        { "sprd/books", 1 },
+                        { "sprd/public-trades", 1 },
                         { "sprd/ticker", 1 },
-                        { "sprd/public-trades", divide(1, 5) },
-                        { "market/sprd-ticker", 2 },
-                        { "market/sprd-candles", 2 },
-                        { "market/sprd-history-candles", 2 },
                         { "tradingBot/grid/ai-param", 1 },
                         { "tradingBot/grid/min-investment", 1 },
                         { "tradingBot/public/rsi-back-testing", 1 },
+                        { "tradingBot/grid/grid-quantity", 4 },
                         { "asset/exchange-list", divide(5, 3) },
                         { "finance/staking-defi/eth/apy-history", divide(5, 3) },
                         { "finance/staking-defi/sol/apy-history", divide(5, 3) },
@@ -257,13 +266,20 @@ public partial class okx : Exchange
                         { "finance/fixed-loan/lending-apy-history", divide(10, 3) },
                         { "finance/fixed-loan/pending-lending-volume", divide(10, 3) },
                         { "finance/sfp/dcd/products", divide(2, 3) },
+                        { "copytrading/public-config", 4 },
                         { "copytrading/public-lead-traders", 4 },
                         { "copytrading/public-weekly-pnl", 4 },
+                        { "copytrading/public-pnl", 4 },
                         { "copytrading/public-stats", 4 },
                         { "copytrading/public-preference-currency", 4 },
                         { "copytrading/public-current-subpositions", 4 },
                         { "copytrading/public-subpositions-history", 4 },
+                        { "copytrading/public-copy-traders", 4 },
+                        { "support/announcements", 4 },
                         { "support/announcements-types", 20 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "tradingBot/grid/min-investment", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -275,17 +291,17 @@ public partial class okx : Exchange
                         { "rfq/quotes", 10 },
                         { "rfq/trades", 4 },
                         { "rfq/public-trades", 4 },
-                        { "sprd/order", divide(1, 3) },
-                        { "sprd/orders-pending", divide(1, 3) },
-                        { "sprd/orders-history", divide(1, 2) },
-                        { "sprd/orders-history-archive", divide(1, 2) },
-                        { "sprd/trades", divide(1, 3) },
+                        { "sprd/order", 1 },
+                        { "sprd/orders-pending", 2 },
+                        { "sprd/orders-history", 1 },
+                        { "sprd/orders-history-archive", 1 },
+                        { "sprd/trades", 1 },
                         { "trade/order", divide(1, 3) },
                         { "trade/orders-pending", divide(1, 3) },
                         { "trade/orders-history", divide(1, 2) },
                         { "trade/orders-history-archive", 1 },
                         { "trade/fills", divide(1, 3) },
-                        { "trade/fills-history", 2.2 },
+                        { "trade/fills-history", 2 },
                         { "trade/fills-archive", 2 },
                         { "trade/order-algo", 1 },
                         { "trade/orders-algo-pending", 1 },
@@ -301,24 +317,25 @@ public partial class okx : Exchange
                         { "asset/balances", divide(5, 3) },
                         { "asset/non-tradable-assets", divide(5, 3) },
                         { "asset/asset-valuation", 10 },
-                        { "asset/transfer-state", 10 },
+                        { "asset/transfer-state", 1 },
                         { "asset/bills", divide(5, 3) },
+                        { "asset/bills-history", 10 },
                         { "asset/deposit-lightning", 5 },
                         { "asset/deposit-address", divide(5, 3) },
                         { "asset/deposit-history", divide(5, 3) },
                         { "asset/withdrawal-history", divide(5, 3) },
                         { "asset/deposit-withdraw-status", 20 },
+                        { "asset/monthly-statement", 2 },
                         { "asset/convert/currencies", divide(5, 3) },
                         { "asset/convert/currency-pair", divide(5, 3) },
                         { "asset/convert/history", divide(5, 3) },
-                        { "asset/monthly-statement", 2 },
                         { "account/instruments", 1 },
                         { "account/balance", 2 },
                         { "account/positions", 2 },
-                        { "account/positions-history", 100 },
+                        { "account/positions-history", 2 },
                         { "account/account-position-risk", 2 },
-                        { "account/bills", divide(5, 3) },
-                        { "account/bills-archive", divide(5, 3) },
+                        { "account/bills", 2 },
+                        { "account/bills-archive", 4 },
                         { "account/bills-history-archive", 2 },
                         { "account/config", 4 },
                         { "account/max-size", 1 },
@@ -331,23 +348,26 @@ public partial class okx : Exchange
                         { "account/interest-rate", 4 },
                         { "account/max-withdrawal", 1 },
                         { "account/risk-state", 2 },
+                        { "account/interest-limits", 4 },
+                        { "account/spot-borrow-repay-history", 4 },
+                        { "account/greeks", 2 },
+                        { "account/position-tiers", 2 },
+                        { "account/set-account-switch-precheck", 4 },
+                        { "account/collateral-assets", 4 },
+                        { "account/mmp-config", 4 },
+                        { "account/move-positions-history", 10 },
+                        { "account/precheck-set-delta-neutral", 20 },
                         { "account/quick-margin-borrow-repay-history", 4 },
                         { "account/borrow-repay-history", 4 },
                         { "account/vip-interest-accrued", 4 },
                         { "account/vip-interest-deducted", 4 },
                         { "account/vip-loan-order-list", 4 },
                         { "account/vip-loan-order-detail", 4 },
-                        { "account/interest-limits", 4 },
-                        { "account/greeks", 2 },
-                        { "account/position-tiers", 2 },
-                        { "account/mmp-config", 4 },
                         { "account/fixed-loan/borrowing-limit", 4 },
                         { "account/fixed-loan/borrowing-quote", 5 },
                         { "account/fixed-loan/borrowing-orders-list", 5 },
                         { "account/spot-manual-borrow-repay", 30 },
                         { "account/set-auto-repay", 4 },
-                        { "account/spot-borrow-repay-history", 4 },
-                        { "account/move-positions-history", 10 },
                         { "users/subaccount/list", 10 },
                         { "account/subaccount/balances", divide(10, 3) },
                         { "asset/subaccount/balances", divide(10, 3) },
@@ -365,9 +385,10 @@ public partial class okx : Exchange
                         { "tradingBot/grid/ai-param", 1 },
                         { "tradingBot/signal/signals", 1 },
                         { "tradingBot/signal/orders-algo-details", 1 },
+                        { "tradingBot/signal/orders-algo-pending", 1 },
                         { "tradingBot/signal/orders-algo-history", 1 },
                         { "tradingBot/signal/positions", 1 },
-                        { "tradingBot/signal/positions-history", 1 },
+                        { "tradingBot/signal/positions-history", 2 },
                         { "tradingBot/signal/sub-orders", 1 },
                         { "tradingBot/signal/event-history", 1 },
                         { "tradingBot/recurring/orders-algo-pending", 1 },
@@ -379,21 +400,36 @@ public partial class okx : Exchange
                         { "finance/staking-defi/offers", divide(10, 3) },
                         { "finance/staking-defi/orders-active", divide(10, 3) },
                         { "finance/staking-defi/orders-history", divide(10, 3) },
+                        { "finance/staking-defi/eth/product-info", divide(10, 3) },
                         { "finance/staking-defi/eth/balance", divide(5, 3) },
                         { "finance/staking-defi/eth/purchase-redeem-history", divide(5, 3) },
-                        { "finance/staking-defi/eth/product-info", 3 },
+                        { "finance/staking-defi/sol/product-info", divide(10, 3) },
                         { "finance/staking-defi/sol/balance", divide(5, 3) },
                         { "finance/staking-defi/sol/purchase-redeem-history", divide(5, 3) },
+                        { "finance/flexible-loan/borrow-currencies", 4 },
+                        { "finance/flexible-loan/collateral-assets", 4 },
+                        { "finance/flexible-loan/max-collateral-redeem-amount", 4 },
+                        { "finance/flexible-loan/loan-info", 4 },
+                        { "finance/flexible-loan/loan-history", 4 },
+                        { "finance/flexible-loan/interest-accrued", 4 },
                         { "copytrading/current-subpositions", 1 },
                         { "copytrading/subpositions-history", 1 },
                         { "copytrading/instruments", 4 },
                         { "copytrading/profit-sharing-details", 4 },
                         { "copytrading/total-profit-sharing", 4 },
                         { "copytrading/unrealized-profit-sharing-details", 4 },
+                        { "copytrading/total-unrealized-profit-sharing", 4 },
+                        { "copytrading/config", 4 },
                         { "copytrading/copy-settings", 4 },
-                        { "copytrading/batch-leverage-info", 4 },
                         { "copytrading/current-lead-traders", 4 },
+                        { "copytrading/batch-leverage-info", 4 },
                         { "copytrading/lead-traders-history", 4 },
+                        { "broker/dma/subaccount-info", 2 },
+                        { "broker/dma/subaccount-trade-fee", 10 },
+                        { "broker/dma/subaccount/apikey", 10 },
+                        { "broker/dma/rebate-per-orders", 300 },
+                        { "broker/fd/rebate-per-orders", 300 },
+                        { "broker/fd/if-rebate", 5 },
                         { "broker/nd/info", 10 },
                         { "broker/nd/subaccount-info", 10 },
                         { "broker/nd/subaccount/apikey", 10 },
@@ -404,8 +440,6 @@ public partial class okx : Exchange
                         { "broker/nd/rebate-per-orders", 300 },
                         { "finance/sfp/dcd/order", 2 },
                         { "finance/sfp/dcd/orders", 2 },
-                        { "broker/fd/rebate-per-orders", 300 },
-                        { "broker/fd/if-rebate", 5 },
                         { "affiliate/invitee/detail", 1 },
                         { "users/partner/if-rebate", 1 },
                         { "support/announcements", 4 },
@@ -423,6 +457,7 @@ public partial class okx : Exchange
                         { "rfq/cancel-quote", 0.4 },
                         { "rfq/cancel-batch-quotes", 10 },
                         { "rfq/cancel-all-quotes", 10 },
+                        { "rfq/cancel-all-after", 10 },
                         { "sprd/order", 1 },
                         { "sprd/cancel-order", 1 },
                         { "sprd/mass-cancel", 1 },
@@ -436,53 +471,64 @@ public partial class okx : Exchange
                         { "trade/amend-batch-orders", divide(1, 150) },
                         { "trade/close-position", 1 },
                         { "trade/fills-archive", 172800 },
-                        { "trade/order-algo", 1 },
-                        { "trade/cancel-algos", 1 },
-                        { "trade/amend-algos", 1 },
                         { "trade/cancel-advance-algos", 1 },
                         { "trade/easy-convert", 20 },
                         { "trade/one-click-repay", 20 },
                         { "trade/one-click-repay-v2", 20 },
                         { "trade/mass-cancel", 4 },
                         { "trade/cancel-all-after", 10 },
-                        { "asset/transfer", 10 },
+                        { "trade/order-precheck", 4 },
+                        { "trade/order-algo", 1 },
+                        { "trade/cancel-algos", 1 },
+                        { "trade/amend-algos", 1 },
+                        { "asset/transfer", 5 },
                         { "asset/withdrawal", divide(5, 3) },
                         { "asset/withdrawal-lightning", 5 },
                         { "asset/cancel-withdrawal", divide(5, 3) },
                         { "asset/convert-dust-assets", 10 },
-                        { "asset/convert/estimate-quote", 1 },
+                        { "asset/monthly-statement", 1296000 },
+                        { "asset/convert/estimate-quote", 50 },
                         { "asset/convert/trade", 1 },
-                        { "asset/monthly-statement", 1 },
+                        { "account/bills-history-archive", 72000 },
                         { "account/set-position-mode", 4 },
                         { "account/set-leverage", 1 },
                         { "account/position/margin-balance", 1 },
+                        { "account/set-fee-type", 4 },
                         { "account/set-greeks", 4 },
                         { "account/set-isolated-mode", 4 },
+                        { "account/spot-manual-borrow-repay", 30 },
+                        { "account/set-auto-repay", 4 },
                         { "account/quick-margin-borrow-repay", 4 },
                         { "account/borrow-repay", divide(5, 3) },
                         { "account/simulated_margin", 10 },
                         { "account/position-builder", 10 },
+                        { "account/position-builder-graph", 50 },
                         { "account/set-riskOffset-type", 2 },
                         { "account/activate-option", 4 },
                         { "account/set-auto-loan", 4 },
+                        { "account/account-level-switch-preset", 4 },
                         { "account/set-account-level", 4 },
+                        { "account/set-collateral-assets", 4 },
                         { "account/mmp-reset", 4 },
-                        { "account/mmp-config", 100 },
+                        { "account/mmp-config", 50 },
                         { "account/fixed-loan/borrowing-order", 5 },
                         { "account/fixed-loan/amend-borrowing-order", 5 },
                         { "account/fixed-loan/manual-reborrow", 5 },
                         { "account/fixed-loan/repay-borrowing-order", 5 },
-                        { "account/bills-history-archive", 72000 },
                         { "account/move-positions", 10 },
+                        { "account/set-auto-earn", 10 },
                         { "account/set-settle-currency", 1 },
-                        { "users/subaccount/modify-apikey", 10 },
+                        { "account/set-trading-config", 20 },
                         { "asset/subaccount/transfer", 10 },
-                        { "users/subaccount/set-transfer-out", 10 },
                         { "account/subaccount/set-loan-allocation", 4 },
                         { "users/subaccount/create-subaccount", 10 },
+                        { "users/subaccount/apikey", 10 },
+                        { "users/subaccount/modify-apikey", 10 },
                         { "users/subaccount/subaccount-apikey", 10 },
                         { "users/subaccount/delete-apikey", 10 },
+                        { "users/subaccount/set-transfer-out", 10 },
                         { "tradingBot/grid/order-algo", 1 },
+                        { "tradingBot/grid/amend-algo-basic-param", 1 },
                         { "tradingBot/grid/amend-order-algo", 1 },
                         { "tradingBot/grid/stop-order-algo", 1 },
                         { "tradingBot/grid/close-position", 1 },
@@ -507,16 +553,21 @@ public partial class okx : Exchange
                         { "tradingBot/recurring/stop-order-algo", 1 },
                         { "finance/savings/purchase-redempt", divide(5, 3) },
                         { "finance/savings/set-lending-rate", divide(5, 3) },
-                        { "finance/staking-defi/purchase", 3 },
-                        { "finance/staking-defi/redeem", 3 },
-                        { "finance/staking-defi/cancel", 3 },
+                        { "finance/staking-defi/purchase", 5 },
+                        { "finance/staking-defi/redeem", 5 },
+                        { "finance/staking-defi/cancel", 5 },
                         { "finance/staking-defi/eth/purchase", 5 },
                         { "finance/staking-defi/eth/redeem", 5 },
+                        { "finance/staking-defi/eth/cancel-redeem", 5 },
                         { "finance/staking-defi/sol/purchase", 5 },
                         { "finance/staking-defi/sol/redeem", 5 },
+                        { "finance/staking-defi/sol/cancel-redeem", 5 },
+                        { "finance/flexible-loan/max-loan", 4 },
+                        { "finance/flexible-loan/adjust-collateral", 4 },
                         { "copytrading/algo-order", 1 },
                         { "copytrading/close-subposition", 1 },
                         { "copytrading/set-instruments", 4 },
+                        { "copytrading/amend-profit-sharing-ratio", 4 },
                         { "copytrading/first-copy-settings", 4 },
                         { "copytrading/amend-copy-settings", 4 },
                         { "copytrading/stop-copy-trading", 4 },
@@ -535,6 +586,8 @@ public partial class okx : Exchange
                         { "finance/sfp/dcd/quote", 10 },
                         { "finance/sfp/dcd/order", 10 },
                         { "broker/nd/report-subaccount-ip", 0.25 },
+                        { "broker/dma/subaccount/apikey", divide(1, 4) },
+                        { "broker/dma/trades", 36000 },
                         { "broker/fd/rebate-per-orders", 36000 },
                     } },
                 } },
@@ -1197,7 +1250,8 @@ public partial class okx : Exchange
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 300 },
-                        { "historical", 100 },
+                        { "mark", 100 },
+                        { "index", 100 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -1223,9 +1277,35 @@ public partial class okx : Exchange
                     } },
                 } },
             } },
+            { "currencies", new Dictionary<string, object>() {
+                { "USD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "USD" },
+                    { "code", "USD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "EUR", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "EUR" },
+                    { "code", "EUR" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AED", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AED" },
+                    { "code", "AED" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "GBP", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "GBP" },
+                    { "code", "GBP" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AUD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AUD" },
+                    { "code", "AUD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
-                { "WIN", "WINTOKEN" },
             } },
         });
     }
@@ -1332,7 +1412,7 @@ public partial class okx : Exchange
      * @description the latest known information on the availability of the exchange API
      * @see https://www.okx.com/docs-v5/en/#status-get-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     public async override Task<object> fetchStatus(object parameters = null)
     {
@@ -1422,7 +1502,7 @@ public partial class okx : Exchange
      * @description fetch all the accounts associated with a profile
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
@@ -1579,6 +1659,12 @@ public partial class okx : Exchange
         //         "uly": "BTC-USD"
         //     }
         //
+        // for swap "preopen" markets, only `instId` and `instType` are present
+        //
+        //         instId: "ETH-USD_UM-SWAP",
+        //         instType: "SWAP",
+        //         state: "preopen",
+        //
         object id = this.safeString(market, "instId");
         object type = this.safeStringLower(market, "instType");
         if (isTrue(isEqual(type, "futures")))
@@ -1601,9 +1687,21 @@ public partial class okx : Exchange
             baseId = this.safeString(parts, 0);
             quoteId = this.safeString(parts, 1);
         }
+        if (isTrue(isTrue((isTrue((isEqual(baseId, ""))) || isTrue((isEqual(quoteId, ""))))) && isTrue(spot)))
+        {
+            object instId = this.safeString(market, "instId", "");
+            object parts = ((string)instId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
+        }
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
+        // handle preopen empty markets
+        if (isTrue(isTrue(isEqual(bs, "")) || isTrue(isEqual(quote, ""))))
+        {
+            symbol = id;
+        }
         object expiry = null;
         object strikePrice = null;
         object optionType = null;
@@ -1638,8 +1736,11 @@ public partial class okx : Exchange
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
+        object status = this.safeString(market, "state");
+        object instIdCode = this.safeInteger(market, "instIdCode");
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
+            { "instIdCode", instIdCode },
             { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
@@ -1653,7 +1754,7 @@ public partial class okx : Exchange
             { "swap", swap },
             { "future", future },
             { "option", option },
-            { "active", true },
+            { "active", isEqual(status, "live") },
             { "contract", contract },
             { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
             { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
@@ -1899,7 +2000,7 @@ public partial class okx : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2040,7 +2141,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -2089,7 +2190,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -2154,7 +2255,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
     {
@@ -2190,7 +2291,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
@@ -2331,7 +2432,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -2466,17 +2567,19 @@ public partial class okx : Exchange
         {
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 200);
         }
-        object price = this.safeString(parameters, "price");
+        object priceType = this.safeString(parameters, "price");
+        object isMarkOrIndex = this.inArray(priceType, new List<object>() {"mark", "index"});
         parameters = this.omit(parameters, "price");
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object timezone = this.safeString(options, "timezone", "UTC");
         object limitIsUndefined = (isEqual(limit, null));
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         } else
         {
-            limit = mathMin(limit, 300); // max 100
+            object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+            limit = mathMin(limit, maxLimit);
         }
         object duration = this.parseTimeframe(timeframe);
         object bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2499,8 +2602,8 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
-                object maxLimit = ((bool) isTrue((!isEqual(price, null)))) ? 100 : 300;
-                limit = mathMin(limit, maxLimit); // max 300 for historical endpoint
+                object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300;
+                limit = mathMin(limit, maxLimit);
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;
@@ -2517,7 +2620,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "type");
         object isHistoryCandles = (isEqual(type, "HistoryCandles"));
         object response = null;
-        if (isTrue(isEqual(price, "mark")))
+        if (isTrue(isEqual(priceType, "mark")))
         {
             if (isTrue(isHistoryCandles))
             {
@@ -2526,7 +2629,7 @@ public partial class okx : Exchange
             {
                 response = await this.publicGetMarketMarkPriceCandles(this.extend(request, parameters));
             }
-        } else if (isTrue(isEqual(price, "index")))
+        } else if (isTrue(isEqual(priceType, "index")))
         {
             ((IDictionary<string,object>)request)["instId"] = getValue(getValue(market, "info"), "instFamily"); // okx index candles require instFamily instead of instId
             if (isTrue(isHistoryCandles))
@@ -2573,10 +2676,10 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2745,7 +2848,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -2797,7 +2900,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -2928,7 +3031,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -2954,7 +3057,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -2976,33 +3079,42 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
+        object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
+        object conditional = isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))) || isTrue((isEqual(type, "conditional")));
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
             { "side", side },
             { "ordType", type },
-            { "sz", this.amountToPrecision(symbol, amount) },
         };
+        object isConditionalOrOCO = isTrue(conditional) || isTrue((isEqual(type, "oco")));
+        object closeFraction = this.safeString(parameters, "closeFraction");
+        object shouldOmitSize = isTrue(isConditionalOrOCO) && isTrue(!isEqual(closeFraction, null));
+        if (!isTrue(shouldOmitSize))
+        {
+            ((IDictionary<string,object>)request)["sz"] = this.amountToPrecision(symbol, amount);
+        }
         object spot = getValue(market, "spot");
         object contract = getValue(market, "contract");
         object triggerPrice = this.safeValueN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerPx"});
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
-        object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
+        // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         object tpOrdPx = this.safeValue(parameters, "tpOrdPx", price);
         object tpTriggerPxType = this.safeString(parameters, "tpTriggerPxType", "last");
-        object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
+        // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
         object slOrdPx = this.safeValue(parameters, "slOrdPx", price);
         object slTriggerPxType = this.safeString(parameters, "slTriggerPxType", "last");
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         object stopLoss = this.safeValue(parameters, "stopLoss");
-        object stopLossDefined = (!isEqual(stopLoss, null));
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object takeProfitDefined = (!isEqual(takeProfit, null));
+        object hasStopLoss = (!isEqual(stopLoss, null));
+        object hasTakeProfit = (!isEqual(takeProfit, null));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
         object isTrailingPriceOrder = !isEqual(trailingPrice, null);
         object trigger = isTrue((!isEqual(triggerPrice, null))) || isTrue((isEqual(type, "trigger")));
-        object isReduceOnly = this.safeValue(parameters, "reduceOnly", false);
+        object isReduceOnly = isTrue(this.safeValue(parameters, "reduceOnly", false)) || isTrue((!isEqual(closeFraction, null)));
         object defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         object marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not ommited so as to be extended into the request
         object margin = false;
@@ -3071,7 +3183,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, new List<object>() {"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"});
         object ioc = isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc")));
         object fok = isTrue((isEqual(timeInForce, "FOK"))) || isTrue((isEqual(type, "fok")));
-        object conditional = isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))) || isTrue((isEqual(type, "conditional")));
+        // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         object marketIOC = isTrue((isTrue(isMarketOrder) && isTrue(ioc))) || isTrue((isEqual(type, "optimal_limit_ioc")));
         object defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         object tgtCcy = this.safeString(parameters, "tgtCcy", defaultTgtCcy);
@@ -3147,10 +3259,10 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["callbackSpread"] = trailingPrice;
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
-        } else if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
+        } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             object attachAlgoOrd = new Dictionary<string, object>() {};
-            if (isTrue(stopLossDefined))
+            if (isTrue(hasStopLoss))
             {
                 object stopLossTriggerPrice = this.safeValueN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
                 if (isTrue(isEqual(stopLossTriggerPrice, null)))
@@ -3200,7 +3312,7 @@ public partial class okx : Exchange
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
-            if (isTrue(takeProfitDefined))
+            if (isTrue(hasTakeProfit))
             {
                 object takeProfitTriggerPrice = this.safeValueN(takeProfit, new List<object>() {"triggerPrice", "stopPrice", "tpTriggerPx"});
                 if (isTrue(isEqual(takeProfitTriggerPrice, null)))
@@ -3352,7 +3464,7 @@ public partial class okx : Exchange
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -3403,7 +3515,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -3490,8 +3602,8 @@ public partial class okx : Exchange
         object takeProfitTriggerPriceType = this.safeString(parameters, "newTpTriggerPxType", "last");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object stopLossDefined = (!isEqual(stopLoss, null));
-        object takeProfitDefined = (!isEqual(takeProfit, null));
+        object hasStopLoss = (!isEqual(stopLoss, null));
+        object hasTakeProfit = (!isEqual(takeProfit, null));
         if (isTrue(isAlgoOrder))
         {
             if (isTrue(isTrue((isEqual(stopLossTriggerPrice, null))) && isTrue((isEqual(takeProfitTriggerPrice, null)))))
@@ -3532,7 +3644,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["newTpOrdPx"] = ((bool) isTrue((isEqual(type, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 ((IDictionary<string,object>)request)["newTpTriggerPxType"] = takeProfitTriggerPriceType;
             }
-            if (isTrue(stopLossDefined))
+            if (isTrue(hasStopLoss))
             {
                 stopLossTriggerPrice = this.safeValue(stopLoss, "triggerPrice");
                 stopLossPrice = this.safeValue(stopLoss, "price");
@@ -3541,7 +3653,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["newSlOrdPx"] = ((bool) isTrue((isEqual(stopLossType, "market")))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 ((IDictionary<string,object>)request)["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
-            if (isTrue(takeProfitDefined))
+            if (isTrue(hasTakeProfit))
             {
                 takeProfitTriggerPrice = this.safeValue(takeProfit, "triggerPrice");
                 takeProfitPrice = this.safeValue(takeProfit, "price");
@@ -3596,7 +3708,7 @@ public partial class okx : Exchange
      * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
      * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
      * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -3651,7 +3763,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if trigger orders
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -3717,9 +3829,9 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         parameters ??= new Dictionary<string, object>();
@@ -3840,7 +3952,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
     {
@@ -4273,7 +4385,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra and exchange specific parameters
      * @param {boolean} [params.trigger] true if fetching trigger orders
-     * @returns [an order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -4437,7 +4549,7 @@ public partial class okx : Exchange
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4603,9 +4715,9 @@ public partial class okx : Exchange
      * @param {string} [params.algoId] Algo ID "'433845797218942976'"
      * @param {int} [params.until] timestamp in ms to fetch orders for
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4797,7 +4909,7 @@ public partial class okx : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.method] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4985,7 +5097,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5061,7 +5173,7 @@ public partial class okx : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5086,7 +5198,7 @@ public partial class okx : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5401,7 +5513,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
@@ -5447,7 +5559,7 @@ public partial class okx : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the network name for the deposit address
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -5488,7 +5600,7 @@ public partial class okx : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -5561,7 +5673,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5644,7 +5756,7 @@ public partial class okx : Exchange
      * @param {string} id deposit id
      * @param {string} code filter by currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
@@ -5676,7 +5788,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5751,7 +5863,7 @@ public partial class okx : Exchange
      * @param {string} id withdrawal id
      * @param {string} code unified currency code of the currency withdrawn, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
@@ -5949,7 +6061,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
@@ -6032,7 +6144,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -6114,7 +6226,7 @@ public partial class okx : Exchange
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -6209,7 +6321,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] MARGIN (if needed)
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
     {
@@ -6361,7 +6473,7 @@ public partial class okx : Exchange
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (isTrue(isEqual(initialMarginString, null)))
         {
-            initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            initialMarginString = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
         }
         object rounder = "0.00005"; // round to closest 0.01%
         object maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
@@ -6412,7 +6524,7 @@ public partial class okx : Exchange
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -6593,7 +6705,7 @@ public partial class okx : Exchange
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -6815,7 +6927,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
     {
@@ -6830,7 +6942,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -6873,7 +6985,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
+     * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -6913,7 +7025,7 @@ public partial class okx : Exchange
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7214,7 +7326,7 @@ public partial class okx : Exchange
      * @description fetch the borrow interest rates of all currencies
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async override Task<object> fetchCrossBorrowRates(object parameters = null)
     {
@@ -7249,7 +7361,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
     {
@@ -7347,7 +7459,7 @@ public partial class okx : Exchange
      * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
      * @param {int} [limit] max number of borrow rate prices to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+     * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
     public async virtual Task<object> fetchBorrowRateHistories(object codes = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7388,9 +7500,9 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
      * @param {string} code unified currency code
      * @param {int} [since] timestamp for the earliest borrow rate
-     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
     {
@@ -7549,7 +7661,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -7565,7 +7677,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -7581,7 +7693,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
     {
@@ -7693,11 +7805,11 @@ public partial class okx : Exchange
      * @param {string} code the unified currency code for the currency of the interest
      * @param {string} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
      * @param {int} [since] timestamp in ms of the earliest time to receive interest records for
-     * @param {int} [limit] the number of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure} to retrieve
+     * @param {int} [limit] the number of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure} to retrieve
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.type] Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7787,7 +7899,7 @@ public partial class okx : Exchange
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
     {
@@ -7829,7 +7941,7 @@ public partial class okx : Exchange
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayCrossMargin(object code, object amount, object parameters = null)
     {
@@ -7901,7 +8013,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
      * @param {string} symbol Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
@@ -7949,7 +8061,7 @@ public partial class okx : Exchange
      * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
      * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
-     * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
     {
@@ -8022,7 +8134,7 @@ public partial class okx : Exchange
      * @param {int} [limit] Not used by okx, but parsed internally by CCXT
      * @param {object} [params] Exchange specific parameters
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
-     * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8172,7 +8284,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -8312,7 +8424,7 @@ public partial class okx : Exchange
      * @param {int} [since] timestamp in ms
      * @param {int} [limit] number of records
      * @param {object} [params] exchange specific params
-     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8426,7 +8538,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
      * @param {object} [params] exchange specific params
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
-     * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/#/?id=underlying-assets-structure}
+     * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
     public async virtual Task<object> fetchUnderlyingAssets(object parameters = null)
     {
@@ -8471,7 +8583,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     public async override Task<object> fetchGreeks(object symbol, object parameters = null)
     {
@@ -8537,7 +8649,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.uly Underlying, either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
     {
@@ -8681,7 +8793,7 @@ public partial class okx : Exchange
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
@@ -8750,7 +8862,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     public async override Task<object> fetchOption(object symbol, object parameters = null)
     {
@@ -8800,7 +8912,7 @@ public partial class okx : Exchange
      * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
-     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     public async override Task<object> fetchOptionChain(object code, object parameters = null)
     {
@@ -8897,7 +9009,7 @@ public partial class okx : Exchange
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -8953,7 +9065,7 @@ public partial class okx : Exchange
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -9007,7 +9119,7 @@ public partial class okx : Exchange
      * @param {string} id the id of the trade that you want to fetch
      * @param {string} [code] the unified currency code of the conversion trade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
@@ -9065,7 +9177,7 @@ public partial class okx : Exchange
      * @param {int} [limit] the maximum number of conversion structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
-     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9304,7 +9416,7 @@ public partial class okx : Exchange
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
-     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9423,7 +9535,7 @@ public partial class okx : Exchange
      * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
      * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
      * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9506,7 +9618,7 @@ public partial class okx : Exchange
      * @param {int} [limit] the maximum number of long short ratio structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
-     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {

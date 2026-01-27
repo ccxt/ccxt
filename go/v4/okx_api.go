@@ -7,1390 +7,1594 @@
 
 package ccxt
 
-func (this *okx) PublicGetMarketBooksFull(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketBooksFull", args...)
-}
-
-func (this *okx) PublicGetMarketTickers(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketTickers", args...)
 }
 
-func (this *okx) PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketTicker", args...)
 }
 
-func (this *okx) PublicGetMarketIndexTickers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketIndexTickers", args...)
-}
-
-func (this *okx) PublicGetMarketBooks(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketBooks(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketBooks", args...)
 }
 
-func (this *okx) PublicGetMarketBooksLite(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketBooksLite", args...)
+func (this *OkxCore) PublicGetMarketBooksFull(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBooksFull", args...)
 }
 
-func (this *okx) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *okx) PublicGetMarketHistoryCandles(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketHistoryCandles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketHistoryCandles", args...)
 }
 
-func (this *okx) PublicGetMarketIndexCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
-}
-
-func (this *okx) PublicGetMarketHistoryIndexCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketHistoryIndexCandles", args...)
-}
-
-func (this *okx) PublicGetMarketMarkPriceCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
-}
-
-func (this *okx) PublicGetMarketHistoryMarkPriceCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketHistoryMarkPriceCandles", args...)
-}
-
-func (this *okx) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *okx) PublicGetMarketHistoryTrades(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketHistoryTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketHistoryTrades", args...)
 }
 
-func (this *okx) PublicGetMarketOptionInstrumentFamilyTrades(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketOptionInstrumentFamilyTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketOptionInstrumentFamilyTrades", args...)
 }
 
-func (this *okx) PublicGetMarketPlatform24Volume(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketPlatform24Volume(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketPlatform24Volume", args...)
 }
 
-func (this *okx) PublicGetMarketOpenOracle(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketOpenOracle", args...)
+func (this *OkxCore) PublicGetMarketCallAuctionDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketCallAuctionDetail", args...)
 }
 
-func (this *okx) PublicGetMarketExchangeRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketExchangeRate", args...)
+func (this *OkxCore) PublicGetMarketBooksSbe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBooksSbe", args...)
 }
 
-func (this *okx) PublicGetMarketIndexComponents(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
-}
-
-func (this *okx) PublicGetPublicMarketDataHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicMarketDataHistory", args...)
-}
-
-func (this *okx) PublicGetPublicEconomicCalendar(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
-}
-
-func (this *okx) PublicGetMarketBlockTickers(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketBlockTickers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketBlockTickers", args...)
 }
 
-func (this *okx) PublicGetMarketBlockTicker(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketBlockTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketBlockTicker", args...)
 }
 
-func (this *okx) PublicGetPublicBlockTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicBlockTrades", args...)
-}
-
-func (this *okx) PublicGetPublicInstruments(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicInstruments", args...)
-}
-
-func (this *okx) PublicGetPublicDeliveryExerciseHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicDeliveryExerciseHistory", args...)
-}
-
-func (this *okx) PublicGetPublicOpenInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicOpenInterest", args...)
-}
-
-func (this *okx) PublicGetPublicFundingRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicFundingRate", args...)
-}
-
-func (this *okx) PublicGetPublicFundingRateHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicFundingRateHistory", args...)
-}
-
-func (this *okx) PublicGetPublicPriceLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicPriceLimit", args...)
-}
-
-func (this *okx) PublicGetPublicOptSummary(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicOptSummary", args...)
-}
-
-func (this *okx) PublicGetPublicEstimatedPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicEstimatedPrice", args...)
-}
-
-func (this *okx) PublicGetPublicDiscountRateInterestFreeQuota(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicDiscountRateInterestFreeQuota", args...)
-}
-
-func (this *okx) PublicGetPublicTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicTime", args...)
-}
-
-func (this *okx) PublicGetPublicMarkPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicMarkPrice", args...)
-}
-
-func (this *okx) PublicGetPublicPositionTiers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicPositionTiers", args...)
-}
-
-func (this *okx) PublicGetPublicInterestRateLoanQuota(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicInterestRateLoanQuota", args...)
-}
-
-func (this *okx) PublicGetPublicVipInterestRateLoanQuota(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
-}
-
-func (this *okx) PublicGetPublicUnderlying(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicUnderlying", args...)
-}
-
-func (this *okx) PublicGetPublicInsuranceFund(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicInsuranceFund", args...)
-}
-
-func (this *okx) PublicGetPublicConvertContractCoin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicConvertContractCoin", args...)
-}
-
-func (this *okx) PublicGetPublicOptionTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicOptionTrades", args...)
-}
-
-func (this *okx) PublicGetPublicInstrumentTickBands(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPublicInstrumentTickBands", args...)
-}
-
-func (this *okx) PublicGetRubikStatTradingDataSupportCoin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
-}
-
-func (this *okx) PublicGetRubikStatTakerVolume(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatTakerVolume", args...)
-}
-
-func (this *okx) PublicGetRubikStatMarginLoanRatio(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatMarginLoanRatio", args...)
-}
-
-func (this *okx) PublicGetRubikStatContractsLongShortAccountRatio(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatio", args...)
-}
-
-func (this *okx) PublicGetRubikStatContractsLongShortAccountRatioContract(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContract", args...)
-}
-
-func (this *okx) PublicGetRubikStatContractsOpenInterestVolume(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestVolume", args...)
-}
-
-func (this *okx) PublicGetRubikStatOptionOpenInterestVolume(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolume", args...)
-}
-
-func (this *okx) PublicGetRubikStatOptionOpenInterestVolumeRatio(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeRatio", args...)
-}
-
-func (this *okx) PublicGetRubikStatOptionOpenInterestVolumeExpiry(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeExpiry", args...)
-}
-
-func (this *okx) PublicGetRubikStatOptionOpenInterestVolumeStrike(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeStrike", args...)
-}
-
-func (this *okx) PublicGetRubikStatOptionTakerBlockVolume(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetRubikStatOptionTakerBlockVolume", args...)
-}
-
-func (this *okx) PublicGetSystemStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetSystemStatus", args...)
-}
-
-func (this *okx) PublicGetSprdSpreads(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetSprdSpreads", args...)
-}
-
-func (this *okx) PublicGetSprdBooks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetSprdBooks", args...)
-}
-
-func (this *okx) PublicGetSprdTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetSprdTicker", args...)
-}
-
-func (this *okx) PublicGetSprdPublicTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetSprdPublicTrades", args...)
-}
-
-func (this *okx) PublicGetMarketSprdTicker(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketSprdTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketSprdTicker", args...)
 }
 
-func (this *okx) PublicGetMarketSprdCandles(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketSprdCandles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketSprdCandles", args...)
 }
 
-func (this *okx) PublicGetMarketSprdHistoryCandles(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketSprdHistoryCandles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetMarketSprdHistoryCandles", args...)
 }
 
-func (this *okx) PublicGetTradingBotGridAiParam(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetMarketIndexTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketIndexTickers", args...)
+}
+
+func (this *OkxCore) PublicGetMarketIndexCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
+}
+
+func (this *OkxCore) PublicGetMarketHistoryIndexCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketHistoryIndexCandles", args...)
+}
+
+func (this *OkxCore) PublicGetMarketMarkPriceCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
+}
+
+func (this *OkxCore) PublicGetMarketHistoryMarkPriceCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketHistoryMarkPriceCandles", args...)
+}
+
+func (this *OkxCore) PublicGetMarketExchangeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketExchangeRate", args...)
+}
+
+func (this *OkxCore) PublicGetMarketIndexComponents(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
+}
+
+func (this *OkxCore) PublicGetMarketOpenOracle(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOpenOracle", args...)
+}
+
+func (this *OkxCore) PublicGetMarketBooksLite(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBooksLite", args...)
+}
+
+func (this *OkxCore) PublicGetPublicOptionTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOptionTrades", args...)
+}
+
+func (this *OkxCore) PublicGetPublicBlockTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicBlockTrades", args...)
+}
+
+func (this *OkxCore) PublicGetPublicInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicInstruments", args...)
+}
+
+func (this *OkxCore) PublicGetPublicEstimatedPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicEstimatedPrice", args...)
+}
+
+func (this *OkxCore) PublicGetPublicDeliveryExerciseHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicDeliveryExerciseHistory", args...)
+}
+
+func (this *OkxCore) PublicGetPublicEstimatedSettlementInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicEstimatedSettlementInfo", args...)
+}
+
+func (this *OkxCore) PublicGetPublicSettlementHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicSettlementHistory", args...)
+}
+
+func (this *OkxCore) PublicGetPublicFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFundingRate", args...)
+}
+
+func (this *OkxCore) PublicGetPublicFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFundingRateHistory", args...)
+}
+
+func (this *OkxCore) PublicGetPublicOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOpenInterest", args...)
+}
+
+func (this *OkxCore) PublicGetPublicPriceLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceLimit", args...)
+}
+
+func (this *OkxCore) PublicGetPublicOptSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOptSummary", args...)
+}
+
+func (this *OkxCore) PublicGetPublicDiscountRateInterestFreeQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicDiscountRateInterestFreeQuota", args...)
+}
+
+func (this *OkxCore) PublicGetPublicTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTime", args...)
+}
+
+func (this *OkxCore) PublicGetPublicMarkPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicMarkPrice", args...)
+}
+
+func (this *OkxCore) PublicGetPublicPositionTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPositionTiers", args...)
+}
+
+func (this *OkxCore) PublicGetPublicInterestRateLoanQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicInterestRateLoanQuota", args...)
+}
+
+func (this *OkxCore) PublicGetPublicUnderlying(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicUnderlying", args...)
+}
+
+func (this *OkxCore) PublicGetPublicInsuranceFund(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicInsuranceFund", args...)
+}
+
+func (this *OkxCore) PublicGetPublicConvertContractCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicConvertContractCoin", args...)
+}
+
+func (this *OkxCore) PublicGetPublicInstrumentTickBands(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicInstrumentTickBands", args...)
+}
+
+func (this *OkxCore) PublicGetPublicPremiumHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPremiumHistory", args...)
+}
+
+func (this *OkxCore) PublicGetPublicEconomicCalendar(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
+}
+
+func (this *OkxCore) PublicGetPublicMarketDataHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicMarketDataHistory", args...)
+}
+
+func (this *OkxCore) PublicGetPublicVipInterestRateLoanQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatTradingDataSupportCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatContractsOpenInterestHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestHistory", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatTakerVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatTakerVolume", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatTakerVolumeContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatTakerVolumeContract", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatMarginLoanRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatMarginLoanRatio", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatContractsLongShortAccountRatioContractTopTrader(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContractTopTrader", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatContractsLongShortAccountRatioContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContract", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatContractsLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatio", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatContractsOpenInterestVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestVolume", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatOptionOpenInterestVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolume", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatOptionOpenInterestVolumeRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeRatio", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatOptionOpenInterestVolumeExpiry(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeExpiry", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatOptionOpenInterestVolumeStrike(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeStrike", args...)
+}
+
+func (this *OkxCore) PublicGetRubikStatOptionTakerBlockVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionTakerBlockVolume", args...)
+}
+
+func (this *OkxCore) PublicGetSystemStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSystemStatus", args...)
+}
+
+func (this *OkxCore) PublicGetSprdSpreads(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSprdSpreads", args...)
+}
+
+func (this *OkxCore) PublicGetSprdBooks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSprdBooks", args...)
+}
+
+func (this *OkxCore) PublicGetSprdPublicTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSprdPublicTrades", args...)
+}
+
+func (this *OkxCore) PublicGetSprdTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSprdTicker", args...)
+}
+
+func (this *OkxCore) PublicGetTradingBotGridAiParam(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTradingBotGridAiParam", args...)
 }
 
-func (this *okx) PublicGetTradingBotGridMinInvestment(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetTradingBotGridMinInvestment(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTradingBotGridMinInvestment", args...)
 }
 
-func (this *okx) PublicGetTradingBotPublicRsiBackTesting(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetTradingBotPublicRsiBackTesting(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTradingBotPublicRsiBackTesting", args...)
 }
 
-func (this *okx) PublicGetAssetExchangeList(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetTradingBotGridGridQuantity(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradingBotGridGridQuantity", args...)
+}
+
+func (this *OkxCore) PublicGetAssetExchangeList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetAssetExchangeList", args...)
 }
 
-func (this *okx) PublicGetFinanceStakingDefiEthApyHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetFinanceStakingDefiEthApyHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFinanceStakingDefiEthApyHistory", args...)
 }
 
-func (this *okx) PublicGetFinanceStakingDefiSolApyHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetFinanceStakingDefiSolApyHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFinanceStakingDefiSolApyHistory", args...)
 }
 
-func (this *okx) PublicGetFinanceSavingsLendingRateSummary(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetFinanceSavingsLendingRateSummary(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFinanceSavingsLendingRateSummary", args...)
 }
 
-func (this *okx) PublicGetFinanceSavingsLendingRateHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetFinanceSavingsLendingRateHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFinanceSavingsLendingRateHistory", args...)
 }
 
-func (this *okx) PublicGetFinanceFixedLoanLendingOffers(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetFinanceFixedLoanLendingOffers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFinanceFixedLoanLendingOffers", args...)
 }
 
-func (this *okx) PublicGetFinanceFixedLoanLendingApyHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetFinanceFixedLoanLendingApyHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFinanceFixedLoanLendingApyHistory", args...)
 }
 
-func (this *okx) PublicGetFinanceFixedLoanPendingLendingVolume(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetFinanceFixedLoanPendingLendingVolume(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFinanceFixedLoanPendingLendingVolume", args...)
 }
 
-func (this *okx) PublicGetFinanceSfpDcdProducts(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetFinanceSfpDcdProducts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetFinanceSfpDcdProducts", args...)
 }
 
-func (this *okx) PublicGetCopytradingPublicLeadTraders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetCopytradingPublicConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicConfig", args...)
+}
+
+func (this *OkxCore) PublicGetCopytradingPublicLeadTraders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCopytradingPublicLeadTraders", args...)
 }
 
-func (this *okx) PublicGetCopytradingPublicWeeklyPnl(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetCopytradingPublicWeeklyPnl(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCopytradingPublicWeeklyPnl", args...)
 }
 
-func (this *okx) PublicGetCopytradingPublicStats(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetCopytradingPublicPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicPnl", args...)
+}
+
+func (this *OkxCore) PublicGetCopytradingPublicStats(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCopytradingPublicStats", args...)
 }
 
-func (this *okx) PublicGetCopytradingPublicPreferenceCurrency(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetCopytradingPublicPreferenceCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCopytradingPublicPreferenceCurrency", args...)
 }
 
-func (this *okx) PublicGetCopytradingPublicCurrentSubpositions(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetCopytradingPublicCurrentSubpositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCopytradingPublicCurrentSubpositions", args...)
 }
 
-func (this *okx) PublicGetCopytradingPublicSubpositionsHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetCopytradingPublicSubpositionsHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCopytradingPublicSubpositionsHistory", args...)
 }
 
-func (this *okx) PublicGetSupportAnnouncementsTypes(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicGetCopytradingPublicCopyTraders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicCopyTraders", args...)
+}
+
+func (this *OkxCore) PublicGetSupportAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSupportAnnouncements", args...)
+}
+
+func (this *OkxCore) PublicGetSupportAnnouncementsTypes(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetSupportAnnouncementsTypes", args...)
 }
 
-func (this *okx) PrivateGetRfqCounterparties(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PublicPostTradingBotGridMinInvestment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostTradingBotGridMinInvestment", args...)
+}
+
+func (this *OkxCore) PrivateGetRfqCounterparties(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetRfqCounterparties", args...)
 }
 
-func (this *okx) PrivateGetRfqMakerInstrumentSettings(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetRfqMakerInstrumentSettings(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetRfqMakerInstrumentSettings", args...)
 }
 
-func (this *okx) PrivateGetRfqMmpConfig(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetRfqMmpConfig(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetRfqMmpConfig", args...)
 }
 
-func (this *okx) PrivateGetRfqRfqs(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetRfqRfqs(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetRfqRfqs", args...)
 }
 
-func (this *okx) PrivateGetRfqQuotes(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetRfqQuotes(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetRfqQuotes", args...)
 }
 
-func (this *okx) PrivateGetRfqTrades(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetRfqTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetRfqTrades", args...)
 }
 
-func (this *okx) PrivateGetRfqPublicTrades(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetRfqPublicTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetRfqPublicTrades", args...)
 }
 
-func (this *okx) PrivateGetSprdOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetSprdOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSprdOrder", args...)
 }
 
-func (this *okx) PrivateGetSprdOrdersPending(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetSprdOrdersPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSprdOrdersPending", args...)
 }
 
-func (this *okx) PrivateGetSprdOrdersHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetSprdOrdersHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSprdOrdersHistory", args...)
 }
 
-func (this *okx) PrivateGetSprdOrdersHistoryArchive(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetSprdOrdersHistoryArchive(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSprdOrdersHistoryArchive", args...)
 }
 
-func (this *okx) PrivateGetSprdTrades(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetSprdTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSprdTrades", args...)
 }
 
-func (this *okx) PrivateGetTradeOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrder", args...)
 }
 
-func (this *okx) PrivateGetTradeOrdersPending(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOrdersPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
 }
 
-func (this *okx) PrivateGetTradeOrdersHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOrdersHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
 }
 
-func (this *okx) PrivateGetTradeOrdersHistoryArchive(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOrdersHistoryArchive(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersHistoryArchive", args...)
 }
 
-func (this *okx) PrivateGetTradeFills(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeFills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeFills", args...)
 }
 
-func (this *okx) PrivateGetTradeFillsHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeFillsHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
 }
 
-func (this *okx) PrivateGetTradeFillsArchive(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeFillsArchive(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeFillsArchive", args...)
 }
 
-func (this *okx) PrivateGetTradeOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrderAlgo", args...)
 }
 
-func (this *okx) PrivateGetTradeOrdersAlgoPending(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOrdersAlgoPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
 }
 
-func (this *okx) PrivateGetTradeOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
 }
 
-func (this *okx) PrivateGetTradeEasyConvertCurrencyList(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeEasyConvertCurrencyList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeEasyConvertCurrencyList", args...)
 }
 
-func (this *okx) PrivateGetTradeEasyConvertHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeEasyConvertHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeEasyConvertHistory", args...)
 }
 
-func (this *okx) PrivateGetTradeOneClickRepayCurrencyList(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOneClickRepayCurrencyList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyList", args...)
 }
 
-func (this *okx) PrivateGetTradeOneClickRepayCurrencyListV2(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOneClickRepayCurrencyListV2(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyListV2", args...)
 }
 
-func (this *okx) PrivateGetTradeOneClickRepayHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOneClickRepayHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOneClickRepayHistory", args...)
 }
 
-func (this *okx) PrivateGetTradeOneClickRepayHistoryV2(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeOneClickRepayHistoryV2(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeOneClickRepayHistoryV2", args...)
 }
 
-func (this *okx) PrivateGetTradeAccountRateLimit(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradeAccountRateLimit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradeAccountRateLimit", args...)
 }
 
-func (this *okx) PrivateGetAssetCurrencies(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetCurrencies(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetCurrencies", args...)
 }
 
-func (this *okx) PrivateGetAssetBalances(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetBalances", args...)
 }
 
-func (this *okx) PrivateGetAssetNonTradableAssets(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetNonTradableAssets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetNonTradableAssets", args...)
 }
 
-func (this *okx) PrivateGetAssetAssetValuation(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetAssetValuation(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetAssetValuation", args...)
 }
 
-func (this *okx) PrivateGetAssetTransferState(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetTransferState(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetTransferState", args...)
 }
 
-func (this *okx) PrivateGetAssetBills(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetBills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetBills", args...)
 }
 
-func (this *okx) PrivateGetAssetDepositLightning(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetBillsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBillsHistory", args...)
+}
+
+func (this *OkxCore) PrivateGetAssetDepositLightning(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetDepositLightning", args...)
 }
 
-func (this *okx) PrivateGetAssetDepositAddress(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetDepositAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetDepositAddress", args...)
 }
 
-func (this *okx) PrivateGetAssetDepositHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetDepositHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
 }
 
-func (this *okx) PrivateGetAssetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetWithdrawalHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
 }
 
-func (this *okx) PrivateGetAssetDepositWithdrawStatus(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetDepositWithdrawStatus(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetDepositWithdrawStatus", args...)
 }
 
-func (this *okx) PrivateGetAssetConvertCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssetConvertCurrencies", args...)
-}
-
-func (this *okx) PrivateGetAssetConvertCurrencyPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssetConvertCurrencyPair", args...)
-}
-
-func (this *okx) PrivateGetAssetConvertHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
-}
-
-func (this *okx) PrivateGetAssetMonthlyStatement(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetMonthlyStatement(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetMonthlyStatement", args...)
 }
 
-func (this *okx) PrivateGetAccountInstruments(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetConvertCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetConvertCurrencies", args...)
+}
+
+func (this *OkxCore) PrivateGetAssetConvertCurrencyPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetConvertCurrencyPair", args...)
+}
+
+func (this *OkxCore) PrivateGetAssetConvertHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountInstruments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountInstruments", args...)
 }
 
-func (this *okx) PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountBalance", args...)
 }
 
-func (this *okx) PrivateGetAccountPositions(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountPositions", args...)
 }
 
-func (this *okx) PrivateGetAccountPositionsHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountPositionsHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
 }
 
-func (this *okx) PrivateGetAccountAccountPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountAccountPositionRisk(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountAccountPositionRisk", args...)
 }
 
-func (this *okx) PrivateGetAccountBills(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountBills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountBills", args...)
 }
 
-func (this *okx) PrivateGetAccountBillsArchive(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountBillsArchive(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountBillsArchive", args...)
 }
 
-func (this *okx) PrivateGetAccountBillsHistoryArchive(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountBillsHistoryArchive(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountBillsHistoryArchive", args...)
 }
 
-func (this *okx) PrivateGetAccountConfig(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountConfig(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountConfig", args...)
 }
 
-func (this *okx) PrivateGetAccountMaxSize(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountMaxSize(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountMaxSize", args...)
 }
 
-func (this *okx) PrivateGetAccountMaxAvailSize(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountMaxAvailSize(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountMaxAvailSize", args...)
 }
 
-func (this *okx) PrivateGetAccountLeverageInfo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountLeverageInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
 }
 
-func (this *okx) PrivateGetAccountAdjustLeverageInfo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountAdjustLeverageInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountAdjustLeverageInfo", args...)
 }
 
-func (this *okx) PrivateGetAccountMaxLoan(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountMaxLoan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountMaxLoan", args...)
 }
 
-func (this *okx) PrivateGetAccountTradeFee(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountTradeFee(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountTradeFee", args...)
 }
 
-func (this *okx) PrivateGetAccountInterestAccrued(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountInterestAccrued(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountInterestAccrued", args...)
 }
 
-func (this *okx) PrivateGetAccountInterestRate(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountInterestRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountInterestRate", args...)
 }
 
-func (this *okx) PrivateGetAccountMaxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountMaxWithdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountMaxWithdrawal", args...)
 }
 
-func (this *okx) PrivateGetAccountRiskState(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountRiskState(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountRiskState", args...)
 }
 
-func (this *okx) PrivateGetAccountQuickMarginBorrowRepayHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountQuickMarginBorrowRepayHistory", args...)
-}
-
-func (this *okx) PrivateGetAccountBorrowRepayHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountBorrowRepayHistory", args...)
-}
-
-func (this *okx) PrivateGetAccountVipInterestAccrued(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountVipInterestAccrued", args...)
-}
-
-func (this *okx) PrivateGetAccountVipInterestDeducted(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountVipInterestDeducted", args...)
-}
-
-func (this *okx) PrivateGetAccountVipLoanOrderList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountVipLoanOrderList", args...)
-}
-
-func (this *okx) PrivateGetAccountVipLoanOrderDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountVipLoanOrderDetail", args...)
-}
-
-func (this *okx) PrivateGetAccountInterestLimits(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountInterestLimits(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountInterestLimits", args...)
 }
 
-func (this *okx) PrivateGetAccountGreeks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountGreeks", args...)
-}
-
-func (this *okx) PrivateGetAccountPositionTiers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountPositionTiers", args...)
-}
-
-func (this *okx) PrivateGetAccountMmpConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountMmpConfig", args...)
-}
-
-func (this *okx) PrivateGetAccountFixedLoanBorrowingLimit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingLimit", args...)
-}
-
-func (this *okx) PrivateGetAccountFixedLoanBorrowingQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingQuote", args...)
-}
-
-func (this *okx) PrivateGetAccountFixedLoanBorrowingOrdersList(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingOrdersList", args...)
-}
-
-func (this *okx) PrivateGetAccountSpotManualBorrowRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountSpotManualBorrowRepay", args...)
-}
-
-func (this *okx) PrivateGetAccountSetAutoRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountSetAutoRepay", args...)
-}
-
-func (this *okx) PrivateGetAccountSpotBorrowRepayHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountSpotBorrowRepayHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountSpotBorrowRepayHistory", args...)
 }
 
-func (this *okx) PrivateGetAccountMovePositionsHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountGreeks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountGreeks", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountPositionTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountPositionTiers", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountSetAccountSwitchPrecheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSetAccountSwitchPrecheck", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountCollateralAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountCollateralAssets", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMmpConfig", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountMovePositionsHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountMovePositionsHistory", args...)
 }
 
-func (this *okx) PrivateGetUsersSubaccountList(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountPrecheckSetDeltaNeutral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountPrecheckSetDeltaNeutral", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountQuickMarginBorrowRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountQuickMarginBorrowRepayHistory", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountBorrowRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountBorrowRepayHistory", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountVipInterestAccrued(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountVipInterestAccrued", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountVipInterestDeducted(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountVipInterestDeducted", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountVipLoanOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountVipLoanOrderList", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountVipLoanOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountVipLoanOrderDetail", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountFixedLoanBorrowingLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingLimit", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountFixedLoanBorrowingQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingQuote", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountFixedLoanBorrowingOrdersList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingOrdersList", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountSpotManualBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSpotManualBorrowRepay", args...)
+}
+
+func (this *OkxCore) PrivateGetAccountSetAutoRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSetAutoRepay", args...)
+}
+
+func (this *OkxCore) PrivateGetUsersSubaccountList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetUsersSubaccountList", args...)
 }
 
-func (this *okx) PrivateGetAccountSubaccountBalances(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountSubaccountBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountSubaccountBalances", args...)
 }
 
-func (this *okx) PrivateGetAssetSubaccountBalances(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetSubaccountBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetSubaccountBalances", args...)
 }
 
-func (this *okx) PrivateGetAccountSubaccountMaxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountSubaccountMaxWithdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountSubaccountMaxWithdrawal", args...)
 }
 
-func (this *okx) PrivateGetAssetSubaccountBills(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetSubaccountBills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetSubaccountBills", args...)
 }
 
-func (this *okx) PrivateGetAssetSubaccountManagedSubaccountBills(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAssetSubaccountManagedSubaccountBills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAssetSubaccountManagedSubaccountBills", args...)
 }
 
-func (this *okx) PrivateGetUsersEntrustSubaccountList(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetUsersEntrustSubaccountList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetUsersEntrustSubaccountList", args...)
 }
 
-func (this *okx) PrivateGetAccountSubaccountInterestLimits(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetAccountSubaccountInterestLimits(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountSubaccountInterestLimits", args...)
 }
 
-func (this *okx) PrivateGetUsersSubaccountApikey(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetUsersSubaccountApikey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetUsersSubaccountApikey", args...)
 }
 
-func (this *okx) PrivateGetTradingBotGridOrdersAlgoPending(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotGridOrdersAlgoPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoPending", args...)
 }
 
-func (this *okx) PrivateGetTradingBotGridOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotGridOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoHistory", args...)
 }
 
-func (this *okx) PrivateGetTradingBotGridOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotGridOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoDetails", args...)
 }
 
-func (this *okx) PrivateGetTradingBotGridSubOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotGridSubOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotGridSubOrders", args...)
 }
 
-func (this *okx) PrivateGetTradingBotGridPositions(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotGridPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotGridPositions", args...)
 }
 
-func (this *okx) PrivateGetTradingBotGridAiParam(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotGridAiParam(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotGridAiParam", args...)
 }
 
-func (this *okx) PrivateGetTradingBotSignalSignals(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotSignalSignals(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotSignalSignals", args...)
 }
 
-func (this *okx) PrivateGetTradingBotSignalOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotSignalOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoDetails", args...)
 }
 
-func (this *okx) PrivateGetTradingBotSignalOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotSignalOrdersAlgoPending(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoPending", args...)
+}
+
+func (this *OkxCore) PrivateGetTradingBotSignalOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoHistory", args...)
 }
 
-func (this *okx) PrivateGetTradingBotSignalPositions(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotSignalPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotSignalPositions", args...)
 }
 
-func (this *okx) PrivateGetTradingBotSignalPositionsHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotSignalPositionsHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotSignalPositionsHistory", args...)
 }
 
-func (this *okx) PrivateGetTradingBotSignalSubOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotSignalSubOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotSignalSubOrders", args...)
 }
 
-func (this *okx) PrivateGetTradingBotSignalEventHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotSignalEventHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotSignalEventHistory", args...)
 }
 
-func (this *okx) PrivateGetTradingBotRecurringOrdersAlgoPending(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotRecurringOrdersAlgoPending(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoPending", args...)
 }
 
-func (this *okx) PrivateGetTradingBotRecurringOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotRecurringOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoHistory", args...)
 }
 
-func (this *okx) PrivateGetTradingBotRecurringOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotRecurringOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoDetails", args...)
 }
 
-func (this *okx) PrivateGetTradingBotRecurringSubOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetTradingBotRecurringSubOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTradingBotRecurringSubOrders", args...)
 }
 
-func (this *okx) PrivateGetFinanceSavingsBalance(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceSavingsBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFinanceSavingsBalance", args...)
 }
 
-func (this *okx) PrivateGetFinanceSavingsLendingHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceSavingsLendingHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFinanceSavingsLendingHistory", args...)
 }
 
-func (this *okx) PrivateGetFinanceStakingDefiOffers(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceStakingDefiOffers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiOffers", args...)
 }
 
-func (this *okx) PrivateGetFinanceStakingDefiOrdersActive(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceStakingDefiOrdersActive(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersActive", args...)
 }
 
-func (this *okx) PrivateGetFinanceStakingDefiOrdersHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceStakingDefiOrdersHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersHistory", args...)
 }
 
-func (this *okx) PrivateGetFinanceStakingDefiEthBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiEthBalance", args...)
-}
-
-func (this *okx) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", args...)
-}
-
-func (this *okx) PrivateGetFinanceStakingDefiEthProductInfo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceStakingDefiEthProductInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiEthProductInfo", args...)
 }
 
-func (this *okx) PrivateGetFinanceStakingDefiSolBalance(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceStakingDefiEthBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiEthBalance", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceStakingDefiSolProductInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiSolProductInfo", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceStakingDefiSolBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiSolBalance", args...)
 }
 
-func (this *okx) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFinanceStakingDefiSolPurchaseRedeemHistory", args...)
 }
 
-func (this *okx) PrivateGetCopytradingCurrentSubpositions(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetFinanceFlexibleLoanBorrowCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceFlexibleLoanBorrowCurrencies", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceFlexibleLoanCollateralAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceFlexibleLoanCollateralAssets", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceFlexibleLoanMaxCollateralRedeemAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceFlexibleLoanLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceFlexibleLoanLoanInfo", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceFlexibleLoanLoanHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceFlexibleLoanLoanHistory", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceFlexibleLoanInterestAccrued(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceFlexibleLoanInterestAccrued", args...)
+}
+
+func (this *OkxCore) PrivateGetCopytradingCurrentSubpositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingCurrentSubpositions", args...)
 }
 
-func (this *okx) PrivateGetCopytradingSubpositionsHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetCopytradingSubpositionsHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingSubpositionsHistory", args...)
 }
 
-func (this *okx) PrivateGetCopytradingInstruments(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetCopytradingInstruments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
 }
 
-func (this *okx) PrivateGetCopytradingProfitSharingDetails(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetCopytradingProfitSharingDetails(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingProfitSharingDetails", args...)
 }
 
-func (this *okx) PrivateGetCopytradingTotalProfitSharing(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetCopytradingTotalProfitSharing(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingTotalProfitSharing", args...)
 }
 
-func (this *okx) PrivateGetCopytradingUnrealizedProfitSharingDetails(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetCopytradingUnrealizedProfitSharingDetails(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingUnrealizedProfitSharingDetails", args...)
 }
 
-func (this *okx) PrivateGetCopytradingCopySettings(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetCopytradingTotalUnrealizedProfitSharing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingTotalUnrealizedProfitSharing", args...)
+}
+
+func (this *OkxCore) PrivateGetCopytradingConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingConfig", args...)
+}
+
+func (this *OkxCore) PrivateGetCopytradingCopySettings(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingCopySettings", args...)
 }
 
-func (this *okx) PrivateGetCopytradingBatchLeverageInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetCopytradingBatchLeverageInfo", args...)
-}
-
-func (this *okx) PrivateGetCopytradingCurrentLeadTraders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetCopytradingCurrentLeadTraders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingCurrentLeadTraders", args...)
 }
 
-func (this *okx) PrivateGetCopytradingLeadTradersHistory(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetCopytradingBatchLeverageInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingBatchLeverageInfo", args...)
+}
+
+func (this *OkxCore) PrivateGetCopytradingLeadTradersHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCopytradingLeadTradersHistory", args...)
 }
 
-func (this *okx) PrivateGetBrokerNdInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBrokerNdInfo", args...)
+func (this *OkxCore) PrivateGetBrokerDmaSubaccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerDmaSubaccountInfo", args...)
 }
 
-func (this *okx) PrivateGetBrokerNdSubaccountInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBrokerNdSubaccountInfo", args...)
+func (this *OkxCore) PrivateGetBrokerDmaSubaccountTradeFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerDmaSubaccountTradeFee", args...)
 }
 
-func (this *okx) PrivateGetBrokerNdSubaccountApikey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBrokerNdSubaccountApikey", args...)
+func (this *OkxCore) PrivateGetBrokerDmaSubaccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerDmaSubaccountApikey", args...)
 }
 
-func (this *okx) PrivateGetAssetBrokerNdSubaccountDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositAddress", args...)
+func (this *OkxCore) PrivateGetBrokerDmaRebatePerOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerDmaRebatePerOrders", args...)
 }
 
-func (this *okx) PrivateGetAssetBrokerNdSubaccountDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositHistory", args...)
-}
-
-func (this *okx) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountWithdrawalHistory", args...)
-}
-
-func (this *okx) PrivateGetBrokerNdRebateDaily(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBrokerNdRebateDaily", args...)
-}
-
-func (this *okx) PrivateGetBrokerNdRebatePerOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBrokerNdRebatePerOrders", args...)
-}
-
-func (this *okx) PrivateGetFinanceSfpDcdOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrder", args...)
-}
-
-func (this *okx) PrivateGetFinanceSfpDcdOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrders", args...)
-}
-
-func (this *okx) PrivateGetBrokerFdRebatePerOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetBrokerFdRebatePerOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetBrokerFdRebatePerOrders", args...)
 }
 
-func (this *okx) PrivateGetBrokerFdIfRebate(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetBrokerFdIfRebate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetBrokerFdIfRebate", args...)
 }
 
-func (this *okx) PrivateGetAffiliateInviteeDetail(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetBrokerNdInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdInfo", args...)
+}
+
+func (this *OkxCore) PrivateGetBrokerNdSubaccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdSubaccountInfo", args...)
+}
+
+func (this *OkxCore) PrivateGetBrokerNdSubaccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdSubaccountApikey", args...)
+}
+
+func (this *OkxCore) PrivateGetAssetBrokerNdSubaccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositAddress", args...)
+}
+
+func (this *OkxCore) PrivateGetAssetBrokerNdSubaccountDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositHistory", args...)
+}
+
+func (this *OkxCore) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountWithdrawalHistory", args...)
+}
+
+func (this *OkxCore) PrivateGetBrokerNdRebateDaily(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdRebateDaily", args...)
+}
+
+func (this *OkxCore) PrivateGetBrokerNdRebatePerOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdRebatePerOrders", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceSfpDcdOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceSfpDcdOrder", args...)
+}
+
+func (this *OkxCore) PrivateGetFinanceSfpDcdOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceSfpDcdOrders", args...)
+}
+
+func (this *OkxCore) PrivateGetAffiliateInviteeDetail(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAffiliateInviteeDetail", args...)
 }
 
-func (this *okx) PrivateGetUsersPartnerIfRebate(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetUsersPartnerIfRebate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetUsersPartnerIfRebate", args...)
 }
 
-func (this *okx) PrivateGetSupportAnnouncements(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivateGetSupportAnnouncements(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSupportAnnouncements", args...)
 }
 
-func (this *okx) PrivatePostRfqCreateRfq(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCreateRfq(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqCreateRfq", args...)
 }
 
-func (this *okx) PrivatePostRfqCancelRfq(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCancelRfq(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqCancelRfq", args...)
 }
 
-func (this *okx) PrivatePostRfqCancelBatchRfqs(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCancelBatchRfqs(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqCancelBatchRfqs", args...)
 }
 
-func (this *okx) PrivatePostRfqCancelAllRfqs(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCancelAllRfqs(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqCancelAllRfqs", args...)
 }
 
-func (this *okx) PrivatePostRfqExecuteQuote(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqExecuteQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqExecuteQuote", args...)
 }
 
-func (this *okx) PrivatePostRfqMakerInstrumentSettings(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqMakerInstrumentSettings(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqMakerInstrumentSettings", args...)
 }
 
-func (this *okx) PrivatePostRfqMmpReset(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqMmpReset(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqMmpReset", args...)
 }
 
-func (this *okx) PrivatePostRfqMmpConfig(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqMmpConfig(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqMmpConfig", args...)
 }
 
-func (this *okx) PrivatePostRfqCreateQuote(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCreateQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqCreateQuote", args...)
 }
 
-func (this *okx) PrivatePostRfqCancelQuote(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCancelQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqCancelQuote", args...)
 }
 
-func (this *okx) PrivatePostRfqCancelBatchQuotes(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCancelBatchQuotes(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqCancelBatchQuotes", args...)
 }
 
-func (this *okx) PrivatePostRfqCancelAllQuotes(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCancelAllQuotes(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRfqCancelAllQuotes", args...)
 }
 
-func (this *okx) PrivatePostSprdOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostRfqCancelAllAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCancelAllAfter", args...)
+}
+
+func (this *OkxCore) PrivatePostSprdOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSprdOrder", args...)
 }
 
-func (this *okx) PrivatePostSprdCancelOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostSprdCancelOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSprdCancelOrder", args...)
 }
 
-func (this *okx) PrivatePostSprdMassCancel(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostSprdMassCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSprdMassCancel", args...)
 }
 
-func (this *okx) PrivatePostSprdAmendOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostSprdAmendOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSprdAmendOrder", args...)
 }
 
-func (this *okx) PrivatePostSprdCancelAllAfter(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostSprdCancelAllAfter(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSprdCancelAllAfter", args...)
 }
 
-func (this *okx) PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeOrder", args...)
 }
 
-func (this *okx) PrivatePostTradeBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeBatchOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
 }
 
-func (this *okx) PrivatePostTradeCancelOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeCancelOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
 }
 
-func (this *okx) PrivatePostTradeCancelBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeCancelBatchOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
 }
 
-func (this *okx) PrivatePostTradeAmendOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeAmendOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeAmendOrder", args...)
 }
 
-func (this *okx) PrivatePostTradeAmendBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeAmendBatchOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeAmendBatchOrders", args...)
 }
 
-func (this *okx) PrivatePostTradeClosePosition(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeClosePosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeClosePosition", args...)
 }
 
-func (this *okx) PrivatePostTradeFillsArchive(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeFillsArchive(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeFillsArchive", args...)
 }
 
-func (this *okx) PrivatePostTradeOrderAlgo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
-}
-
-func (this *okx) PrivatePostTradeCancelAlgos(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeCancelAlgos", args...)
-}
-
-func (this *okx) PrivatePostTradeAmendAlgos(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeAmendAlgos", args...)
-}
-
-func (this *okx) PrivatePostTradeCancelAdvanceAlgos(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeCancelAdvanceAlgos(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeCancelAdvanceAlgos", args...)
 }
 
-func (this *okx) PrivatePostTradeEasyConvert(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeEasyConvert(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeEasyConvert", args...)
 }
 
-func (this *okx) PrivatePostTradeOneClickRepay(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeOneClickRepay(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeOneClickRepay", args...)
 }
 
-func (this *okx) PrivatePostTradeOneClickRepayV2(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeOneClickRepayV2(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeOneClickRepayV2", args...)
 }
 
-func (this *okx) PrivatePostTradeMassCancel(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeMassCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeMassCancel", args...)
 }
 
-func (this *okx) PrivatePostTradeCancelAllAfter(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeCancelAllAfter(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradeCancelAllAfter", args...)
 }
 
-func (this *okx) PrivatePostAssetTransfer(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradeOrderPrecheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOrderPrecheck", args...)
+}
+
+func (this *OkxCore) PrivatePostTradeOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
+}
+
+func (this *OkxCore) PrivatePostTradeCancelAlgos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelAlgos", args...)
+}
+
+func (this *OkxCore) PrivatePostTradeAmendAlgos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeAmendAlgos", args...)
+}
+
+func (this *OkxCore) PrivatePostAssetTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetTransfer", args...)
 }
 
-func (this *okx) PrivatePostAssetWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAssetWithdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetWithdrawal", args...)
 }
 
-func (this *okx) PrivatePostAssetWithdrawalLightning(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAssetWithdrawalLightning(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetWithdrawalLightning", args...)
 }
 
-func (this *okx) PrivatePostAssetCancelWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAssetCancelWithdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetCancelWithdrawal", args...)
 }
 
-func (this *okx) PrivatePostAssetConvertDustAssets(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAssetConvertDustAssets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetConvertDustAssets", args...)
 }
 
-func (this *okx) PrivatePostAssetConvertEstimateQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAssetConvertEstimateQuote", args...)
-}
-
-func (this *okx) PrivatePostAssetConvertTrade(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
-}
-
-func (this *okx) PrivatePostAssetMonthlyStatement(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAssetMonthlyStatement(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetMonthlyStatement", args...)
 }
 
-func (this *okx) PrivatePostAccountSetPositionMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
+func (this *OkxCore) PrivatePostAssetConvertEstimateQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetConvertEstimateQuote", args...)
 }
 
-func (this *okx) PrivatePostAccountSetLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
+func (this *OkxCore) PrivatePostAssetConvertTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
 }
 
-func (this *okx) PrivatePostAccountPositionMarginBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountPositionMarginBalance", args...)
-}
-
-func (this *okx) PrivatePostAccountSetGreeks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetGreeks", args...)
-}
-
-func (this *okx) PrivatePostAccountSetIsolatedMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetIsolatedMode", args...)
-}
-
-func (this *okx) PrivatePostAccountQuickMarginBorrowRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountQuickMarginBorrowRepay", args...)
-}
-
-func (this *okx) PrivatePostAccountBorrowRepay(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountBorrowRepay", args...)
-}
-
-func (this *okx) PrivatePostAccountSimulatedMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSimulatedMargin", args...)
-}
-
-func (this *okx) PrivatePostAccountPositionBuilder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountPositionBuilder", args...)
-}
-
-func (this *okx) PrivatePostAccountSetRiskOffsetType(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetRiskOffsetType", args...)
-}
-
-func (this *okx) PrivatePostAccountActivateOption(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountActivateOption", args...)
-}
-
-func (this *okx) PrivatePostAccountSetAutoLoan(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetAutoLoan", args...)
-}
-
-func (this *okx) PrivatePostAccountSetAccountLevel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountSetAccountLevel", args...)
-}
-
-func (this *okx) PrivatePostAccountMmpReset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountMmpReset", args...)
-}
-
-func (this *okx) PrivatePostAccountMmpConfig(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountMmpConfig", args...)
-}
-
-func (this *okx) PrivatePostAccountFixedLoanBorrowingOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountFixedLoanBorrowingOrder", args...)
-}
-
-func (this *okx) PrivatePostAccountFixedLoanAmendBorrowingOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountFixedLoanAmendBorrowingOrder", args...)
-}
-
-func (this *okx) PrivatePostAccountFixedLoanManualReborrow(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountFixedLoanManualReborrow", args...)
-}
-
-func (this *okx) PrivatePostAccountFixedLoanRepayBorrowingOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAccountFixedLoanRepayBorrowingOrder", args...)
-}
-
-func (this *okx) PrivatePostAccountBillsHistoryArchive(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAccountBillsHistoryArchive(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAccountBillsHistoryArchive", args...)
 }
 
-func (this *okx) PrivatePostAccountMovePositions(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAccountSetPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountPositionMarginBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountPositionMarginBalance", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetFeeType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetFeeType", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetGreeks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetGreeks", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetIsolatedMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetIsolatedMode", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSpotManualBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSpotManualBorrowRepay", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetAutoRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetAutoRepay", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountQuickMarginBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountQuickMarginBorrowRepay", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBorrowRepay", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSimulatedMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSimulatedMargin", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountPositionBuilder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountPositionBuilder", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountPositionBuilderGraph(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountPositionBuilderGraph", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetRiskOffsetType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetRiskOffsetType", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountActivateOption(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountActivateOption", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetAutoLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetAutoLoan", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountAccountLevelSwitchPreset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountAccountLevelSwitchPreset", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetAccountLevel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetAccountLevel", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetCollateralAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetCollateralAssets", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountMmpReset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountMmpReset", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountMmpConfig", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountFixedLoanBorrowingOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountFixedLoanBorrowingOrder", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountFixedLoanAmendBorrowingOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountFixedLoanAmendBorrowingOrder", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountFixedLoanManualReborrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountFixedLoanManualReborrow", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountFixedLoanRepayBorrowingOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountFixedLoanRepayBorrowingOrder", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountMovePositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAccountMovePositions", args...)
 }
 
-func (this *okx) PrivatePostAccountSetSettleCurrency(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAccountSetAutoEarn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetAutoEarn", args...)
+}
+
+func (this *OkxCore) PrivatePostAccountSetSettleCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAccountSetSettleCurrency", args...)
 }
 
-func (this *okx) PrivatePostUsersSubaccountModifyApikey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
+func (this *OkxCore) PrivatePostAccountSetTradingConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetTradingConfig", args...)
 }
 
-func (this *okx) PrivatePostAssetSubaccountTransfer(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAssetSubaccountTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
 }
 
-func (this *okx) PrivatePostUsersSubaccountSetTransferOut(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostUsersSubaccountSetTransferOut", args...)
-}
-
-func (this *okx) PrivatePostAccountSubaccountSetLoanAllocation(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAccountSubaccountSetLoanAllocation(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAccountSubaccountSetLoanAllocation", args...)
 }
 
-func (this *okx) PrivatePostUsersSubaccountCreateSubaccount(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostUsersSubaccountCreateSubaccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostUsersSubaccountCreateSubaccount", args...)
 }
 
-func (this *okx) PrivatePostUsersSubaccountSubaccountApikey(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostUsersSubaccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersSubaccountApikey", args...)
+}
+
+func (this *OkxCore) PrivatePostUsersSubaccountModifyApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
+}
+
+func (this *OkxCore) PrivatePostUsersSubaccountSubaccountApikey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostUsersSubaccountSubaccountApikey", args...)
 }
 
-func (this *okx) PrivatePostUsersSubaccountDeleteApikey(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostUsersSubaccountDeleteApikey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostUsersSubaccountDeleteApikey", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostUsersSubaccountSetTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersSubaccountSetTransferOut", args...)
+}
+
+func (this *OkxCore) PrivatePostTradingBotGridOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridOrderAlgo", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridAmendOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridAmendAlgoBasicParam(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridAmendAlgoBasicParam", args...)
+}
+
+func (this *OkxCore) PrivatePostTradingBotGridAmendOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridAmendOrderAlgo", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridStopOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridStopOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridStopOrderAlgo", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridClosePosition(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridClosePosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridClosePosition", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridCancelCloseOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridCancelCloseOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridCancelCloseOrder", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridOrderInstantTrigger(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridOrderInstantTrigger(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridOrderInstantTrigger", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridWithdrawIncome(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridWithdrawIncome(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridWithdrawIncome", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridComputeMarginBalance(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridComputeMarginBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridComputeMarginBalance", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridMarginBalance(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridMarginBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridMarginBalance", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridMinInvestment(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridMinInvestment(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridMinInvestment", args...)
 }
 
-func (this *okx) PrivatePostTradingBotGridAdjustInvestment(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotGridAdjustInvestment(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotGridAdjustInvestment", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalCreateSignal(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalCreateSignal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalCreateSignal", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalOrderAlgo", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalStopOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalStopOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalStopOrderAlgo", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalMarginBalance(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalMarginBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalMarginBalance", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalAmendTPSL(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalAmendTPSL(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalAmendTPSL", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalSetInstruments(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalSetInstruments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalSetInstruments", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalClosePosition(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalClosePosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalClosePosition", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalSubOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalSubOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalSubOrder", args...)
 }
 
-func (this *okx) PrivatePostTradingBotSignalCancelSubOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotSignalCancelSubOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotSignalCancelSubOrder", args...)
 }
 
-func (this *okx) PrivatePostTradingBotRecurringOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotRecurringOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotRecurringOrderAlgo", args...)
 }
 
-func (this *okx) PrivatePostTradingBotRecurringAmendOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotRecurringAmendOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotRecurringAmendOrderAlgo", args...)
 }
 
-func (this *okx) PrivatePostTradingBotRecurringStopOrderAlgo(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostTradingBotRecurringStopOrderAlgo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostTradingBotRecurringStopOrderAlgo", args...)
 }
 
-func (this *okx) PrivatePostFinanceSavingsPurchaseRedempt(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceSavingsPurchaseRedempt(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceSavingsPurchaseRedempt", args...)
 }
 
-func (this *okx) PrivatePostFinanceSavingsSetLendingRate(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceSavingsSetLendingRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceSavingsSetLendingRate", args...)
 }
 
-func (this *okx) PrivatePostFinanceStakingDefiPurchase(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceStakingDefiPurchase(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceStakingDefiPurchase", args...)
 }
 
-func (this *okx) PrivatePostFinanceStakingDefiRedeem(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceStakingDefiRedeem(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceStakingDefiRedeem", args...)
 }
 
-func (this *okx) PrivatePostFinanceStakingDefiCancel(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceStakingDefiCancel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceStakingDefiCancel", args...)
 }
 
-func (this *okx) PrivatePostFinanceStakingDefiEthPurchase(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceStakingDefiEthPurchase(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceStakingDefiEthPurchase", args...)
 }
 
-func (this *okx) PrivatePostFinanceStakingDefiEthRedeem(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceStakingDefiEthRedeem(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceStakingDefiEthRedeem", args...)
 }
 
-func (this *okx) PrivatePostFinanceStakingDefiSolPurchase(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceStakingDefiEthCancelRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiEthCancelRedeem", args...)
+}
+
+func (this *OkxCore) PrivatePostFinanceStakingDefiSolPurchase(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceStakingDefiSolPurchase", args...)
 }
 
-func (this *okx) PrivatePostFinanceStakingDefiSolRedeem(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceStakingDefiSolRedeem(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceStakingDefiSolRedeem", args...)
 }
 
-func (this *okx) PrivatePostCopytradingAlgoOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceStakingDefiSolCancelRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiSolCancelRedeem", args...)
+}
+
+func (this *OkxCore) PrivatePostFinanceFlexibleLoanMaxLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceFlexibleLoanMaxLoan", args...)
+}
+
+func (this *OkxCore) PrivatePostFinanceFlexibleLoanAdjustCollateral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceFlexibleLoanAdjustCollateral", args...)
+}
+
+func (this *OkxCore) PrivatePostCopytradingAlgoOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingAlgoOrder", args...)
 }
 
-func (this *okx) PrivatePostCopytradingCloseSubposition(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostCopytradingCloseSubposition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingCloseSubposition", args...)
 }
 
-func (this *okx) PrivatePostCopytradingSetInstruments(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostCopytradingSetInstruments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingSetInstruments", args...)
 }
 
-func (this *okx) PrivatePostCopytradingFirstCopySettings(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostCopytradingAmendProfitSharingRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCopytradingAmendProfitSharingRatio", args...)
+}
+
+func (this *OkxCore) PrivatePostCopytradingFirstCopySettings(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingFirstCopySettings", args...)
 }
 
-func (this *okx) PrivatePostCopytradingAmendCopySettings(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostCopytradingAmendCopySettings(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingAmendCopySettings", args...)
 }
 
-func (this *okx) PrivatePostCopytradingStopCopyTrading(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostCopytradingStopCopyTrading(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingStopCopyTrading", args...)
 }
 
-func (this *okx) PrivatePostCopytradingBatchSetLeverage(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostCopytradingBatchSetLeverage(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCopytradingBatchSetLeverage", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdCreateSubaccount(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdCreateSubaccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdCreateSubaccount", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdDeleteSubaccount(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdDeleteSubaccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdDeleteSubaccount", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdSubaccountApikey(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdSubaccountApikey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdSubaccountApikey", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdSubaccountModifyApikey(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdSubaccountModifyApikey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdSubaccountModifyApikey", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdSubaccountDeleteApikey(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdSubaccountDeleteApikey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdSubaccountDeleteApikey", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdSetSubaccountLevel(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdSetSubaccountLevel(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountLevel", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdSetSubaccountFeeRate(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdSetSubaccountFeeRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountFeeRate", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdSetSubaccountAssets(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdSetSubaccountAssets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountAssets", args...)
 }
 
-func (this *okx) PrivatePostAssetBrokerNdSubaccountDepositAddress(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAssetBrokerNdSubaccountDepositAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetBrokerNdSubaccountDepositAddress", args...)
 }
 
-func (this *okx) PrivatePostAssetBrokerNdModifySubaccountDepositAddress(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostAssetBrokerNdModifySubaccountDepositAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAssetBrokerNdModifySubaccountDepositAddress", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdRebatePerOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdRebatePerOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdRebatePerOrders", args...)
 }
 
-func (this *okx) PrivatePostFinanceSfpDcdQuote(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceSfpDcdQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceSfpDcdQuote", args...)
 }
 
-func (this *okx) PrivatePostFinanceSfpDcdOrder(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostFinanceSfpDcdOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFinanceSfpDcdOrder", args...)
 }
 
-func (this *okx) PrivatePostBrokerNdReportSubaccountIp(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerNdReportSubaccountIp(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerNdReportSubaccountIp", args...)
 }
 
-func (this *okx) PrivatePostBrokerFdRebatePerOrders(args ...interface{}) <-chan interface{} {
+func (this *OkxCore) PrivatePostBrokerDmaSubaccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerDmaSubaccountApikey", args...)
+}
+
+func (this *OkxCore) PrivatePostBrokerDmaTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerDmaTrades", args...)
+}
+
+func (this *OkxCore) PrivatePostBrokerFdRebatePerOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostBrokerFdRebatePerOrders", args...)
 }

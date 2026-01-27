@@ -95,7 +95,7 @@ class mexc(ccxt.async_support.mexc):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -118,7 +118,7 @@ class mexc(ccxt.async_support.mexc):
         #         "symbol": "BTC_USDT",
         #         "data": {
         #             "symbol": "BTC_USDT",
-        #             "lastPrice": 76376.2,
+        #             "lastPrice": 76376.1,
         #             "riseFallRate": -0.0006,
         #             "fairPrice": 76374.4,
         #             "indexPrice": 76385.8,
@@ -206,7 +206,7 @@ class mexc(ccxt.async_support.mexc):
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None)
@@ -412,7 +412,7 @@ class mexc(ccxt.async_support.mexc):
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
@@ -530,7 +530,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
@@ -722,7 +722,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.frequency]: the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -843,6 +843,7 @@ class mexc(ccxt.async_support.mexc):
             self.orderbooks[symbol] = self.order_book()
         storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
+        shouldReturn = False
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
@@ -858,7 +859,10 @@ class mexc(ccxt.async_support.mexc):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
-            return
+            # return
+            shouldReturn = True
+        if shouldReturn:
+            return  # go requirement
         client.resolve(storedOrderBook, messageHash)
 
     def handle_bookside_delta(self, bookside, bidasks):
@@ -903,7 +907,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -960,14 +964,16 @@ class mexc(ccxt.async_support.mexc):
         # swap
         #     {
         #         "symbol": "BTC_USDT",
-        #         "data": {
-        #             "p": 27307.3,
-        #             "v": 5,
-        #             "T": 2,
-        #             "O": 3,
-        #             "M": 1,
-        #             "t": 1680055941870
-        #         },
+        #         "data": [
+        #            {
+        #                "p": 114350.4,
+        #                "v": 4,
+        #                "T": 2,
+        #                "O": 3,
+        #                "M": 2,
+        #                "t": 1760368563597
+        #            }
+        #         ],
         #         "channel": "push.deal",
         #         "ts": 1680055941870
         #     }
@@ -981,8 +987,10 @@ class mexc(ccxt.async_support.mexc):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        d = self.safe_dict_n(message, ['d', 'data', 'publicAggreDeals'])
+        d = self.safe_dict_n(message, ['d', 'publicAggreDeals'])
         trades = self.safe_list_2(d, 'deals', 'dealsList', [d])
+        if d is None:
+            trades = self.safe_list(message, 'data', [])
         for j in range(0, len(trades)):
             parsedTrade = None
             if market['spot']:
@@ -1003,7 +1011,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -1173,7 +1181,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str|None params['type']: the type of orders to retrieve, can be 'spot' or 'margin'
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'
@@ -1434,7 +1442,7 @@ class mexc(ccxt.async_support.mexc):
 
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         type = None
@@ -1506,7 +1514,7 @@ class mexc(ccxt.async_support.mexc):
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1534,7 +1542,7 @@ class mexc(ccxt.async_support.mexc):
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None)
@@ -1590,7 +1598,7 @@ class mexc(ccxt.async_support.mexc):
         unWatches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
@@ -1619,7 +1627,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_unsubscriptions(client, messageHashes)
         return None
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1658,7 +1666,7 @@ class mexc(ccxt.async_support.mexc):
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.frequency]: the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1689,7 +1697,7 @@ class mexc(ccxt.async_support.mexc):
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)

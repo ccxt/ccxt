@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var index = require('../../static_dependencies/scure-base/index.js');
 var utils = require('../../static_dependencies/noble-curves/abstract/utils.js');
 var msgpack = require('../../static_dependencies/messagepack/msgpack.js');
-var index$1 = require('../../static_dependencies/qs/index.cjs.js');
+var index$1 = require('../../static_dependencies/qs/index.js');
 
 // ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */

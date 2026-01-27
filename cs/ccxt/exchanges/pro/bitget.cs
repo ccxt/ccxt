@@ -145,7 +145,7 @@ public partial class bitget : ccxt.bitget
      * @param {string} symbol unified symbol of the market to watch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -199,7 +199,7 @@ public partial class bitget : ccxt.bitget
      * @param {string[]} symbols unified symbol of the market to watch the tickers for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -448,7 +448,7 @@ public partial class bitget : ccxt.bitget
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -593,9 +593,9 @@ public partial class bitget : ccxt.bitget
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -785,7 +785,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -804,7 +804,7 @@ public partial class bitget : ccxt.bitget
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -865,7 +865,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -1032,7 +1032,24 @@ public partial class bitget : ccxt.bitget
         } else
         {
             object orderbook = this.orderBook(new Dictionary<string, object>() {});
-            object parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            object bidsKey = "bids";
+            object asksKey = "asks";
+            // bitget UTA has `a` and `b` instead of `asks` and `bids`
+            if (isTrue(inOp(rawOrderBook, "a")))
+            {
+                if (!isTrue((inOp(rawOrderBook, "asks"))))
+                {
+                    asksKey = "a";
+                }
+            }
+            if (isTrue(inOp(rawOrderBook, "b")))
+            {
+                if (!isTrue((inOp(rawOrderBook, "bids"))))
+                {
+                    bidsKey = "b";
+                }
+            }
+            object parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             (orderbook as IOrderBook).reset(parsedOrderbook);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
@@ -1075,7 +1092,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1095,7 +1112,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -1664,6 +1681,7 @@ public partial class bitget : ccxt.bitget
      * @name bitget#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -1678,7 +1696,7 @@ public partial class bitget : ccxt.bitget
      * @param {string} [params.type] 'spot', 'swap'
      * @param {string} [params.subType] 'linear', 'inverse'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2241,7 +2259,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2446,7 +2464,7 @@ public partial class bitget : ccxt.bitget
      * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -2771,7 +2789,7 @@ public partial class bitget : ccxt.bitget
         object url = this.safeString(parameters, "url");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -3078,7 +3096,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " orderbook "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
@@ -3108,7 +3129,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " trades "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
@@ -3138,7 +3162,10 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, " ticker "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
+        if (isTrue(inOp(client.futures, subMessageHash)))
+        {
+            ((WebSocketClient)client).reject(error, subMessageHash);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
@@ -3221,20 +3248,20 @@ public partial class bitget : ccxt.bitget
         {
             object arg = getValue(argsList, i);
             object channel = this.safeString2(arg, "channel", "topic");
-            if (isTrue(isEqual(channel, "books")))
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "books"), 0)))
             {
                 // for now only unWatchOrderBook is supporteod
                 this.handleOrderBookUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(isTrue((isEqual(channel, "trade"))) || isTrue((isEqual(channel, "publicTrade")))))
+            } else if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(channel, "trade"), 0))) || isTrue((isGreaterThanOrEqual(getIndexOf(channel, "publicTrade"), 0)))))
             {
                 this.handleTradesUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(isEqual(channel, "ticker")))
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "ticker"), 0)))
             {
                 this.handleTickerUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(((string)channel).StartsWith(((string)"candle"))))
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "candle"), 0)))
             {
                 this.handleOHLCVUnSubscription(client as WebSocketClient, message);
-            } else if (isTrue(((string)channel).StartsWith(((string)"kline"))))
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "kline"), 0)))
             {
                 this.handleOHLCVUnSubscription(client as WebSocketClient, message);
             }

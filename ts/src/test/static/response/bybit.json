@@ -2,6 +2,204 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "marginMode": "REGULAR_MARGIN",
+                        "updatedTime": "1723481446000",
+                        "unifiedMarginStatus": "5",
+                        "dcpStatus": "OFF",
+                        "timeWindow": "0",
+                        "smpGroup": "0",
+                        "isMasterTrader": false,
+                        "spotHedgingStatus": "OFF"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "marginMode": "REGULAR_MARGIN",
+                        "updatedTime": "1723481446000",
+                        "unifiedMarginStatus": "5",
+                        "dcpStatus": "OFF",
+                        "timeWindow": "0",
+                        "smpGroup": "0",
+                        "isMasterTrader": false,
+                        "spotHedgingStatus": "OFF"
+                    },
+                    "symbol": "BTC/USDT",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch positions history",
+                "method": "fetchPositionsHistory",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "158c1180-3c98-4d0d-9c53-73ceed34dcf0%3A1768320162941%2C158c1180-3c98-4d0d-9c53-73ceed34dcf0%3A1768320162941",
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "DOGEUSDT",
+                                "orderType": "Market",
+                                "leverage": "10",
+                                "updatedTime": "1768320162941",
+                                "side": "Sell",
+                                "orderId": "158c1180-3c98-4d0d-9c53-73ceed34dcf0",
+                                "closedPnl": "-0.0045183",
+                                "openFee": "0.00112151",
+                                "closeFee": "0.00112027",
+                                "avgEntryPrice": "0.13594",
+                                "qty": "15",
+                                "cumEntryValue": "2.0391",
+                                "createdTime": "1768320162935",
+                                "orderPrice": "0.13303",
+                                "closedSize": "15",
+                                "avgExitPrice": "0.13579",
+                                "execType": "Trade",
+                                "fillCount": "1",
+                                "cumExitValue": "2.03685"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1768321837854"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "DOGEUSDT",
+                            "orderType": "Market",
+                            "leverage": "10",
+                            "updatedTime": "1768320162941",
+                            "side": "Sell",
+                            "orderId": "158c1180-3c98-4d0d-9c53-73ceed34dcf0",
+                            "closedPnl": "-0.0045183",
+                            "openFee": "0.00112151",
+                            "closeFee": "0.00112027",
+                            "avgEntryPrice": "0.13594",
+                            "qty": "15",
+                            "cumEntryValue": "2.0391",
+                            "createdTime": "1768320162935",
+                            "orderPrice": "0.13303",
+                            "closedSize": "15",
+                            "avgExitPrice": "0.13579",
+                            "execType": "Trade",
+                            "fillCount": "1",
+                            "cumExitValue": "2.03685"
+                        },
+                        "id": null,
+                        "symbol": "DOGE/USDT:USDT",
+                        "timestamp": 1768320162935,
+                        "datetime": "2026-01-13T16:02:42.935Z",
+                        "lastUpdateTimestamp": 1768320162941,
+                        "initialMargin": 2.0391,
+                        "initialMarginPercentage": 1.0011046468812137,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.13594,
+                        "notional": 2.03685,
+                        "leverage": 10,
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.0045183,
+                        "contracts": 15,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.13579,
+                        "collateral": null,
+                        "marginMode": null,
+                        "side": "long",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "hedged": null
+                    }
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit order using clientOrderId",
+                "method": "editOrder",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.22,
+                    73,
+                    {
+                        "clientOrderId": "bybit1"
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "2088690093937486080",
+                        "orderLinkId": "bybit1"
+                    },
+                    "retExtInfo": {},
+                    "time": "1763738830446"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "OK",
+                        "result": {
+                            "orderId": "2088690093937486080",
+                            "orderLinkId": "bybit1"
+                        },
+                        "retExtInfo": {},
+                        "time": "1763738830446"
+                    },
+                    "id": "2088690093937486080",
+                    "clientOrderId": "bybit1",
+                    "fees": [],
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            }
+        ],
         "createMarketBuyOrderWithCost": [
             {
                 "description": "order with cost, using a decimal amount",
@@ -1401,6 +1599,438 @@
         ],
         "createOrder": [
             {
+                "description": "swap limit sell takeProfitPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    99000,
+                    {
+                        "takeProfitPrice": 98000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764711613007"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                        "orderLinkId": ""
+                    },
+                    "id": "8bec532a-36b1-437e-93f4-1b03bf449456",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit sell stopLossPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    81000,
+                    {
+                        "stopLossPrice": 82000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764711543834"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                        "orderLinkId": ""
+                    },
+                    "id": "6775234e-5cea-4ee6-8b0f-899cc91cc457",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit + stopLossPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    81234,
+                    {
+                        "stopLossPrice": 99235
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "368953a2-1bd8-4512-bd2f-396d08a8a69c",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764707587867"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "368953a2-1bd8-4512-bd2f-396d08a8a69c",
+                        "orderLinkId": ""
+                    },
+                    "id": "368953a2-1bd8-4512-bd2f-396d08a8a69c",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "swap limit + takeProfitPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    81234,
+                    {
+                        "takeProfitPrice": 81235
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "e1aa1808-3d9a-40fa-ab1e-d5c3d5233599",
+                        "orderLinkId": ""
+                    },
+                    "retExtInfo": {},
+                    "time": "1764707555054"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "e1aa1808-3d9a-40fa-ab1e-d5c3d5233599",
+                        "orderLinkId": ""
+                    },
+                    "id": "e1aa1808-3d9a-40fa-ab1e-d5c3d5233599",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "protective oco order - limit",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "takeProfitLimitPrice": 80000,
+                        "stopLossPrice": 100000,
+                        "stopLossLimitPrice": 100123
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764705610523"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "protective oco order - market with amount",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "stopLossPrice": 100000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764705435514"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "protective oco order - market without amount",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.0,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "stopLossPrice": 100000
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764705413056"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "protective oco order - limit",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sample",
+                    "sample",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 80123,
+                        "takeProfitLimitPrice": 80000,
+                        "stopLossPrice": 100000,
+                        "stopLossLimitPrice": 100123
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1764704071593"
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "spot stopLossPrice order",
                 "method": "createOrder",
                 "input": [
@@ -2403,6 +3033,131 @@
         ],
         "fetchPositions": [
             {
+                "description": "fetch positions with hedged mode in the response",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "DOGEUSDT%2C1768320000039%2C2",
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "DOGEUSDT",
+                                "leverage": "10",
+                                "breakEvenPrice": "0.14059702",
+                                "autoAddMargin": "0",
+                                "avgPrice": "0.14075",
+                                "liqPrice": "",
+                                "riskLimitValue": "250000",
+                                "takeProfit": "",
+                                "positionValue": "4.2225",
+                                "isReduceOnly": false,
+                                "positionIMByMp": "0.42960461",
+                                "tpslMode": "Full",
+                                "riskId": "206",
+                                "trailingStop": "0",
+                                "unrealisedPnl": "-0.048",
+                                "markPrice": "0.14235",
+                                "adlRankIndicator": "2",
+                                "cumRealisedPnl": "-0.00226936",
+                                "positionMM": "0.03458336",
+                                "createdTime": "1768319192333",
+                                "positionIdx": "2",
+                                "positionIM": "0.42960461",
+                                "positionMMByMp": "0.03458336",
+                                "seq": "24142759163",
+                                "updatedTime": "1768320000039",
+                                "side": "Sell",
+                                "bustPrice": "",
+                                "positionBalance": "0",
+                                "leverageSysUpdatedTime": "",
+                                "curRealisedPnl": "-0.00226936",
+                                "size": "30",
+                                "positionStatus": "Normal",
+                                "mmrSysUpdatedTime": "",
+                                "stopLoss": "",
+                                "tradeMode": "0",
+                                "sessionAvgPrice": ""
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1768321734055"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "DOGEUSDT",
+                            "leverage": "10",
+                            "breakEvenPrice": "0.14059702",
+                            "autoAddMargin": "0",
+                            "avgPrice": "0.14075",
+                            "liqPrice": "",
+                            "riskLimitValue": "250000",
+                            "takeProfit": "",
+                            "positionValue": "4.2225",
+                            "isReduceOnly": false,
+                            "positionIMByMp": "0.42960461",
+                            "tpslMode": "Full",
+                            "riskId": "206",
+                            "trailingStop": "0",
+                            "unrealisedPnl": "-0.048",
+                            "markPrice": "0.14235",
+                            "adlRankIndicator": "2",
+                            "cumRealisedPnl": "-0.00226936",
+                            "positionMM": "0.03458336",
+                            "createdTime": "1768319192333",
+                            "positionIdx": "2",
+                            "positionIM": "0.42960461",
+                            "positionMMByMp": "0.03458336",
+                            "seq": "24142759163",
+                            "updatedTime": "1768320000039",
+                            "side": "Sell",
+                            "bustPrice": "",
+                            "positionBalance": "0",
+                            "leverageSysUpdatedTime": "",
+                            "curRealisedPnl": "-0.00226936",
+                            "size": "30",
+                            "positionStatus": "Normal",
+                            "mmrSysUpdatedTime": "",
+                            "stopLoss": "",
+                            "tradeMode": "0",
+                            "sessionAvgPrice": "",
+                            "nextPageCursor": "DOGEUSDT%2C1768320000039%2C2"
+                        },
+                        "id": null,
+                        "symbol": "DOGE/USDT:USDT",
+                        "timestamp": 1768319192333,
+                        "datetime": "2026-01-13T15:46:32.333Z",
+                        "lastUpdateTimestamp": 1768320000039,
+                        "initialMargin": 0.42960461,
+                        "initialMarginPercentage": 0.1017417667258733,
+                        "maintenanceMargin": 0.03458336,
+                        "maintenanceMarginPercentage": 0.00819025695677916,
+                        "entryPrice": 0.14075,
+                        "notional": 4.2225,
+                        "leverage": 10,
+                        "unrealizedPnl": -0.048,
+                        "realizedPnl": null,
+                        "contracts": 30,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": 0.14235,
+                        "lastPrice": null,
+                        "collateral": 0,
+                        "marginMode": null,
+                        "side": "short",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "hedged": true
+                    }
+                ]
+            },
+            {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
                 "input": [
@@ -2635,6 +3390,124 @@
                     "percentage": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null,
+                    "hedged": false
+                }
+            },
+            {
+                "description": "inverse swap fetch position",
+                "method": "fetchPosition",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "list": [
+                            {
+                                "positionIdx": "0",
+                                "riskId": "1",
+                                "riskLimitValue": "150",
+                                "symbol": "BTCUSD",
+                                "side": "Buy",
+                                "size": "1",
+                                "avgPrice": "92850.51067781",
+                                "positionValue": "0.00001077",
+                                "tradeMode": "0",
+                                "positionStatus": "Normal",
+                                "autoAddMargin": "1",
+                                "adlRankIndicator": "2",
+                                "leverage": "10",
+                                "positionBalance": "0.00000109",
+                                "markPrice": "92805.30",
+                                "liqPrice": "100.00",
+                                "bustPrice": "100.00",
+                                "positionMM": "0.00005",
+                                "positionIM": "0.00000011",
+                                "tpslMode": "Full",
+                                "takeProfit": "0.00",
+                                "stopLoss": "0.00",
+                                "trailingStop": "0.00",
+                                "unrealisedPnl": "0",
+                                "cumRealisedPnl": "-0.00000016",
+                                "curRealisedPnl": "-0.00000001",
+                                "seq": "5994066061",
+                                "isReduceOnly": false,
+                                "mmrSysUpdatedTime": "",
+                                "leverageSysUpdatedTime": "",
+                                "sessionAvgPrice": "",
+                                "createdTime": "1705469399514",
+                                "updatedTime": "1768898436202"
+                            }
+                        ],
+                        "nextPageCursor": "",
+                        "category": "inverse"
+                    },
+                    "retExtInfo": {},
+                    "time": "1768898477889"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "positionIdx": "0",
+                        "riskId": "1",
+                        "riskLimitValue": "150",
+                        "symbol": "BTCUSD",
+                        "side": "Buy",
+                        "size": "1",
+                        "avgPrice": "92850.51067781",
+                        "positionValue": "0.00001077",
+                        "tradeMode": "0",
+                        "positionStatus": "Normal",
+                        "autoAddMargin": "1",
+                        "adlRankIndicator": "2",
+                        "leverage": "10",
+                        "positionBalance": "0.00000109",
+                        "markPrice": "92805.30",
+                        "liqPrice": "100.00",
+                        "bustPrice": "100.00",
+                        "positionMM": "0.00005",
+                        "positionIM": "0.00000011",
+                        "tpslMode": "Full",
+                        "takeProfit": "0.00",
+                        "stopLoss": "0.00",
+                        "trailingStop": "0.00",
+                        "unrealisedPnl": "0",
+                        "cumRealisedPnl": "-0.00000016",
+                        "curRealisedPnl": "-0.00000001",
+                        "seq": "5994066061",
+                        "isReduceOnly": false,
+                        "mmrSysUpdatedTime": "",
+                        "leverageSysUpdatedTime": "",
+                        "sessionAvgPrice": "",
+                        "createdTime": "1705469399514",
+                        "updatedTime": "1768898436202"
+                    },
+                    "id": null,
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": 1768898477889,
+                    "datetime": "2026-01-20T08:41:17.889Z",
+                    "lastUpdateTimestamp": 1768898436202,
+                    "initialMargin": 1.1e-7,
+                    "initialMarginPercentage": 0.010208583000000422,
+                    "maintenanceMargin": 0,
+                    "maintenanceMarginPercentage": 0,
+                    "entryPrice": 92850.51067781,
+                    "notional": 0.000010775246672334,
+                    "leverage": 10,
+                    "unrealizedPnl": null,
+                    "realizedPnl": null,
+                    "contracts": 1,
+                    "contractSize": 1,
+                    "marginRatio": 0,
+                    "liquidationPrice": 100,
+                    "markPrice": 92805.3,
+                    "lastPrice": null,
+                    "collateral": 0.00000109,
+                    "marginMode": null,
+                    "side": "long",
+                    "percentage": null,
+                    "stopLossPrice": 0,
+                    "takeProfitPrice": 0,
                     "hedged": false
                 }
             }
@@ -4697,6 +5570,68 @@
                             "predictedDeliveryPrice": "0",
                             "change24h": "0"
                         }
+                    }
+                }
+            }
+        ],
+        "borrowCrossMargin": [
+            {
+                "description": "borrow cross margin BTC",
+                "method": "borrowCrossMargin",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "success",
+                    "result": {
+                        "coin": "BTC",
+                        "amount": "0.001"
+                    },
+                    "retExtInfo": {},
+                    "time": "1763194940073"
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "currency": "BTC",
+                    "amount": "0.001",
+                    "symbol": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "coin": "BTC",
+                        "amount": "0.001"
+                    }
+                }
+            }
+        ],
+        "repayCrossMargin": [
+            {
+                "description": "repay cross margin BTC",
+                "method": "repayCrossMargin",
+                "input": [
+                    "BTC",
+                    0.001
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "success",
+                    "result": {
+                        "resultStatus": "SU"
+                    },
+                    "retExtInfo": {},
+                    "time": "1763195201119"
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "currency": "BTC",
+                    "amount": 0.001,
+                    "symbol": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "resultStatus": "SU"
                     }
                 }
             }

@@ -94,7 +94,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $url = $this->urls['api']['ws']['private'];
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = $this->milliseconds();
@@ -224,7 +224,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$params->method] 'orderbook/full', 'orderbook/{$depth}/{$speed}', 'orderbook/{$depth}/{$speed}/batch'
              * @param {int} [$params->depth] 5 , 10, or 20 (default)
              * @param {int} [$params->speed] 100 (default), 500, or 1000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $options = $this->safe_value($this->options, 'watchOrderBook');
             $defaultMethod = $this->safe_string($options, 'method', 'orderbook/full');
@@ -334,7 +334,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'ticker/{speed}' (default), or 'ticker/price/{speed}'
              * @param {string} [$params->speed] '1s' (default), or '3s'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             $ticker = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $this->safe_value($ticker, $symbol);
@@ -375,7 +375,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             );
             $newTickers = Async\await($this->subscribe_public($name, 'tickers', $symbols, $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
-                if (gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers))) {
+                if ((gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers)))) {
                     $tickers = array();
                     $tickers[$newTickers['symbol']] = $newTickers;
                     return $tickers;
@@ -508,7 +508,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'orderbook/top/{$speed}' or 'orderbook/top/{$speed}/batch (default)'
              * @param {string} [$params->speed] '100ms' (default) or '500ms' or '1000ms'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -526,7 +526,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             );
             $newTickers = Async\await($this->subscribe_public($name, 'bidask', $symbols, $this->deep_extend($request, $params)));
             if ($this->newUpdates) {
-                if (gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers))) {
+                if ((gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers)))) {
                     $tickers = array();
                     $tickers[$newTickers['symbol']] = $newTickers;
                     return $tickers;
@@ -593,7 +593,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -716,7 +716,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -935,7 +935,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         $data = $this->safe_value($message, 'params', array());
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             for ($i = 0; $i < count($data); $i++) {
                 $order = $data[$i];
                 $this->handle_order_helper($client, $message, $order);
@@ -1091,7 +1091,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=balance-structure balance structures~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -1165,7 +1165,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for canceling a margin order
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1189,7 +1189,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -1201,7 +1201,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for canceling margin orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1237,7 +1237,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching open margin orders
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1320,7 +1320,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
-        if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+        if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
             $parsedOrders = array();
             for ($i = 0; $i < count($result); $i++) {
                 $parsedOrder = $this->parse_ws_order($result[$i]);
@@ -1376,7 +1376,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             if (($result === true) && !(is_array($message) && array_key_exists('id', $message))) {
                 $this->handle_authenticate($client, $message);
             }
-            if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+            if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
                 // to do improve this, not very reliable right now
                 $first = $this->safe_value($result, 0, array());
                 $arrayLength = count($result);

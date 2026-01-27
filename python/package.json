@@ -1,13 +1,19 @@
 {
   "name": "ccxt",
-  "version": "4.5.7",
+  "version": "4.5.34",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./js/ccxt.js",
-      "require": "./dist/ccxt.cjs"
+      "import": {
+        "types": "./js/ccxt.d.ts",
+        "default": "./js/ccxt.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./dist/ccxt.cjs"
+      }
     }
   },
   "engines": {
@@ -31,9 +37,12 @@
     "transpileCS": "tsx build/csharpTranspiler.ts --multi",
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
+    "buildGO": "go build -C go ./v4 && go build -C go ./v4/pro",
+    "formatGO": "go fmt -C go v4 tests",
+    "transpileGOWs": "tsx build/goTranspiler.ts --ws",
+    "transpileGORest": "tsx build/goTranspiler.ts",
+    "transpileGO": "npm run transpileGORest && npm run transpileGOWs",
     "buildCSTests": "dotnet build cs/tests/tests.csproj",
-    "buildGO": "go build -C go ./v4",
-    "transpileGO": "tsx build/goTranspiler.ts",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
     "go": "npm run transpileGO && npm run buildGO",
@@ -126,6 +135,7 @@
     "live-tests-rest-csharp": "npm run live-tests -- --csharp",
     "live-tests-rest-go": "npm run live-tests -- --go",
     "live-tests-ws-csharp": "npm run live-tests -- --csharp --ws",
+    "live-tests-ws-go": "npm run live-tests -- --go --ws",
     "ti-ts": "tsx ts/src/test/tests.init.ts",
     "ti-js": "node js/src/test/tests.init.js",
     "ti-py": "python3 python/ccxt/test/tests_init.py",
@@ -175,15 +185,17 @@
     "test-base-ws-py": "npm run ti-py  -- --baseTests --ws",
     "test-base-ws-php": "npm run ti-php -- --baseTests --ws",
     "test-base-ws-cs": "npm run ti-cs  -- --baseTests --ws",
+    "test-base-ws-go": "npm run ti-go  -- --baseTests --ws",
     "test-base-rest": "npm run test-base-rest-js && npm run test-base-rest-py && npm run test-base-rest-php && npm run test-base-rest-cs",
-    "test-base-ws": "npm run test-base-ws-js   && npm run test-base-ws-py   && npm run test-base-ws-php   && npm run test-base-ws-cs",
+    "test-base-ws": "npm run test-base-ws-js   && npm run test-base-ws-py   && npm run test-base-ws-php   && npm run test-base-ws-cs && npm run test-base-ws-go",
     "test": "npm run build && npm run commonjs-test && npm run id-tests && npm run request-tests && npm run response-tests && npm run live-tests",
     "commonjs-test": "node ./utils/test-commonjs.cjs",
     "package-test": "./utils/package-test.sh",
     "test-freshness": "tsx ./utils/test-freshness.ts",
     "benchmark": "tsx examples/ts/benchmark.ts",
     "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
-    "test-types-go": "go run -C go ./tests/types/types.go"
+    "test-types-go": "go run -C go ./tests/types/types.go",
+    "test-go": "npm run test-types-go && npm run response-go && npm run request-go && npm run test-base-rest-go && npm run test-base-ws-go"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
@@ -197,26 +209,31 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "^0.0.70",
+    "ast-transpiler": "^0.0.71",
+    "blessed": "^0.1.81",
+    "clipboardy": "^5.0.0",
+    "commander": "^14.0.1",
     "docsify": "^4.13.1",
-    "eslint": "8.22.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
     "eslint-plugin-jsdoc": "^46.9.0",
+    "eslint": "8.22.0",
     "https-proxy-agent": "^5.0.1",
     "jsdoc-to-markdown": "^8.0.0",
     "ololog": "^1.1.175",
+    "open": "^10.2.0",
+    "ora": "^9.0.0",
     "piscina": "^3.2.0",
     "protobufjs": "^7.5.3",
     "replace-in-file": "^6.3.5",
-    "rollup": "^2.70.1",
     "rollup-plugin-execute": "1.1.1",
+    "rollup": "^2.70.1",
     "terser-webpack-plugin": "^5.3.9",
     "ts-loader": "^9.4.2",
     "tsx": "^4.7.2",
     "typescript": "4.7.4",
-    "webpack": "^5.76.2",
-    "webpack-cli": "^5.0.1"
+    "webpack-cli": "^5.0.1",
+    "webpack": "^5.76.2"
   },
   "author": {
     "name": "Igor Kroitor",

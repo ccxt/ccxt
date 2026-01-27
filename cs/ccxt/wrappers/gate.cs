@@ -10,7 +10,7 @@ public partial class gate
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-server-current-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -35,11 +35,11 @@ public partial class gate
     /// retrieves data on all markets for gate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-currency-pairs-supported"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -84,7 +84,7 @@ public partial class gate
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-contract"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -94,7 +94,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
     public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
@@ -104,7 +104,7 @@ public partial class gate
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -114,7 +114,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
     public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
@@ -138,7 +138,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network.</returns>
+    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network.</returns>
     public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
@@ -148,7 +148,7 @@ public partial class gate
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -159,12 +159,12 @@ public partial class gate
     /// <item>
     /// <term>params.network</term>
     /// <description>
-    /// string : unified network code (not used directly by gate.io but used by ccxt to filter the response)
+    /// string : unified network code (not used directly by gate.com but used by ccxt to filter the response)
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
@@ -174,7 +174,7 @@ public partial class gate
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -184,7 +184,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
@@ -194,7 +194,7 @@ public partial class gate
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -204,7 +204,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
@@ -214,7 +214,7 @@ public partial class gate
     /// please use fetchDepositWithdrawFees instead
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -224,7 +224,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchTransactionFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
@@ -234,7 +234,7 @@ public partial class gate
     /// fetch deposit and withdraw fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -244,7 +244,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
@@ -254,8 +254,8 @@ public partial class gate
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-account-book-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-account-book-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -277,7 +277,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}.</returns>
+    /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
     public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -289,10 +289,10 @@ public partial class gate
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#futures-order-book"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#options-order-book"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-order-book"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-order-book"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-order-book-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#options-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -308,7 +308,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -319,10 +319,10 @@ public partial class gate
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-details-of-a-specifc-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -332,7 +332,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
@@ -342,10 +342,10 @@ public partial class gate
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-details-of-a-specifc-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -355,7 +355,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
@@ -410,7 +410,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -434,7 +434,7 @@ public partial class gate
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#funding-rate-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -445,7 +445,7 @@ public partial class gate
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -468,7 +468,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
     public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -480,10 +480,10 @@ public partial class gate
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-market-trades"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#options-trade-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-market-trades"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#options-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -517,7 +517,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -529,10 +529,10 @@ public partial class gate
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -554,7 +554,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -566,10 +566,10 @@ public partial class gate
     /// Fetch personal trading history
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -657,7 +657,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -669,7 +669,7 @@ public partial class gate
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-deposit-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -703,7 +703,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -715,7 +715,7 @@ public partial class gate
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -749,7 +749,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -761,7 +761,7 @@ public partial class gate
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#withdraw"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -771,7 +771,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
@@ -781,13 +781,13 @@ public partial class gate
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-an-order"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-3"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-an-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order-3"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -915,9 +915,9 @@ public partial class gate
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-futures-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -927,7 +927,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
@@ -943,7 +943,7 @@ public partial class gate
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-an-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -959,7 +959,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
@@ -976,8 +976,8 @@ public partial class gate
     /// edit a trade order, gate currently only supports the modification of the price or amount fields
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#amend-an-order"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#amend-an-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#amend-an-order-2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -999,7 +999,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -1016,10 +1016,10 @@ public partial class gate
     /// Retrieves information on an order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-3"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-4"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1069,8 +1069,8 @@ public partial class gate
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1116,7 +1116,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1128,14 +1128,14 @@ public partial class gate
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-orders"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-options-orders"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-auto-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-auto-orders-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-options-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders-by-time-range"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1187,7 +1187,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1206,10 +1206,10 @@ public partial class gate
     /// Cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-3"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-4"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-3"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-4"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1241,8 +1241,8 @@ public partial class gate
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1258,7 +1258,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
@@ -1268,7 +1268,7 @@ public partial class gate
     /// cancel multiple orders for multiple symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1284,7 +1284,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersForSymbols(orders, parameters);
@@ -1294,10 +1294,10 @@ public partial class gate
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1313,7 +1313,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
@@ -1323,7 +1323,7 @@ public partial class gate
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1349,8 +1349,8 @@ public partial class gate
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage-2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1370,9 +1370,9 @@ public partial class gate
     /// fetch data on an open contract position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-single-position"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-single-position"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-single-position-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-specified-contract-position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1382,7 +1382,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
@@ -1392,9 +1392,9 @@ public partial class gate
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-positions-of-a-user"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-positions-of-a-user-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1416,7 +1416,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
@@ -1426,8 +1426,8 @@ public partial class gate
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts-2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1437,7 +1437,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
     public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
@@ -1447,7 +1447,7 @@ public partial class gate
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-risk-limit-tiers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1457,7 +1457,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}.</returns>
+    /// <returns> <term>object</term> a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}.</returns>
     public async Task<List<LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
@@ -1467,9 +1467,9 @@ public partial class gate
     /// fetch the interest owed by the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-interest-records"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-interest-records"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-interest-records-2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1509,7 +1509,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}.</returns>
     public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1528,7 +1528,7 @@ public partial class gate
     /// fetches historical settlement records
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-settlement-history-2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1550,7 +1550,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1562,7 +1562,7 @@ public partial class gate
     /// fetches historical settlement records of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-my-options-settlements"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-my-options-settlements"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1596,11 +1596,11 @@ public partial class gate
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#query-account-book"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-account-book"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-margin-account-balance-change-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-account-book-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-account-book-3"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-account-changing-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1640,7 +1640,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1652,7 +1652,7 @@ public partial class gate
     /// set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#enable-or-disable-dual-mode"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -1666,7 +1666,7 @@ public partial class gate
     /// fetches the market ids of underlying assets for a specific contract market type
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-underlyings"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1682,7 +1682,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [underlying assets]{@link https://docs.ccxt.com/#/?id=underlying-assets-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}.</returns>
     public async Task<List<Dictionary<string, object>>> FetchUnderlyingAssets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUnderlyingAssets(parameters);
@@ -1692,7 +1692,7 @@ public partial class gate
     /// retrieves the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-liquidation-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1720,7 +1720,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}.</returns>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}.</returns>
     public async Task<List<Liquidation>> FetchLiquidations(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1732,9 +1732,9 @@ public partial class gate
     /// retrieves the users liquidated positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-liquidation-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-liquidation-history-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1756,7 +1756,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}.</returns>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}.</returns>
     public async Task<List<Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1768,7 +1768,7 @@ public partial class gate
     /// fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1778,7 +1778,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}.</returns>
+    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}.</returns>
     public async Task<Greeks> FetchGreeks(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchGreeks(symbol, parameters);
@@ -1788,9 +1788,9 @@ public partial class gate
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-market"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-detail-of-lending-market"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1806,7 +1806,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
     public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
@@ -1816,8 +1816,8 @@ public partial class gate
     /// fetch the set leverage for all leverage markets, only spot margin is supported on gate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-lending-markets"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1833,7 +1833,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
     public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverages(symbols, parameters);
@@ -1843,7 +1843,7 @@ public partial class gate
     /// fetches option data that is commonly found in an option chain
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-detail"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1853,7 +1853,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}.</returns>
     public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOption(symbol, parameters);
@@ -1863,7 +1863,7 @@ public partial class gate
     /// fetches data for an underlying asset that is commonly found in an option chain
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1885,7 +1885,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    /// <returns> <term>object</term> a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}.</returns>
     public async Task<OptionChain> FetchOptionChain(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOptionChain(code, parameters);
@@ -1895,8 +1895,8 @@ public partial class gate
     /// fetches historical positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/#list-position-close-history"/>  <br/>
-    /// See <see href="https://www.gate.io/docs/developers/apiv4/#list-position-close-history-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/#list-position-close-history"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/#list-position-close-history-2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1936,7 +1936,7 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

@@ -26,6 +26,7 @@ public partial class apex : Exchange
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelAllOrdersAfter", false },
                 { "cancelOrder", true },
@@ -44,10 +45,14 @@ public partial class apex : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchAccounts", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledAndClosedOrders", false },
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrders", false },
@@ -63,6 +68,7 @@ public partial class apex : Exchange
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -81,6 +87,8 @@ public partial class apex : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -98,6 +106,7 @@ public partial class apex : Exchange
                 { "fetchTradingFees", false },
                 { "fetchTransfer", true },
                 { "fetchTransfers", true },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
@@ -342,7 +351,7 @@ public partial class apex : Exchange
      * @description query for account info
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -370,7 +379,7 @@ public partial class apex : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async virtual Task<object> fetchAccount(object parameters = null)
     {
@@ -768,7 +777,7 @@ public partial class apex : Exchange
      * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -791,7 +800,7 @@ public partial class apex : Exchange
      * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -869,7 +878,7 @@ public partial class apex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -929,7 +938,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1016,7 +1025,7 @@ public partial class apex : Exchange
      * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
@@ -1073,11 +1082,11 @@ public partial class apex : Exchange
      * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1276,14 +1285,14 @@ public partial class apex : Exchange
     public virtual object parseOrderType(object type)
     {
         object types = new Dictionary<string, object>() {
-            { "LIMIT", "LIMIT" },
-            { "MARKET", "MARKET" },
-            { "STOP_LIMIT", "STOP_LIMIT" },
-            { "STOP_MARKET", "STOP_MARKET" },
-            { "TAKE_PROFIT_LIMIT", "TAKE_PROFIT_LIMIT" },
-            { "TAKE_PROFIT_MARKET", "TAKE_PROFIT_MARKET" },
+            { "LIMIT", "limit" },
+            { "MARKET", "market" },
+            { "STOP_LIMIT", "limit" },
+            { "STOP_MARKET", "market" },
+            { "TAKE_PROFIT_LIMIT", "limit" },
+            { "TAKE_PROFIT_MARKET", "market" },
         };
-        return this.safeStringUpper(types, type, type);
+        return this.safeString(types, type, type);
     }
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
@@ -1367,11 +1376,13 @@ public partial class apex : Exchange
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1387,11 +1398,22 @@ public partial class apex : Exchange
             orderPrice = this.priceToPrecision(symbol, price);
         }
         object fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
-        object taker = this.safeNumber(fees, "taker", 0.0005);
-        object maker = this.safeNumber(fees, "maker", 0.0002);
-        object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), ((object)taker).ToString()), ((object)getValue(getValue(market, "precision"), "price")).ToString()), TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        object taker = this.safeString(fees, "taker", "0.0005");
+        object maker = this.safeString(fees, "maker", "0.0002");
+        object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(getValue(getValue(market, "precision"), "price"))), TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         object timeNow = this.milliseconds();
-        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        object triggerPrice = this.safeString(parameters, "triggerPrice");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        if (isTrue(!isEqual(stopLossPrice, null)))
+        {
+            orderType = ((bool) isTrue((isEqual(orderType, "MARKET")))) ? "STOP_MARKET" : "STOP_LIMIT";
+            triggerPrice = stopLossPrice;
+        } else if (isTrue(!isEqual(takeProfitPrice, null)))
+        {
+            orderType = ((bool) isTrue((isEqual(orderType, "MARKET")))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
+            triggerPrice = takeProfitPrice;
+        }
         object isMarket = isEqual(orderType, "MARKET");
         if (isTrue(isTrue(isMarket) && isTrue((isEqual(price, null)))))
         {
@@ -1421,7 +1443,7 @@ public partial class apex : Exchange
         {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
-        parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
+        parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"});
         object orderToSign = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "slotId", clientOrderId },
@@ -1430,9 +1452,13 @@ public partial class apex : Exchange
             { "size", orderSize },
             { "price", orderPrice },
             { "direction", orderSide },
-            { "makerFeeRate", ((object)maker).ToString() },
-            { "takerFeeRate", ((object)taker).ToString() },
+            { "makerFeeRate", maker },
+            { "takerFeeRate", taker },
         };
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)orderToSign)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+        }
         object signature = await this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1446,6 +1472,10 @@ public partial class apex : Exchange
             { "clientId", clientOrderId },
             { "brokerId", this.safeString(this.options, "brokerId", "6956") },
         };
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+        }
         ((IDictionary<string,object>)request)["signature"] = signature;
         object response = await this.privatePostV3Order(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -1462,7 +1492,7 @@ public partial class apex : Exchange
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.transferId] UUID, which is unique across the platform
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -1622,7 +1652,7 @@ public partial class apex : Exchange
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -1648,7 +1678,7 @@ public partial class apex : Exchange
      * @param {string} id order id
      * @param symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1680,7 +1710,7 @@ public partial class apex : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1712,7 +1742,7 @@ public partial class apex : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1738,7 +1768,7 @@ public partial class apex : Exchange
      * @param {string} [params.type] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
      * @param {string} [params.orderType] "ACTIVE","CONDITION","HISTORY"
      * @param {boolean} [params.page] Page numbers start from 0
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1781,7 +1811,7 @@ public partial class apex : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1816,7 +1846,7 @@ public partial class apex : Exchange
      * @param {boolean} [params.side] BUY or SELL
      * @param {string} [params.orderType] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
      * @param {boolean} [params.page] Page numbers start from 0
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1861,7 +1891,7 @@ public partial class apex : Exchange
      * @param {object} [params.until] end time, ms
      * @param {boolean} [params.side] BUY or SELL
      * @param {boolean} [params.page] Page numbers start from 0
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1963,7 +1993,7 @@ public partial class apex : Exchange
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {

@@ -40,6 +40,7 @@ class ImplicitAPI:
     private_get_accounts_accountpositions = privateGetAccountsAccountPositions = Entry('accounts/accountPositions', 'private', 'GET', {'cost': 1})
     private_get_g_accounts_accountpositions = privateGetGAccountsAccountPositions = Entry('g-accounts/accountPositions', 'private', 'GET', {'cost': 1})
     private_get_g_accounts_positions = privateGetGAccountsPositions = Entry('g-accounts/positions', 'private', 'GET', {'cost': 25})
+    private_get_g_accounts_risk_unit = privateGetGAccountsRiskUnit = Entry('g-accounts/risk-unit', 'private', 'GET', {'cost': 1})
     private_get_api_data_futures_funding_fees = privateGetApiDataFuturesFundingFees = Entry('api-data/futures/funding-fees', 'private', 'GET', {'cost': 5})
     private_get_api_data_g_futures_funding_fees = privateGetApiDataGFuturesFundingFees = Entry('api-data/g-futures/funding-fees', 'private', 'GET', {'cost': 5})
     private_get_api_data_futures_orders = privateGetApiDataFuturesOrders = Entry('api-data/futures/orders', 'private', 'GET', {'cost': 5})

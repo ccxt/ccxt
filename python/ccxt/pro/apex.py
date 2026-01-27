@@ -14,6 +14,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NetworkError
 
 
 class apex(ccxt.async_support.apex):
@@ -25,6 +26,7 @@ class apex(ccxt.async_support.apex):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
@@ -32,6 +34,7 @@ class apex(ccxt.async_support.apex):
                 'watchMyTrades': True,
                 'watchBalance': False,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
             },
             'urls': {
                 'logo': 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',
@@ -69,7 +72,7 @@ class apex(ccxt.async_support.apex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -83,7 +86,7 @@ class apex(ccxt.async_support.apex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -196,7 +199,7 @@ class apex(ccxt.async_support.apex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -209,7 +212,7 @@ class apex(ccxt.async_support.apex):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbolsLength = len(symbols)
@@ -314,7 +317,7 @@ class apex(ccxt.async_support.apex):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -334,7 +337,7 @@ class apex(ccxt.async_support.apex):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -403,7 +406,7 @@ class apex(ccxt.async_support.apex):
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -445,7 +448,7 @@ class apex(ccxt.async_support.apex):
             unfiedTimeframe = self.safe_string(data, 1, '1')
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             rawHashes.append('candle.' + timeframeId + '.' + symbolString)
-            messageHashes.append('ohlcv::' + symbolString + '::' + unfiedTimeframe)
+            messageHashes.append('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe)
         symbol, timeframe, stored = await self.watch_topics(url, messageHashes, rawHashes, params)
         if self.newUpdates:
             limit = stored.getLimit(symbol, limit)
@@ -486,10 +489,9 @@ class apex(ccxt.async_support.apex):
         marketType = 'spot' if isSpot else 'contract'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
-        ohlcvsByTimeframe = self.safe_value(self.ohlcvs, symbol)
-        if ohlcvsByTimeframe is None:
+        if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if self.safe_value(ohlcvsByTimeframe, timeframe) is None:
+        if not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]
@@ -536,7 +538,7 @@ class apex(ccxt.async_support.apex):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.unifiedMargin]: use unified margin account
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         messageHash = 'myTrades'
         await self.load_markets()
@@ -594,7 +596,7 @@ class apex(ccxt.async_support.apex):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'
@@ -718,9 +720,10 @@ class apex(ccxt.async_support.apex):
                 position = positions[ii]
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, 'positions')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, 'positions')
 
     def handle_positions(self, client, lists):
         #
@@ -787,7 +790,7 @@ class apex(ccxt.async_support.apex):
         signature = self.hmac(self.encode(messageString), self.encode(self.string_to_base64(self.secret)), hashlib.sha256, 'base64')
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             # auth sign
@@ -897,6 +900,7 @@ class apex(ccxt.async_support.apex):
             'recentlyTrade': self.handle_trades,
             'pong': self.handle_pong,
             'auth': self.handle_authenticate,
+            'ping': self.handle_ping,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:
@@ -915,12 +919,23 @@ class apex(ccxt.async_support.apex):
             self.handle_authenticate(client, message)
 
     def ping(self, client: Client):
-        timeStamp = str(self.milliseconds())
-        client.lastPong = timeStamp  # server won't send a pong, so we set it here
+        timeStamp = self.milliseconds()
+        client.lastPong = timeStamp
         return {
-            'args': [timeStamp],
+            'args': [str(timeStamp)],
             'op': 'ping',
         }
+
+    async def pong(self, client, message):
+        #
+        #     {"op": "ping", "args": ["1761069137485"]}
+        #
+        timeStamp = self.milliseconds()
+        try:
+            await client.send({'args': [str(timeStamp)], 'op': 'pong'})
+        except Exception as e:
+            error = NetworkError(self.id + ' handlePing failed with error ' + self.exception_message(e))
+            client.reset(error)
 
     def handle_pong(self, client: Client, message):
         #
@@ -933,8 +948,11 @@ class apex(ccxt.async_support.apex):
         #
         #   {pong: 1653296711335}
         #
-        client.lastPong = self.safe_integer(message, 'pong')
+        client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
+
+    def handle_ping(self, client: Client, message):
+        self.spawn(self.pong, client, message)
 
     def handle_account(self, client: Client, message):
         contents = self.safe_dict(message, 'contents', {})

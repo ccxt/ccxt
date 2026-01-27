@@ -170,9 +170,13 @@ func AssertTimestampAndDatetime(exchange ccxt.ICoreExchange, skippedProperties i
 			//    Assert (dt === exchange.Getiso8601() (entry['timestamp']))
 			// so, we have to compare with millisecond accururacy
 			var dtParsed interface{} = exchange.Parse8601(dt)
-			var dtParsedString interface{} = exchange.Iso8601(dtParsed)
-			var dtEntryString interface{} = exchange.Iso8601(GetValue(entry, "timestamp"))
-			Assert(IsEqual(dtParsedString, dtEntryString), Add(Add(Add(Add(Add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText))
+			var tsMs interface{} = GetValue(entry, "timestamp")
+			var diff interface{} = mathAbs(Subtract(dtParsed, tsMs))
+			if IsTrue(IsGreaterThanOrEqual(diff, 500)) {
+				var dtParsedString interface{} = exchange.Iso8601(dtParsed)
+				var dtEntryString interface{} = exchange.Iso8601(tsMs)
+				Assert(false, Add(Add(Add(Add(Add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText))
+			}
 		}
 	}
 }

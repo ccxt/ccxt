@@ -137,10 +137,66 @@
                             "coinId": "2",
                             "coinName": "USDT",
                             "transfer": "true"
+                        },
+                        {
+                            "chains": [
+                                {
+                                    "browserUrl": "https://etherscan.io/tx/",
+                                    "chain": "ERC20",
+                                    "chainId": "70",
+                                    "coinChainId": "70",
+                                    "depositConfirm": "12",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00001",
+                                    "minWithdrawAmount": "0.001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ETH",
+                                    "withdrawConfirm": "64",
+                                    "withdrawFee": "0.00081",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://optimistic.etherscan.io/tx/",
+                                    "chain": "Optimism",
+                                    "chainId": "4746",
+                                    "coinChainId": "4746",
+                                    "depositConfirm": "50",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.0001",
+                                    "minWithdrawAmount": "0.0001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "OPTIMISM",
+                                    "withdrawConfirm": "50",
+                                    "withdrawFee": "0.00025",
+                                    "withdrawable": "false"
+                                },
+                                {
+                                    "browserUrl": "https://basescan.org/tx/",
+                                    "chain": "BASE",
+                                    "chainId": "5831",
+                                    "coinChainId": "5831",
+                                    "depositConfirm": "30",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00004",
+                                    "minWithdrawAmount": "0.03",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BASE",
+                                    "withdrawConfirm": "120",
+                                    "withdrawFee": "0.00004",
+                                    "withdrawable": "false"
+                                }
+                            ],
+                            "coinDisplayName": "ETH",
+                            "coinId": "3",
+                            "coinName": "ETH",
+                            "transfer": "true"
                         }
                     ],
                     "msg": "success",
-                    "requestTime": "1747311244441"
+                    "requestTime": "1747505313087"
                 },
                 "parsedResponse": {
                     "BTC": {
@@ -562,6 +618,192 @@
                             },
                             "withdraw": {
                                 "min": 0.01,
+                                "max": null
+                            }
+                        }
+                    },
+                    "ETH": {
+                        "info": {
+                            "chains": [
+                                {
+                                    "browserUrl": "https://etherscan.io/tx/",
+                                    "chain": "ERC20",
+                                    "chainId": "70",
+                                    "coinChainId": "70",
+                                    "depositConfirm": "12",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00001",
+                                    "minWithdrawAmount": "0.001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ETH",
+                                    "withdrawConfirm": "64",
+                                    "withdrawFee": "0.00081",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://optimistic.etherscan.io/tx/",
+                                    "chain": "Optimism",
+                                    "chainId": "4746",
+                                    "coinChainId": "4746",
+                                    "depositConfirm": "50",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.0001",
+                                    "minWithdrawAmount": "0.0001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "OPTIMISM",
+                                    "withdrawConfirm": "50",
+                                    "withdrawFee": "0.00025",
+                                    "withdrawable": "false"
+                                },
+                                {
+                                    "browserUrl": "https://basescan.org/tx/",
+                                    "chain": "BASE",
+                                    "chainId": "5831",
+                                    "coinChainId": "5831",
+                                    "depositConfirm": "30",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00004",
+                                    "minWithdrawAmount": "0.03",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BASE",
+                                    "withdrawConfirm": "120",
+                                    "withdrawFee": "0.00004",
+                                    "withdrawable": "false"
+                                }
+                            ],
+                            "coinDisplayName": "ETH",
+                            "coinId": "3",
+                            "coinName": "ETH",
+                            "transfer": "true"
+                        },
+                        "id": "ETH",
+                        "numericId": 3,
+                        "code": "ETH",
+                        "precision": null,
+                        "type": null,
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.00004,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "id": "ERC20",
+                                "network": "ERC20",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.00001,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.001,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.00081,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://etherscan.io/tx/",
+                                    "chain": "ERC20",
+                                    "chainId": "70",
+                                    "coinChainId": "70",
+                                    "depositConfirm": "12",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00001",
+                                    "minWithdrawAmount": "0.001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ETH",
+                                    "withdrawConfirm": "64",
+                                    "withdrawFee": "0.00081",
+                                    "withdrawable": "true"
+                                }
+                            },
+                            "Optimism": {
+                                "id": "Optimism",
+                                "network": "Optimism",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.0001,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.0001,
+                                        "max": null
+                                    }
+                                },
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": false,
+                                "fee": 0.00025,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://optimistic.etherscan.io/tx/",
+                                    "chain": "Optimism",
+                                    "chainId": "4746",
+                                    "coinChainId": "4746",
+                                    "depositConfirm": "50",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.0001",
+                                    "minWithdrawAmount": "0.0001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "OPTIMISM",
+                                    "withdrawConfirm": "50",
+                                    "withdrawFee": "0.00025",
+                                    "withdrawable": "false"
+                                }
+                            },
+                            "BASE": {
+                                "id": "BASE",
+                                "network": "BASE",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.00004,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.03,
+                                        "max": null
+                                    }
+                                },
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": false,
+                                "fee": 0.00004,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://basescan.org/tx/",
+                                    "chain": "BASE",
+                                    "chainId": "5831",
+                                    "coinChainId": "5831",
+                                    "depositConfirm": "30",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00004",
+                                    "minWithdrawAmount": "0.03",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BASE",
+                                    "withdrawConfirm": "120",
+                                    "withdrawFee": "0.00004",
+                                    "withdrawable": "false"
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": 0.00001,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.0001,
                                 "max": null
                             }
                         }

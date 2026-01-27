@@ -9,7 +9,6 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function create_order_after_delay($exchange) {
     return Async\async(function () use ($exchange) {
@@ -19,7 +18,7 @@ function create_order_after_delay($exchange) {
 }
 
 
-function test_unwatch_positions($exchange, $skipped_properties, $symbol) {
+function test_un_watch_positions($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'unWatchPositions';
         $exchange->set_sandbox_mode(true);
@@ -37,7 +36,7 @@ function test_unwatch_positions($exchange, $skipped_properties, $symbol) {
                 throw $e;
             }
             // If we can't subscribe, we can't test unsubscribe, so skip this test
-            return;
+            return false;
         }
         // Verify that we have a subscription
         assert(gettype($positions_subscription) === 'array' && array_is_list($positions_subscription), $exchange->id . ' ' . $method . ' requires a valid positions subscription to test unsubscribe');
@@ -75,5 +74,6 @@ function test_unwatch_positions($exchange, $skipped_properties, $symbol) {
         }
         // Verify resubscription works
         assert(gettype($resubscribe_response) === 'array' && array_is_list($resubscribe_response), $exchange->id . ' ' . $method . ' must allow resubscription after unwatch, returned ' . $exchange->json($resubscribe_response));
+        return true;
     }) ();
 }
