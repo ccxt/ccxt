@@ -101,6 +101,14 @@ class Transpiler {
         return uncameled;
     }
 
+    getPreTranspilationRegexes () {
+        // here are regexes for common language functions, which might have uniform behavior across all other langs, except JS. so, we apply JS-specific modification, during pre-transpilation process
+        // by this way (to edit JS only behavior), we avoid the necessity of language-specific placeholder methods across different langs' base classes
+        return [
+            [ /exchange.jsonStringifyWithNull/g, 'JSON.stringify' ],
+        ];
+    }
+
     getCommonRegexes (): any[] {
 
         return [
@@ -2430,6 +2438,8 @@ class Transpiler {
             // [ /export default\s+[^\n]+;*\n*/g, '' ],
             [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
         ]));
+
+        allFiles = allFiles.map( file => this.regexAll(file, this.getPreTranspilationRegexes()));
 
         const flatResult = await this.webworkerTranspile (allFiles, fileConfig, parserConfig);
 
