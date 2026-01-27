@@ -732,16 +732,9 @@ export default class coinex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const coin = data[i];
             const asset = this.safeDict (coin, 'asset', {});
-            const chains = this.safeList (coin, 'chains', []);
             const currencyId = this.safeString (asset, 'ccy');
-            if (currencyId === undefined) {
-                continue; // coinex returns empty structures for some reason
-            }
             const code = this.safeCurrencyCode (currencyId);
-            const canDeposit = this.safeBool (asset, 'deposit_enabled');
-            const canWithdraw = this.safeBool (asset, 'withdraw_enabled');
-            const firstChain = this.safeDict (chains, 0, {});
-            const firstPrecisionString = this.parsePrecision (this.safeString (firstChain, 'withdrawal_precision'));
+            const chains = this.safeList (coin, 'chains', []);
             const networks: Dict = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
@@ -750,32 +743,26 @@ export default class coinex extends Exchange {
                 if (networkId === undefined) {
                     continue;
                 }
-                const precisionString = this.parsePrecision (this.safeString (chain, 'withdrawal_precision'));
-                const feeString = this.safeString (chain, 'withdrawal_fee');
-                const minNetworkDepositString = this.safeString (chain, 'min_deposit_amount');
-                const minNetworkWithdrawString = this.safeString (chain, 'min_withdraw_amount');
-                const canDepositChain = this.safeBool (chain, 'deposit_enabled');
-                const canWithdrawChain = this.safeBool (chain, 'withdraw_enabled');
                 const network: Dict = {
                     'id': networkId,
                     'network': networkCode,
                     'name': undefined,
-                    'active': canDepositChain && canWithdrawChain,
-                    'deposit': canDepositChain,
-                    'withdraw': canWithdrawChain,
-                    'fee': this.parseNumber (feeString),
-                    'precision': this.parseNumber (precisionString),
+                    'active': undefined,
+                    'deposit': this.safeBool (chain, 'deposit_enabled'),
+                    'withdraw': this.safeBool (chain, 'withdraw_enabled'),
+                    'fee': this.safeNumber (chain, 'withdrawal_fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawal_precision'))),
                     'limits': {
                         'amount': {
                             'min': undefined,
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.parseNumber (minNetworkDepositString),
+                            'min': this.safeNumber (chain, 'min_deposit_amount'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.parseNumber (minNetworkWithdrawString),
+                            'min': this.safeNumber (chain, 'min_withdraw_amount'),
                             'max': undefined,
                         },
                     },
@@ -787,11 +774,11 @@ export default class coinex extends Exchange {
                 'id': currencyId,
                 'code': code,
                 'name': undefined,
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
+                'active': undefined,
+                'deposit': this.safeBool (asset, 'deposit_enabled'),
+                'withdraw': this.safeBool (asset, 'withdraw_enabled'),
                 'fee': undefined,
-                'precision': this.parseNumber (firstPrecisionString),
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
