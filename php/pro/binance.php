@@ -2844,6 +2844,11 @@ class binance extends \ccxt\async\binance {
                 }
             }
             $type = $this->get_market_type('fetchPositionsWs', $market, $params);
+            if ($symbols === null && ($type === 'spot')) {
+                // when $symbols aren't provide
+                // we shouldn't rely on the defaultType
+                $type = 'future';
+            }
             if ($type !== 'future' && $type !== 'delivery') {
                 throw new BadRequest($this->id . ' fetchPositionsWs only supports swap markets');
             }

@@ -337,6 +337,52 @@ func (this *Bingx) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpt
 
 /**
  * @method
+ * @name bingx#fetchFundingHistory
+ * @description fetches historical funding received
+ * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+ * @param {string} symbol unified symbol of the market to fetch the funding history for
+ * @param {int} [since] timestamp in ms of the earliest funding to fetch
+ * @param {int} [limit] the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding to fetch
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+ */
+func (this *Bingx) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
+
+	opts := FetchFundingHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingHistory(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewFundingHistoryArray(res), nil
+}
+
+/**
+ * @method
  * @name bingx#fetchOpenInterest
  * @description retrieves the open interest of a trading pair
  * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
@@ -2082,9 +2128,6 @@ func (this *Bingx) FetchDepositWithdrawFee(code string, options ...FetchDepositW
 }
 func (this *Bingx) FetchFreeBalance(params ...interface{}) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Bingx) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
 }
 func (this *Bingx) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 	return this.exchangeTyped.FetchFundingInterval(symbol, options...)

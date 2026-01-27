@@ -2699,6 +2699,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [aster](/exchanges/aster.md#fetchfundinghistory)
 * [backpack](/exchanges/backpack.md#fetchfundinghistory)
 * [binance](/exchanges/binance.md#fetchfundinghistory)
+* [bingx](/exchanges/bingx.md#fetchfundinghistory)
 * [bitget](/exchanges/bitget.md#fetchfundinghistory)
 * [bitmart](/exchanges/bitmart.md#fetchfundinghistory)
 * [bybit](/exchanges/bybit.md#fetchfundinghistory)

@@ -739,7 +739,7 @@ class cryptomus extends cryptomus$1["default"] {
         }
         //
         //     {
-        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
         return this.parseOrder(response, market);

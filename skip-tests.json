@@ -466,8 +466,6 @@
         }
     },
     "bitrue": {
-        "skip": "tmp",
-        "until": "2025-07-10",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -482,7 +480,8 @@
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo"
+                "checkActiveSymbols": "todo",
+                "spread": "broken on exchange side https://github.com/ccxt/ccxt/actions/runs/21364685831/job/61493525089?pr=27750#step:10:238"
             }
         }
     },
@@ -669,7 +668,8 @@
                 "compareOHLC": "open below low https://github.com/ccxt/ccxt/actions/runs/17983223201/job/51154949662?pr=25258#step:9:228"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo"
+                "checkActiveSymbols": "todo",
+                "maxIncrease": "frequently added symbols are annoying"
             },
             "orderBook": {
                 "timestamp": "not present"
@@ -919,8 +919,6 @@
         }
     },
     "cryptomus": {
-        "skip": "their api seems down",
-        "until": "2025-12-31",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -932,7 +930,7 @@
                 "currencyIdAndCode": "messed codes"
             },
             "fetchOrderBook": {
-                "compareBidAsk": "sometimes bid is greater than ask"
+                "spread": "sometimes bid is greater than ask"
             },
             "fetchTrades": {
                 "price": "sometimes is not set",
