@@ -2456,6 +2456,7 @@ export default class binance extends binanceRest {
     }
 
     async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
         const time = this.milliseconds ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
@@ -2480,6 +2481,10 @@ export default class binance extends binanceRest {
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, 'symbol');
         const options = this.safeValue (this.options, type, {});
+        if (this.useLogon (type, isPortfolioMargin)) {
+            await this.loginSession (type, isPortfolioMargin, params);
+            return;
+        }
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
@@ -2489,9 +2494,9 @@ export default class binance extends binanceRest {
                 response = await this.papiPostListenKey (params);
                 params = this.extend (params, { 'portfolioMargin': true });
             } else if (type === 'future') {
-                response = await this.fapiPrivatePostListenKey (params);
+                response = await this.startUserDataStream (params);
             } else if (type === 'delivery') {
-                response = await this.dapiPrivatePostListenKey (params);
+                response = await this.startUserDataStream (params);
             } else if (type === 'margin' && isCrossMargin) {
                 response = await this.sapiPostUserDataStream (params);
             } else if (isIsolatedMargin) {
@@ -2502,7 +2507,8 @@ export default class binance extends binanceRest {
                 params = this.extend (params, { 'symbol': marketId });
                 response = await this.sapiPostUserDataStreamIsolated (params);
             } else {
-                response = await this.publicPostUserDataStream (params);
+                this.log ('[DEPRECATION WARNING]: binance is deprecating use of normal keys of websocket user data stream, please switch to use and Ed25519 key. See more: https://developers.binance.com/docs/binance-spot-api-docs#user-data-streams');
+                response = await this.startUserDataStream (params);
             }
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
@@ -2845,6 +2851,30 @@ export default class binance extends binanceRest {
         client.resolve (positions, messageHash);
     }
 
+    isEd25519 (): boolean {
+        const secret = this.secret;
+        return secret.indexOf ('PRIVATE KEY') !== -1;
+    }
+
+    useLogon (type: string, portfolioMargin: boolean): boolean {
+        const isEd25519 = this.isEd25519 ();
+        if (isEd25519 && !portfolioMargin && (type === 'spot' || type === 'margin')) {
+            return true;
+        }
+        return false;
+    }
+
+    getUrl (type: string, isPortfolioMargin: boolean): string {
+        if (type === 'margin') {
+            type = 'spot';
+        }
+        if (this.useLogon (type, isPortfolioMargin)) {
+            return this.urls['api']['ws']['ws-api'][type];
+        }
+        const urlType = isPortfolioMargin ? 'papi' : type;
+        return this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+    }
+
     /**
      * @method
      * @name binance#watchBalance
@@ -2855,7 +2885,6 @@ export default class binance extends binanceRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        await this.authenticate (params);
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
@@ -2867,17 +2896,8 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        let url = '';
-        let urlType = type;
-        if (type === 'spot') {
-            // route to WebSocket API connection where the user data stream is subscribed
-            url = this.urls['api']['ws']['ws-api'][type];
-        } else {
-            if (isPortfolioMargin) {
-                urlType = 'papi';
-            }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
-        }
+        await this.authenticate (params);
+        const url = this.getUrl (type, isPortfolioMargin);
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -2889,6 +2909,10 @@ export default class binance extends binanceRest {
         }
         const messageHash = type + ':balance';
         const message = undefined;
+        if (this.useLogon (type, isPortfolioMargin)) {
+            await this.subscribeUserDataStream (params);
+            return await this.watch (url, messageHash, message, 'userDataStream');
+        }
         return await this.watch (url, messageHash, message, type);
     }
 
@@ -3648,29 +3672,20 @@ export default class binance extends binanceRest {
         }
         params = this.extend (params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
         await this.authenticate (params);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
-        let urlType = type;
-        if ((type === 'margin') || ((type === 'spot') && (marginMode !== undefined))) {
-            urlType = 'spot'; // spot-margin shares the same stream as regular spot
-        }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
-        let url = '';
-        if (type === 'spot') {
-            // route orders to ws-api user data stream
-            url = this.urls['api']['ws']['ws-api'][type];
-        } else {
-            if (isPortfolioMargin) {
-                urlType = 'papi';
-            }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
-        }
+        const url = this.getUrl (type, isPortfolioMargin);
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
-        const orders = await this.watch (url, messageHash, message, type);
+        let orders = undefined;
+        if (this.useLogon (type, isPortfolioMargin)) {
+            await this.subscribeUserDataStream (params);
+            orders = await this.watch (url, messageHash, message, 'userDataStream');
+        } else {
+            orders = await this.watch (url, messageHash, message, type);
+        }
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -4014,11 +4029,7 @@ export default class binance extends binanceRest {
         messageHash = type + ':positions' + messageHash;
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchPositions', 'papi', 'portfolioMargin', false);
-        let urlType = type;
-        if (isPortfolioMargin) {
-            urlType = 'papi';
-        }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        const url = this.getUrl (type, isPortfolioMargin);
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, symbols, isPortfolioMargin);
@@ -4029,7 +4040,13 @@ export default class binance extends binanceRest {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
-        const newPositions = await this.watch (url, messageHash, undefined, type);
+        let newPositions = undefined;
+        if (this.useLogon (type, isPortfolioMargin)) {
+            await this.subscribeUserDataStream (params);
+            newPositions = await this.watch (url, messageHash, undefined, 'userDataStream');
+        } else {
+            newPositions = await this.watch (url, messageHash, undefined, type);
+        }
         if (this.newUpdates) {
             return newPositions;
         }
@@ -4388,27 +4405,21 @@ export default class binance extends binanceRest {
             messageHash += ':' + symbol;
             params = this.extend (params, { 'type': market['type'], 'symbol': symbol });
         }
-        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
-        let urlType = type; // we don't change type because the listening key is different
-        if (type === 'margin') {
-            urlType = 'spot'; // spot-margin shares the same stream as regular spot
-        }
+        await this.authenticate (params);
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
-        let url = '';
-        if (type === 'spot') {
-            url = this.urls['api']['ws']['ws-api'][type];
-        } else {
-            if (isPortfolioMargin) {
-                urlType = 'papi';
-            }
-            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
-        }
+        const url = this.getUrl (type, isPortfolioMargin);
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
-        const trades = await this.watch (url, messageHash, message, type);
+        let trades = undefined;
+        if (this.useLogon (type, isPortfolioMargin)) {
+            await this.subscribeUserDataStream (params);
+            trades = await this.watch (url, messageHash, message, 'userDataStream');
+        } else {
+            trades = await this.watch (url, messageHash, message, type);
+        }
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -4635,6 +4646,7 @@ export default class binance extends binanceRest {
             'eventStreamTerminated': this.handleEventStreamTerminated,
             'externalLockUpdate': this.handleBalance,
         };
+        message = this.safeDict (message, 'event', message);
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {
             const data = message[0];
@@ -4664,5 +4676,377 @@ export default class binance extends binanceRest {
         } else {
             method.call (this, client, message);
         }
+    }
+
+    /**
+     * @method
+     * @name binance#startUserDataStream
+     * @description starts a user data stream
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/user-data-stream-requests#start-user-data-stream-user_stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Start-User-Data-Stream-Wsp
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Start-User-Data-Stream-Wsp
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async startUserDataStream (params = {}) {
+        await this.loadMarkets ();
+        const marketType = this.getMarketType ('startUserDataStream', undefined, params);
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+            throw new BadRequest (this.id + ' createOrderWs only supports spot or swap markets');
+        }
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const payload = {
+            'apiKey': this.apiKey,
+        };
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.start',
+            'params': this.signParams (this.extend (payload, params)),
+        };
+        const subscription: Dict = {
+            'method': this.handleStartUserDataStream,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleStartUserDataStream (client: Client, message) {
+        //
+        //    {
+        //        "id": "d3df8a61-98ea-4fe0-8f4e-0fcea5d418b0",
+        //        "status": 200,
+        //        "result": {
+        //          "listenKey": "xs0mRXdAKlIPDRFrlPcw0qI41Eh3ixNntmymGyhrhgqo7L6FuLaWArTD7RLP"
+        //        },
+        //        "rateLimits": [
+        //          {
+        //            "rateLimitType": "REQUEST_WEIGHT",
+        //            "interval": "MINUTE",
+        //            "intervalNum": 1,
+        //            "limit": 6000,
+        //            "count": 2
+        //          }
+        //        ]
+        //    }
+        //
+        const id = this.safeString (message, 'id');
+        const result = this.safeDict (message, 'result');
+        client.resolve (result, id);
+    }
+
+    /**
+     * @method
+     * @name binance#pingUserDataStream
+     * @description pings a user data stream to keep it alive
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/user-data-stream-requests#ping-user-data-stream-user_stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Ping-User-Data-Stream-Wsp
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Keepalive-User-Data-Stream-Wsp
+     * @param {string} listenKey the listen key to keep alive
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async pingUserDataStream (listenKey: string, params = {}) {
+        await this.loadMarkets ();
+        const marketType = this.getMarketType ('pingUserDataStream', undefined, params);
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+            throw new BadRequest (this.id + ' pingUserDataStream only supports spot or swap markets');
+        }
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        let returnRateLimits = false;
+        [ returnRateLimits, params ] = this.handleOptionAndParams (params, '', 'returnRateLimits', false);
+        const payload = {
+            'apiKey': this.apiKey,
+            'listenKey': listenKey,
+        };
+        payload['returnRateLimits'] = returnRateLimits;
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.ping',
+            'params': this.signParams (this.extend (payload, params)),
+        };
+        const subscription: Dict = {
+            'method': this.handleUserDataStream,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleSubscribeUserDataStream (client: Client, message) {
+        //
+        //    {
+        // .      id: '2',
+        //        status: 200,
+        //        result: {},
+        //        rateLimits: [
+        //          {
+        //            rateLimitType: 'REQUEST_WEIGHT',
+        //            interval: 'MINUTE',
+        //            intervalNum: 1,
+        //            limit: 6000,
+        //            count: 26
+        //          }
+        //        ]
+        //    }
+        //
+        const id = this.safeString (message, 'id');
+        client.subscriptions['userDataStream'] = true;
+        client.resolve (undefined, id);
+    }
+
+    handleUserDataStream (client: Client, message) {
+        //
+        //    {
+        //        "id": "815d5fce-0880-4287-a567-80badf004c74",
+        //        "status": 200,
+        //        "response": {},
+        //        "rateLimits": [
+        //          {
+        //            "rateLimitType": "REQUEST_WEIGHT",
+        //            "interval": "MINUTE",
+        //            "intervalNum": 1,
+        //            "limit": 6000,
+        //            "count": 2
+        //          }
+        //        ]
+        //    }
+        //
+        const id = this.safeString (message, 'id');
+        client.resolve (undefined, id);
+    }
+
+    /**
+     * @method
+     * @name binance#stopUserDataStream
+     * @description stops a user data stream
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/user-data-stream-requests#stop-user-data-stream-user_stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Close-User-Data-Stream-Wsp
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Close-User-Data-Stream-Wsp
+     * @param {string} listenKey the listen key to stop
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async stopUserDataStream (listenKey: string, params = {}) {
+        await this.loadMarkets ();
+        const marketType = this.getMarketType ('stopUserDataStream', undefined, params);
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+            throw new BadRequest (this.id + ' stopUserDataStream only supports spot or swap markets');
+        }
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        let returnRateLimits = false;
+        [ returnRateLimits, params ] = this.handleOptionAndParams (params, '', 'returnRateLimits', false);
+        const payload = {
+            'apiKey': this.apiKey,
+            'listenKey': listenKey,
+        };
+        payload['returnRateLimits'] = returnRateLimits;
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.stop',
+            'params': this.signParams (this.extend (payload, params)),
+        };
+        const subscription: Dict = {
+            'method': this.handleUserDataStream,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name binance#subscribeUserDataStream
+     * @description Subscribe to the User Data Stream in the current WebSocket connection
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/user-data-stream-requests#subscribe-to-user-data-stream-user_stream
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async subscribeUserDataStream (params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate (params);
+        const marketType = this.getMarketType ('subscribeUserDataStream', undefined, params);
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery' && marketType !== 'margin') {
+            throw new BadRequest (this.id + ' subscribeUserDataStream only supports spot or swap markets');
+        }
+        let urlType = marketType;
+        if (marketType === 'margin') {
+            urlType = 'spot';
+        }
+        const url = this.urls['api']['ws']['ws-api'][urlType];
+        const client = this.client (url);
+        const isSubscribed = this.safeBool (client.subscriptions, 'userDataStream', false);
+        if (isSubscribed === true) {
+            return true;
+        }
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.subscribe',
+        };
+        const subscription: Dict = {
+            'method': this.handleSubscribeUserDataStream,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name binance#loginSession
+     * @description Authenticate WebSocket connection using the provided API key
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/authentication-requests#log-in-with-api-key-signed
+     * @param {string} type The type of market to login to
+     * @param {boolean} isPortfolioMargin Whether the market is portfolio margin
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {number} [params.recvWindow] The value cannot be greater than 60000
+     * @returns {object} response from the exchange containing session information
+     */
+    async loginSession (type:string, isPortfolioMargin = false, params = {}) {
+        await this.loadMarkets ();
+        const url = this.getUrl (type, isPortfolioMargin);
+        const client = this.client (url);
+        const isLoggedIn = this.safeBool (client.subscriptions, 'logon', false);
+        if (isLoggedIn === true) {
+            return true;
+        }
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const timestamp = this.milliseconds ();
+        let recvWindow = this.safeInteger (params, 'recvWindow');
+        if (recvWindow === undefined) {
+            recvWindow = this.safeInteger (this.options, 'recvWindow');
+        }
+        const payload = {
+            'apiKey': this.apiKey,
+            'timestamp': timestamp,
+        };
+        if (recvWindow !== undefined) {
+            payload['recvWindow'] = recvWindow;
+        }
+        const signature = this.signParams (payload);
+        payload['signature'] = signature;
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'session.logon',
+            'params': signature,
+        };
+        const subscription: Dict = {
+            'method': this.handleSessionLogin,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name binance#querySessionStatus
+     * @description Query the status of the WebSocket connection and API key authorization
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/authentication-requests#query-session-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange containing session status
+     */
+    async querySessionStatus (params = {}) {
+        await this.loadMarkets ();
+        const marketType = this.getMarketType ('querySessionStatus', undefined, params);
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+            throw new BadRequest (this.id + ' querySessionStatus only supports spot or swap markets');
+        }
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'session.status',
+        };
+        const subscription: Dict = {
+            'method': this.handleSessionStatus,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name binance#logoutSession
+     * @description Log out and forget the API key previously authenticated
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/authentication-requests#log-out-of-the-session
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange containing session status after logout
+     */
+    async logoutSession (params = {}) {
+        await this.loadMarkets ();
+        const marketType = this.getMarketType ('logoutSession', undefined, params);
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+            throw new BadRequest (this.id + ' logoutSession only supports spot or swap markets');
+        }
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'session.logout',
+        };
+        const subscription: Dict = {
+            'method': this.handleSessionLogout,
+        };
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleSessionLogin (client: Client, message) {
+        //
+        //    {
+        //        "id": "c174a2b1-3f51-4580-b200-8528bd237cb7",
+        //        "status": 200,
+        //        "result": {
+        //            "apiKey": "vmPUZE6mv9SD5VNHk4HlWFsOr6aKE2zvsw0MuIgwCIPy6utIco14y7Ju91duEh8A",
+        //            "authorizedSince": 1649729878532,
+        //            "connectedSince": 1649729873021,
+        //            "returnRateLimits": false,
+        //            "serverTime": 1649729878630,
+        //            "userDataStream": true
+        //        }
+        //    }
+        //
+        const id = this.safeString (message, 'id');
+        client.subscriptions['logon'] = true;
+        client.resolve (message, id);
+    }
+
+    handleSessionStatus (client: Client, message) {
+        //
+        //    {
+        //        "id": "b50c16cd-62c9-4e29-89e4-37f10111f5bf",
+        //        "status": 200,
+        //        "result": {
+        //            "apiKey": "vmPUZE6mv9SD5VNHk4HlWFsOr6aKE2zvsw0MuIgwCIPy6utIco14y7Ju91duEh8A",
+        //            "authorizedSince": 1649729878532,
+        //            "connectedSince": 1649729873021,
+        //            "returnRateLimits": false,
+        //            "serverTime": 1649730611671,
+        //            "userDataStream": true
+        //        }
+        //    }
+        //
+        const id = this.safeString (message, 'id');
+        client.resolve (message, id);
+    }
+
+    handleSessionLogout (client: Client, message) {
+        //
+        //    {
+        //        "id": "c174a2b1-3f51-4580-b200-8528bd237cb7",
+        //        "status": 200,
+        //        "result": {
+        //            "apiKey": null,
+        //            "authorizedSince": null,
+        //            "connectedSince": 1649729873021,
+        //            "returnRateLimits": false,
+        //            "serverTime": 1649730611671,
+        //            "userDataStream": true
+        //        }
+        //    }
+        //
+        const id = this.safeString (message, 'id');
+        client.subscriptions['logon'] = false;
+        client.resolve (message, id);
     }
 }
