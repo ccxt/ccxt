@@ -1,0 +1,1926 @@
+{
+    "BTC/USDC:USDC": {
+        "id": "BTC",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "btc",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "1000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "BTC",
+            "tick_size": "1",
+            "min_tick": "0",
+            "max_tick": "1000000",
+            "lot_size": "0.00001",
+            "max_leverage": "50",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "5000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1748881333944"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "BTC"
+    },
+    "PAXG/USDC:USDC": {
+        "id": "PAXG",
+        "lowercaseId": null,
+        "symbol": "PAXG/USDC:USDC",
+        "base": "PAXG",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "paxg",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "PAXG",
+            "tick_size": "0.1",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.001",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1761011734935"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "PAXG"
+    },
+    "ETH/USDC:USDC": {
+        "id": "ETH",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "eth",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "1000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "ETH",
+            "tick_size": "0.1",
+            "min_tick": "0",
+            "max_tick": "1000000",
+            "lot_size": "0.0001",
+            "max_leverage": "50",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "5000000",
+            "funding_rate": "0.00000819",
+            "next_funding_rate": "0.0000105",
+            "created_at": "1748881333944"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "ETH"
+    },
+    "SOL/USDC:USDC": {
+        "id": "SOL",
+        "lowercaseId": null,
+        "symbol": "SOL/USDC:USDC",
+        "base": "SOL",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "sol",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "1000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "SOL",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "1000000",
+            "lot_size": "0.01",
+            "max_leverage": "20",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1748881333944"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "SOL"
+    },
+    "BNB/USDC:USDC": {
+        "id": "BNB",
+        "lowercaseId": null,
+        "symbol": "BNB/USDC:USDC",
+        "base": "BNB",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "bnb",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "BNB",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.001",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1753836121598"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "BNB"
+    },
+    "HYPE/USDC:USDC": {
+        "id": "HYPE",
+        "lowercaseId": null,
+        "symbol": "HYPE/USDC:USDC",
+        "base": "HYPE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "hype",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "1000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "HYPE",
+            "tick_size": "0.001",
+            "min_tick": "0",
+            "max_tick": "1000000",
+            "lot_size": "0.01",
+            "max_leverage": "20",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1752885340917"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "HYPE"
+    },
+    "USDJPY/USDC:USDC": {
+        "id": "USDJPY",
+        "lowercaseId": null,
+        "symbol": "USDJPY/USDC:USDC",
+        "base": "USDJPY",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "usdjpy",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "USDJPY",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.001",
+            "max_leverage": "50",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1768463049127"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "USDJPY"
+    },
+    "XAG/USDC:USDC": {
+        "id": "XAG",
+        "lowercaseId": null,
+        "symbol": "XAG/USDC:USDC",
+        "base": "XAG",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "xag",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "XAG",
+            "tick_size": "0.001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.01",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1767084780364"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "XAG"
+    },
+    "SUI/USDC:USDC": {
+        "id": "SUI",
+        "lowercaseId": null,
+        "symbol": "SUI/USDC:USDC",
+        "base": "SUI",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "sui",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "SUI",
+            "tick_size": "0.0001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.1",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1753836168248"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "SUI"
+    },
+    "XRP/USDC:USDC": {
+        "id": "XRP",
+        "lowercaseId": null,
+        "symbol": "XRP/USDC:USDC",
+        "base": "XRP",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "xrp",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "1000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "XRP",
+            "tick_size": "0.0001",
+            "min_tick": "0",
+            "max_tick": "1000000",
+            "lot_size": "0.01",
+            "max_leverage": "20",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1752885334917"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "XRP"
+    },
+    "ZEC/USDC:USDC": {
+        "id": "ZEC",
+        "lowercaseId": null,
+        "symbol": "ZEC/USDC:USDC",
+        "base": "ZEC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "zec",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "ZEC",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.01",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1761531461413"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "ZEC"
+    },
+    "TSLA/USDC:USDC": {
+        "id": "TSLA",
+        "lowercaseId": null,
+        "symbol": "TSLA/USDC:USDC",
+        "base": "TSLA",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "tsla",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "TSLA",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.001",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1768463057327"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "TSLA"
+    },
+    "PUMP/USDC:USDC": {
+        "id": "PUMP",
+        "lowercaseId": null,
+        "symbol": "PUMP/USDC:USDC",
+        "base": "PUMP",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "pump",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 5
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "1000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "PUMP",
+            "tick_size": "0.000001",
+            "min_tick": "0",
+            "max_tick": "1000000",
+            "lot_size": "1",
+            "max_leverage": "5",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1752514956730"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "PUMP"
+    },
+    "UNI/USDC:USDC": {
+        "id": "UNI",
+        "lowercaseId": null,
+        "symbol": "UNI/USDC:USDC",
+        "base": "UNI",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "uni",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "UNI",
+            "tick_size": "0.001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.1",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1755225941761"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "UNI"
+    },
+    "AVAX/USDC:USDC": {
+        "id": "AVAX",
+        "lowercaseId": null,
+        "symbol": "AVAX/USDC:USDC",
+        "base": "AVAX",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "avax",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "AVAX",
+            "tick_size": "0.001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.01",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1758205267802"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "AVAX"
+    },
+    "XMR/USDC:USDC": {
+        "id": "XMR",
+        "lowercaseId": null,
+        "symbol": "XMR/USDC:USDC",
+        "base": "XMR",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "xmr",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "XMR",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.01",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.00007037",
+            "next_funding_rate": "0.000015",
+            "created_at": "1764738732608"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "XMR"
+    },
+    "AAVE/USDC:USDC": {
+        "id": "AAVE",
+        "lowercaseId": null,
+        "symbol": "AAVE/USDC:USDC",
+        "base": "AAVE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "aave",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "AAVE",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.01",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "-0.00000449",
+            "next_funding_rate": "-0.00000755",
+            "created_at": "1754443188769"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "AAVE"
+    },
+    "ENA/USDC:USDC": {
+        "id": "ENA",
+        "lowercaseId": null,
+        "symbol": "ENA/USDC:USDC",
+        "base": "ENA",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ena",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "ENA",
+            "tick_size": "0.00001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "1",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1753584068277"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "ENA"
+    },
+    "LIT/USDC:USDC": {
+        "id": "LIT",
+        "lowercaseId": null,
+        "symbol": "LIT/USDC:USDC",
+        "base": "LIT",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "lit",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 5
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "LIT",
+            "tick_size": "0.0001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.1",
+            "max_leverage": "5",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.00002044",
+            "next_funding_rate": "0.000015",
+            "created_at": "1766193978022"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "LIT"
+    },
+    "CRV/USDC:USDC": {
+        "id": "CRV",
+        "lowercaseId": null,
+        "symbol": "CRV/USDC:USDC",
+        "base": "CRV",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "crv",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "CRV",
+            "tick_size": "0.0001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.1",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1755226576561"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "CRV"
+    },
+    "NVDA/USDC:USDC": {
+        "id": "NVDA",
+        "lowercaseId": null,
+        "symbol": "NVDA/USDC:USDC",
+        "base": "NVDA",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "nvda",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "NVDA",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.001",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1766907878723"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "NVDA"
+    },
+    "TAO/USDC:USDC": {
+        "id": "TAO",
+        "lowercaseId": null,
+        "symbol": "TAO/USDC:USDC",
+        "base": "TAO",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "tao",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "TAO",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.01",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1761976539697"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "TAO"
+    },
+    "WLFI/USDC:USDC": {
+        "id": "WLFI",
+        "lowercaseId": null,
+        "symbol": "WLFI/USDC:USDC",
+        "base": "WLFI",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "wlfi",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 5
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "WLFI",
+            "tick_size": "0.0001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "1",
+            "max_leverage": "5",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1755995923305"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "WLFI"
+    },
+    "DOGE/USDC:USDC": {
+        "id": "DOGE",
+        "lowercaseId": null,
+        "symbol": "DOGE/USDC:USDC",
+        "base": "DOGE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "doge",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 15
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "1000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "DOGE",
+            "tick_size": "0.00001",
+            "min_tick": "0",
+            "max_tick": "1000000",
+            "lot_size": "1",
+            "max_leverage": "15",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1753251581504"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "DOGE"
+    },
+    "KPEPE/USDC:USDC": {
+        "id": "kPEPE",
+        "lowercaseId": null,
+        "symbol": "KPEPE/USDC:USDC",
+        "base": "KPEPE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "kpepe",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "kPEPE",
+            "tick_size": "0.000001",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "1",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.00000125",
+            "next_funding_rate": "-0.00000495",
+            "created_at": "1754872885745"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "KPEPE"
+    },
+    "LTC/USDC:USDC": {
+        "id": "LTC",
+        "lowercaseId": null,
+        "symbol": "LTC/USDC:USDC",
+        "base": "LTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ltc",
+        "quoteId": "usdc",
+        "settleId": "usdc",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0004,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": "0",
+                "max": "10000000"
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": true,
+            "isolated": true
+        },
+        "created": null,
+        "info": {
+            "symbol": "LTC",
+            "tick_size": "0.01",
+            "min_tick": "0",
+            "max_tick": "10000000",
+            "lot_size": "0.01",
+            "max_leverage": "10",
+            "isolated_only": false,
+            "min_order_size": "10",
+            "max_order_size": "1000000",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
+            "created_at": "1748640708361"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "LTC"
+    }
+}

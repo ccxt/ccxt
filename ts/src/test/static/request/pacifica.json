@@ -1,7 +1,9 @@
 {
     "exchange": "pacifica",
-    "skipKeys": [],
+    "skipKeys": ["signature", "sub_signature", "timestamp", "main_signature", "cursor"],
     "options": {},
+    "walletAddress": "ASPDzvWpGCEubovKfWWMe2PjoTTrZpya4VBNAWHjWL42",
+    "privateKey": "2XpJemdEcsiZ8d1r9mPqyn4s2ou3D1gAprZyz9iLEQhA1HWQt3yoA2mpfPCWutFqxFZoVWf1ZjGao1VTNBJffAS8",
     "methods": {
         "fetchBuilderApprovals": [
             {
@@ -92,6 +94,20 @@
             }
         ],
         "fetchLedger": [
+            {
+                "description": "Fetch all ledger entries for a currency with pagination",
+                "method": "fetchLedger",
+                "url": "https://test-api.pacifica.fi/api/v1/account/balance/history?account=ASPDzvWpGCEubovKfWWMe2PjoTTrZpya4VBNAWHjWL42",
+                "input": [
+                    {
+                        "paginate": true
+                    },
+                    null,
+                    null,
+                    null
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch ledger entries",
                 "method": "fetchLedger",
@@ -235,6 +251,34 @@
         ],
         "fetchOrders": [
             {
+                "description": "Fetch all orders for a symbol with pagination",
+                "method": "fetchOrders",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/history?account=ASPDzvWpGCEubovKfWWMe2PjoTTrZpya4VBNAWHjWL42&limit=100&cursor=1111KbDLJ",
+                "input": [
+                    "BTC/USDC:USDC",
+                    0,
+                    1000,
+                    {
+                        "paginate": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch all orders for a symbol with pagination",
+                "method": "fetchOrders",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/history?account=ASPDzvWpGCEubovKfWWMe2PjoTTrZpya4VBNAWHjWL42&limit=0",
+                "input": [
+                    "BTC/USDC:USDC",
+                    0,
+                    0,
+                    {
+                        "paginate": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch orders history",
                 "method": "fetchOrders",
                 "url": "https://test-api.pacifica.fi/api/v1/orders/history?account=ASPDzvWpGCEubovKfWWMe2PjoTTrZpya4VBNAWHjWL42&limit=100",
@@ -324,6 +368,34 @@
         ],
         "fetchFundingRateHistory": [
             {
+                "description": "Fetch all funding rate history for a symbol with pagination",
+                "method": "fetchFundingRateHistory",
+                "url": "https://test-api.pacifica.fi/api/v1/funding_rate/history?symbol=BTC&limit=100&cursor=11118JkSj",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "",
+                    1000,
+                    {
+                        "paginate": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch all funding rate history for a symbol with pagination",
+                "method": "fetchFundingRateHistory",
+                "url": "https://test-api.pacifica.fi/api/v1/funding_rate/history?symbol=BTC&limit=0",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "",
+                    "",
+                    {
+                        "paginate": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch funding rate history",
                 "method": "fetchFundingRateHistory",
                 "url": "https://test-api.pacifica.fi/api/v1/funding_rate/history?symbol=BTC",
@@ -342,8 +414,8 @@
                 "input": [
                     238264658,
                     "BTC/USDC:USDC",
-                    "limit",
-                    "buy",
+                    null,
+                    null,
                     0.01,
                     87900
                 ],
@@ -489,6 +561,20 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "Fetch all my trades for a symbol with pagination",
+                "method": "fetchMyTrades",
+                "url": "https://test-api.pacifica.fi/api/v1/trades/history?account=ASPDzvWpGCEubovKfWWMe2PjoTTrZpya4VBNAWHjWL42&symbol=BTC&start_time=0&limit=0",
+                "input": [
+                    "BTC/USDC:USDC",
+                    0,
+                    0,
+                    {
+                        "paginate": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch trades by account with symbol",
                 "method": "fetchMyTrades",
                 "url": "https://test-api.pacifica.fi/api/v1/trades/history?symbol=BTC&account=ASPDzvWpGCEubovKfWWMe2PjoTTrZpya4VBNAWHjWL42",
@@ -532,7 +618,7 @@
                 "url": "https://test-api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&start_time=1768867200000&end_time=1768868400000",
                 "input": [
                     "BTC/USDC:USDC",
-                    null,
+                    "1m",
                     1768867200000,
                     20
                 ],
