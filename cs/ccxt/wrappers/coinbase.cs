@@ -501,7 +501,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1402,5 +1402,31 @@ public partial class coinbase
     {
         var res = this.createAuthToken(seconds, method, url, useEddsa);
         return ((string)res);
+    }
+    /// <summary>
+    /// fetch deposit addresses for multiple currencies (when available)
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountId</term>
+    /// <description>
+    /// string : account ID to fetch deposit addresses for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code.</returns>
+    public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddresses(codes, parameters);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
 }

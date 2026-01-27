@@ -90,7 +90,7 @@ class coinbase extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => 'emulated',
-                'fetchDepositAddresses' => false,
+                'fetchDepositAddresses' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDepositMethodId' => true,
                 'fetchDepositMethodIds' => true,
@@ -683,11 +683,11 @@ class coinbase extends Exchange {
             //     }
             //
             $accounts = $this->safe_list($response, 'accounts', array());
-            $length = count($accounts);
-            $lastIndex = $length - 1;
-            $last = $this->safe_dict($accounts, $lastIndex);
+            $accountsLength = count($accounts);
             $cursor = $this->safe_string($response, 'cursor');
-            if (($cursor !== null) && ($cursor !== '')) {
+            if (($accountsLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+                $lastIndex = $accountsLength - 1;
+                $last = $this->safe_dict($accounts, $lastIndex);
                 $last['cursor'] = $cursor;
                 $accounts[$lastIndex] = $last;
             }
@@ -2278,7 +2278,8 @@ class coinbase extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'trades', array());
-            $ticker = $this->parse_ticker($data[0], $market);
+            $first = $this->safe_dict($data, 0, array());
+            $ticker = $this->parse_ticker($first, $market);
             $ticker['bid'] = $this->safe_number($response, 'best_bid');
             $ticker['ask'] = $this->safe_number($response, 'best_ask');
             return $ticker;
@@ -2591,7 +2592,7 @@ class coinbase extends Exchange {
              * @param {int} [$limit] max number of $ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger-entry-structure $ledger structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -4413,6 +4414,19 @@ class coinbase extends Exchange {
         //        }
         //    }
         //
+        // {
+        //     "id":"3f2434234943-8c1c-50ef-a5a1-342213bbf45d",
+        //     "address":"0x123123126F5921XXXXX",
+        //     "currency":"USDC",
+        //     "name":"",
+        //     "network":"ethereum",
+        //     "created_at":"2022-03-17T09:20:17.002Z",
+        //     "updated_at":"2022-03-17T09:20:17.002Z",
+        //     "resource":"addresses",
+        //     "resource_path":"v2/accounts/b1091c6e-9ef2-5e4d-b352-665d0cf8f742/addresses/32fd0943-8c1c-50ef-a5a1-342213bbf45d",
+        //     "destination_tag":""
+        // }
+        //
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         $networkId = $this->safe_string($depositAddress, 'network');
@@ -4422,6 +4436,8 @@ class coinbase extends Exchange {
         if ($addressLabel !== null) {
             $splitAddressLabel = explode(' ', $addressLabel);
             $currencyId = $this->safe_string($splitAddressLabel, 0);
+        } else {
+            $currencyId = $this->safe_string($depositAddress, 'currency');
         }
         $addressInfo = $this->safe_dict($depositAddress, 'address_info');
         return array(
@@ -5383,5 +5399,25 @@ class coinbase extends Exchange {
             throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
         }
         return null;
+    }
+
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit addresses for multiple currencies (when available)
+             *
+             * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+             *
+             * @param {string[]} [$codes] list of unified currency $codes, default is null (all currencies)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->accountId] account ID to fetch deposit addresses for
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by currency code
+             */
+            Async\await($this->load_markets());
+            $request = $this->prepare_account_request(null, $params);
+            $response = Async\await($this->v2PrivateGetAccountsAccountIdAddresses ($this->extend($request, $params)));
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_deposit_addresses($data, $codes, false, array());
+        }) ();
     }
 }

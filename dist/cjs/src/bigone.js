@@ -856,7 +856,7 @@ class bigone extends bigone$1["default"] {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeString2(ticker, 'daily_change', 'last24hPriceChange'),
+            'change': this.safeString(ticker, 'daily_change'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'volume', 'volume24h'),
@@ -1460,7 +1460,7 @@ class bigone extends bigone$1["default"] {
     parseOrder(order, market = undefined) {
         //
         //    {
-        //        "id": "42154072251",
+        //        "id": "42154072252",
         //        "asset_pair_name": "SOL-USDT",
         //        "price": "20",
         //        "amount": "0.5",

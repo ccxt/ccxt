@@ -131,6 +131,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("privateGetUserInfo",parameters);
     }
 
+    public async Task<object> privateGetUserApiKey (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUserApiKey",parameters);
+    }
+
     public async Task<object> privateGetAccounts (object parameters = null)
     {
         return await this.callAsync ("privateGetAccounts",parameters);
@@ -519,6 +524,11 @@ public partial class kucoinfutures : kucoin
     public async Task<object> privateGetAffiliateInviterStatistics (object parameters = null)
     {
         return await this.callAsync ("privateGetAffiliateInviterStatistics",parameters);
+    }
+
+    public async Task<object> privateGetEarnRedeemPreview (object parameters = null)
+    {
+        return await this.callAsync ("privateGetEarnRedeemPreview",parameters);
     }
 
     public async Task<object> privatePostSubUserCreated (object parameters = null)

@@ -1898,8 +1898,8 @@ class xt extends Exchange {
             'change' => $this->safe_number($ticker, 'cv'),
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),
+            'baseVolume' => $this->safe_number($ticker, 'a'),
+            'quoteVolume' => $this->safe_number($ticker, 'v'),
             'info' => $ticker,
         ), $market);
     }
@@ -4126,7 +4126,7 @@ class xt extends Exchange {
          * @param {float} $amount amount of margin to add
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @param {string} $params->positionSide 'LONG' or 'SHORT'
-         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
     }
@@ -4141,7 +4141,7 @@ class xt extends Exchange {
          * @param {float} $amount the $amount of margin to remove
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @param {string} $params->positionSide 'LONG' or 'SHORT'
-         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }

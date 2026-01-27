@@ -51,7 +51,7 @@
 remove margin from a position
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#eebf9f25-0289-4946-9482-89872c738449  
 
@@ -73,7 +73,7 @@ exmo.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>exmo</code>](#exmo)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://documenter.getpostman.com/view/10287440/SzYXWKPi#143ef808-79ca-4e49-9e79-a60ea4d8c0e3  
 

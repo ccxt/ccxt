@@ -423,9 +423,11 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const cache = this.positions;
         cache.append (position);
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve (cache);
-        client.resolve (position, 'position:' + symbol);
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (position, 'position:' + symbol);
+        }
     }
 
     handlePosition (client: Client, message) {

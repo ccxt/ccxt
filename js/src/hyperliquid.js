@@ -579,17 +579,24 @@ export default class hyperliquid extends Exchange {
         let fetchDexesList = [];
         const options = this.safeDict(this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict(options, 'hip3', {});
-        const dexesProvided = this.safeList(hip3, 'dexes'); // let users provide their own list of dexes to load
+        const dexesProvided = this.safeList(hip3, 'dexes', []); // let users provide their own list of dexes to load
         const maxLimit = this.safeInteger(hip3, 'limit', 10);
-        if (dexesProvided !== undefined) {
-            const userProvidedDexesLength = dexesProvided.length;
+        const userProvidedDexesLength = dexesProvided.length;
+        if (userProvidedDexesLength > 0) {
             if (userProvidedDexesLength > 0) {
                 fetchDexesList = dexesProvided;
             }
         }
         else {
+            const fetchDexesLength = fetchDexes.length;
             for (let i = 1; i < maxLimit; i++) {
+                if (i >= fetchDexesLength) {
+                    break;
+                }
                 const dex = this.safeDict(fetchDexes, i, {});
+                if (dex === undefined) {
+                    continue;
+                }
                 const dexName = this.safeString(dex, 'name');
                 fetchDexesList.push(dexName);
             }
@@ -1056,6 +1063,13 @@ export default class hyperliquid extends Exchange {
             'info': market,
         });
     }
+    updateSpotCurrencyCode(code) {
+        if (code === undefined) {
+            return code;
+        }
+        const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
+        return this.safeString(spotCurrencyMapping, code, code);
+    }
     /**
      * @method
      * @name hyperliquid#fetchBalance
@@ -1123,7 +1137,8 @@ export default class hyperliquid extends Exchange {
             const spotBalances = { 'info': response };
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const code = this.safeCurrencyCode(this.safeString(balance, 'coin'));
+                const unifiedCode = this.safeCurrencyCode(this.safeString(balance, 'coin'));
+                const code = isSpot ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
                 const used = this.safeString(balance, 'hold');
@@ -2974,6 +2989,7 @@ export default class hyperliquid extends Exchange {
         if (entry === undefined) {
             entry = order;
         }
+        const filled = this.safeDict(order, 'filled', {});
         const coin = this.safeString(entry, 'coin');
         let marketId = undefined;
         if (coin !== undefined) {
@@ -3019,7 +3035,7 @@ export default class hyperliquid extends Exchange {
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString(entry, 'avgPx'),
-            'filled': Precise.stringSub(totalAmount, remaining),
+            'filled': this.safeString(filled, 'totalSz', Precise.stringSub(totalAmount, remaining)),
             'remaining': remaining,
             'status': this.parseOrderStatus(status),
             'fee': undefined,
@@ -3488,7 +3504,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'add', params);
@@ -3503,7 +3519,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
@@ -3927,7 +3943,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

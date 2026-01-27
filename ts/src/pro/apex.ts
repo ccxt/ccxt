@@ -19,6 +19,7 @@ export default class apex extends apexRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
@@ -26,6 +27,7 @@ export default class apex extends apexRest {
                 'watchMyTrades': true,
                 'watchBalance': false,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
             },
             'urls': {
                 'logo': 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',
@@ -468,7 +470,7 @@ export default class apex extends apexRest {
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
             rawHashes.push ('candle.' + timeframeId + '.' + symbolString);
-            messageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
+            messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
         if (this.newUpdates) {
@@ -512,11 +514,10 @@ export default class apex extends apexRest {
         const marketType = isSpot ? 'spot' : 'contract';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const ohlcvsByTimeframe = this.safeValue (this.ohlcvs, symbol);
-        if (ohlcvsByTimeframe === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue (ohlcvsByTimeframe, timeframe) === undefined) {
+        if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
@@ -772,9 +773,11 @@ export default class apex extends apexRest {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve (cache);
-        client.resolve (cache, 'positions');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (cache, 'positions');
+        }
     }
 
     handlePositions (client, lists) {
@@ -1008,7 +1011,7 @@ export default class apex extends apexRest {
         try {
             await client.send ({ 'args': [ timeStamp.toString () ], 'op': 'pong' });
         } catch (e) {
-            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.exceptionMessage (e));
             client.reset (error);
         }
     }
@@ -1024,7 +1027,7 @@ export default class apex extends apexRest {
         //
         //   { pong: 1653296711335 }
         //
-        client.lastPong = this.safeInteger (message, 'pong');
+        client.lastPong = this.safeInteger (message, 'pong', this.milliseconds ());
         return message;
     }
 

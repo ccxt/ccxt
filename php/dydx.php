@@ -500,9 +500,9 @@ class dydx extends Exchange {
         $marketId = $this->safe_string($market, 'ticker');
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
-        $base = $this->safe_currency_code($baseName);
+        $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
+        $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $baseId = $this->safe_string($market, 'baseId');
         $settleId = 'USDC';
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
@@ -533,11 +533,11 @@ class dydx extends Exchange {
             'option' => false,
             'active' => $active,
             'contract' => $contract,
+            'contractSize' => $this->parse_number('1'), // trades seem in absolute size
             'linear' => true,
             'inverse' => false,
             'taker' => null,
             'maker' => null,
-            'contractSize' => null,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -1788,7 +1788,7 @@ class dydx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->address] wallet address that made trades
          * @param {string} [$params->subAccountNumber] sub account number
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $currency = null;

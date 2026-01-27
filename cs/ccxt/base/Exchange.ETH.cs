@@ -9,6 +9,9 @@ using Nethereum.Signer.EIP712;
 using System.Linq;
 using System.Text;
 using System.Numerics;
+using Nethereum.Util;
+using Nethereum.Hex.HexConvertors.Extensions;
+using Cryptography.ECDSA;
 
 public partial class Exchange
 {
@@ -258,5 +261,31 @@ public partial class Exchange
         var encodedFromRaw = typedEncoder.EncodeTypedDataRaw((typeRaw));
 
         return encodedFromRaw;
+    }
+
+    public string ethGetAddressFromPrivateKey(object privateKey)
+    {
+        // Remove "0x" prefix if present
+        var cleanPrivateKey = (string)this.remove0xPrefix(privateKey.ToString());
+        
+        // Convert hex string to byte array
+        var privateKeyBytes = cleanPrivateKey.HexToByteArray();
+        
+        // Get uncompressed public key (65 bytes: 0x04 + 32 bytes X + 32 bytes Y)
+        var publicKeyBytes = Secp256K1Manager.GetPublicKey(privateKeyBytes, compressed: false);
+        
+        // Remove the first byte (0x04 prefix) - we only want the 64 bytes (X + Y coordinates)
+        var publicKeyWithoutPrefix = new byte[64];
+        Array.Copy(publicKeyBytes, 1, publicKeyWithoutPrefix, 0, 64);
+        
+        // Hash the public key with Keccak256
+        var sha3 = new Sha3Keccack();
+        var addressHash = sha3.CalculateHash(publicKeyWithoutPrefix);
+        
+        // Take the last 20 bytes (40 hex chars) as the address
+        var addressBytes = addressHash.Skip(addressHash.Length - 20).ToArray();
+        
+        // Convert to hex and add 0x prefix
+        return "0x" + addressBytes.ToHex();
     }
 }

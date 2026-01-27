@@ -1908,8 +1908,8 @@ public partial class xt : Exchange
             { "change", this.safeNumber(ticker, "cv") },
             { "percentage", this.parseNumber(percentage) },
             { "average", null },
-            { "baseVolume", null },
-            { "quoteVolume", this.safeNumber2(ticker, "a", "v") },
+            { "baseVolume", this.safeNumber(ticker, "a") },
+            { "quoteVolume", this.safeNumber(ticker, "v") },
             { "info", ticker },
         }, market);
     }
@@ -3437,7 +3437,7 @@ public partial class xt : Exchange
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("canceled", symbol, since, limit, parameters);
@@ -4398,7 +4398,7 @@ public partial class xt : Exchange
      * @param {float} amount amount of margin to add
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -4415,7 +4415,7 @@ public partial class xt : Exchange
      * @param {float} amount the amount of margin to remove
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {

@@ -1279,7 +1279,7 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {string} [$params->type] 'spot' or 'swap', the market type for the ledger (default 'spot')
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structures~
              */
             Async\await($this->load_markets());
             $marketType = 'spot';
