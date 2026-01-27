@@ -24,7 +24,31 @@ async function testFetchTickersHelper (exchange: Exchange, skippedProperties: ob
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
         const ticker = values[i];
-        testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        try {
+            testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        } catch (ex) {
+            // only skip cases when it's the first day of listing, otherwise rethrow abnormality
+            const eMessage = exchange.exceptionMessage (ex, false);
+            const triggerError = eMessage === '';
+            if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
+                const symbol = ticker['symbol'];
+                if (symbol !== undefined) {
+                    // if it's not in markets, then maybe newly added symbol, so can can compromise there
+                    if (!(symbol in exchange.markets)) {
+                        continue;
+                    }
+                    // if OHLCV supported
+                    if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
+                        const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
+                        if (ohlcv.length <= 1) {
+                            // if only 1 day, then allow it
+                            continue;
+                        }
+                    }
+                }
+            }
+            assert (triggerError, eMessage);
+        }
     }
     return response;
 }
