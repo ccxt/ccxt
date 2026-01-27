@@ -3307,7 +3307,7 @@ export default class bitget extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'baseVolume', 'volume24h'),
