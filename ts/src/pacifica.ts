@@ -1205,6 +1205,7 @@ export default class pacifica extends Exchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
         // user trades:
         //     {
         //       "history_id": 19329801,
@@ -1230,6 +1231,7 @@ export default class pacifica extends Exchange {
         //       "cause": "normal",
         //       "created_at": 1765006315306
         //     }
+        //
         const eventType = this.safeString (trade, 'event_type');
         const timestamp = this.safeInteger (trade, 'created_at');
         const price = this.safeString (trade, 'price');
@@ -1399,7 +1401,7 @@ export default class pacifica extends Exchange {
             const defaultSlippage = this.handleOption ('createOrder', 'defaultSlippage', '0.5');
             const slippage = this.safeString2 (params, 'slippage', 'slippage_percent', defaultSlippage);
             sigPayload['slippage_percent'] = slippage;
-        } else if ((isTakeProfitOrder || isStopLossOrder) && (price === undefined)) { // there is no arg 'price' for tpsl endpoint
+        } else if ((isTakeProfitOrder || isStopLossOrder) && (price === undefined)) { /// the tpsl endpoint does not accept a 'price' parameter
             operationType = 'set_position_tpsl';
         } else if (isStopOrder) {
             operationType = 'create_stop_order';
@@ -1503,6 +1505,7 @@ export default class pacifica extends Exchange {
         //
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
+        //
         const lenActions = actions.length;
         const maxLen = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
         if (maxLen !== undefined) {
@@ -1569,6 +1572,8 @@ export default class pacifica extends Exchange {
         //   },
         //     "error": null,
         //     "code": null
+        // }
+        //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
         const ordersToReturn = [];
@@ -1610,6 +1615,7 @@ export default class pacifica extends Exchange {
         const request = this.cancelOrdersRequest (ids, symbol, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
         const response = await this.privatePostOrdersBatch (this.extend (request, params));
+        //
         // {
         //   "success": true,
         //   "data": {
@@ -1627,6 +1633,7 @@ export default class pacifica extends Exchange {
         //     "error": null,
         //     "code": null
         // }
+        //
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'results', []);
         const ordersToReturn = [];
@@ -1651,7 +1658,7 @@ export default class pacifica extends Exchange {
             const id = ids[i];
             const isStopOrder = this.safeBool (params, 'isStopOrder', false);
             if (isStopOrder) {
-                throw new NotSupported (this.id + ' cancelOrders() do not supports param "isStopOrder" (will be false only) !');
+                throw new NotSupported (this.id + ' cancelOrders() do not support param "isStopOrder" (will be false only) !');
             }
             const request = this.cancelOrderRequest (id, symbol, params);
             const action = {
@@ -1680,6 +1687,7 @@ export default class pacifica extends Exchange {
         const request = this.cancelAllOrdersRequest (symbol, params);
         params = this.omit (params, [ 'excludeReduceOnly', 'exclude_reduce_only', 'agentAddress', 'originAddress', 'expiryWindow', 'expiry_window' ]);
         const response = await this.privatePostOrdersCancelAll (this.extend (request, params));
+        //
         // {
         //   success: true,
         //   data: {
@@ -1688,6 +1696,7 @@ export default class pacifica extends Exchange {
         //   code: null,
         //   error: null
         // }
+        //
         return [
             this.safeOrder ({
                 'info': response,
@@ -1744,6 +1753,7 @@ export default class pacifica extends Exchange {
         } else {
             response = await this.privatePostOrdersCancel (this.extend (request, params));
         }
+        //
         // response:
         // {
         //   "success": true,
@@ -1821,11 +1831,12 @@ export default class pacifica extends Exchange {
     }
 
     editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params = {}) {
+        // should we throw?
         if (side !== undefined) {
-            throw new NotSupported (this.id + ' editOrder() do not supports side');
+            throw new NotSupported (this.id + ' editOrder() do not support side');
         }
         if (type !== undefined) {
-            throw new NotSupported (this.id + ' editOrder() do not supports type');
+            throw new NotSupported (this.id + ' editOrder() do not support type');
         }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount!');
@@ -2002,6 +2013,7 @@ export default class pacifica extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetInfoPrices (params);
+        //
         //  {
         //   "success": true,
         //   "data": [
@@ -2021,6 +2033,7 @@ export default class pacifica extends Exchange {
         //   "error": null,
         //   "code": null
         // }
+        //
         const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
@@ -2141,6 +2154,7 @@ export default class pacifica extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.publicGetOrders (this.extend (request, params));
+        //
         // {
         //   "success": true,
         //   "data": [
@@ -2165,6 +2179,7 @@ export default class pacifica extends Exchange {
         //   "code": null,
         //   "last_order_id": 1557370337
         // }
+        //
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -2216,6 +2231,7 @@ export default class pacifica extends Exchange {
                     request['cursor'] = cursor;
                 }
                 const response = await this.publicGetOrdersHistory (this.extend (request, params));
+                //
                 // {
                 //   "success": true,
                 //   "data": [
@@ -2242,6 +2258,7 @@ export default class pacifica extends Exchange {
                 //   "next_cursor": "1111Hyd74",  // not included in info!
                 //   "has_more": true             // not included in info!
                 // }
+                //
                 const data = this.safeList (response, 'data', []);
                 const parsed = this.parseOrders (data, market);
                 allOrders = this.arrayConcat (allOrders, parsed);
@@ -2292,6 +2309,7 @@ export default class pacifica extends Exchange {
             'order_id': id,
         };
         const response = await this.publicGetOrdersHistoryById (this.extend (request, params));
+        //
         // {
         //   "success": true,
         //   "data": [
@@ -2335,6 +2353,7 @@ export default class pacifica extends Exchange {
         //   "error": null,
         //   "code": null
         // }
+        //
         const data = this.safeList (response, 'data', []);
         // return last state
         const sorted = this.sortBy (data, 'created_at');

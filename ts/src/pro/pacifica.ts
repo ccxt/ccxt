@@ -68,10 +68,11 @@ export default class pacifica extends pacificaRest {
         });
     }
 
-    setupApiKeyIntoHeaders (key: string = undefined) {  // coded call at watchTickers. Use if you want to setup/change rate limit api key.
+    setupApiKey (key: string = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
         const headers = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
+            this.apiKey = key;
         } else {
             if (this.apiKey !== undefined) {
                 headers['PF-API-KEY'] = this.apiKey;
@@ -116,9 +117,9 @@ export default class pacifica extends pacificaRest {
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         if (operationType === 'create_stop_order') {
-            throw new NotSupported (this.id + ' createOrderWs() do not supports stop order type of order. Check provided arguments correctly!');
+            throw new NotSupported (this.id + ' createOrderWs() do not support stop order type of order. Check provided arguments correctly!');
         } else if (operationType === 'set_position_tpsl') {
-            throw new NotSupported (this.id + ' createOrderWs() do not supports set position tpsl type of order. Check provided arguments correctly!');
+            throw new NotSupported (this.id + ' createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!');
         }
         const response = await this.watch (url, requestId, wsRequest, requestId);
         //
@@ -311,7 +312,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         const operationType = 'cancel_order';
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -408,6 +409,7 @@ export default class pacifica extends pacificaRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        this.setupApiKey ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         let aggLevel = undefined;
@@ -543,7 +545,7 @@ export default class pacifica extends pacificaRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        this.setupApiKeyIntoHeaders ();
+        this.setupApiKey ();
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const messageHash = 'tickers';
@@ -1051,6 +1053,7 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        // only order updates are supported; Pacifica has an order state subscription (not implemented here)
         await this.loadMarkets ();
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchOrders', params);
@@ -1168,23 +1171,19 @@ export default class pacifica extends pacificaRest {
     }
 
     handleErrorMessage (client: Client, message): Bool {
-        const code = this.safeInteger (message, 'code', 0); // can be null thats ok status
+        //
+        // 'rl' key is present only when a rate-limited API key is used
+        // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
+        //
         const error = this.safeString (message, 'err', '');
         const postType = this.safeString (message, 'type', '');
-        const channel = this.safeString (message, 'channel', '');
-        if (channel === 'error') {
-            const ret_msg = this.safeString (message, 'data', '');
-            const errorMsg = this.id + ' ' + ret_msg;
-            client.reject (errorMsg);
-            return true;
-        }
         const data = this.safeDict (message, 'data', {});
         let id = this.safeString (message, 'id');
         if (id === undefined) {
             id = this.safeString (data, 'id');
         }
         try {
-            this.handleErrors (code, error, '', postType, this.options['ws']['options']['headers'], this.json (message), message, {}, {});
+            this.handleErrors (0, error, '', postType, this.options['ws']['options']['headers'], this.json (data), message, {}, {});
         } catch (e) {
             client.reject (e, id);
             return true;
@@ -1317,6 +1316,7 @@ export default class pacifica extends pacificaRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
+        const postType = this.safeString (message, 'type', undefined);
         const topic = this.safeString (message, 'channel', '');
         const methods: Dict = {
             'pong': this.handlePong,
@@ -1326,13 +1326,17 @@ export default class pacifica extends pacificaRest {
             'account_order_updates': this.handleOrder,
             'account_trades': this.handleMyTrades,
             'prices': this.handleWsTickers,
-            'post': this.handleWsPost,
             'subscribe': this.handleSubscriptionResponse,
             'unsubscribe': this.handleSubscriptionResponse,
+
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
             exacMethod.call (this, client, message);
+            return;
+        }
+        if (postType !== undefined) {
+            this.handleWsPost (client, message);
             return;
         }
         const keys = Object.keys (methods);
@@ -1407,8 +1411,7 @@ export default class pacifica extends pacificaRest {
         //   "type": "create_order"
         // }
         //
-        const data = this.safeDict (message, 'data');
-        const id = this.safeString (data, 'id');
+        const id = this.safeString (message, 'id');
         client.resolve (message, id);
     }
 }
