@@ -116,7 +116,95 @@
                 "input": [
                     "BTC/USDT"
                 ]
-            }
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.zondacrypto.exchange/rest/trading/candle/history/BTC-USDC/3600?from=1735709700000&to=1736069700000",
+                "input": [
+                  "BTC/USDC",
+                  "1h",
+                  1735709700000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.zondacrypto.exchange/rest/trading/candle/history/BTC-USDC/3600?to=1738290747273&from=1738276347273",
+                "input": [
+                  "BTC/USDC",
+                  "1h",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.zondacrypto.exchange/rest/trading/candle/history/BTC-USDC/3600?to=1735948800000&from=1735588800000",
+                "input": [
+                  "BTC/USDC",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.zondacrypto.exchange/rest/trading/candle/history/BTC-USDC/3600?from=1735709700000&to=1735724100000",
+                "input": [
+                  "BTC/USDC",
+                  "1h",
+                  1735709700000,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.zondacrypto.exchange/rest/trading/candle/history/BTC-USDC/3600?from=1735709700000&to=1735948800000",
+                "input": [
+                  "BTC/USDC",
+                  "1h",
+                  1735709700000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.zondacrypto.exchange/rest/trading/candle/history/BTC-USDC/3600?to=1735948800000&from=1735934400000",
+                "input": [
+                  "BTC/USDC",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until - since equal to limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.zondacrypto.exchange/rest/trading/candle/history/BTC-USDC/3600?from=1735709700000&to=1735948800000",
+                "input": [
+                  "BTC/USDC",
+                  "1h",
+                  1735709700000,
+                  3,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            }              
         ]
     }
 }
