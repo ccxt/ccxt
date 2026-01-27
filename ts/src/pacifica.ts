@@ -3143,12 +3143,6 @@ export default class pacifica extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         const operationType = 'transfer_funds';
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() requires a "amount" argument!');
-        }
-        if (toAccount === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() requires a "toAccount" argument!');
-        }
         const sigPayload = {
             'to_account': toAccount,
             'amount': amount,
