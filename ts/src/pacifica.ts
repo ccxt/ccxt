@@ -1601,7 +1601,7 @@ export default class pacifica extends Exchange {
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|string[]} [params.clientOrderId] client order ids, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+     * @param {string|string[]} [params.clientOrderIds] client order ids, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
@@ -1613,7 +1613,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderIds' ]);
         const response = await this.privatePostOrdersBatch (this.extend (request, params));
         //
         // {
@@ -1653,14 +1653,31 @@ export default class pacifica extends Exchange {
     }
 
     cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}) {
+        if (ids !== undefined) {
+            ids = [];
+        }
+        const isStopOrder = this.safeBool (params, 'isStopOrder', false);
+        if (isStopOrder) {
+            throw new NotSupported (this.id + ' cancelOrders() do not support param "isStopOrder" (will be false only) !');
+        }
         const actions = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const isStopOrder = this.safeBool (params, 'isStopOrder', false);
-            if (isStopOrder) {
-                throw new NotSupported (this.id + ' cancelOrders() do not support param "isStopOrder" (will be false only) !');
-            }
             const request = this.cancelOrderRequest (id, symbol, params);
+            const action = {
+                'type': 'Cancel',
+                'data': request,
+            };
+            actions.push (action);
+        }
+        let clientOrderIds = undefined;
+        [ clientOrderIds, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'clientOrderIds', []);
+        for (let i = 0; i < clientOrderIds.length; i++) {
+            const cloid = clientOrderIds[i];
+            const cloidParams = {
+                'clientOrderId': cloid,
+            };
+            const request = this.cancelOrderRequest (cloid, symbol, this.extend (cloidParams, params));
             const action = {
                 'type': 'Cancel',
                 'data': request,
