@@ -3886,10 +3886,7 @@ export default class bitget extends Exchange {
             const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
             params = this.omit (params, 'method');
             if (spotMethod === 'publicSpotGetV2SpotMarketFillsHistory') {
-                [ request, params ] = this.handleUntilOption ('endTime', request, params);
-                if (since !== undefined) {
-                    request['startTime'] = since;
-                }
+                [ request, params ] = this.handleSinceUntilWithDistance (request, params, 'startTime', 'endTime', since, 7 * 86400 * 1000); // 7 days
                 response = await this.publicSpotGetV2SpotMarketFillsHistory (this.extend (request, params));
             } else if (spotMethod === 'publicSpotGetV2SpotMarketFills') {
                 response = await this.publicSpotGetV2SpotMarketFills (this.extend (request, params));
@@ -3966,6 +3963,40 @@ export default class bitget extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description handles 'since' and 'until' options for endpoints that require both start & end  parameters for fetching past data
+     * @param {object} request the request object
+     * @param {object} params the params object
+     * @param {string} sinceKey the key for the start time parameter
+     * @param {string} untilKey the key for the end time parameter
+     * @param {int} since the start time in milliseconds
+     * @param {int} maxDistanceMs the maximum milliseconds between since and until
+     * @returns {object[]} an array containing the updated request and params objects
+     */
+    handleSinceUntilWithDistance (request: any, params: any, sinceKey: string, untilKey: string, since: Int, maxDistanceMs: number) {
+        [ request, params ] = this.handleUntilOption (untilKey, request, params);
+        const until = this.safeString (params, untilKey);
+        const sinceDefined = since !== undefined;
+        const untilDefined = until !== undefined;
+        const distance = maxDistanceMs;
+        if (sinceDefined) {
+            request[sinceKey] = since;
+            // set mandatory end time
+            if (!untilDefined) {
+                request[untilKey] = this.sum (since, distance);
+            }
+        } else if (untilDefined) {
+            // set mandatory start time
+            if (!sinceDefined) {
+                request[sinceKey] = this.sum (until, -distance);
+            }
+        }
+        // check max limit
+        return [ request, params ];
     }
 
     /**
