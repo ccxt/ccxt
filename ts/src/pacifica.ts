@@ -1089,14 +1089,6 @@ export default class pacifica extends Exchange {
         let cursor = undefined;
         [ cursor, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'cursor');
         const defaultLimit = 100;  // Default max limit
-        limit = this.parseNumber (limit);
-        since = this.parseNumber (since);
-        if (limit !== undefined) {
-            limit = this.parseToInt (limit);
-        }
-        if (since !== undefined) {
-            since = this.parseToInt (since);
-        }
         if (paginate) {
             let allTrades = [];
             let hasMore = true;
@@ -1907,14 +1899,6 @@ export default class pacifica extends Exchange {
         let cursor = undefined;
         [ cursor, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'cursor');
         const defaultLimit = 100;  // Default max limit
-        limit = this.parseNumber (limit);
-        since = this.parseNumber (since);
-        if (limit !== undefined) {
-            limit = this.parseToInt (limit);
-        }
-        if (since !== undefined) {
-            since = this.parseToInt (since);
-        }
         if (paginate) {
             let allEntries = [];
             let hasMore = true;
@@ -2228,14 +2212,6 @@ export default class pacifica extends Exchange {
             market = this.market (symbol);
         }
         const defaultLimit = 100; // max default 100
-        limit = this.parseNumber (limit);
-        since = this.parseNumber (since);
-        if (limit !== undefined) {
-            limit = this.parseToInt (limit);
-        }
-        if (since !== undefined) {
-            since = this.parseToInt (since);
-        }
         if (paginate) {
             let allOrders = [];
             let hasMore = true;
@@ -2940,16 +2916,6 @@ export default class pacifica extends Exchange {
         let cursor = undefined;
         [ cursor, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'cursor');
         const defaultLimit = 100; // Default max limit
-        limit = this.parseNumber (limit);
-        since = this.parseNumber (since);
-        limit = this.parseNumber (limit);
-        since = this.parseNumber (since);
-        if (limit !== undefined) {
-            limit = this.parseToInt (limit);
-        }
-        if (since !== undefined) {
-            since = this.parseToInt (since);
-        }
         if (paginate) {
             let allEntries = [];
             let hasMore = true;
