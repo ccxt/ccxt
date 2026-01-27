@@ -5,7 +5,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Leverage, MarginMode, Tickers, Ticker } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 //  ---------------------------------------------------------------------------
@@ -500,6 +500,7 @@ export default class pacifica extends Exchange {
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecisionStr = this.safeString (market, 'lot_size');
         const pricePrecisionStr = this.safeString (market, 'tick_size');
+        const active = true; // there is no non-active markets comes from endpoint market info
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -516,7 +517,7 @@ export default class pacifica extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': active,
             'contract': contract,
             'linear': true,
             'inverse': false,
@@ -1067,7 +1068,7 @@ export default class pacifica extends Exchange {
      * @param {int|undefined} [params.until] timestamp in ms of the latest trade
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @param {string|undefined} [params.cursor] pagination cursor from prev request (manual use)
-     * @param {boolean|undefined} [params.paginate] set to true to fetch all trades with pagination
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1082,114 +1083,52 @@ export default class pacifica extends Exchange {
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchMyTrades', params);
         let until = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'until');
-        let cursor = undefined;
-        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'cursor');
         const defaultLimit = 100;  // Default max limit
         if (paginate) {
-            let allTrades = [];
-            let hasMore = true;
-            while (hasMore === true) {
-                const request: Dict = {};
-                request['account'] = userAddress;
-                if (symbol !== undefined) {
-                    request['symbol'] = market['id'];
-                }
-                if (since !== undefined) {
-                    request['start_time'] = since;
-                }
-                if (until !== undefined) {
-                    request['end_time'] = until;
-                }
-                request['limit'] = (limit !== undefined) ? Math.min (limit - allTrades.length, defaultLimit) : defaultLimit;
-                if (cursor !== undefined) {
-                    request['cursor'] = cursor;
-                }
-                const response = await this.publicGetTradesHistory (this.extend (request, params));
-                //
-                // {
-                //   "success": true,
-                //   "data": [
-                //     {
-                //       "history_id": 19329801,
-                //       "order_id": 315293920,
-                //       "client_order_id": "acf...",
-                //       "symbol": "LDO",
-                //       "amount": "0.1",
-                //       "price": "1.1904",
-                //       "entry_price": "1.176247",
-                //       "fee": "0",
-                //       "pnl": "-0.001415",
-                //       "event_type": "fulfill_maker",
-                //       "side": "close_short",
-                //       "created_at": 1759215599188,
-                //       "cause": "normal"
-                //     },
-                //     ...
-                //   ],
-                //   "next_cursor": "11111Z5RK", // not included to info!
-                //   "has_more": true   // not included to info!
-                // }
-                //
-                const data = this.safeList (response, 'data', []);
-                const parsedTrades = this.parseTrades (data, market);
-                allTrades = this.arrayConcat (allTrades, parsedTrades);
-                cursor = this.safeString (response, 'next_cursor');
-                hasMore = this.safeBool (response, 'has_more', false);
-                if (limit !== undefined && allTrades.length >= limit) {
-                    break;
-                }
-                if (!hasMore || cursor === undefined) {
-                    break;
-                }
-            }
-            return this.filterBySymbolSinceLimit (allTrades, symbol, since, limit);
-        } else {
-            const request: Dict = {};
-            request['account'] = userAddress;
-            if (symbol !== undefined) {
-                request['symbol'] = market['id'];
-            }
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            if (cursor !== undefined) {
-                request['cursor'] = cursor;
-            }
-            if (since !== undefined) {
-                request['start_time'] = since;
-            }
-            if (until !== undefined) {
-                request['end_time'] = until;
-            }
-            const response = await this.publicGetTradesHistory (this.extend (request, params));
-            //
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "history_id": 19329801,
-            //       "order_id": 315293920,
-            //       "client_order_id": "acf...",
-            //       "symbol": "LDO",
-            //       "amount": "0.1",
-            //       "price": "1.1904",
-            //       "entry_price": "1.176247",
-            //       "fee": "0",
-            //       "pnl": "-0.001415",
-            //       "event_type": "fulfill_maker",
-            //       "side": "close_short",
-            //       "created_at": 1759215599188,
-            //       "cause": "normal"
-            //     },
-            //     ...
-            //   ],
-            //   "next_cursor": "11111Z5RK", // not included to info!
-            //   "has_more": true   // not included to info!
-            // }
-            //
-            const data = this.safeList (response, 'data', []);
-            return this.parseTrades (data, market, since, limit);
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as Trade[];
         }
+        const request: Dict = {};
+        request['account'] = userAddress;
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.publicGetTradesHistory (this.extend (request, params));
+        //
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "history_id": 19329801,
+        //       "order_id": 315293920,
+        //       "client_order_id": "acf...",
+        //       "symbol": "LDO",
+        //       "amount": "0.1",
+        //       "price": "1.1904",
+        //       "entry_price": "1.176247",
+        //       "fee": "0",
+        //       "pnl": "-0.001415",
+        //       "event_type": "fulfill_maker",
+        //       "side": "close_short",
+        //       "created_at": 1759215599188,
+        //       "cause": "normal"
+        //     },
+        //     ...
+        //   ],
+        //   "next_cursor": "11111Z5RK", // not included to info!
+        //   "has_more": true   // not included to info!
+        // }
+        //
+        const data = this.addPaginationCursorToResult (response);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1877,7 +1816,7 @@ export default class pacifica extends Exchange {
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.cursor] pagination cursor from prev request (manual use)
-     * @param {boolean|undefined} [params.paginate] set to true to fetch all funding rates with pagination
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1888,109 +1827,50 @@ export default class pacifica extends Exchange {
         const market = this.market (symbol);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
-        let cursor = undefined;
-        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'cursor');
         const defaultLimit = 100;  // Default max limit
         if (paginate) {
-            let allEntries = [];
-            let hasMore = true;
-            while (hasMore === true) {
-                const request: Dict = {
-                    'symbol': market['id'],
-                };
-                request['limit'] = (limit !== undefined) ? Math.min (limit - allEntries.length, defaultLimit) : defaultLimit;
-                if (cursor !== undefined) {
-                    request['cursor'] = cursor;
-                }
-                const response = await this.publicGetFundingRateHistory (this.extend (request, params));
-                //
-                // {
-                //   "success": true,
-                //   "data": [
-                //     {
-                //       "oracle_price": "117170.410304",
-                //       "bid_impact_price": "117126",
-                //       "ask_impact_price": "117142",
-                //       "funding_rate": "0.0000125",
-                //       "next_funding_rate": "0.0000125",
-                //       "created_at": 1753806934249
-                //     },
-                //     ...
-                //   ],
-                //   "next_cursor": "11114Lz77", // not included in info!
-                //   "has_more": true            // not included in info!
-                // }
-                //
-                const data = this.safeList (response, 'data', []);
-                const parsed = [];
-                for (let i = 0; i < data.length; i++) {
-                    const entry = data[i];
-                    const timestamp = this.safeInteger (entry, 'created_at');
-                    parsed.push ({
-                        'info': entry,
-                        'symbol': market['symbol'],
-                        'fundingRate': this.safeNumber (entry, 'funding_rate'),
-                        'timestamp': timestamp,
-                        'datetime': this.iso8601 (timestamp),
-                    });
-                }
-                allEntries = this.arrayConcat (allEntries, parsed);
-                cursor = this.safeString (response, 'next_cursor');
-                hasMore = this.safeBool (response, 'has_more', false);
-                if (limit !== undefined && allEntries.length >= limit) {
-                    break;
-                }
-                if (!hasMore || cursor === undefined) {
-                    break;
-                }
-            }
-            const sorted = this.sortBy (allEntries, 'timestamp');
-            return this.filterBySinceLimit (sorted, since, limit, 'timestamp') as FundingRateHistory[];
-        } else {
-            const request: Dict = {
-                'symbol': market['id'],
-            };
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            if (cursor !== undefined) {
-                request['cursor'] = cursor;
-            }
-            const response = await this.publicGetFundingRateHistory (this.extend (request, params));
-            //
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "oracle_price": "117170.410304",
-            //       "bid_impact_price": "117126",
-            //       "ask_impact_price": "117142",
-            //       "funding_rate": "0.0000125",
-            //       "next_funding_rate": "0.0000125",
-            //       "created_at": 1753806934249
-            //     },
-            //     ...
-            //   ],
-            //   "next_cursor": "11114Lz77", // not included in info!
-            //   "has_more": true            // not included in info!
-            // }
-            //
-            const data = this.safeList (response, 'data', []);
-            const result = [];
-            for (let i = 0; i < data.length; i++) {
-                const entry = data[i];
-                const timestamp = this.safeInteger (entry, 'created_at');
-                result.push ({
-                    'info': entry,
-                    'symbol': market['symbol'],
-                    'fundingRate': this.safeNumber (entry, 'funding_rate'),
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                });
-            }
-            const sorted = this.sortBy (result, 'timestamp');
-            return this.filterBySinceLimit (sorted, since, limit, 'timestamp') as FundingRateHistory[];
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as FundingRateHistory[];
         }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetFundingRateHistory (this.extend (request, params));
+        //
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "oracle_price": "117170.410304",
+        //       "bid_impact_price": "117126",
+        //       "ask_impact_price": "117142",
+        //       "funding_rate": "0.0000125",
+        //       "next_funding_rate": "0.0000125",
+        //       "created_at": 1753806934249
+        //     },
+        //     ...
+        //   ],
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
+        // }
+        //
+        const data = this.addPaginationCursorToResult (response);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger (entry, 'created_at');
+            result.push ({
+                'info': entry,
+                'symbol': market['symbol'],
+                'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit, 'timestamp') as FundingRateHistory[];
     }
 
     /**
@@ -2189,90 +2069,77 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @param {string|undefined} [params.cursor] pagination cursor from prev request (manual use)
-     * @param {boolean|undefined} [params.paginate] set to true to fetch all orders with pagination
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        const defaultLimit = 100; // max default 100
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as Order[];
+        }
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchOrders', params);
-        let cursor = undefined;
-        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'cursor');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const defaultLimit = 100; // max default 100
-        if (paginate) { // Remove param -> request exact key, cause we extend them
-            let allOrders = [];
-            let hasMore = true;
-            while (hasMore === true) {
-                const request: Dict = {
-                    'account': userAddress,
-                };
-                request['limit'] = (limit !== undefined) ? Math.min (limit - allOrders.length, defaultLimit) : defaultLimit;
-                if (cursor !== undefined) {
-                    request['cursor'] = cursor;
-                }
-                const response = await this.publicGetOrdersHistory (this.extend (request, params));
-                //
-                // {
-                //   "success": true,
-                //   "data": [
-                //     {
-                //       "order_id": 315992721,
-                //       "client_order_id": "ade",
-                //       "symbol": "XPL",
-                //       "side": "ask",
-                //       "initial_price": "1.0865",
-                //       "average_filled_price": "0",
-                //       "amount": "984",
-                //       "filled_amount": "0",
-                //       "order_status": "open",
-                //       "order_type": "limit",
-                //       "stop_price": null,
-                //       "stop_parent_order_id": null,
-                //       "reduce_only": false,
-                //       "reason": null,
-                //       "created_at": 1759224893638,
-                //       "updated_at": 1759224893638
-                //     },
-                //     ...
-                //   ],
-                //   "next_cursor": "1111Hyd74",  // not included in info!
-                //   "has_more": true             // not included in info!
-                // }
-                //
-                const data = this.safeList (response, 'data', []);
-                const parsed = this.parseOrders (data, market);
-                allOrders = this.arrayConcat (allOrders, parsed);
-                cursor = this.safeString (response, 'next_cursor');
-                hasMore = this.safeBool (response, 'has_more', false);
-                if (limit !== undefined && allOrders.length >= limit) {
-                    break;
-                }
-                if (!hasMore || cursor === undefined) {
-                    break;
-                }
-            }
-            const sorted = this.sortBy (allOrders, 'timestamp');
-            return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
-        } else {
-            const request: Dict = {
-                'account': userAddress,
-            };
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            if (cursor !== undefined) {
-                request['cursor'] = cursor;
-            }
-            const response = await this.publicGetOrdersHistory (this.extend (request, params));
-            const data = this.safeList (response, 'data', []);
-            return this.parseOrders (data, market, since, limit);
+        const request: Dict = {
+            'account': userAddress,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
+        const response = await this.publicGetOrdersHistory (this.extend (request, params));
+        //
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "order_id": 315992721,
+        //       "client_order_id": "ade",
+        //       "symbol": "XPL",
+        //       "side": "ask",
+        //       "initial_price": "1.0865",
+        //       "average_filled_price": "0",
+        //       "amount": "984",
+        //       "filled_amount": "0",
+        //       "order_status": "open",
+        //       "order_type": "limit",
+        //       "stop_price": null,
+        //       "stop_parent_order_id": null,
+        //       "reduce_only": false,
+        //       "reason": null,
+        //       "created_at": 1759224893638,
+        //       "updated_at": 1759224893638
+        //     },
+        //     ...
+        //   ],
+        //   "next_cursor": "1111Hyd74",
+        //   "has_more": true
+        // }
+        //
+        const data = this.addPaginationCursorToResult (response);
+        const orders = this.parseOrders (data, market, since, limit);
+        return orders as Order[];
+    }
+
+    addPaginationCursorToResult (response) {
+        const data = this.safeList (response, 'data', []);
+        const paginationCursor = this.safeString (response, 'next_cursor');
+        const hasMore = this.safeBool (response, 'has_more', false);
+        const dataLength = data.length;
+        if (hasMore) {
+            if ((paginationCursor !== undefined) && (dataLength > 0)) {
+                const first = data[0];
+                first['next_cursor'] = paginationCursor;
+                first['has_more'] = hasMore;
+                data[0] = first;
+            }
+        }
+        return data;
     }
 
     /**
@@ -2900,7 +2767,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @param {string|undefined} [params.cursor] pagination cursor from prev request (manual use)
-     * @param {boolean|undefined} [params.paginate] set to true to fetch all ledger entries with pagination
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
@@ -2909,79 +2776,34 @@ export default class pacifica extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchLedger', params);
-        let cursor = undefined;
-        [ cursor, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'cursor');
         const defaultLimit = 100; // Default max limit
         if (paginate) {
-            let allEntries = [];
-            let hasMore = true;
-            while (hasMore === true) {
-                const request: Dict = {
-                    'account': userAddress,
-                };
-                request['limit'] = (limit !== undefined) ? Math.min (limit - allEntries.length, defaultLimit) : defaultLimit;
-                if (cursor !== undefined) {
-                    request['cursor'] = cursor;
-                }
-                const response = await this.publicGetAccountBalanceHistory (this.extend (request, params));
-                // {
-                //   "success": true,
-                //   "data": [
-                //     {
-                //       "amount": "100.000000",
-                //       "balance": "1200.000000",
-                //       "pending_balance": "0.000000",
-                //       "event_type": "deposit",
-                //       "created_at": 1716200000000
-                //     }
-                //     ...
-                //   ],
-                //   "next_cursor": "11114Lz77",      // not included in info!
-                //   "has_more": true                 // not included in info!
-                // }
-                const data = this.safeList (response, 'data', []);
-                const parsed = this.parseLedger (data);
-                allEntries = this.arrayConcat (allEntries, parsed);
-                cursor = this.safeString (response, 'next_cursor');
-                hasMore = this.safeBool (response, 'has_more', false);
-                if (limit !== undefined && allEntries.length >= limit) {
-                    break;
-                }
-                if (!hasMore || cursor === undefined) {
-                    break;
-                }
-            }
-            const sorted = this.sortBy (allEntries, 'timestamp');
-            return this.filterByCurrencySinceLimit (sorted, code, since, limit);
-        } else {
-            const request: Dict = {
-                'account': userAddress,
-            };
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            if (cursor !== undefined) {
-                request['cursor'] = cursor;
-            }
-            const response = await this.publicGetAccountBalanceHistory (this.extend (request, params));
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "amount": "100.000000",
-            //       "balance": "1200.000000",
-            //       "pending_balance": "0.000000",
-            //       "event_type": "deposit",
-            //       "created_at": 1716200000000
-            //     }
-            //     ...
-            //   ],
-            //   "next_cursor": "11114Lz77",      // not included in info!
-            //   "has_more": true                 // not included in info!
-            // }
-            const data = this.safeList (response, 'data', []);
-            return this.parseLedger (data, undefined, since, limit);
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as LedgerEntry[];
         }
+        const request: Dict = {
+            'account': userAddress,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetAccountBalanceHistory (this.extend (request, params));
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "amount": "100.000000",
+        //       "balance": "1200.000000",
+        //       "pending_balance": "0.000000",
+        //       "event_type": "deposit",
+        //       "created_at": 1716200000000
+        //     }
+        //     ...
+        //   ],
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
+        // }
+        const data = this.addPaginationCursorToResult (response);
+        return this.parseLedger (data, undefined, since, limit);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -3048,6 +2870,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
      * @param {string|undefined} [params.cursor] pagination cursor from prev request
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3056,6 +2879,8 @@ export default class pacifica extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchFundingHistory', params);
         const request: Dict = {
@@ -3063,6 +2888,10 @@ export default class pacifica extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        const defaultLimit = 100;
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as FundingHistory[];
         }
         const response = await this.publicGetFundingHistory (this.extend (request, params));
         // {
@@ -3079,10 +2908,10 @@ export default class pacifica extends Exchange {
         //     },
         //     ...
         //   ],
-        //   "next_cursor": "11114Lz77",     // not included in info!
-        //   "has_more": true                // not included in info!
+        //   "next_cursor": "11114Lz77",
+        //   "has_more": true
         // }
-        const data = this.safeList (response, 'data', []);
+        const data = this.addPaginationCursorToResult (response);
         return this.parseIncomes (data, market, since, limit);
     }
 

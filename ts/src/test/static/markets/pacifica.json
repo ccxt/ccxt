@@ -65,8 +65,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "5000000",
-            "funding_rate": "0.000015",
-            "next_funding_rate": "0.000015",
+            "funding_rate": "0.00001234",
+            "next_funding_rate": "0.00001146",
             "created_at": "1748881333944"
         },
         "tierBased": null,
@@ -213,8 +213,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "5000000",
-            "funding_rate": "0.00000819",
-            "next_funding_rate": "0.0000105",
+            "funding_rate": "0.000005",
+            "next_funding_rate": "-0.00000605",
             "created_at": "1748881333944"
         },
         "tierBased": null,
@@ -287,8 +287,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.000015",
-            "next_funding_rate": "0.000015",
+            "funding_rate": "0.00001485",
+            "next_funding_rate": "0.00000252",
             "created_at": "1748881333944"
         },
         "tierBased": null,
@@ -361,7 +361,7 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.000015",
+            "funding_rate": "0.0000049",
             "next_funding_rate": "0.000015",
             "created_at": "1753836121598"
         },
@@ -435,8 +435,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.000015",
-            "next_funding_rate": "0.000015",
+            "funding_rate": "-0.00003494",
+            "next_funding_rate": "-0.00006634",
             "created_at": "1752885340917"
         },
         "tierBased": null,
@@ -584,7 +584,7 @@
             "min_order_size": "10",
             "max_order_size": "1000000",
             "funding_rate": "0.000015",
-            "next_funding_rate": "0.000015",
+            "next_funding_rate": "-0.00028901",
             "created_at": "1767084780364"
         },
         "tierBased": null,
@@ -657,7 +657,7 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.000015",
+            "funding_rate": "0.00001429",
             "next_funding_rate": "0.000015",
             "created_at": "1753836168248"
         },
@@ -806,7 +806,7 @@
             "min_order_size": "10",
             "max_order_size": "1000000",
             "funding_rate": "0.000015",
-            "next_funding_rate": "0.000015",
+            "next_funding_rate": "0.00001068",
             "created_at": "1761531461413"
         },
         "tierBased": null,
@@ -879,8 +879,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.000015",
-            "next_funding_rate": "0.000015",
+            "funding_rate": "-0.00004655",
+            "next_funding_rate": "-0.00002854",
             "created_at": "1768463057327"
         },
         "tierBased": null,
@@ -953,7 +953,7 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.000015",
+            "funding_rate": "0.00001493",
             "next_funding_rate": "0.000015",
             "created_at": "1752514956730"
         },
@@ -1175,7 +1175,7 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.00007037",
+            "funding_rate": "0.000015",
             "next_funding_rate": "0.000015",
             "created_at": "1764738732608"
         },
@@ -1249,8 +1249,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "-0.00000449",
-            "next_funding_rate": "-0.00000755",
+            "funding_rate": "-0.00000983",
+            "next_funding_rate": "-0.00000427",
             "created_at": "1754443188769"
         },
         "tierBased": null,
@@ -1397,8 +1397,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.00002044",
-            "next_funding_rate": "0.000015",
+            "funding_rate": "0.00007617",
+            "next_funding_rate": "0.0000593",
             "created_at": "1766193978022"
         },
         "tierBased": null,
@@ -1693,8 +1693,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.000015",
-            "next_funding_rate": "0.000015",
+            "funding_rate": "-0.00007122",
+            "next_funding_rate": "-0.00009801",
             "created_at": "1755995923305"
         },
         "tierBased": null,
@@ -1841,8 +1841,8 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.00000125",
-            "next_funding_rate": "-0.00000495",
+            "funding_rate": "0.000015",
+            "next_funding_rate": "0.000015",
             "created_at": "1754872885745"
         },
         "tierBased": null,
@@ -1915,9 +1915,9 @@
             "isolated_only": false,
             "min_order_size": "10",
             "max_order_size": "1000000",
-            "funding_rate": "0.000015",
-            "next_funding_rate": "0.000015",
-            "created_at": "1748640708361"
+            "funding_rate": "0.00001231",
+            "next_funding_rate": "0.00001087",
+            "created_at": "1755047318599"
         },
         "tierBased": null,
         "percentage": null,
