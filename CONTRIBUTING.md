@@ -112,7 +112,7 @@ The easiest way is to use Docker to run an isolated build & test environment wit
 docker-compose run --rm ccxt
 ```
 
-That builds a container and opens a shell, where the `npm run build` and `node run-tests` commands should simply work out of the box.
+That builds a container and opens a shell, where the `npm run build` and `npm run runtests` commands should simply work out of the box.
 
 The CCXT folder is mapped inside of the container, except the `node_modules` folder — the container would have its own ephemeral copy — so that won't mess up your locally installed modules. This means that you can edit sources on your host machine using your favorite editor and build/test them in the running container.
 
