@@ -12,18 +12,21 @@ public partial class aster : ccxt.aster
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
-                { "watchBalance", false },
+                { "watchBalance", true },
                 { "watchBidsAsks", true },
-                { "watchTicker", true },
-                { "watchTickers", true },
                 { "watchMarkPrice", true },
                 { "watchMarkPrices", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
+                { "watchOrders", true },
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOHLCV", true },
                 { "watchOHLCVForSymbols", true },
+                { "watchPositions", true },
+                { "watchTicker", true },
+                { "watchTickers", true },
+                { "watchMyTrades", true },
                 { "unWatchTicker", true },
                 { "unWatchTickers", true },
                 { "unWatchMarkPrice", true },
@@ -39,12 +42,40 @@ public partial class aster : ccxt.aster
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
-                        { "spot", "wss://sstream.asterdex.com/stream" },
-                        { "swap", "wss://fstream.asterdex.com/stream" },
+                        { "public", new Dictionary<string, object>() {
+                            { "spot", "wss://sstream.asterdex.com/stream" },
+                            { "swap", "wss://fstream.asterdex.com/stream" },
+                        } },
+                        { "private", new Dictionary<string, object>() {
+                            { "spot", "wss://sstream.asterdex.com/ws" },
+                            { "swap", "wss://fstream.asterdex.com/ws" },
+                        } },
                     } },
                 } },
             } },
-            { "options", new Dictionary<string, object>() {} },
+            { "options", new Dictionary<string, object>() {
+                { "listenKey", new Dictionary<string, object>() {
+                    { "spot", null },
+                    { "swap", null },
+                } },
+                { "lastAuthenticatedTime", new Dictionary<string, object>() {
+                    { "spot", 0 },
+                    { "swap", 0 },
+                } },
+                { "listenKeyRefreshRate", new Dictionary<string, object>() {
+                    { "spot", 3600000 },
+                    { "swap", 3600000 },
+                } },
+                { "watchBalance", new Dictionary<string, object>() {
+                    { "fetchBalanceSnapshot", false },
+                    { "awaitBalanceSnapshot", true },
+                } },
+                { "wallet", "wb" },
+                { "watchPositions", new Dictionary<string, object>() {
+                    { "fetchPositionsSnapshot", true },
+                    { "awaitPositionsSnapshot", true },
+                } },
+            } },
             { "streaming", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {} },
         });
@@ -129,7 +160,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -180,7 +211,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -261,7 +292,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -314,7 +345,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -450,7 +481,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchBidsAsks() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -496,7 +527,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchBidsAsks() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -624,7 +655,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -675,7 +706,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -733,31 +764,163 @@ public partial class aster : ccxt.aster
 
     public override object parseWsTrade(object trade, object market = null)
     {
+        //
+        // public watchTrades
+        //
+        //     {
+        //         "e": "trade",       // event type
+        //         "E": 1579481530911, // event time
+        //         "s": "ETHBTC",      // symbol
+        //         "t": 158410082,     // trade id
+        //         "p": "0.01914100",  // price
+        //         "q": "0.00700000",  // quantity
+        //         "b": 586187049,     // buyer order id
+        //         "a": 586186710,     // seller order id
+        //         "T": 1579481530910, // trade time
+        //         "m": false,         // is the buyer the market maker
+        //         "M": true           // binance docs say it should be ignored
+        //     }
+        //
+        //     {
+        //        "e": "aggTrade",  // Event type
+        //        "E": 123456789,   // Event time
+        //        "s": "BNBBTC",    // Symbol
+        //        "a": 12345,       // Aggregate trade ID
+        //        "p": "0.001",     // Price
+        //        "q": "100",       // Quantity
+        //        "f": 100,         // First trade ID
+        //        "l": 105,         // Last trade ID
+        //        "T": 123456785,   // Trade time
+        //        "m": true,        // Is the buyer the market maker?
+        //        "M": true         // Ignore
+        //     }
+        //
+        // private watchMyTrades spot
+        //
+        //     {
+        //         "e": "executionReport",
+        //         "E": 1611063861489,
+        //         "s": "BNBUSDT",
+        //         "c": "m4M6AD5MF3b1ERe65l4SPq",
+        //         "S": "BUY",
+        //         "o": "MARKET",
+        //         "f": "GTC",
+        //         "q": "2.00000000",
+        //         "p": "0.00000000",
+        //         "P": "0.00000000",
+        //         "F": "0.00000000",
+        //         "g": -1,
+        //         "C": '',
+        //         "x": "TRADE",
+        //         "X": "PARTIALLY_FILLED",
+        //         "r": "NONE",
+        //         "i": 1296882607,
+        //         "l": "0.33200000",
+        //         "z": "0.33200000",
+        //         "L": "46.86600000",
+        //         "n": "0.00033200",
+        //         "N": "BNB",
+        //         "T": 1611063861488,
+        //         "t": 109747654,
+        //         "I": 2696953381,
+        //         "w": false,
+        //         "m": false,
+        //         "M": true,
+        //         "O": 1611063861488,
+        //         "Z": "15.55951200",
+        //         "Y": "15.55951200",
+        //         "Q": "0.00000000"
+        //     }
+        //
+        // private watchMyTrades future/delivery
+        //
+        //     {
+        //         "s": "BTCUSDT",
+        //         "c": "pb2jD6ZQHpfzSdUac8VqMK",
+        //         "S": "SELL",
+        //         "o": "MARKET",
+        //         "f": "GTC",
+        //         "q": "0.001",
+        //         "p": "0",
+        //         "ap": "33468.46000",
+        //         "sp": "0",
+        //         "x": "TRADE",
+        //         "X": "FILLED",
+        //         "i": 13351197194,
+        //         "l": "0.001",
+        //         "z": "0.001",
+        //         "L": "33468.46",
+        //         "n": "0.00027086",
+        //         "N": "BNB",
+        //         "T": 1612095165362,
+        //         "t": 458032604,
+        //         "b": "0",
+        //         "a": "0",
+        //         "m": false,
+        //         "R": false,
+        //         "wt": "CONTRACT_PRICE",
+        //         "ot": "MARKET",
+        //         "ps": "BOTH",
+        //         "cp": false,
+        //         "rp": "0.00335000",
+        //         "pP": false,
+        //         "si": 0,
+        //         "ss": 0
+        //     }
+        //
+        object id = this.safeString2(trade, "t", "a");
         object timestamp = this.safeInteger(trade, "T");
-        object symbol = getValue(market, "symbol");
-        object amountString = this.safeString(trade, "q");
-        object priceString = this.safeString(trade, "p");
-        object isMaker = this.safeBool(trade, "m");
-        object takerOrMaker = null;
-        if (isTrue(!isEqual(isMaker, null)))
+        object price = this.safeString2(trade, "L", "p");
+        object amount = this.safeString2(trade, "q", "l");
+        object cost = this.safeString(trade, "Y");
+        if (isTrue(isEqual(cost, null)))
         {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(amount, null)))))
+            {
+                cost = Precise.stringMul(price, amount);
+            }
         }
+        object marketId = this.safeString(trade, "s");
+        object defaultType = ((bool) isTrue((isEqual(market, null)))) ? this.safeString(this.options, "defaultType", "spot") : getValue(market, "type");
+        object symbol = this.safeSymbol(marketId, market, null, defaultType);
+        object side = this.safeStringLower(trade, "S");
+        object takerOrMaker = null;
+        object orderId = this.safeString(trade, "i");
+        if (isTrue(inOp(trade, "m")))
+        {
+            if (isTrue(isEqual(side, null)))
+            {
+                side = ((bool) isTrue(getValue(trade, "m"))) ? "sell" : "buy"; // this is reversed intentionally
+            }
+            takerOrMaker = ((bool) isTrue(getValue(trade, "m"))) ? "maker" : "taker";
+        }
+        object fee = null;
+        object feeCost = this.safeString(trade, "n");
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            object feeCurrencyId = this.safeString(trade, "N");
+            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "currency", feeCurrencyCode },
+            };
+        }
+        object type = this.safeStringLower(trade, "o");
         return this.safeTrade(new Dictionary<string, object>() {
-            { "id", this.safeString(trade, "a") },
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
-            { "order", null },
-            { "type", null },
-            { "side", null },
+            { "id", id },
+            { "order", orderId },
+            { "type", type },
             { "takerOrMaker", takerOrMaker },
-            { "price", priceString },
-            { "amount", amountString },
-            { "cost", null },
-            { "fee", null },
-        }, market);
+            { "side", side },
+            { "price", price },
+            { "amount", amount },
+            { "cost", cost },
+            { "fee", fee },
+        });
     }
 
     /**
@@ -824,7 +987,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -874,7 +1037,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a non-empty array of symbols")) ;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -1018,7 +1181,7 @@ public partial class aster : ccxt.aster
         object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         object firstMarket = this.market(getValue(marketSymbols, 0));
         object type = this.safeString(firstMarket, "type", "swap");
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -1076,7 +1239,7 @@ public partial class aster : ccxt.aster
         object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
         object firstMarket = this.market(getValue(marketSymbols, 0));
         object type = this.safeString(firstMarket, "type", "swap");
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), type);
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
         object request = new Dictionary<string, object>() {
@@ -1161,6 +1324,810 @@ public partial class aster : ccxt.aster
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
+    public async virtual Task authenticate(object type = null, object parameters = null)
+    {
+        type ??= "spot";
+        parameters ??= new Dictionary<string, object>();
+        object time = this.milliseconds();
+        object lastAuthenticatedTimeOptions = this.safeDict(this.options, "lastAuthenticatedTime", new Dictionary<string, object>() {});
+        object lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
+        object listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new Dictionary<string, object>() {});
+        object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
+        if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
+        {
+            object response = null;
+            if (isTrue(isEqual(type, "spot")))
+            {
+                response = await this.sapiPrivatePostV1ListenKey(parameters);
+            } else
+            {
+                response = await this.fapiPrivatePostV1ListenKey(parameters);
+            }
+            ((IDictionary<string,object>)getValue(this.options, "listenKey"))[(string)type] = this.safeString(response, "listenKey");
+            ((IDictionary<string,object>)getValue(this.options, "lastAuthenticatedTime"))[(string)type] = time;
+            parameters = this.extend(new Dictionary<string, object>() {
+                { "type", type },
+            }, parameters);
+            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+        }
+    }
+
+    public async virtual Task keepAliveListenKey(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object type = this.safeString(parameters, "type", "spot");
+        object listenKeyOptions = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
+        object listenKey = this.safeString(listenKeyOptions, type);
+        if (isTrue(isEqual(listenKey, null)))
+        {
+            return;
+        }
+        try
+        {
+            await this.sapiPrivatePutV1ListenKey(); // extend the expiry
+        } catch(Exception error)
+        {
+            object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
+            var client = this.client(url);
+            object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+            {
+                object messageHash = getValue(messageHashes, i);
+                ((WebSocketClient)client).reject(error, messageHash);
+            }
+            ((IDictionary<string,object>)getValue(this.options, "listenKey"))[(string)type] = null;
+            ((IDictionary<string,object>)getValue(this.options, "lastAuthenticatedTime"))[(string)type] = 0;
+            return;
+        }
+        // whether or not to schedule another listenKey keepAlive request
+        object listenKeyRefreshOptions = this.safeDict(this.options, "listenKeyRefresh", new Dictionary<string, object>() {});
+        object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000);
+        this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+    }
+
+    public virtual object getPrivateUrl(object type = null)
+    {
+        type ??= "spot";
+        object listenKeyOptions = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
+        object listenKey = this.safeString(listenKeyOptions, type);
+        object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
+        return url;
+    }
+
+    /**
+     * @method
+     * @name aster#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public async override Task<object> watchBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        await this.authenticate(type, parameters);
+        object url = this.getPrivateUrl(type);
+        var client = this.client(url);
+        this.setBalanceCache(client as WebSocketClient, type);
+        object options = this.safeDict(this.options, "watchBalance");
+        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        if (isTrue(isTrue(fetchBalanceSnapshot) && isTrue(awaitBalanceSnapshot)))
+        {
+            await client.future(add(type, ":fetchBalanceSnapshot"));
+        }
+        object messageHash = add(type, ":balance");
+        object message = null;
+        return await this.watch(url, messageHash, message, type);
+    }
+
+    public virtual void setBalanceCache(WebSocketClient client, object type)
+    {
+        if (isTrue(isTrue((inOp(((WebSocketClient)client).subscriptions, type))) && isTrue((inOp(this.balance, type)))))
+        {
+            return;
+        }
+        object options = this.safeValue(this.options, "watchBalance");
+        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        if (isTrue(fetchBalanceSnapshot))
+        {
+            object messageHash = add(type, ":fetchBalanceSnapshot");
+            if (!isTrue((inOp(client.futures, messageHash))))
+            {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
+            }
+        } else
+        {
+            ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
+        }
+    }
+
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    {
+        object parameters = new Dictionary<string, object>() {
+            { "type", type },
+        };
+        object response = await this.fetchBalance(parameters);
+        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
+        // don't remove the future from the .futures cache
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve();
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
+        }
+    }
+
+    public virtual void handleBalance(WebSocketClient client, object message)
+    {
+        //
+        // spot balance update
+        //     {
+        //         "B": [
+        //             {
+        //                 "a": "USDT",
+        //                 "f": "16.29445191",
+        //                 "l": "0"
+        //             },
+        //             {
+        //                 "a": "ETH",
+        //                 "f": "0.00199920",
+        //                 "l": "0"
+        //             }
+        //         ],
+        //         "e": "outboundAccountPosition",
+        //         "T": 1768547778317,
+        //         "u": 1768547778317,
+        //         "E": 1768547778321,
+        //         "m": "ORDER"
+        //     }
+        //
+        // swap balance and position update
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "T": 1768551627708,
+        //         "E": 1768551627710,
+        //         "a": {
+        //             "B": [
+        //                 {
+        //                     "a": "USDT",
+        //                     "wb": "39.41184271",
+        //                     "cw": "39.41184271",
+        //                     "bc": "0"
+        //                 }
+        //             ],
+        //             "P": [
+        //                 {
+        //                     "s": "ETHUSDT",
+        //                     "pa": "0",
+        //                     "ep": "0.00000000",
+        //                     "cr": "-0.59070000",
+        //                     "up": "0",
+        //                     "mt": "isolated",
+        //                     "iw": "0",
+        //                     "ps": "BOTH",
+        //                     "ma": "USDT"
+        //                 }
+        //             ],
+        //             "m": "ORDER"
+        //         }
+        //     }
+        //
+        object subscriptions = ((WebSocketClient)client).subscriptions;
+        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object messageHash = add(accountType, ":balance");
+        if (isTrue(isEqual(getValue(this.balance, accountType), null)))
+        {
+            ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
+        }
+        ((IDictionary<string,object>)getValue(this.balance, accountType))["info"] = message;
+        message = this.safeDict(message, "a", message);
+        object B = this.safeList(message, "B", new List<object>() {});
+        object wallet = this.safeString(this.options, "wallet", "wb");
+        for (object i = 0; isLessThan(i, getArrayLength(B)); postFixIncrement(ref i))
+        {
+            object entry = getValue(B, i);
+            object currencyId = this.safeString(entry, "a");
+            object code = this.safeCurrencyCode(currencyId);
+            object account = this.account();
+            ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "f");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "l");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(entry, wallet);
+            ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+        }
+        object timestamp = this.safeInteger(message, "E");
+        ((IDictionary<string,object>)getValue(this.balance, accountType))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)getValue(this.balance, accountType))["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)this.balance)[(string)accountType] = this.safeBalance(getValue(this.balance, accountType));
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, accountType), messageHash});
+    }
+
+    /**
+     * @method
+     * @name aster#watchPositions
+     * @description watch all open positions
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object type = "swap";
+        await this.authenticate(type, parameters);
+        object url = this.getPrivateUrl(type);
+        var client = this.client(url);
+        this.setPositionsCache(client);
+        object messageHashes = new List<object>() {};
+        object messageHash = "positions";
+        symbols = this.marketSymbols(symbols, "swap", true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            ((IList<object>)messageHashes).Add(messageHash);
+        } else
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
+            }
+        }
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        object cache = this.positions;
+        if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
+        {
+            object snapshot = await client.future("fetchPositionsSnapshot");
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        object newPositions = await this.watchMultiple(url, messageHashes, null, new List<object>() {type});
+        if (isTrue(this.newUpdates))
+        {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
+    }
+
+    public virtual void setPositionsCache(WebSocketClient client)
+    {
+        if (isTrue(!isEqual(this.positions, null)))
+        {
+            return;
+        }
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
+        if (isTrue(fetchPositionsSnapshot))
+        {
+            object messageHash = "fetchPositionsSnapshot";
+            if (!isTrue((inOp(client.futures, messageHash))))
+            {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash});
+            }
+        } else
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+    }
+
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    {
+        object positions = await this.fetchPositions();
+        this.positions = new ArrayCacheBySymbolBySide();
+        object cache = this.positions;
+        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        {
+            object position = getValue(positions, i);
+            object contracts = this.safeNumber(position, "contracts", 0);
+            if (isTrue(isGreaterThan(contracts, 0)))
+            {
+                callDynamically(cache, "append", new object[] {position});
+            }
+        }
+        // don't remove the future from the .futures cache
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
+        }
+    }
+
+    public virtual void handlePositions(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "T": 1768551627708,
+        //         "E": 1768551627710,
+        //         "a": {
+        //             "B": [
+        //                 {
+        //                     "a": "USDT",
+        //                     "wb": "39.41184271",
+        //                     "cw": "39.41184271",
+        //                     "bc": "0"
+        //                 }
+        //             ],
+        //             "P": [
+        //                 {
+        //                     "s": "ETHUSDT",
+        //                     "pa": "0",
+        //                     "ep": "0.00000000",
+        //                     "cr": "-0.59070000",
+        //                     "up": "0",
+        //                     "mt": "isolated",
+        //                     "iw": "0",
+        //                     "ps": "BOTH",
+        //                     "ma": "USDT"
+        //                 }
+        //             ],
+        //             "m": "ORDER"
+        //         }
+        //     }
+        //
+        object messageHash = "positions";
+        object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
+        if (!isTrue(this.isEmpty(messageHashes)))
+        {
+            if (isTrue(isEqual(this.positions, null)))
+            {
+                this.positions = new ArrayCacheBySymbolBySide();
+            }
+            object cache = this.positions;
+            object data = this.safeDict(message, "a", new Dictionary<string, object>() {});
+            object rawPositions = this.safeList(data, "P", new List<object>() {});
+            object newPositions = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+            {
+                object rawPosition = getValue(rawPositions, i);
+                object position = this.parseWsPosition(rawPosition);
+                object timestamp = this.safeInteger(message, "E");
+                ((IDictionary<string,object>)position)["timestamp"] = timestamp;
+                ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
+                ((IList<object>)newPositions).Add(position);
+                callDynamically(cache, "append", new object[] {position});
+                object symbol = getValue(position, "symbol");
+                object symbolMessageHash = add(add(messageHash, "::"), symbol);
+                callDynamically(client as WebSocketClient, "resolve", new object[] {position, symbolMessageHash});
+            }
+            callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "positions"});
+        }
+    }
+
+    public virtual object parseWsPosition(object position, object market = null)
+    {
+        //
+        //     {
+        //         "s": "BTCUSDT", // Symbol
+        //         "pa": "0", // Position Amount
+        //         "ep": "0.00000", // Entry Price
+        //         "cr": "200", // (Pre-fee) Accumulated Realized
+        //         "up": "0", // Unrealized PnL
+        //         "mt": "isolated", // Margin Type
+        //         "iw": "0.00000000", // Isolated Wallet (if isolated position)
+        //         "ps": "BOTH" // Position Side
+        //     }
+        //
+        object marketId = this.safeString(position, "s");
+        object contracts = this.safeString(position, "pa");
+        object contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
+        object positionSide = this.safeStringLower(position, "ps");
+        object hedged = true;
+        if (isTrue(isEqual(positionSide, "both")))
+        {
+            hedged = false;
+            if (!isTrue(Precise.stringEq(contracts, "0")))
+            {
+                if (isTrue(Precise.stringLt(contracts, "0")))
+                {
+                    positionSide = "short";
+                } else
+                {
+                    positionSide = "long";
+                }
+            }
+        }
+        return this.safePosition(new Dictionary<string, object>() {
+            { "info", position },
+            { "id", null },
+            { "symbol", this.safeSymbol(marketId, null, null, "swap") },
+            { "notional", null },
+            { "marginMode", this.safeString(position, "mt") },
+            { "liquidationPrice", null },
+            { "entryPrice", this.safeNumber(position, "ep") },
+            { "unrealizedPnl", this.safeNumber(position, "up") },
+            { "percentage", null },
+            { "contracts", this.parseNumber(contractsAbs) },
+            { "contractSize", null },
+            { "markPrice", null },
+            { "side", positionSide },
+            { "hedged", hedged },
+            { "timestamp", null },
+            { "datetime", null },
+            { "maintenanceMargin", null },
+            { "maintenanceMarginPercentage", null },
+            { "collateral", null },
+            { "initialMargin", null },
+            { "initialMarginPercentage", null },
+            { "leverage", null },
+            { "marginRatio", null },
+        });
+    }
+
+    /**
+     * @method
+     * @name aster#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+        }
+        object messageHash = "orders";
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        await this.authenticate(type, parameters);
+        if (isTrue(!isEqual(market, null)))
+        {
+            messageHash = add(messageHash, add("::", symbol));
+        }
+        object url = this.getPrivateUrl(type);
+        var client = this.client(url);
+        this.setBalanceCache(client as WebSocketClient, type);
+        object orders = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name aster#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+        }
+        object messageHash = "myTrades";
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        await this.authenticate(type, parameters);
+        if (isTrue(!isEqual(market, null)))
+        {
+            messageHash = add(messageHash, add("::", symbol));
+        }
+        object url = this.getPrivateUrl(type);
+        var client = this.client(url);
+        this.setBalanceCache(client as WebSocketClient, type);
+        object trades = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+    }
+
+    public virtual void handleOrderUpdate(WebSocketClient client, object message)
+    {
+        object rawOrder = this.safeDict(message, "o", message);
+        object e = this.safeString(message, "e");
+        if (isTrue(isTrue((isEqual(e, "ORDER_TRADE_UPDATE"))) || isTrue((isEqual(e, "ALGO_UPDATE")))))
+        {
+            message = this.safeDict(message, "o", message);
+        }
+        this.handleOrder(client as WebSocketClient, rawOrder);
+        this.handleMyTrade(client as WebSocketClient, message);
+    }
+
+    public virtual void handleMyTrade(WebSocketClient client, object message)
+    {
+        object messageHash = "myTrades";
+        object executionType = this.safeString(message, "x");
+        if (isTrue(isEqual(executionType, "TRADE")))
+        {
+            object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "fstream"), 0);
+            object type = ((bool) isTrue(isSwap)) ? "swap" : "spot";
+            object fakeMarket = this.safeMarketStructure(new Dictionary<string, object>() {
+                { "type", type },
+            });
+            object trade = this.parseWsTrade(message, fakeMarket);
+            object orderId = this.safeString(trade, "order");
+            object tradeFee = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
+            tradeFee = this.extend(new Dictionary<string, object>() {}, tradeFee);
+            object symbol = this.safeString(trade, "symbol");
+            if (isTrue(isTrue(isTrue(!isEqual(orderId, null)) && isTrue(!isEqual(tradeFee, null))) && isTrue(!isEqual(symbol, null))))
+            {
+                object cachedOrders = this.orders;
+                if (isTrue(!isEqual(cachedOrders, null)))
+                {
+                    object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+                    object order = this.safeValue(orders, orderId);
+                    if (isTrue(!isEqual(order, null)))
+                    {
+                        // accumulate order fees
+                        object fees = this.safeValue(order, "fees");
+                        object fee = this.safeValue(order, "fee");
+                        if (!isTrue(this.isEmpty(fees)))
+                        {
+                            object insertNewFeeCurrency = true;
+                            for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+                            {
+                                object orderFee = getValue(fees, i);
+                                if (isTrue(isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency"))))
+                                {
+                                    object feeCost = this.sum(getValue(tradeFee, "cost"), getValue(orderFee, "cost"));
+                                    ((IDictionary<string,object>)getValue(getValue(order, "fees"), i))["cost"] = parseFloat(this.currencyToPrecision(getValue(tradeFee, "currency"), feeCost));
+                                    insertNewFeeCurrency = false;
+                                    break;
+                                }
+                            }
+                            if (isTrue(insertNewFeeCurrency))
+                            {
+                                ((IList<object>)getValue(order, "fees")).Add(tradeFee);
+                            }
+                        } else if (isTrue(!isEqual(fee, null)))
+                        {
+                            if (isTrue(isEqual(getValue(fee, "currency"), getValue(tradeFee, "currency"))))
+                            {
+                                object feeCost = this.sum(getValue(fee, "cost"), getValue(tradeFee, "cost"));
+                                ((IDictionary<string,object>)getValue(order, "fee"))["cost"] = parseFloat(this.currencyToPrecision(getValue(tradeFee, "currency"), feeCost));
+                            } else if (isTrue(isEqual(getValue(fee, "currency"), null)))
+                            {
+                                ((IDictionary<string,object>)order)["fee"] = tradeFee;
+                            } else
+                            {
+                                ((IDictionary<string,object>)order)["fees"] = new List<object>() {fee, tradeFee};
+                                ((IDictionary<string,object>)order)["fee"] = null;
+                            }
+                        } else
+                        {
+                            ((IDictionary<string,object>)order)["fee"] = tradeFee;
+                        }
+                        // save this trade in the order
+                        object orderTrades = this.safeList(order, "trades", new List<object>() {});
+                        ((IList<object>)orderTrades).Add(trade);
+                        ((IDictionary<string,object>)order)["trades"] = orderTrades;
+                    }
+                }
+            }
+            if (isTrue(isEqual(this.myTrades, null)))
+            {
+                object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                this.myTrades = new ArrayCacheBySymbolById(limit);
+            }
+            object myTrades = this.myTrades;
+            callDynamically(myTrades, "append", new object[] {trade});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
+            object messageHashSymbol = add(add(messageHash, ":"), symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHashSymbol});
+        }
+    }
+
+    public virtual void handleOrder(WebSocketClient client, object message)
+    {
+        //
+        // spot
+        //     {
+        //         "e": "executionReport",        // Event type
+        //         "E": 1499405658658,            // Event time
+        //         "s": "ETHBTC",                 // Symbol
+        //         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        //         "S": "BUY",                    // Side
+        //         "o": "LIMIT",                  // Order type
+        //         "f": "GTC",                    // Time in force
+        //         "q": "1.00000000",             // Order quantity
+        //         "p": "0.10264410",             // Order price
+        //         "P": "0.00000000",             // Stop price
+        //         "F": "0.00000000",             // Iceberg quantity
+        //         "g": -1,                       // OrderListId
+        //         "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        //         "x": "NEW",                    // Current execution type
+        //         "X": "NEW",                    // Current order status
+        //         "r": "NONE",                   // Order reject reason; will be an error code.
+        //         "i": 4293153,                  // Order ID
+        //         "l": "0.00000000",             // Last executed quantity
+        //         "z": "0.00000000",             // Cumulative filled quantity
+        //         "L": "0.00000000",             // Last executed price
+        //         "n": "0",                      // Commission amount
+        //         "N": null,                     // Commission asset
+        //         "T": 1499405658657,            // Transaction time
+        //         "t": -1,                       // Trade ID
+        //         "I": 8641984,                  // Ignore
+        //         "w": true,                     // Is the order on the book?
+        //         "m": false,                    // Is this trade the maker side?
+        //         "M": false,                    // Ignore
+        //         "O": 1499405658657,            // Order creation time
+        //         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        //         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //         "Q": "0.00000000"              // Quote Order Qty
+        //     }
+        //
+        // swap
+        //     {
+        //         "s":"BTCUSDT",                 // Symbol
+        //         "c":"TEST",                    // Client Order Id
+        //                                        // special client order id:
+        //                                        // starts with "autoclose-": liquidation order
+        //                                        // "adl_autoclose": ADL auto close order
+        //         "S":"SELL",                    // Side
+        //         "o":"TRAILING_STOP_MARKET",    // Order Type
+        //         "f":"GTC",                     // Time in Force
+        //         "q":"0.001",                   // Original Quantity
+        //         "p":"0",                       // Original Price
+        //         "ap":"0",                      // Average Price
+        //         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //         "x":"NEW",                     // Execution Type
+        //         "X":"NEW",                     // Order Status
+        //         "i":8886774,                   // Order Id
+        //         "l":"0",                       // Order Last Filled Quantity
+        //         "z":"0",                       // Order Filled Accumulated Quantity
+        //         "L":"0",                       // Last Filled Price
+        //         "N":"USDT",                    // Commission Asset, will not push if no commission
+        //         "n":"0",                       // Commission, will not push if no commission
+        //         "T":1568879465651,             // Order Trade Time
+        //         "t":0,                         // Trade Id
+        //         "b":"0",                       // Bids Notional
+        //         "a":"9.91",                    // Ask Notional
+        //         "m":false,                     // Is this trade the maker side?
+        //         "R":false,                     // Is this reduce only
+        //         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
+        //         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
+        //         "ps":"LONG",                   // Position Side
+        //         "cp":false,                    // If Close-All, pushed with conditional order
+        //         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //         "rp":"0"                       // Realized Profit of the trade
+        //     }
+        //
+        object messageHash = "orders";
+        object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
+        if (!isTrue(this.isEmpty(messageHashes)))
+        {
+            object market = this.getMarketFromOrder(client as WebSocketClient, message);
+            if (isTrue(isEqual(this.orders, null)))
+            {
+                object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+                this.orders = new ArrayCacheBySymbolById(limit);
+            }
+            object cache = this.orders;
+            object parsed = this.parseWsOrder(message, market);
+            object symbol = getValue(market, "symbol");
+            object symbolMessageHash = add(add(messageHash, "::"), symbol);
+            callDynamically(cache, "append", new object[] {parsed});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, symbolMessageHash});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, messageHash});
+        }
+    }
+
+    public override object parseWsOrder(object order, object market = null)
+    {
+        object executionType = this.safeString(order, "x");
+        object marketId = this.safeString(order, "s");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(order, "O");
+        object T = this.safeInteger(order, "T");
+        object lastTradeTimestamp = null;
+        if (isTrue(isTrue(isTrue(isEqual(executionType, "NEW")) || isTrue(isEqual(executionType, "AMENDMENT"))) || isTrue(isEqual(executionType, "CANCELED"))))
+        {
+            if (isTrue(isEqual(timestamp, null)))
+            {
+                timestamp = T;
+            }
+        } else if (isTrue(isEqual(executionType, "TRADE")))
+        {
+            lastTradeTimestamp = T;
+        }
+        object lastUpdateTimestamp = T;
+        object fee = null;
+        object feeCost = this.safeString(order, "n");
+        if (isTrue(isTrue((!isEqual(feeCost, null))) && isTrue((Precise.stringGt(feeCost, "0")))))
+        {
+            object feeCurrencyId = this.safeString(order, "N");
+            object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "currency", feeCurrency },
+            };
+        }
+        object rawStatus = this.safeString(order, "X");
+        object status = this.parseOrderStatus(rawStatus);
+        object clientOrderId = this.safeString2(order, "C", "caid");
+        if (isTrue(isTrue((isEqual(clientOrderId, null))) || isTrue((isEqual(((string)clientOrderId).Length, 0)))))
+        {
+            clientOrderId = this.safeString(order, "c");
+        }
+        object stopPrice = this.safeStringN(order, new List<object>() {"P", "sp", "tp"});
+        object timeInForce = this.safeString(order, "f");
+        if (isTrue(isEqual(timeInForce, "GTX")))
+        {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            timeInForce = "PO";
+        }
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", order },
+            { "symbol", getValue(market, "symbol") },
+            { "id", this.safeString2(order, "i", "aid") },
+            { "clientOrderId", clientOrderId },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "lastTradeTimestamp", lastTradeTimestamp },
+            { "lastUpdateTimestamp", lastUpdateTimestamp },
+            { "type", this.parseOrderType(this.safeStringLower(order, "o")) },
+            { "timeInForce", timeInForce },
+            { "postOnly", null },
+            { "reduceOnly", this.safeBool(order, "R") },
+            { "side", this.safeStringLower(order, "S") },
+            { "price", this.safeString(order, "p") },
+            { "stopPrice", stopPrice },
+            { "triggerPrice", stopPrice },
+            { "amount", this.safeString(order, "q") },
+            { "cost", this.safeString(order, "Z") },
+            { "average", this.safeString(order, "ap") },
+            { "filled", this.safeString(order, "z") },
+            { "remaining", null },
+            { "status", status },
+            { "fee", fee },
+            { "trades", null },
+        });
+    }
+
+    public virtual object getMarketFromOrder(WebSocketClient client, object order)
+    {
+        object marketId = this.safeString(order, "s");
+        object subscriptions = ((WebSocketClient)client).subscriptions;
+        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        object marketType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        return this.safeMarket(marketId, null, null, marketType);
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         object stream = this.safeString(message, "stream");
@@ -1184,6 +2151,21 @@ public partial class aster : ccxt.aster
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+            }
+        } else
+        {
+            // private messages
+            object eventVar = this.safeString(message, "e");
+            if (isTrue(isEqual(eventVar, "outboundAccountPosition")))
+            {
+                this.handleBalance(client as WebSocketClient, message);
+            } else if (isTrue(isEqual(eventVar, "ACCOUNT_UPDATE")))
+            {
+                this.handleBalance(client as WebSocketClient, message);
+                this.handlePositions(client as WebSocketClient, message);
+            } else if (isTrue(isTrue((isEqual(eventVar, "ORDER_TRADE_UPDATE"))) || isTrue((isEqual(eventVar, "executionReport")))))
+            {
+                this.handleOrderUpdate(client as WebSocketClient, message);
             }
         }
     }

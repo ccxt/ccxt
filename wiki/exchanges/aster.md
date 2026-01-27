@@ -66,6 +66,10 @@
 * [unWatchOHLCV](#unwatchohlcv)
 * [watchOHLCVForSymbols](#watchohlcvforsymbols)
 * [unWatchOHLCVForSymbols](#unwatchohlcvforsymbols)
+* [watchBalance](#watchbalance)
+* [watchPositions](#watchpositions)
+* [watchOrders](#watchorders)
+* [watchMyTrades](#watchmytrades)
 
 <a name="fetchCurrencies" id="fetchcurrencies"></a>
 
@@ -1567,5 +1571,109 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 ```javascript
 aster.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>aster</code>](#aster)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**
+
+- https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
+- https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', default is 'spot' |
+
+
+```javascript
+aster.watchBalance ([params])
+```
+
+
+<a name="watchPositions" id="watchpositions"></a>
+
+### watchPositions{docsify-ignore}
+watch all open positions
+
+**Kind**: instance method of [<code>aster</code>](#aster)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+**See**: https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| since | <code>number</code> | No | since timestamp |
+| limit | <code>number</code> | No | limit |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+aster.watchPositions (symbols[, since, limit, params])
+```
+
+
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>aster</code>](#aster)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+- https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', default is 'spot' if symbol is not provided |
+
+
+```javascript
+aster.watchOrders ([symbol, since, limit, params])
+```
+
+
+<a name="watchMyTrades" id="watchmytrades"></a>
+
+### watchMyTrades{docsify-ignore}
+watches information on multiple trades made by the user
+
+**Kind**: instance method of [<code>aster</code>](#aster)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**
+
+- https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+- https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', default is 'spot' if symbol is not provided |
+
+
+```javascript
+aster.watchMyTrades ([symbol, since, limit, params])
 ```
 

@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
+use ccxt\Precise;
 use \React\Async;
 use \React\Promise\PromiseInterface;
 
@@ -16,18 +17,21 @@ class aster extends \ccxt\async\aster {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'watchBalance' => false,
+                'watchBalance' => true,
                 'watchBidsAsks' => true,
-                'watchTicker' => true,
-                'watchTickers' => true,
                 'watchMarkPrice' => true,
                 'watchMarkPrices' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
+                'watchOrders' => true,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOHLCV' => true,
                 'watchOHLCVForSymbols' => true,
+                'watchPositions' => true,
+                'watchTicker' => true,
+                'watchTickers' => true,
+                'watchMyTrades' => true,
                 'unWatchTicker' => true,
                 'unWatchTickers' => true,
                 'unWatchMarkPrice' => true,
@@ -43,12 +47,40 @@ class aster extends \ccxt\async\aster {
             'urls' => array(
                 'api' => array(
                     'ws' => array(
-                        'spot' => 'wss://sstream.asterdex.com/stream',
-                        'swap' => 'wss://fstream.asterdex.com/stream',
+                        'public' => array(
+                            'spot' => 'wss://sstream.asterdex.com/stream',
+                            'swap' => 'wss://fstream.asterdex.com/stream',
+                        ),
+                        'private' => array(
+                            'spot' => 'wss://sstream.asterdex.com/ws',
+                            'swap' => 'wss://fstream.asterdex.com/ws',
+                        ),
                     ),
                 ),
             ),
-            'options' => array(),
+            'options' => array(
+                'listenKey' => array(
+                    'spot' => null,
+                    'swap' => null,
+                ),
+                'lastAuthenticatedTime' => array(
+                    'spot' => 0,
+                    'swap' => 0,
+                ),
+                'listenKeyRefreshRate' => array(
+                    'spot' => 3600000, // 60 minutes
+                    'swap' => 3600000,
+                ),
+                'watchBalance' => array(
+                    'fetchBalanceSnapshot' => false, // or true
+                    'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
+                ),
+                'wallet' => 'wb', // wb = wallet balance, cw = cross balance
+                'watchPositions' => array(
+                    'fetchPositionsSnapshot' => true, // or false
+                    'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
+                ),
+            ),
             'streaming' => array(),
             'exceptions' => array(),
         ));
@@ -126,7 +158,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -172,7 +204,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -249,7 +281,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -297,7 +329,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -428,7 +460,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' watchBidsAsks() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -471,7 +503,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' unWatchBidsAsks() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -593,7 +625,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -639,7 +671,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -693,31 +725,159 @@ class aster extends \ccxt\async\aster {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade(array $trade, ?array $market = null): array {
+    public function parse_ws_trade($trade, $market = null): array {
+        //
+        // public watchTrades
+        //
+        //     {
+        //         "e" => "trade",       // event $type
+        //         "E" => 1579481530911, // event time
+        //         "s" => "ETHBTC",      // $symbol
+        //         "t" => 158410082,     // $trade $id
+        //         "p" => "0.01914100",  // $price
+        //         "q" => "0.00700000",  // quantity
+        //         "b" => 586187049,     // buyer order $id
+        //         "a" => 586186710,     // seller order $id
+        //         "T" => 1579481530910, // $trade time
+        //         "m" => false,         // is the buyer the $market maker
+        //         "M" => true           // binance docs say it should be ignored
+        //     }
+        //
+        //     {
+        //        "e" => "aggTrade",  // Event $type
+        //        "E" => 123456789,   // Event time
+        //        "s" => "BNBBTC",    // Symbol
+        //        "a" => 12345,       // Aggregate $trade ID
+        //        "p" => "0.001",     // Price
+        //        "q" => "100",       // Quantity
+        //        "f" => 100,         // First $trade ID
+        //        "l" => 105,         // Last $trade ID
+        //        "T" => 123456785,   // Trade time
+        //        "m" => true,        // Is the buyer the $market maker?
+        //        "M" => true         // Ignore
+        //     }
+        //
+        // private watchMyTrades spot
+        //
+        //     {
+        //         "e" => "executionReport",
+        //         "E" => 1611063861489,
+        //         "s" => "BNBUSDT",
+        //         "c" => "m4M6AD5MF3b1ERe65l4SPq",
+        //         "S" => "BUY",
+        //         "o" => "MARKET",
+        //         "f" => "GTC",
+        //         "q" => "2.00000000",
+        //         "p" => "0.00000000",
+        //         "P" => "0.00000000",
+        //         "F" => "0.00000000",
+        //         "g" => -1,
+        //         "C" => '',
+        //         "x" => "TRADE",
+        //         "X" => "PARTIALLY_FILLED",
+        //         "r" => "NONE",
+        //         "i" => 1296882607,
+        //         "l" => "0.33200000",
+        //         "z" => "0.33200000",
+        //         "L" => "46.86600000",
+        //         "n" => "0.00033200",
+        //         "N" => "BNB",
+        //         "T" => 1611063861488,
+        //         "t" => 109747654,
+        //         "I" => 2696953381,
+        //         "w" => false,
+        //         "m" => false,
+        //         "M" => true,
+        //         "O" => 1611063861488,
+        //         "Z" => "15.55951200",
+        //         "Y" => "15.55951200",
+        //         "Q" => "0.00000000"
+        //     }
+        //
+        // private watchMyTrades future/delivery
+        //
+        //     {
+        //         "s" => "BTCUSDT",
+        //         "c" => "pb2jD6ZQHpfzSdUac8VqMK",
+        //         "S" => "SELL",
+        //         "o" => "MARKET",
+        //         "f" => "GTC",
+        //         "q" => "0.001",
+        //         "p" => "0",
+        //         "ap" => "33468.46000",
+        //         "sp" => "0",
+        //         "x" => "TRADE",
+        //         "X" => "FILLED",
+        //         "i" => 13351197194,
+        //         "l" => "0.001",
+        //         "z" => "0.001",
+        //         "L" => "33468.46",
+        //         "n" => "0.00027086",
+        //         "N" => "BNB",
+        //         "T" => 1612095165362,
+        //         "t" => 458032604,
+        //         "b" => "0",
+        //         "a" => "0",
+        //         "m" => false,
+        //         "R" => false,
+        //         "wt" => "CONTRACT_PRICE",
+        //         "ot" => "MARKET",
+        //         "ps" => "BOTH",
+        //         "cp" => false,
+        //         "rp" => "0.00335000",
+        //         "pP" => false,
+        //         "si" => 0,
+        //         "ss" => 0
+        //     }
+        //
+        $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
-        $symbol = $market['symbol'];
-        $amountString = $this->safe_string($trade, 'q');
-        $priceString = $this->safe_string($trade, 'p');
-        $isMaker = $this->safe_bool($trade, 'm');
-        $takerOrMaker = null;
-        if ($isMaker !== null) {
-            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        $price = $this->safe_string_2($trade, 'L', 'p');
+        $amount = $this->safe_string_2($trade, 'q', 'l');
+        $cost = $this->safe_string($trade, 'Y');
+        if ($cost === null) {
+            if (($price !== null) && ($amount !== null)) {
+                $cost = Precise::string_mul($price, $amount);
+            }
         }
+        $marketId = $this->safe_string($trade, 's');
+        $defaultType = ($market === null) ? $this->safe_string($this->options, 'defaultType', 'spot') : $market['type'];
+        $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
+        $side = $this->safe_string_lower($trade, 'S');
+        $takerOrMaker = null;
+        $orderId = $this->safe_string($trade, 'i');
+        if (is_array($trade) && array_key_exists('m', $trade)) {
+            if ($side === null) {
+                $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+            }
+            $takerOrMaker = $trade['m'] ? 'maker' : 'taker';
+        }
+        $fee = null;
+        $feeCost = $this->safe_string($trade, 'n');
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'N');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
+        $type = $this->safe_string_lower($trade, 'o');
         return $this->safe_trade(array(
-            'id' => $this->safe_string($trade, 'a'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'order' => null,
-            'type' => null,
-            'side' => null,
+            'id' => $id,
+            'order' => $orderId,
+            'type' => $type,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $priceString,
-            'amount' => $amountString,
-            'cost' => null,
-            'fee' => null,
-        ), $market);
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
+        ));
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -780,7 +940,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -825,7 +985,7 @@ class aster extends \ccxt\async\aster {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
             }
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -960,7 +1120,7 @@ class aster extends \ccxt\async\aster {
             $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($marketSymbols[0]);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -1010,7 +1170,7 @@ class aster extends \ccxt\async\aster {
             $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($marketSymbols[0]);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws']['public'][$type];
             $subscriptionArgs = array();
             $messageHashes = array();
             $request = array(
@@ -1098,6 +1258,728 @@ class aster extends \ccxt\async\aster {
         );
     }
 
+    public function authenticate($type = 'spot', $params = array ()) {
+        return Async\async(function () use ($type, $params) {
+            $time = $this->milliseconds();
+            $lastAuthenticatedTimeOptions = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
+            $lastAuthenticatedTime = $this->safe_integer($lastAuthenticatedTimeOptions, $type, 0);
+            $listenKeyRefreshRateOptions = $this->safe_dict($this->options, 'listenKeyRefreshRate', array());
+            $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshRateOptions, $type, 3600000); // 1 hour
+            if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
+                $response = null;
+                if ($type === 'spot') {
+                    $response = Async\await($this->sapiPrivatePostV1ListenKey ($params));
+                } else {
+                    $response = Async\await($this->fapiPrivatePostV1ListenKey ($params));
+                }
+                $this->options['listenKey'][$type] = $this->safe_string($response, 'listenKey');
+                $this->options['lastAuthenticatedTime'][$type] = $time;
+                $params = $this->extend(array( 'type' => $type ), $params);
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+            }
+        }) ();
+    }
+
+    public function keep_alive_listen_key($params = array ()) {
+        return Async\async(function () use ($params) {
+            $type = $this->safe_string($params, 'type', 'spot');
+            $listenKeyOptions = $this->safe_dict($this->options, 'listenKey', array());
+            $listenKey = $this->safe_string($listenKeyOptions, $type);
+            if ($listenKey === null) {
+                return;
+            }
+            try {
+                Async\await($this->sapiPrivatePutV1ListenKey ()); // extend the expiry
+            } catch (Exception $error) {
+                $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
+                $client = $this->client($url);
+                $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
+                for ($i = 0; $i < count($messageHashes); $i++) {
+                    $messageHash = $messageHashes[$i];
+                    $client->reject ($error, $messageHash);
+                }
+                $this->options['listenKey'][$type] = null;
+                $this->options['lastAuthenticatedTime'][$type] = 0;
+                return;
+            }
+            // whether or not to schedule another $listenKey keepAlive request
+            $listenKeyRefreshOptions = $this->safe_dict($this->options, 'listenKeyRefresh', array());
+            $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshOptions, 'listenKeyRefreshRate', 3600000);
+            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+        }) ();
+    }
+
+    public function get_private_url($type = 'spot') {
+        $listenKeyOptions = $this->safe_dict($this->options, 'listenKey', array());
+        $listenKey = $this->safe_string($listenKeyOptions, $type);
+        $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
+        return $url;
+    }
+
+    public function watch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
+             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
+             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
+            Async\await($this->authenticate($type, $params));
+            $url = $this->get_private_url($type);
+            $client = $this->client($url);
+            $this->set_balance_cache($client, $type);
+            $options = $this->safe_dict($this->options, 'watchBalance');
+            $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
+            $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
+            if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+                Async\await($client->future ($type . ':fetchBalanceSnapshot'));
+            }
+            $messageHash = $type . ':balance';
+            $message = null;
+            return Async\await($this->watch($url, $messageHash, $message, $type));
+        }) ();
+    }
+
+    public function set_balance_cache(Client $client, $type) {
+        if ((is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type, $this->balance))) {
+            return;
+        }
+        $options = $this->safe_value($this->options, 'watchBalance');
+        $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
+        if ($fetchBalanceSnapshot) {
+            $messageHash = $type . ':fetchBalanceSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+                $client->future ($messageHash);
+                $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
+            }
+        } else {
+            $this->balance[$type] = array();
+        }
+    }
+
+    public function load_balance_snapshot($client, $messageHash, $type) {
+        return Async\async(function () use ($client, $messageHash, $type) {
+            $params = array(
+                'type' => $type,
+            );
+            $response = Async\await($this->fetch_balance($params));
+            $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
+            // don't remove the $future from the .futures cache
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ();
+                $client->resolve ($this->balance[$type], $type . ':balance');
+            }
+        }) ();
+    }
+
+    public function handle_balance(Client $client, $message) {
+        //
+        // spot balance update
+        //     {
+        //         "B" => array(
+        //             array(
+        //                 "a" => "USDT",
+        //                 "f" => "16.29445191",
+        //                 "l" => "0"
+        //             ),
+        //             {
+        //                 "a" => "ETH",
+        //                 "f" => "0.00199920",
+        //                 "l" => "0"
+        //             }
+        //         ),
+        //         "e" => "outboundAccountPosition",
+        //         "T" => 1768547778317,
+        //         "u" => 1768547778317,
+        //         "E" => 1768547778321,
+        //         "m" => "ORDER"
+        //     }
+        //
+        // swap balance and position update
+        //     {
+        //         "e" => "ACCOUNT_UPDATE",
+        //         "T" => 1768551627708,
+        //         "E" => 1768551627710,
+        //         "a" => {
+        //             "B" => array(
+        //                 {
+        //                     "a" => "USDT",
+        //                     "wb" => "39.41184271",
+        //                     "cw" => "39.41184271",
+        //                     "bc" => "0"
+        //                 }
+        //             ),
+        //             "P" => array(
+        //                 {
+        //                     "s" => "ETHUSDT",
+        //                     "pa" => "0",
+        //                     "ep" => "0.00000000",
+        //                     "cr" => "-0.59070000",
+        //                     "up" => "0",
+        //                     "mt" => "isolated",
+        //                     "iw" => "0",
+        //                     "ps" => "BOTH",
+        //                     "ma" => "USDT"
+        //                 }
+        //             ),
+        //             "m" => "ORDER"
+        //         }
+        //     }
+        //
+        $subscriptions = $client->subscriptions;
+        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+        $accountType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        $messageHash = $accountType . ':balance';
+        if ($this->balance[$accountType] === null) {
+            $this->balance[$accountType] = array();
+        }
+        $this->balance[$accountType]['info'] = $message;
+        $message = $this->safe_dict($message, 'a', $message);
+        $B = $this->safe_list($message, 'B', array());
+        $wallet = $this->safe_string($this->options, 'wallet', 'wb');
+        for ($i = 0; $i < count($B); $i++) {
+            $entry = $B[$i];
+            $currencyId = $this->safe_string($entry, 'a');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($entry, 'f');
+            $account['used'] = $this->safe_string($entry, 'l');
+            $account['total'] = $this->safe_string($entry, $wallet);
+            $this->balance[$accountType][$code] = $account;
+        }
+        $timestamp = $this->safe_integer($message, 'E');
+        $this->balance[$accountType]['timestamp'] = $timestamp;
+        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $client->resolve ($this->balance[$accountType], $messageHash);
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch all open positions
+             *
+             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+             *
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {number} [$since] $since timestamp
+             * @param {number} [$limit] $limit
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $type = 'swap';
+            Async\await($this->authenticate($type, $params));
+            $url = $this->get_private_url($type);
+            $client = $this->client($url);
+            $this->set_positions_cache($client);
+            $messageHashes = array();
+            $messageHash = 'positions';
+            $symbols = $this->market_symbols($symbols, 'swap', true, true);
+            if ($symbols === null) {
+                $messageHashes[] = $messageHash;
+            } else {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $messageHashes[] = $messageHash . '::' . $symbol;
+                }
+            }
+            $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
+            $cache = $this->positions;
+            if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
+                $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
+                return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            }
+            $newPositions = Async\await($this->watch_multiple($url, $messageHashes, null, array( $type )));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function set_positions_cache(Client $client) {
+        if ($this->positions !== null) {
+            return;
+        }
+        $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
+        if ($fetchPositionsSnapshot) {
+            $messageHash = 'fetchPositionsSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+                $client->future ($messageHash);
+                $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
+            }
+        } else {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    public function load_positions_snapshot($client, $messageHash) {
+        return Async\async(function () use ($client, $messageHash) {
+            $positions = Async\await($this->fetch_positions());
+            $this->positions = new ArrayCacheBySymbolBySide ();
+            $cache = $this->positions;
+            for ($i = 0; $i < count($positions); $i++) {
+                $position = $positions[$i];
+                $contracts = $this->safe_number($position, 'contracts', 0);
+                if ($contracts > 0) {
+                    $cache->append ($position);
+                }
+            }
+            // don't remove the $future from the .futures $cache
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($cache, 'positions');
+            }
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        //     {
+        //         "e" => "ACCOUNT_UPDATE",
+        //         "T" => 1768551627708,
+        //         "E" => 1768551627710,
+        //         "a" => {
+        //             "B" => array(
+        //                 {
+        //                     "a" => "USDT",
+        //                     "wb" => "39.41184271",
+        //                     "cw" => "39.41184271",
+        //                     "bc" => "0"
+        //                 }
+        //             ),
+        //             "P" => array(
+        //                 {
+        //                     "s" => "ETHUSDT",
+        //                     "pa" => "0",
+        //                     "ep" => "0.00000000",
+        //                     "cr" => "-0.59070000",
+        //                     "up" => "0",
+        //                     "mt" => "isolated",
+        //                     "iw" => "0",
+        //                     "ps" => "BOTH",
+        //                     "ma" => "USDT"
+        //                 }
+        //             ),
+        //             "m" => "ORDER"
+        //         }
+        //     }
+        //
+        $messageHash = 'positions';
+        $messageHashes = $this->find_message_hashes($client, $messageHash);
+        if (!$this->is_empty($messageHashes)) {
+            if ($this->positions === null) {
+                $this->positions = new ArrayCacheBySymbolBySide ();
+            }
+            $cache = $this->positions;
+            $data = $this->safe_dict($message, 'a', array());
+            $rawPositions = $this->safe_list($data, 'P', array());
+            $newPositions = array();
+            for ($i = 0; $i < count($rawPositions); $i++) {
+                $rawPosition = $rawPositions[$i];
+                $position = $this->parse_ws_position($rawPosition);
+                $timestamp = $this->safe_integer($message, 'E');
+                $position['timestamp'] = $timestamp;
+                $position['datetime'] = $this->iso8601($timestamp);
+                $newPositions[] = $position;
+                $cache->append ($position);
+                $symbol = $position['symbol'];
+                $symbolMessageHash = $messageHash . '::' . $symbol;
+                $client->resolve ($position, $symbolMessageHash);
+            }
+            $client->resolve ($newPositions, 'positions');
+        }
+    }
+
+    public function parse_ws_position($position, $market = null) {
+        //
+        //     {
+        //         "s" => "BTCUSDT", // Symbol
+        //         "pa" => "0", // Position Amount
+        //         "ep" => "0.00000", // Entry Price
+        //         "cr" => "200", // (Pre-fee) Accumulated Realized
+        //         "up" => "0", // Unrealized PnL
+        //         "mt" => "isolated", // Margin Type
+        //         "iw" => "0.00000000", // Isolated Wallet (if isolated $position)
+        //         "ps" => "BOTH" // Position Side
+        //     }
+        //
+        $marketId = $this->safe_string($position, 's');
+        $contracts = $this->safe_string($position, 'pa');
+        $contractsAbs = Precise::string_abs($this->safe_string($position, 'pa'));
+        $positionSide = $this->safe_string_lower($position, 'ps');
+        $hedged = true;
+        if ($positionSide === 'both') {
+            $hedged = false;
+            if (!Precise::string_eq($contracts, '0')) {
+                if (Precise::string_lt($contracts, '0')) {
+                    $positionSide = 'short';
+                } else {
+                    $positionSide = 'long';
+                }
+            }
+        }
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $this->safe_symbol($marketId, null, null, 'swap'),
+            'notional' => null,
+            'marginMode' => $this->safe_string($position, 'mt'),
+            'liquidationPrice' => null,
+            'entryPrice' => $this->safe_number($position, 'ep'),
+            'unrealizedPnl' => $this->safe_number($position, 'up'),
+            'percentage' => null,
+            'contracts' => $this->parse_number($contractsAbs),
+            'contractSize' => null,
+            'markPrice' => null,
+            'side' => $positionSide,
+            'hedged' => $hedged,
+            'timestamp' => null,
+            'datetime' => null,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'marginRatio' => null,
+        ));
+    }
+
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $orders made by the user
+             *
+             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+             *
+             * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+            }
+            $messageHash = 'orders';
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
+            Async\await($this->authenticate($type, $params));
+            if ($market !== null) {
+                $messageHash .= '::' . $symbol;
+            }
+            $url = $this->get_private_url($type);
+            $client = $this->client($url);
+            $this->set_balance_cache($client, $type);
+            $orders = Async\await($this->watch_multiple($url, array( $messageHash ), null, array( $type )));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $trades made by the user
+             *
+             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+             * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+             *
+             * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+            }
+            $messageHash = 'myTrades';
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
+            Async\await($this->authenticate($type, $params));
+            if ($market !== null) {
+                $messageHash .= '::' . $symbol;
+            }
+            $url = $this->get_private_url($type);
+            $client = $this->client($url);
+            $this->set_balance_cache($client, $type);
+            $trades = Async\await($this->watch_multiple($url, array( $messageHash ), null, array( $type )));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_order_update(Client $client, $message) {
+        $rawOrder = $this->safe_dict($message, 'o', $message);
+        $e = $this->safe_string($message, 'e');
+        if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
+            $message = $this->safe_dict($message, 'o', $message);
+        }
+        $this->handle_order($client, $rawOrder);
+        $this->handle_my_trade($client, $message);
+    }
+
+    public function handle_my_trade(Client $client, $message) {
+        $messageHash = 'myTrades';
+        $executionType = $this->safe_string($message, 'x');
+        if ($executionType === 'TRADE') {
+            $isSwap = mb_strpos($client->url, 'fstream') !== false;
+            $type = $isSwap ? 'swap' : 'spot';
+            $fakeMarket = $this->safe_market_structure(array( 'type' => $type ));
+            $trade = $this->parse_ws_trade($message, $fakeMarket);
+            $orderId = $this->safe_string($trade, 'order');
+            $tradeFee = $this->safe_dict($trade, 'fee', array());
+            $tradeFee = $this->extend(array(), $tradeFee);
+            $symbol = $this->safe_string($trade, 'symbol');
+            if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
+                $cachedOrders = $this->orders;
+                if ($cachedOrders !== null) {
+                    $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
+                    $order = $this->safe_value($orders, $orderId);
+                    if ($order !== null) {
+                        // accumulate $order $fees
+                        $fees = $this->safe_value($order, 'fees');
+                        $fee = $this->safe_value($order, 'fee');
+                        if (!$this->is_empty($fees)) {
+                            $insertNewFeeCurrency = true;
+                            for ($i = 0; $i < count($fees); $i++) {
+                                $orderFee = $fees[$i];
+                                if ($orderFee['currency'] === $tradeFee['currency']) {
+                                    $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
+                                    $order['fees'][$i]['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
+                                    $insertNewFeeCurrency = false;
+                                    break;
+                                }
+                            }
+                            if ($insertNewFeeCurrency) {
+                                $order['fees'][] = $tradeFee;
+                            }
+                        } elseif ($fee !== null) {
+                            if ($fee['currency'] === $tradeFee['currency']) {
+                                $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
+                                $order['fee']['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
+                            } elseif ($fee['currency'] === null) {
+                                $order['fee'] = $tradeFee;
+                            } else {
+                                $order['fees'] = array( $fee, $tradeFee );
+                                $order['fee'] = null;
+                            }
+                        } else {
+                            $order['fee'] = $tradeFee;
+                        }
+                        // save this $trade in the $order
+                        $orderTrades = $this->safe_list($order, 'trades', array());
+                        $orderTrades[] = $trade;
+                        $order['trades'] = $orderTrades;
+                        // don't append twice cause it breaks newUpdates mode
+                        // this $order already exists in the cache
+                    }
+                }
+            }
+            if ($this->myTrades === null) {
+                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            }
+            $myTrades = $this->myTrades;
+            $myTrades->append ($trade);
+            $client->resolve ($this->myTrades, $messageHash);
+            $messageHashSymbol = $messageHash . ':' . $symbol;
+            $client->resolve ($this->myTrades, $messageHashSymbol);
+        }
+    }
+
+    public function handle_order(Client $client, $message) {
+        //
+        // spot
+        //     {
+        //         "e" => "executionReport",        // Event type
+        //         "E" => 1499405658658,            // Event time
+        //         "s" => "ETHBTC",                 // Symbol
+        //         "c" => "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        //         "S" => "BUY",                    // Side
+        //         "o" => "LIMIT",                  // Order type
+        //         "f" => "GTC",                    // Time in force
+        //         "q" => "1.00000000",             // Order quantity
+        //         "p" => "0.10264410",             // Order price
+        //         "P" => "0.00000000",             // Stop price
+        //         "F" => "0.00000000",             // Iceberg quantity
+        //         "g" => -1,                       // OrderListId
+        //         "C" => null,                     // Original $client order ID; This is the ID of the order being canceled
+        //         "x" => "NEW",                    // Current execution type
+        //         "X" => "NEW",                    // Current order status
+        //         "r" => "NONE",                   // Order reject reason; will be an error code.
+        //         "i" => 4293153,                  // Order ID
+        //         "l" => "0.00000000",             // Last executed quantity
+        //         "z" => "0.00000000",             // Cumulative filled quantity
+        //         "L" => "0.00000000",             // Last executed price
+        //         "n" => "0",                      // Commission amount
+        //         "N" => null,                     // Commission asset
+        //         "T" => 1499405658657,            // Transaction time
+        //         "t" => -1,                       // Trade ID
+        //         "I" => 8641984,                  // Ignore
+        //         "w" => true,                     // Is the order on the book?
+        //         "m" => false,                    // Is this trade the maker side?
+        //         "M" => false,                    // Ignore
+        //         "O" => 1499405658657,            // Order creation time
+        //         "Z" => "0.00000000",             // Cumulative quote asset transacted quantity
+        //         "Y" => "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //         "Q" => "0.00000000"              // Quote Order Qty
+        //     }
+        //
+        // swap
+        //     {
+        //         "s":"BTCUSDT",                 // Symbol
+        //         "c":"TEST",                    // Client Order Id
+        //                                        // special $client order id:
+        //                                        // starts with "autoclose-" => liquidation order
+        //                                        // "adl_autoclose" => ADL auto close order
+        //         "S":"SELL",                    // Side
+        //         "o":"TRAILING_STOP_MARKET",    // Order Type
+        //         "f":"GTC",                     // Time in Force
+        //         "q":"0.001",                   // Original Quantity
+        //         "p":"0",                       // Original Price
+        //         "ap":"0",                      // Average Price
+        //         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //         "x":"NEW",                     // Execution Type
+        //         "X":"NEW",                     // Order Status
+        //         "i":8886774,                   // Order Id
+        //         "l":"0",                       // Order Last Filled Quantity
+        //         "z":"0",                       // Order Filled Accumulated Quantity
+        //         "L":"0",                       // Last Filled Price
+        //         "N":"USDT",                    // Commission Asset, will not push if no commission
+        //         "n":"0",                       // Commission, will not push if no commission
+        //         "T":1568879465651,             // Order Trade Time
+        //         "t":0,                         // Trade Id
+        //         "b":"0",                       // Bids Notional
+        //         "a":"9.91",                    // Ask Notional
+        //         "m":false,                     // Is this trade the maker side?
+        //         "R":false,                     // Is this reduce only
+        //         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
+        //         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
+        //         "ps":"LONG",                   // Position Side
+        //         "cp":false,                    // If Close-All, pushed with conditional order
+        //         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //         "rp":"0"                       // Realized Profit of the trade
+        //     }
+        //
+        $messageHash = 'orders';
+        $messageHashes = $this->find_message_hashes($client, $messageHash);
+        if (!$this->is_empty($messageHashes)) {
+            $market = $this->get_market_from_order($client, $message);
+            if ($this->orders === null) {
+                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+                $this->orders = new ArrayCacheBySymbolById ($limit);
+            }
+            $cache = $this->orders;
+            $parsed = $this->parse_ws_order($message, $market);
+            $symbol = $market['symbol'];
+            $symbolMessageHash = $messageHash . '::' . $symbol;
+            $cache->append ($parsed);
+            $client->resolve ($cache, $symbolMessageHash);
+            $client->resolve ($cache, $messageHash);
+        }
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        $executionType = $this->safe_string($order, 'x');
+        $marketId = $this->safe_string($order, 's');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($order, 'O');
+        $T = $this->safe_integer($order, 'T');
+        $lastTradeTimestamp = null;
+        if ($executionType === 'NEW' || $executionType === 'AMENDMENT' || $executionType === 'CANCELED') {
+            if ($timestamp === null) {
+                $timestamp = $T;
+            }
+        } elseif ($executionType === 'TRADE') {
+            $lastTradeTimestamp = $T;
+        }
+        $lastUpdateTimestamp = $T;
+        $fee = null;
+        $feeCost = $this->safe_string($order, 'n');
+        if (($feeCost !== null) && (Precise::string_gt($feeCost, '0'))) {
+            $feeCurrencyId = $this->safe_string($order, 'N');
+            $feeCurrency = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
+        $rawStatus = $this->safe_string($order, 'X');
+        $status = $this->parse_order_status($rawStatus);
+        $clientOrderId = $this->safe_string_2($order, 'C', 'caid');
+        if (($clientOrderId === null) || (strlen($clientOrderId) === 0)) {
+            $clientOrderId = $this->safe_string($order, 'c');
+        }
+        $stopPrice = $this->safe_string_n($order, array( 'P', 'sp', 'tp' ));
+        $timeInForce = $this->safe_string($order, 'f');
+        if ($timeInForce === 'GTX') {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            $timeInForce = 'PO';
+        }
+        return $this->safe_order(array(
+            'info' => $order,
+            'symbol' => $market['symbol'],
+            'id' => $this->safe_string_2($order, 'i', 'aid'),
+            'clientOrderId' => $clientOrderId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
+            'type' => $this->parseOrderType ($this->safe_string_lower($order, 'o')),
+            'timeInForce' => $timeInForce,
+            'postOnly' => null,
+            'reduceOnly' => $this->safe_bool($order, 'R'),
+            'side' => $this->safe_string_lower($order, 'S'),
+            'price' => $this->safe_string($order, 'p'),
+            'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
+            'amount' => $this->safe_string($order, 'q'),
+            'cost' => $this->safe_string($order, 'Z'),
+            'average' => $this->safe_string($order, 'ap'),
+            'filled' => $this->safe_string($order, 'z'),
+            'remaining' => null,
+            'status' => $status,
+            'fee' => $fee,
+            'trades' => null,
+        ));
+    }
+
+    public function get_market_from_order(Client $client, $order) {
+        $marketId = $this->safe_string($order, 's');
+        $subscriptions = $client->subscriptions;
+        $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+        $marketType = $this->get_account_type_from_subscriptions($subscriptionsKeys);
+        return $this->safe_market($marketId, null, null, $marketType);
+    }
+
     public function handle_message(Client $client, $message) {
         $stream = $this->safe_string($message, 'stream');
         if ($stream !== null) {
@@ -1118,6 +2000,17 @@ class aster extends \ccxt\async\aster {
             $method = $this->safe_value($methods, $topic);
             if ($method !== null) {
                 $method($client, $message);
+            }
+        } else {
+            // private messages
+            $event = $this->safe_string($message, 'e');
+            if ($event === 'outboundAccountPosition') {
+                $this->handle_balance($client, $message);
+            } elseif ($event === 'ACCOUNT_UPDATE') {
+                $this->handle_balance($client, $message);
+                $this->handle_positions($client, $message);
+            } elseif (($event === 'ORDER_TRADE_UPDATE') || ($event === 'executionReport')) {
+                $this->handle_order_update($client, $message);
             }
         }
     }

@@ -1232,7 +1232,7 @@ bitmart.editOrder (id, symbol, type, side[, amount, price, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed  
 

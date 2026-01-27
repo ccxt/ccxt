@@ -97,6 +97,7 @@ class bybit extends bybit$1["default"] {
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': true,
                 'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -378,6 +379,13 @@ class bybit extends bybit$1["default"] {
                         'v5/asset/withdraw/query-record': 10,
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
+                        'v5/asset/convert/small-balance-list': 5,
+                        'v5/asset/convert/small-balance-history': 5,
+                        'v5/fiat/query-coin-list': 5,
+                        'v5/fiat/reference-price': 5,
+                        'v5/fiat/trade-query': 5,
+                        'v5/fiat/query-trade-history': 5,
+                        'v5/fiat/balance-query': 5,
                         // user
                         'v5/user/query-sub-members': 5,
                         'v5/user/query-api': 5,
@@ -397,6 +405,7 @@ class bybit extends bybit$1["default"] {
                         'v5/spot-margin-trade/position-tiers': 5,
                         'v5/spot-margin-trade/coinstate': 5,
                         'v5/spot-margin-trade/repayment-available-amount': 5,
+                        'v5/spot-margin-trade/get-auto-repay-mode': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,
                         'v5/spot-cross-margin-trade/account': 1,
                         'v5/spot-cross-margin-trade/orders': 1,
@@ -545,6 +554,10 @@ class bybit extends bybit$1["default"] {
                         'v5/asset/deposit/deposit-to-account': 5,
                         'v5/asset/withdraw/create': 50,
                         'v5/asset/withdraw/cancel': 50,
+                        'v5/asset/covert/get-quote': 10,
+                        'v5/asset/covert/small-balance-execute': 10,
+                        'v5/fiat/quote-apply': 10,
+                        'v5/fiat/trade-execute': 10,
                         // user
                         'v5/user/create-sub-member': 10,
                         'v5/user/create-sub-api': 10,
@@ -559,6 +572,7 @@ class bybit extends bybit$1["default"] {
                         // spot margin trade
                         'v5/spot-margin-trade/switch-mode': 5,
                         'v5/spot-margin-trade/set-leverage': 5,
+                        'v5/spot-margin-trade/set-auto-repay-mode': 5,
                         'v5/spot-cross-margin-trade/loan': 2.5,
                         'v5/spot-cross-margin-trade/repay': 2.5,
                         'v5/spot-cross-margin-trade/switch': 2.5,
@@ -568,6 +582,7 @@ class bybit extends bybit$1["default"] {
                         'v5/crypto-loan/adjust-ltv': 5,
                         // crypto loan (new)
                         'v5/crypto-loan-common/adjust-ltv': 50,
+                        'v5/crypto-loan-common/max-loan': 10,
                         'v5/crypto-loan-flexible/borrow': 50,
                         'v5/crypto-loan-flexible/repay': 50,
                         'v5/crypto-loan-flexible/repay-collateral': 50,
@@ -580,6 +595,7 @@ class bybit extends bybit$1["default"] {
                         'v5/crypto-loan-fixed/repay-collateral': 50,
                         // institutional lending
                         'v5/ins-loan/association-uid': 5,
+                        'v5/ins-loan/repay-loan': 5,
                         // c2c lending
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
@@ -1071,6 +1087,7 @@ class bybit extends bybit$1["default"] {
                 'enableDemoTrading': false,
                 'fetchMarkets': {
                     'types': ['spot', 'linear', 'inverse', 'option'],
+                    'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
                 },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
@@ -1783,26 +1800,34 @@ class bybit extends bybit$1["default"] {
                 promisesUnresolved.push(this.fetchFutureMarkets({ 'category': 'inverse' }));
             }
             else if (marketType === 'option') {
-                promisesUnresolved.push(this.fetchOptionMarkets({ 'baseCoin': 'BTC' }));
-                promisesUnresolved.push(this.fetchOptionMarkets({ 'baseCoin': 'ETH' }));
-                promisesUnresolved.push(this.fetchOptionMarkets({ 'baseCoin': 'SOL' }));
+                const optionsCurrencies = this.safeList(fetchMarketsOptions, 'options', ['BTC', 'ETH', 'SOL']);
+                for (let j = 0; j < optionsCurrencies.length; j++) {
+                    const currency = optionsCurrencies[j];
+                    promisesUnresolved.push(this.fetchOptionMarkets({ 'baseCoin': currency }));
+                }
             }
             else {
                 throw new errors.ExchangeError(this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
         }
         const promises = await Promise.all(promisesUnresolved);
-        const spotMarkets = this.safeList(promises, 0, []);
-        const linearMarkets = this.safeList(promises, 1, []);
-        const inverseMarkets = this.safeList(promises, 2, []);
-        const btcOptionMarkets = this.safeList(promises, 3, []);
-        const ethOptionMarkets = this.safeList(promises, 4, []);
-        const solOptionMarkets = this.safeList(promises, 5, []);
-        const futureMarkets = this.arrayConcat(linearMarkets, inverseMarkets);
-        let optionMarkets = this.arrayConcat(btcOptionMarkets, ethOptionMarkets);
-        optionMarkets = this.arrayConcat(optionMarkets, solOptionMarkets);
-        const derivativeMarkets = this.arrayConcat(futureMarkets, optionMarkets);
-        return this.arrayConcat(spotMarkets, derivativeMarkets);
+        let result = [];
+        for (let i = 0; i < promises.length; i++) {
+            const parsedMarket = promises[i];
+            result = this.arrayConcat(result, parsedMarket);
+        }
+        // const spotMarkets = this.safeList (promises, 0, []);
+        // const linearMarkets = this.safeList (promises, 1, []);
+        // const inverseMarkets = this.safeList (promises, 2, []);
+        // const btcOptionMarkets = this.safeList (promises, 3, []);
+        // const ethOptionMarkets = this.safeList (promises, 4, []);
+        // const solOptionMarkets = this.safeList (promises, 5, []);
+        // const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
+        // let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
+        // optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
+        // const derivativeMarkets = this.arrayConcat (futureMarkets, optionMarkets);
+        // return this.arrayConcat (spotMarkets, derivativeMarkets);
+        return result;
     }
     async fetchSpotMarkets(params) {
         const request = {
@@ -6067,7 +6092,7 @@ class bybit extends bybit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -6741,7 +6766,15 @@ class bybit extends bybit$1["default"] {
                 side = undefined;
             }
         }
-        const notional = this.safeString2(position, 'positionValue', 'cumExitValue');
+        let notional = undefined;
+        const contractSize = this.safeString(market, 'contractSize');
+        const markPrice = this.safeString(position, 'markPrice');
+        if (market['inverse']) {
+            notional = Precise["default"].stringDiv(Precise["default"].stringMul(size, contractSize), markPrice);
+        }
+        else {
+            notional = this.safeString2(position, 'positionValue', 'cumExitValue');
+        }
         const unrealisedPnl = this.omitZero(this.safeString(position, 'unrealisedPnl'));
         let initialMarginString = this.safeString2(position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString(position, 'positionMM');
@@ -6750,17 +6783,8 @@ class bybit extends bybit$1["default"] {
         if (lastUpdateTimestamp === undefined) {
             lastUpdateTimestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt', 'updatedTime']);
         }
-        const tradeMode = this.safeInteger(position, 'tradeMode', 0);
-        let marginMode = undefined;
-        if ((!this.options['enableUnifiedAccount']) || (this.options['enableUnifiedAccount'] && market['inverse'])) {
-            // tradeMode would work for classic and UTA(inverse)
-            if (!isHistory) { // cannot tell marginMode for fetchPositionsHistory, and closedSize will only be defined for fetchPositionsHistory response
-                marginMode = (tradeMode === 1) ? 'isolated' : 'cross';
-            }
-        }
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
-        const markPrice = this.safeString(position, 'markPrice');
         const liquidationPrice = this.omitZero(this.safeString(position, 'liqPrice'));
         const leverage = this.safeString(position, 'leverage');
         if (liquidationPrice !== undefined) {
@@ -6824,7 +6848,7 @@ class bybit extends bybit$1["default"] {
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': this.safeNumber(position, 'avgExitPrice'),
             'collateral': this.parseNumber(collateralString),
-            'marginMode': marginMode,
+            'marginMode': undefined,
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),
@@ -9398,6 +9422,54 @@ class bybit extends bybit$1["default"] {
             'timeframe': undefined,
             'longShortRatio': this.parseToNumeric(Precise["default"].stringDiv(longString, shortString)),
         };
+    }
+    /**
+     * @method
+     * @name bybit#fetchMarginMode
+     * @description fetches the margin mode of the trading pair
+     * @see https://bybit-exchange.github.io/docs/v5/account/account-info
+     * @param {string} [symbol] unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginMode(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const response = await this.privateGetV5AccountInfo(params);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "marginMode": "REGULAR_MARGIN",
+        //             "updatedTime": "1723481446000",
+        //             "unifiedMarginStatus": 5,
+        //             "dcpStatus": "OFF",
+        //             "timeWindow": 0,
+        //             "smpGroup": 0,
+        //             "isMasterTrader": false,
+        //             "spotHedgingStatus": "OFF"
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseMarginMode(result, market);
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        const marginType = this.safeString(marginMode, 'marginMode');
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol(undefined, market),
+            'marginMode': this.parseMarginModeType(marginType),
+        };
+    }
+    parseMarginModeType(marginMode) {
+        const marginModes = {
+            'ISOLATED_MARGIN': 'isolated',
+            'REGULAR_MARGIN': 'cross',
+            'PORTFOLIO_MARGIN': 'portfolio',
+        };
+        return this.safeString(marginModes, marginMode, marginMode);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;

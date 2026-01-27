@@ -154,7 +154,7 @@ class htx extends Exchange {
                 // ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'hostnames' => array(
-                    'contract' => 'api.hbdm.vn',
+                    'contract' => 'api.hbdm.vn', // alternatively use api.hbdm.com
                     'spot' => 'api.huobi.pro',
                     'status' => array(
                         'spot' => 'status.huobigroup.com',
@@ -628,6 +628,20 @@ class htx extends Exchange {
                             'linear-swap-api/v3/fix_position_margin_change_record' => 1,
                             'linear-swap-api/v3/swap_unified_account_type' => 1,
                             'linear-swap-api/v3/linear_swap_overview_account_info' => 1,
+                            'v5/account/balance' => 1,
+                            'v5/account/asset_mode' => 1,
+                            'v5/trade/position/opens' => 1,
+                            'v5/trade/order/opens' => 1,
+                            'v5/trade/order/details' => 1,
+                            'v5/trade/order/history' => 1,
+                            'v5/trade/order' => 1,
+                            'v5/position/lever' => 1,
+                            'v5/position/mode' => 1,
+                            'v5/position/risk/limit' => 1,
+                            'v5/position/risk/limit_tier' => 1,
+                            'v5/market/risk/limit' => 1,
+                            'v5/market/assets_deduction_currency' => 1,
+                            'v5/market/multi_assets_margin' => 1,
                         ),
                         'post' => array(
                             // Future Account Interface
@@ -856,6 +870,17 @@ class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_track_openorders' => 1,
                             'linear-swap-api/v1/swap_track_hisorders' => 1,
                             'linear-swap-api/v1/swap_cross_track_hisorders' => 1,
+                            'v5/account/asset_mode' => 1,
+                            'v5/trade/order' => 1,
+                            'v5/trade/batch_orders' => 1,
+                            'v5/trade/cancel_order' => 1,
+                            'v5/trade/cancel_batch_orders' => 1,
+                            'v5/trade/cancel_all_orders' => 1,
+                            'v5/trade/position' => 1,
+                            'v5/trade/position_all' => 1,
+                            'v5/position/lever' => 1,
+                            'v5/position/mode' => 1,
+                            'v5/account/fee_deduction_currency' => 1,
                         ),
                     ),
                 ),
@@ -8227,7 +8252,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $paginate = false;

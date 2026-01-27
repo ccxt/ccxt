@@ -85,6 +85,7 @@
 * [fetchConvertTrade](#fetchconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
+* [fetchMarginMode](#fetchmarginmode)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
 * [cancelOrderWs](#cancelorderws)
@@ -1182,7 +1183,7 @@ bybit.fetchWithdrawals (code[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -2058,6 +2059,27 @@ fetches the long short ratio history for a unified market symbol
 
 ```javascript
 bybit.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of the trading pair
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/account/account-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchMarginMode ([symbol, params])
 ```
 
 

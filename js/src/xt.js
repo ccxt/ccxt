@@ -1903,8 +1903,8 @@ export default class xt extends Exchange {
             'change': this.safeNumber(ticker, 'cv'),
             'percentage': this.parseNumber(percentage),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeNumber2(ticker, 'a', 'v'),
+            'baseVolume': this.safeNumber(ticker, 'a'),
+            'quoteVolume': this.safeNumber(ticker, 'v'),
             'info': ticker,
         }, market);
     }
@@ -4165,7 +4165,7 @@ export default class xt extends Exchange {
      * @param {float} amount amount of margin to add
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
@@ -4179,7 +4179,7 @@ export default class xt extends Exchange {
      * @param {float} amount the amount of margin to remove
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'SUB', params);
