@@ -2205,7 +2205,7 @@ export default class pacifica extends Exchange {
             market = this.market (symbol);
         }
         const defaultLimit = 100; // max default 100
-        if (paginate) {
+        if (paginate) { // Remove param -> request exact key, cause we extend them
             let allOrders = [];
             let hasMore = true;
             while (hasMore === true) {
@@ -3293,7 +3293,7 @@ export default class pacifica extends Exchange {
         const operationType = 'approve_builder_code';
         const sigPayload = {
             'builder_code': builderCode,
-            'max_fee_rate': maxFeeRate.toString (),
+            'max_fee_rate': maxFeeRate,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
