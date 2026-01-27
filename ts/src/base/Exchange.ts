@@ -7707,6 +7707,30 @@ export default class Exchange {
         }
     }
 
+    safeStringDeep (obj, key: Str): Str {
+        // this method supports getting dynamic deep member from dictionary, eg:
+        // `getStringMember (obj, 'a.b.c')` is equivalent to `obj['a']['b']['c']`
+        if (obj === undefined || key === undefined) {
+            return undefined;
+        }
+        if (key.indexOf ('.') < 0) {
+            return this.safeString (obj, key);
+        }
+        const keys = key.split ('.');
+        let result = obj;
+        const length = keys.length;
+        for (let i = 0; i < length; i++) {
+            const keyInner = keys[i];
+            const isLastKey = (i === length - 1);
+            if (!isLastKey) {
+                result = this.safeDict (result, keyInner);
+            } else {
+                return this.safeString (result, keyInner);
+            }
+        }
+        return undefined;
+    }
+
     parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined): any {
         /**
          * @ignore
@@ -7725,7 +7749,7 @@ export default class Exchange {
         for (let i = 0; i < responseKeys.length; i++) {
             const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
-            const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
+            const currencyId = isArray ? this.safeStringDeep (dictionary, currencyIdKey) : entry;
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
