@@ -1,0 +1,116 @@
+{
+    "BTC": {
+        "info": null,
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    },
+    "ETH": {
+        "info": null,
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    },
+    "XRP": {
+        "info": null,
+        "id": "XRP",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    },
+    "USDT": {
+        "info": null,
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    },
+    "AUD": {
+        "info": null,
+        "id": "AUD",
+        "numericId": null,
+        "code": "AUD",
+        "precision": 0.0001,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    },
+    "LTC": {
+        "info": null,
+        "id": "LTC",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    }
+}
