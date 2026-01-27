@@ -848,6 +848,7 @@ export default class poloniex extends Exchange {
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'quantityScale'))),
                 'price': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'priceScale'))),
+                'cost': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'amountScale'))),
             },
             'limits': {
                 'amount': {
