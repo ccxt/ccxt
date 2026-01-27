@@ -500,7 +500,6 @@ export default class pacifica extends Exchange {
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecisionStr = this.safeString (market, 'lot_size');
         const pricePrecisionStr = this.safeString (market, 'tick_size');
-        const active = true; // No info about it
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -517,7 +516,7 @@ export default class pacifica extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': active,
+            'active': undefined,
             'contract': contract,
             'linear': true,
             'inverse': false,
@@ -715,9 +714,10 @@ export default class pacifica extends Exchange {
         }
         const settingsBySymbol = {};
         for (let i = 0; i < settings.length; i++) {
-            const symbolExc = settings[i]['symbol'];
-            const symbolLocal = this.symbolExcToLocal (symbolExc);
-            settingsBySymbol[symbolLocal] = settings[i];
+            const marketId = settings[i]['symbol'];
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            settingsBySymbol[symbol] = settings[i];
         }
         return settingsBySymbol;
     }
@@ -895,8 +895,9 @@ export default class pacifica extends Exchange {
         //         "yesterday_price": "1.3412"
         //       }
         //
-        const symbolExc = this.safeString (info, 'symbol');
-        const symbolLocal = this.symbolExcToLocal (symbolExc);
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const funding = this.safeNumber (info, 'funding');
         const markPx = this.safeNumber (info, 'mark');
         const oraclePx = this.safeNumber (info, 'oracle');
@@ -905,7 +906,7 @@ export default class pacifica extends Exchange {
         const fundingTimestamp = (Math.floor (this.milliseconds () / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
         return {
             'info': info,
-            'symbol': symbolLocal,
+            'symbol': symbol,
             'markPrice': markPx,
             'indexPrice': oraclePx,
             'interestRate': undefined,
@@ -1713,13 +1714,11 @@ export default class pacifica extends Exchange {
         const sigPayload: Dict = { };
         const excludeReduceOnly = this.safeBool (params, 'excludeReduceOnly', false);
         sigPayload['exclude_reduce_only'] = excludeReduceOnly;
-        let symbolExc = undefined;
         if (symbol !== undefined) {
             this.loadMarkets ();
             const market = this.market (symbol);
-            symbolExc = this.safeString (market, 'id');
             sigPayload['all_symbols'] = false;
-            sigPayload['symbol'] = symbolExc;
+            sigPayload['symbol'] = market['id'];
         } else {
             sigPayload['all_symbols'] = true;
         }
@@ -1779,9 +1778,8 @@ export default class pacifica extends Exchange {
             operationType = 'cancel_order';
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const symbolExc = market['id'];
         const sigPayload: Dict = {
-            'symbol': symbolExc,
+            'symbol': market['id'],
         };
         if ((clientOrderId === undefined) && (id === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires either "id" or "clientOrderId"');
@@ -1850,11 +1848,10 @@ export default class pacifica extends Exchange {
         }
         const operationType = 'edit_order';
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const symbolExc = market['id'];
         const priceNormalized = this.priceToPrecision (symbol, price);
         const amountNormalized = this.amountToPrecision (symbol, amount);
         const sigPayload: Dict = {
-            'symbol': symbolExc,
+            'symbol': market['id'],
             'price': priceNormalized,
             'amount': amountNormalized,
         };
@@ -2056,11 +2053,12 @@ export default class pacifica extends Exchange {
         //       "yesterday_price": "1.3412"
         //     }
         //
-        const symbolExc = this.safeString (ticker, 'symbol');
-        const symbolLocal = this.symbolExcToLocal (symbolExc);
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
-            'symbol': symbolLocal,
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'previousClose': this.safeNumber (ticker, 'yesterday_price'),
@@ -2496,10 +2494,11 @@ export default class pacifica extends Exchange {
         //       "li": 1559696133
         //     }
         //
-        const symbolExc = this.safeString2 (order, 'symbol', 's');
-        let symbolLocal = undefined;
-        if (symbolExc !== undefined) {
-            symbolLocal = this.symbolExcToLocal (symbolExc);
+        const marketId = this.safeString2 (order, 'symbol', 's');
+        let symbol = undefined;
+        if (symbol !== undefined) {
+            market = this.safeMarket (marketId, market);
+            symbol = market['symbol'];
         }
         const timestamp = this.safeInteger2 (order, 'created_at', 'ct');
         const status = this.safeString2 (order, 'order_status', 'os');
@@ -2518,7 +2517,7 @@ export default class pacifica extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger2 (order, 'updated_at', 'ut'),
-            'symbol': symbolLocal,
+            'symbol': symbol,
             'type': this.parseOrderType (this.safeStringLower2 (order, 'order_type', 'ot')),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -2612,8 +2611,9 @@ export default class pacifica extends Exchange {
         //       "updated_at": 1759223365538
         //     }
         //
-        const symbolExc = this.safeString (position, 'symbol');
-        const symbolLocal = this.symbolExcToLocal (symbolExc);
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const margin = this.safeString (position, 'margin');
         const marginMode = (margin !== undefined && margin !== '0') ? 'isolated' : 'cross';
         const isIsolated = (marginMode === 'isolated');
@@ -2625,7 +2625,7 @@ export default class pacifica extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': symbolLocal,
+            'symbol': symbol,
             'timestamp': created_at,
             'datetime': this.iso8601 (created_at),
             'isolated': isIsolated,
@@ -2866,10 +2866,11 @@ export default class pacifica extends Exchange {
         //       "yesterday_price": "1.3412"
         //     }
         //
-        const symbolExc = this.safeString (interest, 'symbol');
-        let symbolLocal = undefined;
-        if (symbolExc !== undefined) {
-            symbolLocal = this.symbolExcToLocal (symbolExc);
+        const marketId = this.safeString (interest, 'symbol');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            market = this.safeMarket (marketId, market);
+            symbol = market['symbol'];
         }
         let interestValue = undefined;
         const markPrice = this.safeString (interest, 'mark');
@@ -2879,7 +2880,7 @@ export default class pacifica extends Exchange {
         }
         const timestamp = this.safeInteger (interest, 'timestamp');
         return this.safeOpenInterest ({
-            'symbol': this.safeSymbol (symbolLocal),
+            'symbol': this.safeSymbol (symbol),
             'openInterestAmount': this.parseNumber (openInterest),
             'openInterestValue': this.parseNumber (interestValue),
             'timestamp': timestamp,
@@ -3099,14 +3100,15 @@ export default class pacifica extends Exchange {
         //
         const id = this.safeString (income, 'history_id');
         const timestamp = this.safeInteger (income, 'created_at');
-        const symbolExc = this.safeString (income, 'symbol');
-        const symbolLocal = this.symbolExcToLocal (symbolExc);
+        const marketId = this.safeString (income, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const amount = this.safeString (income, 'amount');
         const code = this.safeCurrencyCode ('USDC');
         const rate = this.safeNumber (income, 'rate');
         return {
             'info': income,
-            'symbol': symbolLocal,
+            'symbol': symbol,
             'code': code,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3328,13 +3330,6 @@ export default class pacifica extends Exchange {
             return [ this.walletAddress, params ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires address');
-    }
-
-    symbolExcToLocal (symbolExc: Str) {
-        if (symbolExc === undefined) {
-            return undefined;
-        }
-        return this.safeCurrencyCode (symbolExc) + '/USDC:USDC';
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
