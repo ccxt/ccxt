@@ -258,6 +258,9 @@ export default class kraken extends Exchange {
             'options': {
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'fetchBalance': {
+                    'autocorrectAbbreviations': false,
+                },
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
@@ -1565,7 +1568,55 @@ export default class kraken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseBalanceNew (response): Balances {
+        const balances = this.safeValue (response, 'result', {});
+        const result: Dict = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const currencyIds = Object.keys (balances);
+        // see all details in fetchBalance comments
+        const earningSuffix = '.F';
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = this.safeDict (balances, currencyId, {});
+            const account = this.account ();
+            account['used'] = this.safeString (balance, 'hold_trade');
+            account['total'] = this.safeString (balance, 'balance');
+            account['info'] = balance;
+            account['info']['originalId'] = currencyId;
+            // now handle the key
+            let unifiedCode = undefined;
+            const endsWithF = currencyId.endsWith (earningSuffix);
+            if (endsWithF) {
+                // map e.g. XBT.F to XXBT
+                const sourceCurrencyId = currencyId.replace (earningSuffix, '');
+                unifiedCode = this.commonCurrencyCode (sourceCurrencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (unifiedCode in result) {
+                    const newId = unifiedCode + '_EARNING';
+                    result[newId] = result[unifiedCode];
+                }
+                result[unifiedCode] = account;
+            } else {
+                unifiedCode = this.commonCurrencyCode (currencyId);
+                // if key (eg. BTC) was already inserted, swap it
+                if (unifiedCode in result) {
+                    const newId = unifiedCode + '_EARNING';
+                    result[newId] = account;
+                } else {
+                    result[unifiedCode] = account;
+                }
+            }
+        }
+        return this.safeBalance (result);
+    }
+
     parseBalance (response): Balances {
+        if (this.handleOption ('fetchBalance', 'autocorrectAbbreviations', false)) {
+            return this.parseBalanceNew (response);
+        }
         const balances = this.safeValue (response, 'result', {});
         const result: Dict = {
             'info': response,
@@ -1607,9 +1658,31 @@ export default class kraken extends Exchange {
         //             "XXBT": {
         //                 "balance": 1.2435,
         //                 "hold_trade": 0.8423
-        //             }
+        //             },
+        //             "SOL": {
+        //                 "balance": "1.2340000000",
+        //                 "hold_trade": "0.0000000000"
+        //             },
         //         }
         //     }
+        //
+        // if "earning(rewards)" activated (see https://github.com/ccxt/ccxt/issues/24663), then some coins get .F suffix (such suffixed coins are not provided in fetchCurrencies response, unlike .M suffixed coins)
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //             "SOL": {
+        //                 "balance": "0.0000000000",
+        //                 "hold_trade": "0.0000000000"
+        //             },
+        //             "SOL.F": {
+        //                 "balance": "1.2340000000",
+        //                 "hold_trade": "0.0000000000"
+        //             },
+        //         }
+        //     }
+        //
+        // for more info, about prefix and suffix parts, see comments in "fetchCurrencies"
         //
         return this.parseBalance (response);
     }
