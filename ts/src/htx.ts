@@ -4500,6 +4500,7 @@ export default class htx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.algo] *spot only* if the orders are trigger orders or not
      * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
@@ -4541,7 +4542,13 @@ export default class htx extends Exchange {
                 request['size'] = limit;
             }
             params = this.omit (params, 'account-id');
-            response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, params));
+            let isAlgoOrder = false;
+            [ isAlgoOrder, params ] = this.handleParamBool (params, 'algo');
+            if (isAlgoOrder) {
+                response = await this.spotPrivateGetV2AlgoOrdersOpening (this.extend (request, params));
+            } else {
+                response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, params));
+            }
         } else {
             if (symbol !== undefined) {
                 // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -5176,6 +5183,9 @@ export default class htx extends Exchange {
         //         }
         //     ]
         //
+        if ('orderExecuteTime' in order) {
+            return this.parseSpotAlgoTriggerOrder (order, market);
+        }
         const rejectedCreateOrders = this.safeString2 (order, 'err_code', 'err-code');
         let status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         if (rejectedCreateOrders !== undefined) {
@@ -5249,6 +5259,63 @@ export default class htx extends Exchange {
             'reduceOnly': reduceOnly,
             'fee': fee,
             'trades': trades,
+        }, market);
+    }
+
+    parseSpotAlgoTriggerOrder (order, market = undefined) {
+        //
+        // spot: fetchOrders (trigger:true)
+        //
+        //    {
+        //        "orderFinishSize": "0",
+        //        "orderFinishAmount": "0",
+        //        "orderExecuteTime": "278110",
+        //        "orderOrigTime": "1733777488130",
+        //        "lastActTime": "1733777488286",
+        //        "symbol": "ethusdt",
+        //        "source": "web",
+        //        "clientOrderId": "algo_xr96q173377748812400001",
+        //        "orderSide": "buy",
+        //        "orderType": "limit",
+        //        "orderPrice": "3222",
+        //        "orderSize": "0.0032",
+        //        "timeInForce": "gtc",
+        //        "orderPriceType": "0",
+        //        "interval": "0",
+        //        "singleOrderType": "0",
+        //        "stopPrice": "3333",
+        //        "iceAmount": "0",
+        //        "accountId": "21752789",
+        //        "orderStatus": "created",
+        //        "isIce": false
+        //    }
+        //
+        const timestamp = this.safeInteger (order, 'orderOrigTime');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return this.safeOrder ({
+            'info': order,
+            'id': undefined,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': this.safeString (order, 'orderType'),
+            'timeInForce': this.safeStringUpper (order, 'timeInForce'),
+            'postOnly': undefined,
+            'side': this.safeString (order, 'orderSide'),
+            'price': this.safeNumber (order, 'orderPrice'),
+            'triggerPrice': this.safeNumber (order, 'stopPrice'),
+            'average': undefined,
+            'cost': undefined,
+            'amount': this.safeNumber (order, 'orderSize'),
+            'filled': undefined,
+            'remaining': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'orderStatus')),
+            'reduceOnly': undefined,
+            'fee': undefined,
+            'trades': undefined,
         }, market);
     }
 
@@ -5342,10 +5409,13 @@ export default class htx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice for a trigger order');
             }
         } else {
-            const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
-            const stopOperator = this.safeString (params, 'operator', defaultOperator);
+            let triggerDirection = undefined;
+            [ triggerDirection, params ] = this.handleParamString (params, 'triggerDirection');
+            if ((triggerDirection === undefined || !this.inArray (triggerDirection, [ 'ascending', 'descending' ])) && !('operator' in params)) {
+                throw new ArgumentsRequired (this.id + ' createOrder() : trigger order requires a "triggerDirection" parameter to be either "up" or "down"');
+            }
+            request['operator'] = (triggerDirection === 'ascending') ? 'gte' : 'lte';
             request['stop-price'] = this.priceToPrecision (symbol, triggerPrice);
-            request['operator'] = stopOperator;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
@@ -5544,6 +5614,7 @@ export default class htx extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price a trigger order is triggered at
+     * @param {float} [params.triggerDirection] the direction for trigger price, "ascending" or "descending" (see https://docs.ccxt.com/#/?id=trigger-direction)
      * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
      * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
      * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
