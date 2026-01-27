@@ -594,7 +594,7 @@ export default class pacifica extends Exchange {
         //   "error": null,
         //   "code": null
         // }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const result = {
             'info': data,
         };
@@ -3389,7 +3389,7 @@ export default class pacifica extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
-        const cost = this.safeValue (config, 'cost', 1);
+        const cost = this.safeNumber (config, 'cost', 1);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (cost > 1) {
             if (this.apiKey) {
