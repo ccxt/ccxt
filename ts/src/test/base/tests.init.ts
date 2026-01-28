@@ -24,6 +24,7 @@ import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
+import testKeysort from './test.keysort.js';
 
 async function baseTestsInit () {
     testLanguageSpecific ();
@@ -48,6 +49,7 @@ async function baseTestsInit () {
     testParsePrecision ();
     testArraysConcat ();
     testEthMethods ();
+    testKeysort ();
     await testSleep ();
 }
 
