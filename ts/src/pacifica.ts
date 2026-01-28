@@ -1473,7 +1473,7 @@ export default class pacifica extends Exchange {
     /**
      * @method
      * @name pacifica#createOrders
-     * @description create a list of trade orders. It is supports only limit orders!
+     * @description create a list of trade orders. It is supports only limit orders and have a random jitter ~100-300ms!
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type (optional or 'limit'), side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1525,7 +1525,7 @@ export default class pacifica extends Exchange {
      * @name pacifica#cancelOrders
      * @description cancel multiple orders
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
-     * @param {string[]} ids order ids
+     * @param {string[]} ids order ids. An ids list is always required (can be empty). Both ids and clientOrderIds can be passed simultaneously.
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|string[]} [params.clientOrderIds] client order ids, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
@@ -1580,9 +1580,6 @@ export default class pacifica extends Exchange {
     }
 
     cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}) {
-        if (ids !== undefined) {
-            ids = [];
-        }
         const isStopOrder = this.safeBool (params, 'isStopOrder', false);
         if (isStopOrder) {
             throw new NotSupported (this.id + ' cancelOrders() do not support param "isStopOrder" (will be false only) !');
@@ -1752,9 +1749,6 @@ export default class pacifica extends Exchange {
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, market, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
@@ -1783,7 +1777,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount!');
         }
         if (price === undefined) {
-            throw new NotSupported (this.id + ' editOrder() requires a price');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price');
         }
         const operationType = 'edit_order';
         const clientOrderId = this.safeString (params, 'clientOrderId');
