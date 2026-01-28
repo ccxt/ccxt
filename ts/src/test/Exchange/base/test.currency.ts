@@ -1,3 +1,4 @@
+import assert from 'assert';
 import { Currency, Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
@@ -52,7 +53,19 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
         return;
     }
     //
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    try {
+        testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    } catch (e) {
+        const message = exchange.exceptionMessage (e);
+        // check structure if key is numeric, not string
+        if (message.indexOf ('"id" key') >= 0) {
+            // @ts-ignore
+            format['id'] = 123;
+            testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        } else {
+            assert (message === '', message);
+        }
+    }
     //
     testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'fee', '0');

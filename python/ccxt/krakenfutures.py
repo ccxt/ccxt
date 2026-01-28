@@ -2803,7 +2803,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             postData = 'json=' + self.json(params)
             body = postData
         elif params:
-            postData = self.urlencode(params)
+            if 'orderIds' in params:
+                postData = self.urlencode_with_array_repeat(params)
+            else:
+                postData = self.urlencode(params)
             query += '?' + postData
         url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':

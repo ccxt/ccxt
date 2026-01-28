@@ -513,8 +513,9 @@ func  (this *LbankCore) WatchTrades(symbol interface{}, optionalArgs ...interfac
         
             trades:= (<-this.Watch(url, messageHash, request, messageHash, request))
             ccxt.PanicOnError(trades)
+            var result interface{} = this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
         
-            ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+            ch <- this.SortBy(result, "timestamp")  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
             return nil
         
             }()
@@ -639,8 +640,8 @@ func  (this *LbankCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes5338 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5338)
+            retRes5348 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes5348)
         
             key:= (<-this.Authenticate(params))
             ccxt.PanicOnError(key)
@@ -818,8 +819,8 @@ func  (this *LbankCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6978 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6978)
+            retRes6988 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6988)
         
             key:= (<-this.Authenticate(params))
             ccxt.PanicOnError(key)
@@ -832,9 +833,9 @@ func  (this *LbankCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
             }
             var request interface{} = this.DeepExtend(message, params)
         
-                retRes70715 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
-                ccxt.PanicOnError(retRes70715)
-                ch <- retRes70715
+                retRes70815 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
+                ccxt.PanicOnError(retRes70815)
+                ch <- retRes70815
                 return nil
         
             }()
@@ -892,8 +893,8 @@ func  (this *LbankCore) FetchOrderBookWs(symbol interface{}, optionalArgs ...int
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7548 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7548)
+            retRes7558 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7558)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = ccxt.Add("fetchOrderbook:", ccxt.GetValue(market, "symbol"))
@@ -937,8 +938,8 @@ func  (this *LbankCore) WatchOrderBook(symbol interface{}, optionalArgs ...inter
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7838 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7838)
+            retRes7848 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7848)
             var market interface{} = this.Market(symbol)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var messageHash interface{} = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
@@ -1076,11 +1077,11 @@ func  (this *LbankCore) HandlePing(client interface{}, message interface{}) <- c
                         }()
             		    // try block:
                         
-                    retRes89712 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+                    retRes89812 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
                         "action": "pong",
                         "pong": pingId,
                     }))
-                    ccxt.PanicOnError(retRes89712)
+                    ccxt.PanicOnError(retRes89812)
             		    return nil
             	    }(this)
                 

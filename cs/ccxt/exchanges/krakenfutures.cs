@@ -3122,7 +3122,13 @@ public partial class krakenfutures : Exchange
             body = postData;
         } else if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
         {
-            postData = this.urlencode(parameters);
+            if (isTrue(inOp(parameters, "orderIds")))
+            {
+                postData = this.urlencodeWithArrayRepeat(parameters);
+            } else
+            {
+                postData = this.urlencode(parameters);
+            }
             query = add(query, add("?", postData));
         }
         object url = add(getValue(getValue(this.urls, "api"), api), query);

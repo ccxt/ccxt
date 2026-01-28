@@ -2566,6 +2566,10 @@ class binance(ccxt.async_support.binance):
                 market = self.market(symbols[0])
                 payload['symbol'] = market['id']
         type = self.get_market_type('fetchPositionsWs', market, params)
+        if symbols is None and (type == 'spot'):
+            # when symbols aren't provide
+            # we shouldn't rely on the defaultType
+            type = 'future'
         if type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchPositionsWs only supports swap markets')
         url = self.urls['api']['ws']['ws-api'][type]

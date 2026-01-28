@@ -772,6 +772,9 @@ class Exchange {
             throw e;
         }
     }
+    jsonStringifyWithNull(obj) {
+        return JSON.stringify(obj, (_, v) => (v === undefined ? null : v));
+    }
     parseJson(jsonString) {
         try {
             if (this.isJsonEncodedObject(jsonString)) {
