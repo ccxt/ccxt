@@ -3833,7 +3833,7 @@ export default class Exchange {
     }
 
     safeBalance (balance: Dict): Balances {
-        const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
+        const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ]);
         const codes = Object.keys (balances);
         balance['free'] = {};
         balance['used'] = {};

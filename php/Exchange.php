@@ -4331,7 +4331,7 @@ class Exchange {
     }
 
     public function safe_balance(array $balance) {
-        $balances = $this->omit($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
+        $balances = $this->omit($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ));
         $codes = is_array($balances) ? array_keys($balances) : array();
         $balance['free'] = array();
         $balance['used'] = array();
