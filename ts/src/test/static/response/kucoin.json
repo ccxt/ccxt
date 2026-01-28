@@ -3,6 +3,103 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history by futures endpoint",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1769328000000,
+                    1,
+                    {
+                        "uta": false
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.000014,
+                            "timepoint": 1769414400000
+                        },
+                        {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.00005,
+                            "timepoint": 1769385600000
+                        },
+                        {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.000136,
+                            "timepoint": 1769356800000
+                        },
+                        {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.000082,
+                            "timepoint": 1769328000000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "fundingRate": 0.000082,
+                            "timepoint": 1769328000000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000082,
+                        "timestamp": 1769328000000,
+                        "datetime": "2026-01-25T08:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "fetch funding rate history by uta endpoint",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1769328000000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": "XBTUSDTM",
+                        "list": [
+                            {
+                                "fundingRate": 0.000014,
+                                "ts": 1769414400000
+                            },
+                            {
+                                "fundingRate": 0.00005,
+                                "ts": 1769385600000
+                            },
+                            {
+                                "fundingRate": 0.000136,
+                                "ts": 1769356800000
+                            },
+                            {
+                                "fundingRate": 0.000082,
+                                "ts": 1769328000000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fundingRate": 0.000082,
+                            "ts": 1769328000000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000082,
+                        "timestamp": 1769328000000,
+                        "datetime": "2026-01-25T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetch transfers",
@@ -389,6 +486,49 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv for swap market",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1769402280000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        [
+                            1769402280000,
+                            87842.5,
+                            87897.4,
+                            87842.5,
+                            87897.4,
+                            475,
+                            41736.3593
+                        ],
+                        [
+                            1769402340000,
+                            87897.3,
+                            87897.3,
+                            87863.7,
+                            87863.7,
+                            380,
+                            33394.8441
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1769402280000,
+                        87842.5,
+                        87897.4,
+                        87842.5,
+                        87897.4,
+                        475
+                    ]
+                ]
+            },
             {
                 "description": "spot ohlcv with since and limit",
                 "method": "fetchOHLCV",
@@ -806,6 +946,65 @@
             }
         ],
         "fetchTicker": [
+            {
+                "description": "fetch ticker for swap",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "sequence": 1733332266106,
+                        "symbol": "XBTUSDTM",
+                        "side": "buy",
+                        "size": 4,
+                        "tradeId": "1909834028316",
+                        "price": "87795",
+                        "bestBidPrice": "87794.9",
+                        "bestBidSize": 261,
+                        "bestAskPrice": "87795",
+                        "bestAskSize": 854,
+                        "ts": 1769406175763000000
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1769406175763,
+                    "datetime": "2026-01-26T05:42:55.763Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 87794.9,
+                    "bidVolume": 261,
+                    "ask": 87795,
+                    "askVolume": 854,
+                    "vwap": null,
+                    "open": null,
+                    "close": 87795,
+                    "last": 87795,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "sequence": 1733332266106,
+                        "symbol": "XBTUSDTM",
+                        "side": "buy",
+                        "size": 4,
+                        "tradeId": "1909834028316",
+                        "price": "87795",
+                        "bestBidPrice": "87794.9",
+                        "bestBidSize": 261,
+                        "bestAskPrice": "87795",
+                        "bestAskSize": 854,
+                        "ts": 1769406175763000000
+                    }
+                }
+            },
             {
                 "description": "fetch ticker",
                 "method": "fetchTicker",
@@ -1276,6 +1475,355 @@
             }
         ],
         "fetchOrderBook": [
+            {
+                "description": "fetch order book for swap",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "sequence": 1733337002060,
+                        "symbol": "XBTUSDTM",
+                        "bids": [
+                            [
+                                87970.5,
+                                34
+                            ],
+                            [
+                                87970.4,
+                                12
+                            ],
+                            [
+                                87968.4,
+                                10
+                            ],
+                            [
+                                87968.3,
+                                3
+                            ],
+                            [
+                                87963.5,
+                                11
+                            ],
+                            [
+                                87963.2,
+                                118
+                            ],
+                            [
+                                87962.3,
+                                3
+                            ],
+                            [
+                                87961.7,
+                                131
+                            ],
+                            [
+                                87961.6,
+                                3
+                            ],
+                            [
+                                87961.5,
+                                98
+                            ],
+                            [
+                                87960,
+                                3
+                            ],
+                            [
+                                87959.8,
+                                3
+                            ],
+                            [
+                                87959.7,
+                                10
+                            ],
+                            [
+                                87959.5,
+                                2
+                            ],
+                            [
+                                87959.4,
+                                2
+                            ],
+                            [
+                                87957.7,
+                                112
+                            ],
+                            [
+                                87957.6,
+                                22
+                            ],
+                            [
+                                87956.8,
+                                5
+                            ],
+                            [
+                                87956.5,
+                                65
+                            ],
+                            [
+                                87956,
+                                5
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                87970.6,
+                                794
+                            ],
+                            [
+                                87970.7,
+                                1
+                            ],
+                            [
+                                87972.6,
+                                1
+                            ],
+                            [
+                                87972.7,
+                                4
+                            ],
+                            [
+                                87972.9,
+                                4
+                            ],
+                            [
+                                87974.5,
+                                79
+                            ],
+                            [
+                                87974.7,
+                                114
+                            ],
+                            [
+                                87974.8,
+                                77
+                            ],
+                            [
+                                87975,
+                                46
+                            ],
+                            [
+                                87975.4,
+                                2
+                            ],
+                            [
+                                87976.5,
+                                8
+                            ],
+                            [
+                                87977.8,
+                                41
+                            ],
+                            [
+                                87978.2,
+                                55
+                            ],
+                            [
+                                87978.3,
+                                114
+                            ],
+                            [
+                                87978.4,
+                                74
+                            ],
+                            [
+                                87978.5,
+                                3
+                            ],
+                            [
+                                87978.6,
+                                596
+                            ],
+                            [
+                                87979.2,
+                                64
+                            ],
+                            [
+                                87979.3,
+                                5
+                            ],
+                            [
+                                87979.4,
+                                227
+                            ]
+                        ],
+                        "ts": 1769412227424000000
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "bids": [
+                        [
+                            87970.5,
+                            34
+                        ],
+                        [
+                            87970.4,
+                            12
+                        ],
+                        [
+                            87968.4,
+                            10
+                        ],
+                        [
+                            87968.3,
+                            3
+                        ],
+                        [
+                            87963.5,
+                            11
+                        ],
+                        [
+                            87963.2,
+                            118
+                        ],
+                        [
+                            87962.3,
+                            3
+                        ],
+                        [
+                            87961.7,
+                            131
+                        ],
+                        [
+                            87961.6,
+                            3
+                        ],
+                        [
+                            87961.5,
+                            98
+                        ],
+                        [
+                            87960,
+                            3
+                        ],
+                        [
+                            87959.8,
+                            3
+                        ],
+                        [
+                            87959.7,
+                            10
+                        ],
+                        [
+                            87959.5,
+                            2
+                        ],
+                        [
+                            87959.4,
+                            2
+                        ],
+                        [
+                            87957.7,
+                            112
+                        ],
+                        [
+                            87957.6,
+                            22
+                        ],
+                        [
+                            87956.8,
+                            5
+                        ],
+                        [
+                            87956.5,
+                            65
+                        ],
+                        [
+                            87956,
+                            5
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            87970.6,
+                            794
+                        ],
+                        [
+                            87970.7,
+                            1
+                        ],
+                        [
+                            87972.6,
+                            1
+                        ],
+                        [
+                            87972.7,
+                            4
+                        ],
+                        [
+                            87972.9,
+                            4
+                        ],
+                        [
+                            87974.5,
+                            79
+                        ],
+                        [
+                            87974.7,
+                            114
+                        ],
+                        [
+                            87974.8,
+                            77
+                        ],
+                        [
+                            87975,
+                            46
+                        ],
+                        [
+                            87975.4,
+                            2
+                        ],
+                        [
+                            87976.5,
+                            8
+                        ],
+                        [
+                            87977.8,
+                            41
+                        ],
+                        [
+                            87978.2,
+                            55
+                        ],
+                        [
+                            87978.3,
+                            114
+                        ],
+                        [
+                            87978.4,
+                            74
+                        ],
+                        [
+                            87978.5,
+                            3
+                        ],
+                        [
+                            87978.6,
+                            596
+                        ],
+                        [
+                            87979.2,
+                            64
+                        ],
+                        [
+                            87979.3,
+                            5
+                        ],
+                        [
+                            87979.4,
+                            227
+                        ]
+                    ],
+                    "timestamp": 1769412227424,
+                    "datetime": "2026-01-26T07:23:47.424Z",
+                    "nonce": 1733337002060
+                }
+            },
             {
                 "description": "fetch orderbook",
                 "method": "fetchOrderBook",
