@@ -1003,7 +1003,7 @@ class Exchange(object):
         return {}
 
     @staticmethod
-    def deep_extend_new(*args, _all_dicts=False):
+    def deep_extend(*args, _all_dicts=False):
         # extra argument is just for internal use, no need to use that in implementations
         result = None
         result_is_dict = False
