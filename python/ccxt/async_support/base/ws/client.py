@@ -51,6 +51,7 @@ class Client(object):
     asyncio_loop: BaseEventLoop = None
     ping_looper = None
     decompressBinary = True  # decompress binary messages by default
+    binaryMessageDecoder = None  # custom decoder for binary messages (e.g., SBE)
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config={}):
         defaults = {
@@ -254,7 +255,24 @@ class Client(object):
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
             data = message.data
-            if self.gunzip:
+            if self.binaryMessageDecoder:
+                # Custom binary message decoder (e.g., for SBE)
+                # Convert to bytes if needed
+                if isinstance(data, bytearray):
+                    data = bytes(data)
+                try:
+                    decoded = self.binaryMessageDecoder(data)
+                    if self.verbose:
+                        self.log(iso8601(milliseconds()), 'onMessage decoded binary', decoded)
+                    self.on_message_callback(self, decoded)
+                    return
+                except Exception as e:
+                    if self.verbose:
+                        self.log(iso8601(milliseconds()), 'binaryMessageDecoder error', e)
+                    # If binary decoding fails, fall back to normal handling
+                    if self.decompressBinary:
+                        data = data.decode('utf-8', errors='ignore')
+            elif self.gunzip:
                 data = gunzip(data)
             elif self.inflate:
                 data = inflate(data)

@@ -33,7 +33,7 @@
     "moduleResolution": "Node",                       /* Specify how TypeScript looks up a file from a given module specifier. */
     // "baseUrl": "./ts",                                  /* Specify the base directory to resolve non-relative module names. */
     // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
-    // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    "rootDirs": ["./ts", "./sbe"],                      /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like `./node_modules/@types`. */
     // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
@@ -51,7 +51,7 @@
     // "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
     // "outFile": "./",                                  /* Specify a file that bundles all outputs into one JavaScript file. If `declaration` is true, also designates a file that bundles all .d.ts output. */
     "outDir": "./js",                                   /* Specify an output folder for all emitted files. */
-    "rootDir": "./ts",  // Add this line to specify the root directory
+    // "rootDir": "./ts",  // Commented out to use rootDirs instead
     "removeComments": false,                           /* Disable emitting comments. */
     // "noEmit": true,                                   /* Disable emitting files from a compilation. */
     // "importHelpers": true,                            /* Allow importing helper functions from tslib once per project, instead of including them per-file. */
@@ -104,10 +104,12 @@
     "strictNullChecks":false
   },
   "include": [
-    "ts/**/*"
+    "ts/**/*",
+    "sbe/**/*"
   ],
   "exclude": [
     "node_modules",
-    "./ts/src/static_dependencies/**/*.cjs"
+    "./ts/src/static_dependencies/**/*.cjs",
+    "sbe/**/index.ts"
   ]
 }

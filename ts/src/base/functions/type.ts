@@ -31,7 +31,7 @@ const prop2 = (o: any, k1: IndexType, k2: IndexType) => (
 const getValueFromKeysInArray = (object: Dictionary<any>, array: any[]) => isObject (object) ? object[array.find ((k: IndexType) => prop (object, k) !== undefined)] : undefined;
 /*  .............................................   */
 const asFloat = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN);
-const asInteger = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
+const asInteger = (x: any): number | typeof NaN => ((isNumber (x) || typeof x === 'bigint' || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
 /*  .............................................   */
 
 const safeFloat = (o: implicitReturnType, k: IndexType, $default?: number): Num => {

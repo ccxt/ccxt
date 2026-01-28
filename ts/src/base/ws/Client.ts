@@ -72,6 +72,8 @@ export default class Client {
 
     decompressBinary = true
 
+    binaryMessageDecoder: any
+
     constructor (url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config = {}) {
         const defaults = {
             url,
@@ -102,6 +104,7 @@ export default class Client {
             startedConnecting: false,
             gunzip: false,
             inflate: false,
+            binaryMessageDecoder: undefined, // custom decoder for binary messages (e.g., SBE)
         }
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
@@ -357,6 +360,28 @@ export default class Client {
                     arrayBuffer = inflateSync (arrayBuffer)
                 }
                 message = utf8.encode (arrayBuffer)
+            } else if (this.binaryMessageDecoder) {
+                // Custom binary message decoder (e.g., for SBE)
+                // Convert to ArrayBuffer if needed
+                if (message.buffer) {
+                    arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
+                } else {
+                    arrayBuffer = new Uint8Array (message)
+                }
+                try {
+                    message = this.binaryMessageDecoder (arrayBuffer.buffer)
+                    if (this.verbose) {
+                        this.log (new Date (), 'onMessage decoded binary', message)
+                    }
+                } catch (e) {
+                    if (this.verbose) {
+                        this.log (new Date (), 'binaryMessageDecoder error', e)
+                    }
+                    // If binary decoding fails, fall back to normal handling
+                    if (this.decompressBinary) {
+                        message = message.toString ()
+                    }
+                }
             } else {
                 if (this.decompressBinary) {
                     message = message.toString ()

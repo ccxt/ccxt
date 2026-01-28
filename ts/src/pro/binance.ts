@@ -10,6 +10,7 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
+import { WebSocketResponseDecoder } from '../../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketResponse.js';
 import Client from '../base/ws/Client.js';
 
 // -----------------------------------------------------------------------------
@@ -203,6 +204,66 @@ export default class binance extends binanceRest {
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
         return newValue;
+    }
+
+    /**
+     * Appends SBE parameters to WebSocket API URL if SBE is enabled
+     * @param {string} url - The base WebSocket URL
+     * @returns {string} The URL with SBE parameters appended if enabled
+     */
+    getSbeWebSocketUrl (url: string): string {
+        const useSbe = this.safeBool (this.options, 'useSbe', false);
+        if (useSbe) {
+            const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
+            const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
+            // Add SBE parameters to the WebSocket URL
+            const separator = url.indexOf ('?') >= 0 ? '&' : '?';
+            return url + separator + 'responseFormat=sbe&sbeSchemaId=' + sbeSchemaId.toString () + '&sbeSchemaVersion=' + sbeSchemaVersion.toString ();
+        }
+        return url;
+    }
+
+    /**
+     * Decodes SBE-encoded WebSocket messages
+     * @param {ArrayBuffer} buffer - The binary SBE message
+     * @returns {object} Decoded message as JSON-compatible object
+     */
+    decodeSbeWebSocketMessage (buffer: ArrayBuffer): any {
+        try {
+            // Use new generated WebSocketResponseDecoder
+            const decoder = new WebSocketResponseDecoder ();
+            const decoded = decoder.decode (buffer, 0);
+            if (this.verbose) {
+                this.log ('decodeSbeWebSocketMessage: decoded WebSocketResponse, status:', decoded.status);
+            }
+            // The WebSocketResponse envelope contains: id, status, rateLimits, result
+            // The result field is of type messageData (Uint8Array) and contains another nested SBE message
+            // Decode nested result based on message template ID from the nested message header
+            let decodedResult: any = decoded.result;
+            if (decoded.result && decoded.result.byteLength > 0) {
+                // Result is binary data that needs to be decoded based on template ID
+                decodedResult = this.decodeSbeNestedMessage (decoded.result);
+                if (this.verbose) {
+                    const resultType = (decodedResult && decodedResult.constructor) ? decodedResult.constructor.name : 'unknown';
+                    this.log ('decodeSbeWebSocketMessage: decoded nested result type:', resultType);
+                }
+            }
+            // Convert Uint8Array ID to string
+            const idString = this.decode (decoded.id);
+            // Clean up the decoded structure to match expected JSON format
+            const cleanMessage: any = {
+                'id': idString,
+                'status': decoded.status,
+                'result': decodedResult,
+                'rateLimits': decoded.rateLimits,
+            };
+            return cleanMessage;
+        } catch (e) {
+            if (this.verbose) {
+                this.log ('decodeSbeWebSocketMessage error:', e);
+            }
+            throw e;
+        }
     }
 
     isSpotUrl (client: Client) {
@@ -813,7 +874,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'future') {
             throw new BadRequest (this.id + ' fetchOrderBookWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -835,6 +897,7 @@ export default class binance extends binanceRest {
 
     handleFetchOrderBook (client: Client, message) {
         //
+        // JSON format:
         //    {
         //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
         //        "status":200,
@@ -857,8 +920,61 @@ export default class binance extends binanceRest {
         //        }
         //    }
         //
+        // SBE format (DepthResponse):
+        //    {
+        //        "id":"...",
+        //        "status":200,
+        //        "result":{
+        //            "lastUpdateId":1027024,
+        //            "priceExponent": -8,
+        //            "qtyExponent": -8,
+        //            "bids":[
+        //                {
+        //                    "price": 400000000,    // mantissa
+        //                    "qty": 43100000000     // mantissa
+        //                }
+        //            ],
+        //            "asks":[
+        //                {
+        //                    "price": 400000200,
+        //                    "qty": 1200000000
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result');
+        let result = this.safeDict (message, 'result');
+        // Check if SBE format (has exponent fields)
+        const priceExponent = this.safeInteger (result, 'priceExponent');
+        if (priceExponent !== undefined) {
+            // SBE format - normalize to JSON format
+            const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
+            const normalized: any = {
+                'lastUpdateId': this.safeInteger (result, 'lastUpdateId'),
+                'E': this.safeInteger (result, 'E'),
+                'T': this.safeInteger (result, 'T'),
+                'bids': [],
+                'asks': [],
+            };
+            // Convert bids
+            const bidsArray = this.safeList (result, 'bids', []);
+            for (let i = 0; i < bidsArray.length; i++) {
+                const bid = bidsArray[i];
+                const price = this.applyExponent (this.safeInteger (bid, 'price', 0), priceExponent);
+                const qty = this.applyExponent (this.safeInteger (bid, 'qty', 0), qtyExponent);
+                normalized['bids'].push ([ String (price), String (qty) ]);
+            }
+            // Convert asks
+            const asksArray = this.safeList (result, 'asks', []);
+            for (let i = 0; i < asksArray.length; i++) {
+                const ask = asksArray[i];
+                const price = this.applyExponent (this.safeInteger (ask, 'price', 0), priceExponent);
+                const qty = this.applyExponent (this.safeInteger (ask, 'qty', 0), qtyExponent);
+                normalized['asks'].push ([ String (price), String (qty) ]);
+            }
+            result = normalized;
+        }
         const timestamp = this.safeInteger (result, 'T');
         const orderbook = this.parseOrderBook (result, undefined, timestamp);
         orderbook['nonce'] = this.safeInteger2 (result, 'lastUpdateId', 'u');
@@ -1708,7 +1824,8 @@ export default class binance extends binanceRest {
         if (type !== 'future') {
             throw new BadRequest (this.id + ' fetchTickerWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const subscription: Dict = {
@@ -1752,7 +1869,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future') {
             throw new BadRequest (this.id + ' fetchOHLCVWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -1786,6 +1904,7 @@ export default class binance extends binanceRest {
 
     handleFetchOHLCV (client: Client, message) {
         //
+        // JSON format:
         //    {
         //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
         //        "status": 200,
@@ -1805,21 +1924,88 @@ export default class binance extends binanceRest {
         //                "0"                 // Unused field, ignore
         //            ]
         //        ],
-        //        "rateLimits": [
-        //            {
-        //                "rateLimitType": "REQUEST_WEIGHT",
-        //                "interval": "MINUTE",
-        //                "intervalNum": 1,
-        //                "limit": 6000,
-        //                "count": 2
-        //            }
-        //        ]
+        //        "rateLimits": [...]
         //    }
         //
-        const result = this.safeList (message, 'result');
-        const parsed = this.parseOHLCVs (result);
-        // use a reverse lookup in a static map instead
+        // SBE format (decoded):
+        //    {
+        //        "id": "...",
+        //        "status": 200,
+        //        "result": {
+        //            "priceExponent": -8,
+        //            "qtyExponent": -8,
+        //            "klines": [
+        //                {
+        //                    "openTime": 1655971200000000,    // microseconds
+        //                    "openPrice": 1086000,            // mantissa
+        //                    "highPrice": 1086600,
+        //                    "lowPrice": 1083600,
+        //                    "closePrice": 1083800,
+        //                    "volume": [...],                 // mantissa128 as byte array
+        //                    "closeTime": 1655974799999000,
+        //                    "quoteVolume": [...],
+        //                    "numTrades": 2283,
+        //                    "takerBuyBaseVolume": [...],
+        //                    "takerBuyQuoteVolume": [...]
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
+        const result = this.safeValue (message, 'result');
+        let parsed = [];
+        // Check if result is already decoded (SBE format) or needs parsing (JSON format)
+        if (result !== undefined) {
+            if (Array.isArray (result)) {
+                // JSON format - result is directly the array of klines (array of arrays)
+                parsed = this.parseOHLCVs (result);
+            } else if (typeof result === 'object') {
+                // SBE format - result is an object with klines array and exponents
+                const klinesArray = this.safeList (result, 'klines', []);
+                if (klinesArray.length > 0) {
+                    // Get exponents for converting mantissa values
+                    const priceExponent = this.safeInteger (result, 'priceExponent', 0);
+                    const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
+                    // Convert mantissa values to standard OHLCV format
+                    const normalizedKlines = [];
+                    for (let i = 0; i < klinesArray.length; i++) {
+                        const kline = klinesArray[i];
+                        // Convert mantissa128 byte arrays to numbers
+                        const volume = this.mantissa128ToNumber (kline.volume);
+                        const openTime = Math.floor (kline.openTime / 1000); // microseconds to milliseconds
+                        const openPrice = this.applyExponent (kline.openPrice, priceExponent);
+                        const highPrice = this.applyExponent (kline.highPrice, priceExponent);
+                        const lowPrice = this.applyExponent (kline.lowPrice, priceExponent);
+                        const closePrice = this.applyExponent (kline.closePrice, priceExponent);
+                        const vol = this.applyExponent (volume, qtyExponent);
+                        const closeTime = Math.floor (kline.closeTime / 1000);
+                        const quoteVolume = this.mantissa128ToNumber (kline.quoteVolume);
+                        const quoteVol = this.applyExponent (quoteVolume, priceExponent);
+                        const numTrades = kline.numTrades;
+                        const takerBuyBaseVolume = this.mantissa128ToNumber (kline.takerBuyBaseVolume);
+                        const takerBuyBase = this.applyExponent (takerBuyBaseVolume, qtyExponent);
+                        const takerBuyQuoteVolume = this.mantissa128ToNumber (kline.takerBuyQuoteVolume);
+                        const takerBuyQuote = this.applyExponent (takerBuyQuoteVolume, priceExponent);
+                        normalizedKlines.push ([
+                            openTime,
+                            String (openPrice),
+                            String (highPrice),
+                            String (lowPrice),
+                            String (closePrice),
+                            String (vol),
+                            closeTime,
+                            String (quoteVol),
+                            numTrades,
+                            String (takerBuyBase),
+                            String (takerBuyQuote),
+                            '0',
+                        ]);
+                    }
+                    parsed = this.parseOHLCVs (normalizedKlines);
+                }
+            }
+        }
         client.resolve (parsed, messageHash);
     }
 
@@ -2234,7 +2420,7 @@ export default class binance extends binanceRest {
 
     handleTickerWs (client: Client, message) {
         //
-        // ticker.price
+        // JSON format - ticker.price
         //    {
         //        "id":"1",
         //        "status":200,
@@ -2244,7 +2430,7 @@ export default class binance extends binanceRest {
         //            "time":1712527052374
         //        }
         //    }
-        // ticker.book
+        // JSON format - ticker.book
         //    {
         //        "id":"9d32157c-a556-4d27-9866-66760a174b57",
         //        "status":200,
@@ -2259,8 +2445,70 @@ export default class binance extends binanceRest {
         //        }
         //    }
         //
+        // SBE format - PriceTickerSymbolResponse
+        //    {
+        //        "id":"1",
+        //        "status":200,
+        //        "result":{
+        //            "priceExponent": -8,
+        //            "price": 7317850000000,  // mantissa
+        //            "symbol":"BTCUSDT"
+        //        }
+        //    }
+        // SBE format - BookTickerSymbolResponse
+        //    {
+        //        "id":"...",
+        //        "status":200,
+        //        "result":{
+        //            "priceExponent": -8,
+        //            "qtyExponent": -8,
+        //            "bidPrice": 400000000,    // mantissa
+        //            "bidQty": 43100000000,
+        //            "askPrice": 400000200,
+        //            "askQty": 900000000,
+        //            "symbol":"BTCUSDT"
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeValue (message, 'result', {});
+        let result = this.safeValue (message, 'result', {});
+        // Check if SBE format (has exponent fields)
+        const priceExponent = this.safeInteger (result, 'priceExponent');
+        if (priceExponent !== undefined) {
+            // SBE format - normalize to JSON format
+            const qtyExponent = this.safeInteger (result, 'qtyExponent', 0);
+            const normalized: any = {
+                'symbol': this.safeString (result, 'symbol'),
+            };
+            // Handle price field (for ticker.price)
+            const priceMantissa = this.safeInteger (result, 'price');
+            if (priceMantissa !== undefined) {
+                normalized['price'] = String (this.applyExponent (priceMantissa, priceExponent));
+            }
+            // Handle bid/ask fields (for ticker.book)
+            const bidPriceMantissa = this.safeInteger (result, 'bidPrice');
+            if (bidPriceMantissa !== undefined) {
+                normalized['bidPrice'] = String (this.applyExponent (bidPriceMantissa, priceExponent));
+            }
+            const bidQtyMantissa = this.safeInteger (result, 'bidQty');
+            if (bidQtyMantissa !== undefined) {
+                normalized['bidQty'] = String (this.applyExponent (bidQtyMantissa, qtyExponent));
+            }
+            const askPriceMantissa = this.safeInteger (result, 'askPrice');
+            if (askPriceMantissa !== undefined) {
+                normalized['askPrice'] = String (this.applyExponent (askPriceMantissa, priceExponent));
+            }
+            const askQtyMantissa = this.safeInteger (result, 'askQty');
+            if (askQtyMantissa !== undefined) {
+                normalized['askQty'] = String (this.applyExponent (askQtyMantissa, qtyExponent));
+            }
+            // Copy other fields
+            const lastUpdateId = this.safeInteger (result, 'lastUpdateId');
+            if (lastUpdateId !== undefined) {
+                normalized['lastUpdateId'] = lastUpdateId;
+            }
+            result = normalized;
+        }
         const ticker = this.parseWsTicker (result, 'future');
         client.resolve (ticker, messageHash);
     }
@@ -2408,7 +2656,8 @@ export default class binance extends binanceRest {
      * @returns Promise<number> The subscription ID for the user data stream
      */
     async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const client = this.client (url);
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
@@ -2644,7 +2893,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -2684,7 +2934,7 @@ export default class binance extends binanceRest {
 
     handleAccountStatusWs (client: Client, message) {
         //
-        // spot
+        // JSON format - spot
         //    {
         //        "id": "605a6d20-6588-4cb9-afa0-b0ab087507ba",
         //        "status": 200,
@@ -2727,10 +2977,92 @@ export default class binance extends binanceRest {
         //            ]
         //        }
         //    }
-        // swap
+        //
+        // SBE format (AccountResponse):
+        //    {
+        //        "id": "...",
+        //        "status": 200,
+        //        "result": {
+        //            "commissionExponent": -8,
+        //            "commissionRateMaker": 150000,      // mantissa
+        //            "commissionRateTaker": 150000,
+        //            "commissionRateBuyer": 0,
+        //            "commissionRateSeller": 0,
+        //            "canTrade": 1,                       // boolEnum
+        //            "canWithdraw": 1,
+        //            "canDeposit": 1,
+        //            "brokered": 0,
+        //            "requireSelfTradePrevention": 0,
+        //            "preventSor": 0,
+        //            "updateTime": 1660801833000000,      // microseconds
+        //            "accountType": 0,                    // enum
+        //            "uid": 12345,
+        //            "balances": [{
+        //                "exponent": -8,
+        //                "free": 0,                       // mantissa
+        //                "locked": 0,
+        //                "asset": "BNB"
+        //            }],
+        //            "permissions": ["SPOT"],
+        //            "reduceOnlyAssets": []
+        //        }
+        //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
+        let result = this.safeDict (message, 'result', {});
+        // Check if SBE format (has commissionExponent)
+        const commissionExponent = this.safeInteger (result, 'commissionExponent');
+        if (commissionExponent !== undefined) {
+            // SBE format - normalize to JSON format
+            const normalized: any = {};
+            // Convert commission rates from mantissa
+            const makerMantissa = this.safeInteger (result, 'commissionRateMaker');
+            const takerMantissa = this.safeInteger (result, 'commissionRateTaker');
+            const buyerMantissa = this.safeInteger (result, 'commissionRateBuyer');
+            const sellerMantissa = this.safeInteger (result, 'commissionRateSeller');
+            normalized['commissionRates'] = {
+                'maker': (this.applyExponent (makerMantissa, commissionExponent)).toString (),
+                'taker': (this.applyExponent (takerMantissa, commissionExponent)).toString (),
+                'buyer': (this.applyExponent (buyerMantissa, commissionExponent)).toString (),
+                'seller': (this.applyExponent (sellerMantissa, commissionExponent)).toString (),
+            };
+            // Note: makerCommission, takerCommission, buyerCommission, sellerCommission
+            // are NOT present in SBE format (as documented in the schema)
+            // Copy boolean fields
+            normalized['canTrade'] = this.safeValue (result, 'canTrade');
+            normalized['canWithdraw'] = this.safeValue (result, 'canWithdraw');
+            normalized['canDeposit'] = this.safeValue (result, 'canDeposit');
+            normalized['brokered'] = this.safeValue (result, 'brokered');
+            normalized['requireSelfTradePrevention'] = this.safeValue (result, 'requireSelfTradePrevention');
+            normalized['preventSor'] = this.safeValue (result, 'preventSor');
+            // Convert updateTime from microseconds to milliseconds
+            const updateTime = this.safeInteger (result, 'updateTime');
+            if (updateTime !== undefined) {
+                normalized['updateTime'] = Math.floor (updateTime / 1000);
+            }
+            // Copy other fields
+            normalized['accountType'] = this.safeValue (result, 'accountType');
+            normalized['tradeGroupId'] = this.safeInteger (result, 'tradeGroupId');
+            normalized['uid'] = this.safeInteger (result, 'uid');
+            // Convert balances array
+            const balances = this.safeList (result, 'balances', []);
+            normalized['balances'] = [];
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const exponent = this.safeInteger (balance, 'exponent', 0);
+                const freeMantissa = this.safeInteger (balance, 'free', 0);
+                const lockedMantissa = this.safeInteger (balance, 'locked', 0);
+                normalized['balances'].push ({
+                    'asset': this.safeString (balance, 'asset'),
+                    'free': (this.applyExponent (freeMantissa, exponent)).toString (),
+                    'locked': (this.applyExponent (lockedMantissa, exponent)).toString (),
+                });
+            }
+            // Copy permissions and reduceOnlyAssets arrays as-is
+            normalized['permissions'] = this.safeList (result, 'permissions', []);
+            normalized['reduceOnlyAssets'] = this.safeList (result, 'reduceOnlyAssets', []);
+            result = normalized;
+        }
         const parsedBalances = this.parseBalanceCustom (result);
         client.resolve (parsedBalances, messageHash);
     }
@@ -2781,7 +3113,8 @@ export default class binance extends binanceRest {
         if (type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -2871,7 +3204,8 @@ export default class binance extends binanceRest {
         let urlType = type;
         if (type === 'spot') {
             // route to WebSocket API connection where the user data stream is subscribed
-            url = this.urls['api']['ws']['ws-api'][type];
+            const baseUrl = this.urls['api']['ws']['ws-api'][type];
+            url = this.getSbeWebSocketUrl (baseUrl);
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -3055,7 +3389,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new BadRequest (this.id + ' createOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
@@ -3100,8 +3435,147 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
+    normalizeSbeOrder (order) {
+        // Check if this is SBE format (has exponent fields)
+        const priceExponent = this.safeInteger (order, 'priceExponent');
+        if (priceExponent === undefined) {
+            // Already in JSON format
+            return order;
+        }
+        // SBE format - normalize to JSON format
+        const qtyExponent = this.safeInteger (order, 'qtyExponent', 0);
+        const normalized: any = {};
+        // Copy non-price/qty fields directly
+        normalized['orderId'] = this.safeInteger (order, 'orderId');
+        normalized['orderListId'] = this.safeInteger (order, 'orderListId');
+        normalized['symbol'] = this.safeString (order, 'symbol');
+        normalized['clientOrderId'] = this.safeString (order, 'clientOrderId');
+        normalized['origClientOrderId'] = this.safeString (order, 'origClientOrderId');
+        // Convert timestamps from microseconds to milliseconds
+        const transactTime = this.safeInteger (order, 'transactTime');
+        if (transactTime !== undefined) {
+            normalized['transactTime'] = Math.floor (transactTime / 1000);
+        }
+        const workingTime = this.safeInteger (order, 'workingTime');
+        if (workingTime !== undefined) {
+            normalized['workingTime'] = Math.floor (workingTime / 1000);
+        }
+        const time = this.safeInteger (order, 'time');
+        if (time !== undefined) {
+            normalized['time'] = Math.floor (time / 1000);
+        }
+        const updateTime = this.safeInteger (order, 'updateTime');
+        if (updateTime !== undefined) {
+            normalized['updateTime'] = Math.floor (updateTime / 1000);
+        }
+        const trailingTime = this.safeInteger (order, 'trailingTime');
+        if (trailingTime !== undefined) {
+            normalized['trailingTime'] = Math.floor (trailingTime / 1000);
+        }
+        // Convert mantissa values to decimal strings
+        const priceMantissa = this.safeInteger (order, 'price');
+        if (priceMantissa !== undefined) {
+            normalized['price'] = (this.applyExponent (priceMantissa, priceExponent)).toString ();
+        }
+        const origQtyMantissa = this.safeInteger (order, 'origQty');
+        if (origQtyMantissa !== undefined) {
+            normalized['origQty'] = (this.applyExponent (origQtyMantissa, qtyExponent)).toString ();
+        }
+        const executedQtyMantissa = this.safeInteger (order, 'executedQty');
+        if (executedQtyMantissa !== undefined) {
+            normalized['executedQty'] = (this.applyExponent (executedQtyMantissa, qtyExponent)).toString ();
+        }
+        const cummulativeQuoteQtyMantissa = this.safeInteger (order, 'cummulativeQuoteQty');
+        if (cummulativeQuoteQtyMantissa !== undefined) {
+            normalized['cummulativeQuoteQty'] = (this.applyExponent (cummulativeQuoteQtyMantissa, priceExponent)).toString ();
+        }
+        const stopPriceMantissa = this.safeInteger (order, 'stopPrice');
+        if (stopPriceMantissa !== undefined) {
+            normalized['stopPrice'] = (this.applyExponent (stopPriceMantissa, priceExponent)).toString ();
+        }
+        const icebergQtyMantissa = this.safeInteger (order, 'icebergQty');
+        if (icebergQtyMantissa !== undefined) {
+            normalized['icebergQty'] = (this.applyExponent (icebergQtyMantissa, qtyExponent)).toString ();
+        }
+        const preventedQuantityMantissa = this.safeInteger (order, 'preventedQuantity');
+        if (preventedQuantityMantissa !== undefined) {
+            normalized['preventedQuantity'] = (this.applyExponent (preventedQuantityMantissa, qtyExponent)).toString ();
+        }
+        const origQuoteOrderQtyMantissa = this.safeInteger (order, 'origQuoteOrderQty');
+        if (origQuoteOrderQtyMantissa !== undefined) {
+            normalized['origQuoteOrderQty'] = (this.applyExponent (origQuoteOrderQtyMantissa, priceExponent)).toString ();
+        }
+        const peggedPriceMantissa = this.safeInteger (order, 'peggedPrice');
+        if (peggedPriceMantissa !== undefined) {
+            normalized['peggedPrice'] = (this.applyExponent (peggedPriceMantissa, priceExponent)).toString ();
+        }
+        // Copy enum fields - they need to be mapped to their string equivalents
+        // The parseOrder method handles this mapping
+        normalized['status'] = this.safeValue (order, 'status');
+        normalized['timeInForce'] = this.safeValue (order, 'timeInForce');
+        normalized['type'] = this.safeValue (order, 'orderType'); // Note: orderType maps to 'type' in JSON
+        normalized['side'] = this.safeValue (order, 'side');
+        normalized['orderCapacity'] = this.safeValue (order, 'orderCapacity');
+        normalized['workingFloor'] = this.safeValue (order, 'workingFloor');
+        normalized['selfTradePreventionMode'] = this.safeValue (order, 'selfTradePreventionMode');
+        normalized['usedSor'] = this.safeValue (order, 'usedSor');
+        normalized['isWorking'] = this.safeValue (order, 'isWorking');
+        normalized['pegPriceType'] = this.safeValue (order, 'pegPriceType');
+        normalized['pegOffsetType'] = this.safeValue (order, 'pegOffsetType');
+        normalized['pegOffsetValue'] = this.safeValue (order, 'pegOffsetValue');
+        // Copy other fields
+        normalized['trailingDelta'] = this.safeInteger (order, 'trailingDelta');
+        normalized['strategyId'] = this.safeInteger (order, 'strategyId');
+        normalized['strategyType'] = this.safeInteger (order, 'strategyType');
+        normalized['tradeGroupId'] = this.safeInteger (order, 'tradeGroupId');
+        // Handle fills array
+        const fills = this.safeList (order, 'fills', []);
+        if (fills.length > 0) {
+            normalized['fills'] = [];
+            for (let i = 0; i < fills.length; i++) {
+                const fill = fills[i];
+                const commissionExponent = this.safeInteger (fill, 'commissionExponent', 0);
+                const fillPriceMantissa = this.safeInteger (fill, 'price');
+                const qtyMantissa = this.safeInteger (fill, 'qty');
+                const commissionMantissa = this.safeInteger (fill, 'commission');
+                normalized['fills'].push ({
+                    'price': fillPriceMantissa !== undefined ? (this.applyExponent (fillPriceMantissa, priceExponent)).toString () : undefined,
+                    'qty': qtyMantissa !== undefined ? (this.applyExponent (qtyMantissa, qtyExponent)).toString () : undefined,
+                    'commission': commissionMantissa !== undefined ? (this.applyExponent (commissionMantissa, commissionExponent)).toString () : undefined,
+                    'commissionAsset': this.safeString (fill, 'commissionAsset'),
+                    'tradeId': this.safeInteger (fill, 'tradeId'),
+                    'allocId': this.safeInteger (fill, 'allocId'),
+                    'matchType': this.safeValue (fill, 'matchType'),
+                });
+            }
+        } else {
+            normalized['fills'] = [];
+        }
+        // Handle preventedMatches array
+        const preventedMatches = this.safeList (order, 'preventedMatches', []);
+        if (preventedMatches.length > 0) {
+            normalized['preventedMatches'] = [];
+            for (let i = 0; i < preventedMatches.length; i++) {
+                const match = preventedMatches[i];
+                const matchPriceMantissa = this.safeInteger (match, 'price');
+                const takerPreventedQtyMantissa = this.safeInteger (match, 'takerPreventedQuantity');
+                const makerPreventedQtyMantissa = this.safeInteger (match, 'makerPreventedQuantity');
+                normalized['preventedMatches'].push ({
+                    'preventedMatchId': this.safeInteger (match, 'preventedMatchId'),
+                    'makerOrderId': this.safeInteger (match, 'makerOrderId'),
+                    'price': matchPriceMantissa !== undefined ? (this.applyExponent (matchPriceMantissa, priceExponent)).toString () : undefined,
+                    'takerPreventedQuantity': takerPreventedQtyMantissa !== undefined ? (this.applyExponent (takerPreventedQtyMantissa, qtyExponent)).toString () : undefined,
+                    'makerPreventedQuantity': makerPreventedQtyMantissa !== undefined ? (this.applyExponent (makerPreventedQtyMantissa, qtyExponent)).toString () : undefined,
+                    'makerSymbol': this.safeString (match, 'makerSymbol'),
+                });
+            }
+        }
+        return normalized;
+    }
+
     handleOrderWs (client: Client, message) {
         //
+        // JSON format:
         //    {
         //        "id": 1,
         //        "status": 200,
@@ -3123,39 +3597,45 @@ export default class binance extends binanceRest {
         //          "fills": [],
         //          "selfTradePreventionMode": "NONE"
         //        },
-        //        "rateLimits": [
-        //          {
-        //            "rateLimitType": "ORDERS",
-        //            "interval": "SECOND",
-        //            "intervalNum": 10,
-        //            "limit": 50,
-        //            "count": 1
-        //          },
-        //          {
-        //            "rateLimitType": "ORDERS",
-        //            "interval": "DAY",
-        //            "intervalNum": 1,
-        //            "limit": 160000,
-        //            "count": 1
-        //          },
-        //          {
-        //            "rateLimitType": "REQUEST_WEIGHT",
-        //            "interval": "MINUTE",
-        //            "intervalNum": 1,
-        //            "limit": 1200,
-        //            "count": 12
-        //          }
-        //        ]
+        //        "rateLimits": [...]
+        //    }
+        //
+        // SBE format (NewOrderResultResponse/NewOrderFullResponse/NewOrderAckResponse):
+        //    {
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": {
+        //          "priceExponent": -8,
+        //          "qtyExponent": -8,
+        //          "orderId": 7663053,
+        //          "orderListId": -1,
+        //          "transactTime": 1687642291434000, // microseconds
+        //          "price": 2500000000000,            // mantissa
+        //          "origQty": 100000,                 // mantissa
+        //          "executedQty": 0,
+        //          "cummulativeQuoteQty": 0,
+        //          "status": 0,                       // enum
+        //          "timeInForce": 0,                  // enum
+        //          "orderType": 1,                    // enum
+        //          "side": 1,                         // enum
+        //          "workingTime": 1687642291434000,
+        //          "fills": [...],                    // array of objects with mantissa values
+        //          "symbol": "BTCUSDT",
+        //          "clientOrderId": "..."
+        //        }
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
+        let result = this.safeDict (message, 'result', {});
+        // Normalize SBE format to JSON format if needed
+        result = this.normalizeSbeOrder (result);
         const order = this.parseOrder (result);
         client.resolve (order, messageHash);
     }
 
     handleOrdersWs (client: Client, message) {
         //
+        // JSON format:
         //    {
         //        "id": 1,
         //        "status": 200,
@@ -3183,19 +3663,42 @@ export default class binance extends binanceRest {
         //        },
         //        ...
         //        ],
-        //        "rateLimits": [{
-        //            "rateLimitType": "REQUEST_WEIGHT",
-        //            "interval": "MINUTE",
-        //            "intervalNum": 1,
-        //            "limit": 1200,
-        //            "count": 14
-        //        }]
+        //        "rateLimits": [...]
+        //    }
+        //
+        // SBE format (OrdersResponse) - array in result.orders:
+        //    {
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": {
+        //            "orders": [{
+        //                "priceExponent": -8,
+        //                "qtyExponent": -8,
+        //                "orderId": 7665584,
+        //                ...
+        //            }]
+        //        }
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
-        const orders = this.parseOrders (result);
-        client.resolve (orders, messageHash);
+        const result = this.safeValue (message, 'result');
+        let orders = [];
+        if (Array.isArray (result)) {
+            // JSON format - result is directly an array
+            orders = [];
+            for (let i = 0; i < result.length; i++) {
+                orders.push (this.normalizeSbeOrder (result[i]));
+            }
+        } else if (typeof result === 'object') {
+            // SBE format - result has an orders array
+            const ordersArray = this.safeList (result, 'orders', []);
+            orders = [];
+            for (let i = 0; i < ordersArray.length; i++) {
+                orders.push (this.normalizeSbeOrder (ordersArray[i]));
+            }
+        }
+        const parsedOrders = this.parseOrders (orders);
+        client.resolve (parsedOrders, messageHash);
     }
 
     /**
@@ -3221,7 +3724,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new BadRequest (this.id + ' editOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const isSwap = (marketType === 'future' || marketType === 'delivery');
@@ -3378,7 +3882,8 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelOrderWs', market, params);
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3434,7 +3939,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3476,7 +3982,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3527,7 +4034,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3589,7 +4097,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchOpenOrdersWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3659,7 +4168,8 @@ export default class binance extends binanceRest {
         let url = '';
         if (type === 'spot') {
             // route orders to ws-api user data stream
-            url = this.urls['api']['ws']['ws-api'][type];
+            const baseUrl = this.urls['api']['ws']['ws-api'][type];
+            url = this.getSbeWebSocketUrl (baseUrl);
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -4227,7 +4737,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchMyTradesWs does not support ' + type + ' markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -4279,7 +4790,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchTradesWs does not support ' + type + ' markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -4349,9 +4861,68 @@ export default class binance extends binanceRest {
         //        ],
         //    }
         //
+        // SBE response (binary ArrayBuffer)
+        // Will be decoded to same structure as JSON response
+        //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
-        const trades = this.parseTrades (result);
+        const result = this.safeValue (message, 'result');
+        let trades = [];
+        // Check if result is already decoded (SBE format) or needs parsing (JSON format)
+        if (result !== undefined) {
+            if (Array.isArray (result)) {
+                // JSON format - result is directly the array of trades
+                trades = this.parseTrades (result);
+            } else {
+                // SBE format - result is an object with trades array and exponents
+                const tradesArray = this.safeList (result, 'trades', []);
+                if (tradesArray.length > 0) {
+                    // Convert mantissa values to decimal strings
+                    // Check if exponents are at parent level (TradesResponse) or per-trade (AccountTradesResponse)
+                    const parentPriceExponent = this.safeInteger (result, 'priceExponent');
+                    const parentQtyExponent = this.safeInteger (result, 'qtyExponent');
+                    const parentCommissionExponent = this.safeInteger (result, 'commissionExponent');
+                    const normalizedTrades = [];
+                    for (let i = 0; i < tradesArray.length; i++) {
+                        const trade = tradesArray[i];
+                        // For TradesResponse (public trades), exponents are at parent level
+                        // For AccountTradesResponse (myTrades), each trade has its own exponents
+                        const priceExponent = this.safeInteger (trade, 'priceExponent', parentPriceExponent);
+                        const qtyExponent = this.safeInteger (trade, 'qtyExponent', parentQtyExponent);
+                        const commissionExponent = this.safeInteger (trade, 'commissionExponent', parentCommissionExponent);
+                        const price = this.applyExponent (trade.price, priceExponent);
+                        const qty = this.applyExponent (trade.qty, qtyExponent);
+                        const quoteQty = this.applyExponent (trade.quoteQty, priceExponent);
+                        const timestamp = Math.floor (trade.time / 1000); // microseconds to milliseconds
+                        const normalized: any = {
+                            'id': (trade.id).toString (),
+                            'price': (price).toString (),
+                            'qty': (qty).toString (),
+                            'quoteQty': (quoteQty).toString (),
+                            'time': timestamp,
+                            'isBuyerMaker': trade.isBuyerMaker === 1,
+                            'isBestMatch': trade.isBestMatch === 1,
+                        };
+                        // Handle AccountTradesResponse specific fields
+                        const orderId = this.safeInteger (trade, 'orderId');
+                        if (orderId !== undefined) {
+                            normalized['orderId'] = orderId;
+                            normalized['orderListId'] = this.safeInteger (trade, 'orderListId');
+                            normalized['symbol'] = this.safeString (trade, 'symbol');
+                            // Convert commission from mantissa
+                            const commissionMantissa = this.safeInteger (trade, 'commission');
+                            if (commissionMantissa !== undefined) {
+                                normalized['commission'] = String (this.applyExponent (commissionMantissa, commissionExponent));
+                            }
+                            normalized['commissionAsset'] = this.safeString (trade, 'commissionAsset');
+                            normalized['isBuyer'] = this.safeBool (trade, 'isBuyer', false);
+                            normalized['isMaker'] = this.safeBool (trade, 'isMaker', false);
+                        }
+                        normalizedTrades.push (normalized);
+                    }
+                    trades = this.parseTrades (normalizedTrades);
+                }
+            }
+        }
         client.resolve (trades, messageHash);
     }
 

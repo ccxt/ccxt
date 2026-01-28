@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbe:messageSchema xmlns:mbx="https://developers.binance.com/docs/binance-spot-api-docs"
+                   xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   xmlns:xi="http://www.w3.org/2001/XInclude"
+                   package="spot_stream"
+                   id="1"
+                   version="0"
+                   semanticVersion="5.2"
+                   description="Spot data streams SBE message schema"
+                   byteOrder="littleEndian">
+    <types>
+        <composite name="messageHeader" description="Template ID and length of message root">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+        </composite>
+
+        <composite name="groupSizeEncoding" description="Repeating group dimensions.">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="numInGroup" primitiveType="uint32" maxValue="2147483647"/>
+        </composite>
+
+        <composite name="groupSize16Encoding" description="Repeating group dimensions.">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="numInGroup" primitiveType="uint16"/>
+        </composite>
+
+        <composite name="varString8" description="Variable length UTF-8 string.">
+            <type name="length" primitiveType="uint8"/>
+            <type name="varData" length="0" primitiveType="uint8" characterEncoding="UTF-8"/>
+        </composite>
+
+        <type name="mantissa64" primitiveType="int64" description="
+            64-bit mantissa for a decimal floating point number. The name of
+            the field containing the exponent value is specified in the
+            mbx:exponent attribute of the mantissa64 field. The exponent field
+            will always precede the mantissa field."
+        />
+        <type name="exponent8" primitiveType="int8" description="
+            Exponent for a decimal floating point number."
+        />
+
+        <type name="tradeId" primitiveType="int64"/>
+        <type name="updateId" primitiveType="int64"/>
+        <type name="utcTimestampUs" primitiveType="int64" description="UTC timestamp in microseconds"/>
+
+        <enum name="boolEnum" encodingType="uint8">
+            <validValue name="False">0</validValue>
+            <validValue name="True">1</validValue>
+        </enum>
+    </types>
+
+    <!-- Stream event for "trade@<symbol>" channel -->
+    <sbe:message name="TradesStreamEvent" id="10000">
+        <field id="1" name="eventTime" type="utcTimestampUs"/>
+        <field id="2" name="transactTime" type="utcTimestampUs"/>
+        <field id="3" name="priceExponent" type="exponent8"/>
+        <field id="4" name="qtyExponent" type="exponent8"/>
+        <group id="100" name="trades">
+            <field id="1" name="id" type="tradeId"/>
+            <field id="2" name="price" type="mantissa64" mbx:exponent="priceExponent"/>
+            <field id="3" name="qty" type="mantissa64" mbx:exponent="qtyExponent"/>
+            <field id="4" name="isBuyerMaker" type="boolEnum"/>
+            <field id="5" name="isBestMatch" type="boolEnum" presence="constant" valueRef="boolEnum.True"/>
+        </group>
+        <data id="200" name="symbol" type="varString8"/>
+    </sbe:message>
+
+    <!-- Stream event for "bestBidAsk@<symbol>" channel -->
+    <sbe:message name="BestBidAskStreamEvent" id="10001">
+        <field id="1" name="eventTime" type="utcTimestampUs"/>
+        <field id="2" name="bookUpdateId" type="updateId"/>
+        <field id="3" name="priceExponent" type="exponent8"/>
+        <field id="4" name="qtyExponent" type="exponent8"/>
+        <field id="5" name="bidPrice" type="mantissa64" mbx:exponent="priceExponent"/>
+        <field id="6" name="bidQty" type="mantissa64" mbx:exponent="qtyExponent"/>
+        <field id="7" name="askPrice" type="mantissa64" mbx:exponent="priceExponent"/>
+        <field id="8" name="askQty" type="mantissa64" mbx:exponent="qtyExponent"/>
+        <data id="200" name="symbol" type="varString8"/>
+    </sbe:message>
+
+    <!-- Stream event for "depth<N>@<symbol>" channel -->
+    <sbe:message name="DepthSnapshotStreamEvent" id="10002">
+        <field id="1" name="eventTime" type="utcTimestampUs"/>
+        <field id="2" name="bookUpdateId" type="updateId"/>
+        <field id="3" name="priceExponent" type="exponent8"/>
+        <field id="4" name="qtyExponent" type="exponent8"/>
+        <group id="100" name="bids" dimensionType="groupSize16Encoding">
+            <field id="1" name="price" type="mantissa64" mbx:exponent="priceExponent"/>
+            <field id="2" name="qty" type="mantissa64" mbx:exponent="qtyExponent"/>
+        </group>
+        <group id="101" name="asks" dimensionType="groupSize16Encoding">
+            <field id="1" name="price" type="mantissa64" mbx:exponent="priceExponent"/>
+            <field id="2" name="qty" type="mantissa64" mbx:exponent="qtyExponent"/>
+        </group>
+        <data id="200" name="symbol" type="varString8"/>
+    </sbe:message>
+
+    <!-- Stream event for "depth@<symbol>" channel -->
+    <sbe:message name="DepthDiffStreamEvent" id="10003">
+        <field id="1" name="eventTime" type="utcTimestampUs"/>
+        <field id="2" name="firstBookUpdateId" type="updateId"/>
+        <field id="3" name="lastBookUpdateId" type="updateId"/>
+        <field id="4" name="priceExponent" type="exponent8"/>
+        <field id="5" name="qtyExponent" type="exponent8"/>
+        <group id="100" name="bids" dimensionType="groupSize16Encoding">
+            <field id="1" name="price" type="mantissa64" mbx:exponent="priceExponent"/>
+            <field id="2" name="qty" type="mantissa64" mbx:exponent="qtyExponent"/>
+        </group>
+        <group id="101" name="asks" dimensionType="groupSize16Encoding">
+            <field id="1" name="price" type="mantissa64" mbx:exponent="priceExponent"/>
+            <field id="2" name="qty" type="mantissa64" mbx:exponent="qtyExponent"/>
+        </group>
+        <data id="200" name="symbol" type="varString8"/>
+    </sbe:message>
+</sbe:messageSchema>
