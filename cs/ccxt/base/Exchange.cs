@@ -1024,7 +1024,7 @@ public partial class Exchange
         }
     }
 
-    public string exceptionMessage(object exc)
+    public string exceptionMessage(object exc, bool includeStack = true)
     {
         var e = exc as Exception;
         if (e != null && e is System.AggregateException)
@@ -1037,7 +1037,7 @@ public partial class Exchange
                 e = inner;
             }
         }
-        var message = e != null ? e.ToString() : "Exception occurred, but no message available.";
+        var message = e != null ? (includeStack ? e.ToString() : e.Message) : "Exception occurred, but no message available.";
         return message.Substring(0, Math.Min(100000, message.Length));
     }
 
