@@ -2352,7 +2352,7 @@ class Exchange {
         $obj->$property = $defaultValue;
     }
 
-    function exceptionMessage($exc, $includeStack = true) {
+    function exception_message($exc, $includeStack = true) {
         $message = '[' . get_class($exc) . '] ' . (!$includeStack ? $exc->getMessage() : $exc->getTraceAsString());
         $length = min(100000, strlen($message));
         return substr($message, 0, $length);
