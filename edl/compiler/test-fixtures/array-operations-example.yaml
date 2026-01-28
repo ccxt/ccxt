@@ -1,0 +1,396 @@
+# EDL Array Operations Example
+# Demonstrates all array operation types with real-world use cases
+
+exchange:
+  id: example_exchange
+  name: Example Exchange
+  countries: [US]
+
+urls:
+  api: https://api.example.com
+  www: https://example.com
+  doc: [https://docs.example.com]
+
+has:
+  fetchTicker: true
+  fetchTrades: true
+  fetchOrders: true
+
+auth:
+  type: hmac
+  algorithm: sha256
+
+api:
+  public:
+    get:
+      ticker:
+        path: /ticker/{symbol}
+        cost: 1
+      trades:
+        path: /trades/{symbol}
+        cost: 1
+
+  private:
+    get:
+      orders:
+        path: /orders
+        cost: 1
+
+# Parser demonstrating array operations
+parsers:
+  # Example 1: Map - Extract prices from ticker data
+  ticker:
+    source: response
+    mapping:
+      symbol:
+        path: symbol
+
+      # Extract all bid prices using map
+      bidPrices:
+        compute:
+          op: map
+          array: data.bids
+          transform:
+            param: bid
+            body: bid.price
+
+      # Extract all ask prices using map
+      askPrices:
+        compute:
+          op: map
+          array: data.asks
+          transform:
+            param: ask
+            body: ask.price
+
+      # Calculate best bid (first element after mapping)
+      bestBid:
+        compute:
+          call: first
+          args:
+            - op: map
+              array: data.bids
+              transform:
+                param: bid
+                body: bid.price
+
+  # Example 2: Filter - Select specific trades
+  trades:
+    source: response
+    mapping:
+      symbol:
+        path: symbol
+
+      # Filter for large trades (> 1 BTC)
+      largeTrades:
+        compute:
+          op: filter
+          array: data.trades
+          predicate:
+            param: trade
+            body:
+              op: gt
+              left: trade.amount
+              right: 1.0
+
+      # Filter and map: Get IDs of buy-side trades
+      buyTradeIds:
+        compute:
+          op: map
+          array:
+            op: filter
+            array: data.trades
+            predicate:
+              param: trade
+              body:
+                op: eq
+                left: trade.side
+                right: buy
+          transform:
+            param: trade
+            body: trade.id
+
+  # Example 3: Reduce - Calculate aggregates
+  tradeStats:
+    source: response
+    mapping:
+      symbol:
+        path: symbol
+
+      # Calculate total volume using reduce
+      totalVolume:
+        compute:
+          op: reduce
+          array: data.trades
+          reducer:
+            params: [sum, trade]
+            body:
+              op: add
+              left: sum
+              right: trade.amount
+          initial: 0
+
+      # Calculate total value (price * amount) using reduce
+      totalValue:
+        compute:
+          op: reduce
+          array: data.trades
+          reducer:
+            params: [total, trade]
+            body:
+              op: add
+              left: total
+              right:
+                op: multiply
+                left: trade.price
+                right: trade.amount
+          initial: 0
+
+      # Calculate average price
+      averagePrice:
+        compute:
+          op: divide
+          left:
+            op: reduce
+            array: data.trades
+            reducer:
+              params: [sum, trade]
+              body:
+                op: add
+                left: sum
+                right: trade.price
+            initial: 0
+          right:
+            call: length
+            args: [data.trades]
+
+  # Example 4: Slice - Pagination and sampling
+  recentTrades:
+    source: response
+    mapping:
+      symbol:
+        path: symbol
+
+      # Get first 10 trades
+      first10:
+        compute:
+          op: slice
+          array: data.trades
+          start: 0
+          end: 10
+
+      # Get trades 10-20 (pagination)
+      page2:
+        compute:
+          op: slice
+          array: data.trades
+          start: 10
+          end: 20
+
+      # Sample every 5th trade
+      sampled:
+        compute:
+          op: slice
+          array: data.trades
+          start: 0
+          end: 100
+          step: 5
+
+  # Example 5: FlatMap - Flatten nested structures
+  orderbook:
+    source: response
+    mapping:
+      symbol:
+        path: symbol
+
+      # Flatten all order book levels (bids and asks)
+      allLevels:
+        compute:
+          op: flatMap
+          array: [data.bids, data.asks]
+          transform:
+            param: side
+            body: side
+
+      # Extract all prices from nested structure
+      allPrices:
+        compute:
+          op: flatMap
+          array: [data.bids, data.asks]
+          transform:
+            param: side
+            body:
+              op: map
+              array: side
+              transform:
+                param: level
+                body: level.price
+
+  # Example 6: Complex nested operations
+  advancedStats:
+    source: response
+    mapping:
+      symbol:
+        path: symbol
+
+      # Filter large trades, extract amounts, then sum
+      largeTradesTotalVolume:
+        compute:
+          op: reduce
+          array:
+            op: map
+            array:
+              op: filter
+              array: data.trades
+              predicate:
+                param: trade
+                body:
+                  op: gt
+                  left: trade.amount
+                  right: 1.0
+            transform:
+              param: trade
+              body: trade.amount
+          reducer:
+            params: [sum, amount]
+            body:
+              op: add
+              left: sum
+              right: amount
+          initial: 0
+
+      # Count buy vs sell trades
+      buyCount:
+        compute:
+          call: length
+          args:
+            - op: filter
+              array: data.trades
+              predicate:
+                param: trade
+                body:
+                  op: eq
+                  left: trade.side
+                  right: buy
+
+      sellCount:
+        compute:
+          call: length
+          args:
+            - op: filter
+              array: data.trades
+              predicate:
+                param: trade
+                body:
+                  op: eq
+                  left: trade.side
+                  right: sell
+
+      # Price range (min/max) using reduce
+      priceMin:
+        compute:
+          op: reduce
+          array:
+            op: map
+            array: data.trades
+            transform:
+              param: trade
+              body: trade.price
+          reducer:
+            params: [minPrice, price]
+            body:
+              if:
+                op: lt
+                left: price
+                right: minPrice
+              then: price
+              else: minPrice
+          initial: 999999999
+
+      priceMax:
+        compute:
+          op: reduce
+          array:
+            op: map
+            array: data.trades
+            transform:
+              param: trade
+              body: trade.price
+          reducer:
+            params: [maxPrice, price]
+            body:
+              if:
+                op: gt
+                left: price
+                right: maxPrice
+              then: price
+              else: maxPrice
+          initial: 0
+
+  # Example 7: Working with orders
+  orders:
+    source: response
+    mapping:
+      # Extract all open order IDs
+      openOrderIds:
+        compute:
+          op: map
+          array:
+            op: filter
+            array: data.orders
+            predicate:
+              param: order
+              body:
+                op: eq
+                left: order.status
+                right: open
+          transform:
+            param: order
+            body: order.id
+
+      # Calculate total value of open orders
+      openOrdersValue:
+        compute:
+          op: reduce
+          array:
+            op: filter
+            array: data.orders
+            predicate:
+              param: order
+              body:
+                op: eq
+                left: order.status
+                right: open
+          reducer:
+            params: [total, order]
+            body:
+              op: add
+              left: total
+              right:
+                op: multiply
+                left: order.price
+                right: order.amount
+          initial: 0
+
+      # Group orders by type (using filter for each type)
+      limitOrders:
+        compute:
+          op: filter
+          array: data.orders
+          predicate:
+            param: order
+            body:
+              op: eq
+              left: order.type
+              right: limit
+
+      marketOrders:
+        compute:
+          op: filter
+          array: data.orders
+          predicate:
+            param: order
+            body:
+              op: eq
+              left: order.type
+              right: market

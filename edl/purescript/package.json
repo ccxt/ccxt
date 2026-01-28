@@ -1,0 +1,32 @@
+{
+  "name": "@ccxt/edl-compiler",
+  "version": "0.1.0",
+  "description": "Exchange Definition Language compiler for CCXT",
+  "main": "output/Main/index.js",
+  "bin": {
+    "edl-compile": "bin/edl-compile.js"
+  },
+  "scripts": {
+    "build": "spago build",
+    "bundle": "spago bundle --module Main --outfile dist/edl-compiler.js",
+    "test": "spago test",
+    "clean": "rm -rf output dist .spago",
+    "compile": "node dist/edl-compiler.js"
+  },
+  "keywords": [
+    "ccxt",
+    "edl",
+    "exchange",
+    "compiler",
+    "purescript"
+  ],
+  "author": "CCXT Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "purescript": "^0.15.15",
+    "spago": "^0.21.0"
+  }
+}
