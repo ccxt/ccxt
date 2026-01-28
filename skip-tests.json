@@ -1099,7 +1099,7 @@
                 "timestamp": "not provided"
             },
             "watchOrderBook": {
-                "compareBidAsk": "sometimes bid is greater than ask"
+                "spread": "sometimes bid is greater than ask"
             }
         }
     },
