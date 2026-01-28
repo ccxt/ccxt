@@ -168,8 +168,6 @@ export default class woo extends Exchange {
                             'info/{symbol}': 1,
                             'system_info': 1,
                             'market_trades': 1,
-                            'token': 1,
-                            'token_network': 1,
                             'funding_rates': 1,
                             'funding_rate/{symbol}': 1,
                             'funding_rate_history': 1,
@@ -947,7 +945,7 @@ export default class woo extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const result: Dict = {};
-        const tokenResponsePromise = this.v1PublicGetToken (params);
+        const tokenResponsePromise = this.v3PublicGetTokenInfo (params);
         //
         //    {
         //      "rows": [
@@ -993,7 +991,7 @@ export default class woo extends Exchange {
         // }
         //
         // only make one request for currrencies...
-        const tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork (params);
+        const tokenNetworkResponsePromise = this.v3PublicGetTokenNetwork (params);
         //
         // {
         //     "rows": [
@@ -1023,36 +1021,35 @@ export default class woo extends Exchange {
         // }
         //
         const [ tokenResponse, tokenNetworkResponse ] = await Promise.all ([ tokenResponsePromise, tokenNetworkResponsePromise ]);
-        const tokenRows = this.safeList (tokenResponse, 'rows', []);
-        const tokenNetworkRows = this.safeList (tokenNetworkResponse, 'rows', []);
-        const networksById = this.groupBy (tokenNetworkRows, 'token');
-        const tokensById = this.groupBy (tokenRows, 'balance_token');
+        const data = this.safeDict (tokenResponse, 'data', {});
+        const tokenRows = this.safeList (data, 'rows', []);
+        const networkData = this.safeDict (tokenNetworkResponse, 'data', {});
+        const networkRows = this.safeList (networkData, 'rows', []);
+        const tokensById = this.indexBy (tokenRows, 'token');
+        const networksByToken = this.groupBy (networkRows, 'token');
         const currencyIds = Object.keys (tokensById);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const tokensByNetworkId = this.indexBy (tokensById[currencyId], 'network');
-            const chainsByNetworkId = this.indexBy (networksById[currencyId], 'network');
-            const keys = Object.keys (chainsByNetworkId);
+            const tokenData = this.safeDict (tokensById, currencyId, {});
+            const networks = this.safeDict (networksByToken, currencyId, []);
             const resultingNetworks: Dict = {};
-            for (let j = 0; j < keys.length; j++) {
-                const networkId = keys[j];
-                const tokenEntry = this.safeDict (tokensByNetworkId, networkId, {});
-                const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
-                const networkCode = this.networkIdToCode (networkId, code);
-                const specialNetworkId = this.safeString (tokenEntry, 'token');
+            for (let j = 0; j < networks.length; j++) {
+                const networkInfo = networks[j];
+                const networkId = this.safeString (networkInfo, 'network'); // i.e. 'ETH'
+                const protocol = this.safeString (networkInfo, 'protocol'); // i.e. 'ERC20'
+                const networkCode = (protocol !== undefined) ? protocol : networkId;
                 resultingNetworks[networkCode] = {
                     'id': networkId,
-                    'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
                     'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
-                    'withdraw': this.safeString (networkEntry, 'allow_withdraw') === '1',
-                    'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenEntry, 'decimals'))),
+                    'active': this.safeBool (networkInfo, 'allowDeposit') && this.safeBool (networkInfo, 'allowWithdraw'),
+                    'deposit': this.safeBool (networkInfo, 'allowDeposit'),
+                    'withdraw': this.safeBool (networkInfo, 'allowWithdraw'),
+                    'fee': this.safeNumber (networkInfo, 'withdrawalFee'),
+                    'precision': undefined, // Precision is defined at the currency level
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
+                            'min': this.safeNumber (networkInfo, 'minimumWithdrawal'),
                             'max': undefined,
                         },
                         'deposit': {
@@ -1060,32 +1057,22 @@ export default class woo extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'info': [ networkEntry, tokenEntry ],
+                    'info': networkInfo,
                 };
             }
-            result[code] = this.safeCurrencyStructure ({
+            result[code] = {
                 'id': currencyId,
-                'name': undefined,
                 'code': code,
-                'precision': undefined,
+                'name': this.safeString (tokenData, 'fullname'),
                 'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'type': 'crypto',
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': [ tokensByNetworkId, chainsByNetworkId ],
-            });
+                'fee': undefined,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenData, 'decimals'))),
+                'limits': {},
+                'networks': resultingNetworks,
+                'info': tokenData,
+            };
         }
         return result;
     }
