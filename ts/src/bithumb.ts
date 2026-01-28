@@ -7,6 +7,7 @@ import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/n
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
+import Precise from './base/Precise.js';
 import type { Balances, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -51,7 +52,7 @@ export default class bithumb extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -168,7 +169,9 @@ export default class bithumb extends Exchange {
                         'market/all',
                         'ticker',
                         'orderbook',
-                        'trades/recent',
+                        'trades/ticks',
+                        'candles/minutes/{unit}',
+                        'candles/{interval}',
                         'candlestick/{market}/{interval}',
                     ],
                 },
@@ -265,15 +268,17 @@ export default class bithumb extends Exchange {
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '10m': '10m',
-                '30m': '30m',
-                '1h': '1h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '24h',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '10m': '10',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
             },
             'options': {
                 'quoteCurrencies': {
@@ -434,16 +439,60 @@ export default class bithumb extends Exchange {
         //
         const data = this.safeDict (response, 0, {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, symbol, timestamp, 'bid_price', 'ask_price', 'bid_size', 'ask_size', 'orderbook_units');
+        const orderbookUnits = this.safeList (data, 'orderbook_units', []);
+        const bids = [];
+        const asks = [];
+        for (let i = 0; i < orderbookUnits.length; i++) {
+            const entry = orderbookUnits[i];
+            const askPrice = this.safeNumber (entry, 'ask_price');
+            const askSize = this.safeNumber (entry, 'ask_size');
+            const bidPrice = this.safeNumber (entry, 'bid_price');
+            const bidSize = this.safeNumber (entry, 'bid_size');
+            if (askPrice !== undefined && askSize !== undefined) {
+                if (askSize > 0) {
+                    asks.push ([ askPrice, askSize ]);
+                }
+            }
+            if (bidPrice !== undefined && bidSize !== undefined) {
+                if (bidSize > 0) {
+                    bids.push ([ bidPrice, bidSize ]);
+                }
+            }
+        }
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        } as any;
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const symbol = this.safeSymbol (undefined, market);
+        let timestamp = this.safeInteger (ticker, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (ticker, 'trade_timestamp');
+        }
+        const marketId = this.safeString (ticker, 'market');
+        const symbol = this.safeSymbol (marketId, market);
         const open = this.safeString (ticker, 'opening_price');
-        const close = this.safeString (ticker, 'trade_price');
-        const high = this.safeString (ticker, 'high_price');
-        const low = this.safeString (ticker, 'low_price');
+        let close = this.safeString (ticker, 'trade_price');
+        let high = this.safeString (ticker, 'high_price');
+        let low = this.safeString (ticker, 'low_price');
+        // workaround for Bithumb data inconsistency
+        if (close !== undefined) {
+             if (high !== undefined) {
+                  if (Precise.stringLt (high, close)) {
+                       high = close;
+                  }
+             }
+             if (low !== undefined) {
+                  if (Precise.stringGt (low, close)) {
+                       low = close;
+                  }
+             }
+        }
         const baseVolume = this.safeString (ticker, 'acc_trade_volume_24h');
         const quoteVolume = this.safeString (ticker, 'acc_trade_price_24h');
         return this.safeTicker ({
@@ -472,8 +521,29 @@ export default class bithumb extends Exchange {
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        const response = await this.v2publicGetTicker (params);
-        return this.parseTickers (response, symbols);
+        symbols = this.marketSymbols (symbols);
+        let marketIds = [];
+        if (symbols === undefined) {
+             marketIds = Object.keys (this.markets_by_id);
+        } else {
+             marketIds = this.marketIds (symbols);
+        }
+        const promises = [];
+        const chunkSize = 20; // safe chunk size
+        for (let i = 0; i < marketIds.length; i += chunkSize) {
+            const chunk = marketIds.slice (i, i + chunkSize);
+            const markets = chunk.join (',');
+            promises.push (this.v2publicGetTicker (this.extend (params, { 'markets': markets })));
+        }
+        const responses = await Promise.all (promises);
+        const result = [];
+        for (let i = 0; i < responses.length; i++) {
+            const response = responses[i];
+            for (let j = 0; j < response.length; j++) {
+                result.push (response[j]);
+            }
+        }
+        return this.parseTickers (result, symbols);
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -489,7 +559,7 @@ export default class bithumb extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
-            this.safeInteger (ohlcv, 'timestamp'),
+            this.parse8601 (this.safeString (ohlcv, 'candle_date_time_utc')),
             this.safeNumber (ohlcv, 'opening_price'),
             this.safeNumber (ohlcv, 'high_price'),
             this.safeNumber (ohlcv, 'low_price'),
@@ -501,14 +571,24 @@ export default class bithumb extends Exchange {
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'market': market['id'],
-            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        if (timeframe === '1d' || timeframe === '1w' || timeframe === '1M') {
+            request['interval'] = interval;
+        } else {
+            request['unit'] = interval;
+        }
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await this.v2publicGetCandlestickMarketInterval (this.extend (request, params));
+        let response = undefined;
+        if (timeframe === '1d' || timeframe === '1w' || timeframe === '1M') {
+            response = await this.v2publicGetCandlesInterval (this.extend (request, params));
+        } else {
+            response = await this.v2publicGetCandlesMinutesUnit (this.extend (request, params));
+        }
         //
         //    [
         //        {
@@ -563,7 +643,7 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await this.v2publicGetTradesRecent (this.extend (request, params));
+        const response = await this.v2publicGetTradesTicks (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
