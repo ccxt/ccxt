@@ -1303,6 +1303,7 @@ export default class Exchange {
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
                 'verbose': this.verbose,
                 'throttler': new Throttler (this.tokenBucket),
+                'throttle': this.throttle.bind (this),
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
