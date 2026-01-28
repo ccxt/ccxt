@@ -1626,6 +1626,7 @@ export default class pacifica extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
         const request = this.cancelAllOrdersRequest (symbol, params);
         params = this.omit (params, [ 'excludeReduceOnly', 'exclude_reduce_only', 'agentAddress', 'originAddress', 'expiryWindow', 'expiry_window' ]);
         const response = await this.privatePostOrdersCancelAll (this.extend (request, params));
@@ -1652,7 +1653,6 @@ export default class pacifica extends Exchange {
         const excludeReduceOnly = this.safeBool (params, 'excludeReduceOnly', false);
         sigPayload['exclude_reduce_only'] = excludeReduceOnly;
         if (symbol !== undefined) {
-            this.loadMarkets ();
             const market = this.market (symbol);
             sigPayload['all_symbols'] = false;
             sigPayload['symbol'] = market['id'];
