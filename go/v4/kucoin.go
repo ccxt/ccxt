@@ -585,7 +585,7 @@ func (this *KucoinCore) Describe() interface{} {
 				"400370":                                                   InvalidOrder,
 				"400400":                                                   BadRequest,
 				"400401":                                                   AuthenticationError,
-				"400500":                                                   InvalidOrder,
+				"400500":                                                   RestrictedLocation,
 				"400600":                                                   BadSymbol,
 				"400760":                                                   InvalidOrder,
 				"401000":                                                   BadRequest,

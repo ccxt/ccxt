@@ -907,6 +907,7 @@ class bybit extends Exchange {
                     '170203' => '\\ccxt\\InvalidOrder', // Please enter the TP/SL price.
                     '170204' => '\\ccxt\\InvalidOrder', // trigger price cannot be higher than 110% price.
                     '170206' => '\\ccxt\\InvalidOrder', // trigger price cannot be lower than 90% of qty.
+                    '170209' => '\\ccxt\\RestrictedLocation', // array("retCode":170209,"retMsg":"This trading pair is only available to the Brunei,Kampuchea (Cambodia ],Indonesia,Laos,Malaysia,Burma,Philippines,Thailand,Timor-Leste,Vietnam region.","result":array(),"retExtInfo":array(),"time":1769526868171)
                     '170210' => '\\ccxt\\InvalidOrder', // New order rejected.
                     '170213' => '\\ccxt\\OrderNotFound', // Order does not exist.
                     '170217' => '\\ccxt\\InvalidOrder', // Only LIMIT-MAKER order is supported for the current pair.

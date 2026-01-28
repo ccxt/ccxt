@@ -578,7 +578,7 @@ public partial class kucoin : Exchange
                     { "400370", typeof(InvalidOrder) },
                     { "400400", typeof(BadRequest) },
                     { "400401", typeof(AuthenticationError) },
-                    { "400500", typeof(InvalidOrder) },
+                    { "400500", typeof(RestrictedLocation) },
                     { "400600", typeof(BadSymbol) },
                     { "400760", typeof(InvalidOrder) },
                     { "401000", typeof(BadRequest) },

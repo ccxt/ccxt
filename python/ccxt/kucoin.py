@@ -17,6 +17,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import RestrictedLocation
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -642,7 +643,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400400': BadRequest,  # Parameter error
                     '400401': AuthenticationError,  # User is not logged in
-                    '400500': InvalidOrder,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
+                    '400500': RestrictedLocation,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
                     '400600': BadSymbol,  # {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
                     '400760': InvalidOrder,  # {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
