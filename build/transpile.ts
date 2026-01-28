@@ -153,6 +153,7 @@ class Transpiler {
             [ /\.describeData /g, '.describe_data'],
             [ /\.removeRepeatedElementsFromArray/g, '.remove_repeated_elements_from_array'],
             [ /\.initThrottler /g, '.init_throttler'],
+            [ /\.networkCodeProtocolCorrector /g, '.network_code_protocol_corrector'],
             [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
