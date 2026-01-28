@@ -7,6 +7,19 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "contract with a funding interval different from 8h",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.bybit.com/v5/market/funding/history?limit=3&symbol=ZRXUSDT&category=linear&startTime=1769529863000&endTime=1769540663000",
+                "input": [
+                    "ZRX/USDT:USDT",
+                    1769529863000,
+                    3
+                ],
+                "output": null
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "fetch margin mode",
