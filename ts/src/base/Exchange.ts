@@ -8735,6 +8735,33 @@ export default class Exchange {
             }
         }
     }
+
+    timeframeFromMilliseconds (ms: number): string {
+        if (ms <= 0) {
+            return '';
+        }
+        const second = 1000;
+        const minute = 60 * second;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        if (ms % week === 0) {
+            return (ms / week) + 'w';
+        }
+        if (ms % day === 0) {
+            return (ms / day) + 'd';
+        }
+        if (ms % hour === 0) {
+            return (ms / hour) + 'h';
+        }
+        if (ms % minute === 0) {
+            return (ms / minute) + 'm';
+        }
+        if (ms % second === 0) {
+            return (ms / second) + 's';
+        }
+        return '';
+    }
 }
 
 export {

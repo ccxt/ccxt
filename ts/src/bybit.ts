@@ -2898,10 +2898,16 @@ export default class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const fundingTimeFrameMins = this.safeInteger (market['info'], 'fundingInterval');
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200) as FundingRateHistory[];
+            let defaultTf = '8h';
+            if (fundingTimeFrameMins !== undefined) {
+                defaultTf = this.timeframeFromMilliseconds (fundingTimeFrameMins * 60 * 1000);
+            }
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, defaultTf, params, 200) as FundingRateHistory[];
         }
         if (limit === undefined) {
             limit = 200;
@@ -2913,7 +2919,6 @@ export default class bybit extends Exchange {
             // 'endTime': 0, // The end timestamp (ms)
             'limit': limit, // Limit for data size per page. [1, 200]. Default: 200
         };
-        const market = this.market (symbol);
         symbol = market['symbol'];
         request['symbol'] = market['id'];
         let type = undefined;
@@ -2933,11 +2938,9 @@ export default class bybit extends Exchange {
         } else {
             if (since !== undefined) {
                 // end time is required when since is not empty
-                let fundingInterval = this.safeInteger (market['info'], 'fundingInterval');
-                if (fundingInterval !== undefined) {
-                    fundingInterval = fundingInterval * 60 * 1000;
-                } else {
-                    fundingInterval = 60 * 60 * 8 * 1000;
+                let fundingInterval = 60 * 60 * 8 * 1000;
+                if (fundingTimeFrameMins !== undefined) {
+                    fundingInterval = fundingTimeFrameMins * 60 * 1000;
                 }
                 request['endTime'] = this.sum (since, limit * fundingInterval);
             }
