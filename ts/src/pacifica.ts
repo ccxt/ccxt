@@ -1542,7 +1542,6 @@ export default class pacifica extends Exchange {
         const request = this.cancelOrdersRequest (ids, symbol, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderIds' ]);
         const response = await this.privatePostOrdersBatch (this.extend (request, params));
-        this.log (response);
         //
         // {
         //   "success": true,
@@ -1580,7 +1579,7 @@ export default class pacifica extends Exchange {
         return ordersToReturn as Order[];
     }
 
-    cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}) {
+    cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params = {}) {
         const isStopOrder = this.safeBool (params, 'isStopOrder', false);
         if (isStopOrder) {
             throw new NotSupported (this.id + ' cancelOrders() do not support param "isStopOrder" (will be false only) !');
