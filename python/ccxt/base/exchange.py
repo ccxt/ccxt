@@ -1026,13 +1026,11 @@ class Exchange(object):
 
     @staticmethod
     def group_by(array, key):
-        result = {}
-        array = Exchange.to_array(array)
-        array = [entry for entry in array if (key in entry) and (entry[key] is not None)]
-        for entry in array:
-            if entry[key] not in result:
-                result[entry[key]] = []
-            result[entry[key]].append(entry)
+        result = collections.defaultdict(list)
+        for entry in Exchange.to_array(array):
+            value = entry.get(key)
+            if value is not None:
+                result[value].append(entry)
         return result
 
     @staticmethod
