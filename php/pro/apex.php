@@ -23,6 +23,7 @@ class apex extends \ccxt\async\apex {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
@@ -30,6 +31,7 @@ class apex extends \ccxt\async\apex {
                 'watchMyTrades' => true,
                 'watchBalance' => false,
                 'watchOHLCV' => true,
+                'watchOHLCVForSymbols' => true,
             ),
             'urls' => array(
                 'logo' => 'https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg',
@@ -489,7 +491,7 @@ class apex extends \ccxt\async\apex {
                 $unfiedTimeframe = $this->safe_string($data, 1, '1');
                 $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
                 $rawHashes[] = 'candle.' . $timeframeId . '.' . $symbolString;
-                $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
+                $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $unfiedTimeframe;
             }
             list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
             if ($this->newUpdates) {
@@ -534,11 +536,10 @@ class apex extends \ccxt\async\apex {
         $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        $ohlcvsByTimeframe = $this->safe_value($this->ohlcvs, $symbol);
-        if ($ohlcvsByTimeframe === null) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if ($this->safe_value($ohlcvsByTimeframe, $timeframe) === null) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp ($limit);
         }
@@ -801,9 +802,11 @@ class apex extends \ccxt\async\apex {
                 }
             }
             // don't remove the $future from the .futures $cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($cache, 'positions');
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($cache, 'positions');
+            }
         }) ();
     }
 
@@ -1041,7 +1044,7 @@ class apex extends \ccxt\async\apex {
             try {
                 Async\await($client->send (array( 'args' => array( (string) $timeStamp ), 'op' => 'pong' )));
             } catch (Exception $e) {
-                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->json($e));
+                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->exception_message($e));
                 $client->reset ($error);
             }
         }) ();
@@ -1058,7 +1061,7 @@ class apex extends \ccxt\async\apex {
         //
         //   array( pong => 1653296711335 )
         //
-        $client->lastPong = $this->safe_integer($message, 'pong');
+        $client->lastPong = $this->safe_integer($message, 'pong', $this->milliseconds());
         return $message;
     }
 

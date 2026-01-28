@@ -69,6 +69,7 @@ class bingx extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -79,6 +80,7 @@ class bingx extends Exchange {
                 'fetchLiquidations' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => true,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMarkPrice' => true,
@@ -259,7 +261,7 @@ class bingx extends Exchange {
                                 'positionSide/dual' => 5,
                                 'trade/batchCancelReplace' => 5,
                                 'trade/closePosition' => 2,
-                                'trade/getVst' => 5,
+                                'trade/getVst' => 5, // deprecated
                                 'twap/order' => 5,
                                 'twap/cancelOrder' => 5,
                                 'trade/assetMode' => 5,
@@ -303,6 +305,7 @@ class bingx extends Exchange {
                                 'quote/bookTicker' => 1,
                             ),
                             'post' => array(
+                                'trade/getVst' => 5,
                                 'trade/order' => 2,
                                 'trade/batchOrders' => 2,
                                 'trade/closeAllPositions' => 2,
@@ -1808,6 +1811,91 @@ class bingx extends Exchange {
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding received
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding history for
+         * @param {int} [$since] timestamp in ms of the earliest funding to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchFundingHistory', $symbol, $since, $limit, '24h', $params);
+        }
+        $request = array(
+            'incomeType' => 'FUNDING_FEE',
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'endTime');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['endTime'] = $until;
+        }
+        $response = $this->swapV2PrivateGetUserIncome ($this->extend($request, $params));
+        //         {
+        //             "code" => 0,
+        //             "msg" => "",
+        //             "data" => array(
+        //                 {
+        //                 "symbol" => "LDO-USDT",
+        //                 "incomeType" => "FUNDING_FEE",
+        //                 "income" => "-0.0292",
+        //                 "asset" => "USDT",
+        //                 "info" => "Funding Fee",
+        //                 "time" => 1702713615000,
+        //                 "tranId" => "170***6*2_3*9_20***97",
+        //                 "tradeId" => "170***6*2_3*9_20***97"
+        //                 }
+        //             )
+        //         }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_incomes($data, $market, $since, $limit);
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        // {
+        //     "symbol" => "LDO-USDT",
+        //     "incomeType" => "FUNDING_FEE",
+        //     "income" => "-0.0292",
+        //     "asset" => "USDT",
+        //     "info" => "Funding Fee",
+        //     "time" => 1702713615000,
+        //     "tranId" => "170***6*2_3*9_20***97",
+        //     "tradeId" => "170***6*2_3*9_20***97"
+        // }
+        $marketId = $this->safe_string($income, 'symbol');
+        $currencyId = $this->safe_string($income, 'asset');
+        $timestamp = $this->safe_integer($income, 'time');
+        return array(
+            'info' => $income,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'code' => $this->safe_currency_code($currencyId),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'tranId'),
+            'amount' => $this->safe_number($income, 'income'),
+            'type' => 'funding',
         );
     }
 
@@ -5415,7 +5503,7 @@ class bingx extends Exchange {
             '3' => 'rejected',
             '4' => 'pending',
             '5' => 'rejected',
-            '6' => 'pending',
+            '6' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -5483,7 +5571,7 @@ class bingx extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
          * @param {array} [$params] parameters specific to the bingx api endpoint
-         * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         * @return {array} A ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         $type = $this->safe_integer($params, 'type'); // 1 increase margin 2 decrease margin
         if ($type === null) {
@@ -6637,6 +6725,80 @@ class bingx extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
+        /**
+         * retrieve information on the maximum leverage, for different trade sizes for a single $market
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapV1PrivateGetMaintMarginRatio ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "timestamp" => 1767789967284,
+        //         "data" => array(
+        //             {
+        //                 "tier" => "Tier 1",
+        //                 "symbol" => "ETH-USDT",
+        //                 "minPositionVal" => "0",
+        //                 "maxPositionVal" => "900000",
+        //                 "maintMarginRatio" => "0.003300",
+        //                 "maintAmount" => "0.000000"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+        //
+        //     array(
+        //         {
+        //             "tier" => "Tier 1",
+        //             "symbol" => "ETH-USDT",
+        //             "minPositionVal" => "0",
+        //             "maxPositionVal" => "900000",
+        //             "maintMarginRatio" => "0.003300",
+        //             "maintAmount" => "0.000000"
+        //         }
+        //     )
+        //
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $this->safe_dict($info, $i);
+            $tierString = $this->safe_string($tier, 'tier');
+            $tierParts = explode(' ', $tierString);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $market = $this->safe_market($marketId, $market, null, 'swap');
+            $tiers[] = array(
+                'tier' => $this->safe_number($tierParts, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'currency' => $this->safe_string($market, 'settle'),
+                'minNotional' => $this->safe_number($tier, 'minPositionVal'),
+                'maxNotional' => $this->safe_number($tier, 'maxPositionVal'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintMarginRatio'),
+                'maxLeverage' => null,
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

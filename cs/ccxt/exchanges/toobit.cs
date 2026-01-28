@@ -2297,7 +2297,7 @@ public partial class toobit : Exchange
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2707,7 +2707,8 @@ public partial class toobit : Exchange
             { "coin", getValue(currency, "id") },
             { "address", address },
             { "quantity", this.currencyToPrecision(getValue(currency, "code"), amount) },
-            { "network", networkCode },
+            { "chainType", networkCode },
+            { "clientOrderId", this.milliseconds() },
         };
         if (isTrue(!isEqual(tag, null)))
         {

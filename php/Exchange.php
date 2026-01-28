@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.28';
+$version = '4.5.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.28';
+    const VERSION = '4.5.34';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -341,10 +341,12 @@ class Exchange {
     public $quoteCurrencies = null;
 
     public static $exchanges = array(
+        'alp',
         'alpaca',
         'apex',
         'arkham',
         'ascendex',
+        'aster',
         'backpack',
         'bequant',
         'bigone',
@@ -371,12 +373,12 @@ class Exchange {
         'bitvavo',
         'blockchaincom',
         'blofin',
-        'btcalpha',
         'btcbox',
         'btcmarkets',
         'btcturk',
         'bullish',
         'bybit',
+        'bydfi',
         'cex',
         'coinbase',
         'coinbaseadvanced',
@@ -427,7 +429,6 @@ class Exchange {
         'myokx',
         'ndax',
         'novadax',
-        'oceanex',
         'okx',
         'okxus',
         'onetrading',
@@ -1367,6 +1368,32 @@ class Exchange {
             hex2bin(str_replace('0x', '', $typedDataEncoder->hashDomain($domainData))),
             hex2bin(str_replace('0x', '', $typedDataEncoder->hashEIP712Message($messageTypes, $messageData)))
         );
+    }
+
+    public function eth_get_address_from_private_key($private_key) {
+        /**
+         * Derives the Ethereum address from a private key.
+         *
+         * @param string $private_key A "0x"-prefixed hexstring private key
+         * @return string The corresponding Ethereum address as a "0x"-prefixed hex string
+         */
+        // Remove "0x" prefix if present
+        $clean_private_key = self::remove0x_prefix($private_key);
+        
+        // Use Elliptic\EC to get the public key (secp256k1 curve)
+        $ec = new EC('secp256k1');
+        $key = $ec->keyFromPrivate($clean_private_key, 'hex');
+        
+        // Get uncompressed public key and remove the '04' prefix
+        $public_key_uncompressed = $key->getPublic(false, 'hex');
+        $public_key_bytes = substr($public_key_uncompressed, 2); // Remove '04' prefix
+        
+        // Hash the public key with Keccak256
+        $address_hash = Keccak::hash(hex2bin($public_key_bytes), 256);
+        
+        // Take the last 20 bytes (40 hex chars) as the address
+        $address_hex = '0x' . substr($address_hash, -40);
+        return $address_hex;
     }
 
     public function retrieve_stark_account($signature, $accountClassHash, $accountProxyClassHash) {
@@ -2325,6 +2352,12 @@ class Exchange {
         $obj->$property = $defaultValue;
     }
 
+    function exceptionMessage($exc, $includeStack = true) {
+        $message = '[' . get_class($exc) . '] ' . (!$includeStack ? $exc->getMessage() : $exc->getTraceAsString());
+        $length = min(100000, strlen($message));
+        return substr($message, 0, $length);
+    }
+
     function un_camel_case($str){
         return self::underscore($str);
     }
@@ -2819,10 +2852,14 @@ class Exchange {
     public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean value from $dictionary or list
+         * safely extract boolean $value from $dictionary or list
          * @return array(bool | null)
          */
-        return $this->safe_bool_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if (is_bool($value)) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
@@ -2847,7 +2884,14 @@ class Exchange {
          * safely extract a $dictionary from $dictionary or list
          * @return array(object | null)
          */
-        return $this->safe_dict_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
@@ -2890,7 +2934,14 @@ class Exchange {
          * safely extract an Array from dictionary or list
          * @return array(Array | null)
          */
-        return $this->safe_list_n($dictionaryOrList, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function handle_deltas($orderbook, $deltas) {
@@ -7019,6 +7070,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchClosedOrders() is not supported yet');
     }
 
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchCanceledOrders() is not supported yet');
+    }
+
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
     }
@@ -8836,6 +8891,10 @@ class Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
         }
+    }
+
+    public function load_markets_and_sign_in() {
+        array( $this->load_markets(), $this->sign_in() );
     }
 
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {

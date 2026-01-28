@@ -56,22 +56,22 @@ class htx extends \ccxt\async\htx {
                             ),
                             'future' => array(
                                 'linear' => array(
-                                    'public' => 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private' => 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public' => 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/linear-swap-notification',
                                 ),
                                 'inverse' => array(
-                                    'public' => 'wss://api.hbdm.com/ws',
-                                    'private' => 'wss://api.hbdm.com/notification',
+                                    'public' => 'wss://api.hbdm.vn/ws',
+                                    'private' => 'wss://api.hbdm.vn/notification',
                                 ),
                             ),
                             'swap' => array(
                                 'inverse' => array(
-                                    'public' => 'wss://api.hbdm.com/swap-ws',
-                                    'private' => 'wss://api.hbdm.com/swap-notification',
+                                    'public' => 'wss://api.hbdm.vn/swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/swap-notification',
                                 ),
                                 'linear' => array(
-                                    'public' => 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private' => 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public' => 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/linear-swap-notification',
                                 ),
                             ),
                         ),
@@ -2069,7 +2069,7 @@ class htx extends \ccxt\async\htx {
                     Async\await($client->send (array( 'op' => 'pong', 'ts' => $pingTs )));
                 }
             } catch (Exception $e) {
-                $error = new NetworkError ($this->id . ' pong failed ' . $this->json($e));
+                $error = new NetworkError ($this->id . ' pong failed ' . $this->exception_message($e));
                 $client->reset ($error);
             }
         }) ();

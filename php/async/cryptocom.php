@@ -179,6 +179,7 @@ class cryptocom extends Exchange {
                             'public/get-valuations' => 1,
                             'public/get-expired-settlement-price' => 10 / 3,
                             'public/get-insurance' => 1,
+                            'public/get-announcements' => 1,
                             'public/get-risk-parameters' => 1,
                         ),
                         'post' => array(
@@ -233,6 +234,8 @@ class cryptocom extends Exchange {
                             'private/staking/convert' => 2,
                             'private/staking/get-open-convert' => 2,
                             'private/staking/get-convert-history' => 2,
+                            'private/create-isolated-margin-transfer' => 10 / 3,
+                            'private/change-isolated-margin-leverage' => 10 / 3,
                         ),
                     ),
                 ),
@@ -2755,7 +2758,7 @@ class cryptocom extends Exchange {
              * @param {int} [$limit] max number of $ledger entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger-entry-structure $ledger structure~
              */
             Async\await($this->load_markets());
             $request = array();

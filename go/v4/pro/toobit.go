@@ -919,10 +919,12 @@ func  (this *ToobitCore) LoadBalanceSnapshot(client interface{}, messageHash int
             var typeVar interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(marketType, "spot"))), "spot", "contract")
             ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]interface{} {})))
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve()
-            client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
-            client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance")) // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve()
+                client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
+                client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance")) // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+            }
                 return nil
             }()
             return ch
@@ -952,11 +954,11 @@ func  (this *ToobitCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7778 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7778)
+            retRes7798 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7798)
         
-            retRes7788 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes7788)
+            retRes7808 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes7808)
             var market interface{} = this.MarketOrNull(symbol)
             symbol = this.SafeString(market, "symbol", symbol)
             var messageHash interface{} = "orders"
@@ -1094,11 +1096,11 @@ func  (this *ToobitCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8978 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8978)
+            retRes8998 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8998)
         
-            retRes8988 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes8988)
+            retRes9008 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes9008)
             var market interface{} = this.MarketOrNull(symbol)
             symbol = this.SafeString(market, "symbol", symbol)
             var messageHash interface{} = "myTrades"
@@ -1194,11 +1196,11 @@ func  (this *ToobitCore) WatchPositions(optionalArgs ...interface{}) <- chan int
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9758 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9758)
+            retRes9778 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9778)
         
-            retRes9768 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes9768)
+            retRes9788 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes9788)
             var messageHash interface{} = ""
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
                 symbols = this.MarketSymbols(symbols)
@@ -1207,8 +1209,8 @@ func  (this *ToobitCore) WatchPositions(optionalArgs ...interface{}) <- chan int
             var url interface{} = this.GetUserStreamUrl()
             var client interface{} = this.Client(url)
         
-            retRes9848 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes9848)
+            retRes9868 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes9868)
             this.SetPositionsCache(client, symbols)
             var cache interface{} = this.Positions
             if ccxt.IsTrue(ccxt.IsEqual(cache, nil)) {
@@ -1274,9 +1276,11 @@ func  (this *ToobitCore) LoadPositionsSnapshot(client interface{}, messageHash i
                 cache.(ccxt.Appender).Append(position)
             }
             // don't remove the future from the .futures cache
-            var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-            future.(*ccxt.Future).Resolve(cache)
-            client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":positions"))
+            if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+                var future interface{} = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+                future.(*ccxt.Future).Resolve(cache)
+                client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":positions"))
+            }
                 return nil
             }()
             return ch
@@ -1397,7 +1401,7 @@ func  (this *ToobitCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                                         }
                                         ret_ = func(this *ToobitCore) interface{} {
                                             // catch block:
-                                                            err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(e)))
+                                                            err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.ExceptionMessage(e)))
                                     client.(ccxt.ClientInterface).Reject(err, messageHash)
                                     if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
                                         ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1422,9 +1426,9 @@ func  (this *ToobitCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                 }
             }
         
-                retRes115015 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes115015)
-                ch <- retRes115015
+                retRes115415 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes115415)
+                ch <- retRes115415
                 return nil
         
             }()

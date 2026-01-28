@@ -1261,7 +1261,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         //       "channel": "pong"
         //   }
         //
-        client.lastPong = this.safeInteger(message, 'pong');
+        client.lastPong = this.safeInteger(message, 'pong', this.milliseconds());
         return message;
     }
     requestId() {

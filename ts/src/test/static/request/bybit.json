@@ -7,6 +7,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://api-testnet.bybit.com/v5/account/info?",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
         "editOrder": [
             {
                 "description": "edit order using clientOrderId",

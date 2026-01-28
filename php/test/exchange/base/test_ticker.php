@@ -48,6 +48,17 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     if ($symbol_for_market !== null && (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets))) {
         $market = $exchange->market($symbol_for_market);
     }
+    // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
+    if (!(is_array($skipped_properties) && array_key_exists('checkInactiveMarkets', $skipped_properties))) {
+        if ($market !== null && $market['active'] === false) {
+            return;
+        }
+    }
+    if (is_array($skipped_properties) && array_key_exists('skipNonActiveMarkets', $skipped_properties)) {
+        if ($market === null || !$market['active']) {
+            return;
+        }
+    }
     // only check "above zero" values if exchange is not supposed to have exotic index markets
     $is_standard_market = ($market !== null && $exchange->in_array($market['type'], ['spot', 'swap', 'future', 'option']));
     $values_should_be_positive = $is_standard_market; // || (market === undefined) atm, no check for index markets

@@ -81,7 +81,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchConvertTradeHistory': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': True,
+                'fetchCurrencies': False,  # temporarily, until they fix the endpoint
                 'fetchDepositAddress': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
@@ -727,7 +727,7 @@ class cryptomus(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a type parameter(limit or market)')
         #
         #     {
-        #         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        #         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         #     }
         #
         return self.parse_order(response, market)

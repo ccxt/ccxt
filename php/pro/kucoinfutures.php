@@ -446,9 +446,11 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             $cache = $this->positions;
             $cache->append ($position);
             // don't remove the $future from the .futures $cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($position, 'position:' . $symbol);
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($position, 'position:' . $symbol);
+            }
         }) ();
     }
 

@@ -670,6 +670,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapi_get_portfolio_earn_asset_balance($params = array()) {
         return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
     }
+    public function sapi_get_portfolio_delta_mode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -1098,6 +1101,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function sapi_post_portfolio_earn_asset_transfer($params = array()) {
         return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
+    public function sapi_post_portfolio_delta_mode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function sapi_post_lending_auto_invest_plan_add($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -1855,6 +1861,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function eapiprivate_get_blocktrades($params = array()) {
         return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function eapiprivate_get_comission($params = array()) {
+        return $this->request('comission', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiprivate_post_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -2007,6 +2016,12 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function private_post_orderlist_otoco($params = array()) {
         return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_opo($params = array()) {
+        return $this->request('orderList/opo', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_opoco($params = array()) {
+        return $this->request('orderList/opoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function private_post_sor_order($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
@@ -3004,6 +3019,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapiGetPortfolioEarnAssetBalance($params = array()) {
         return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
     }
+    public function sapiGetPortfolioDeltaMode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3432,6 +3450,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function sapiPostPortfolioEarnAssetTransfer($params = array()) {
         return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
+    public function sapiPostPortfolioDeltaMode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function sapiPostLendingAutoInvestPlanAdd($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -4189,6 +4210,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function eapiPrivateGetBlockTrades($params = array()) {
         return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function eapiPrivateGetComission($params = array()) {
+        return $this->request('comission', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -4341,6 +4365,12 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function privatePostOrderListOtoco($params = array()) {
         return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOpo($params = array()) {
+        return $this->request('orderList/opo', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOpoco($params = array()) {
+        return $this->request('orderList/opoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function privatePostSorOrder($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));

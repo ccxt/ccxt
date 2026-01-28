@@ -922,7 +922,20 @@ class bitget extends bitget$1["default"] {
         }
         else {
             const orderbook = this.orderBook({});
-            const parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            let bidsKey = 'bids';
+            let asksKey = 'asks';
+            // bitget UTA has `a` and `b` instead of `asks` and `bids`
+            if ('a' in rawOrderBook) {
+                if (!('asks' in rawOrderBook)) {
+                    asksKey = 'a';
+                }
+            }
+            if ('b' in rawOrderBook) {
+                if (!('bids' in rawOrderBook)) {
+                    bidsKey = 'b';
+                }
+            }
+            const parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             orderbook.reset(parsedOrderbook);
             this.orderbooks[symbol] = orderbook;
         }
@@ -2873,20 +2886,20 @@ class bitget extends bitget$1["default"] {
         for (let i = 0; i < argsList.length; i++) {
             const arg = argsList[i];
             const channel = this.safeString2(arg, 'channel', 'topic');
-            if (channel === 'books') {
+            if (channel.indexOf('books') >= 0) {
                 // for now only unWatchOrderBook is supporteod
                 this.handleOrderBookUnSubscription(client, message);
             }
-            else if ((channel === 'trade') || (channel === 'publicTrade')) {
+            else if ((channel.indexOf('trade') >= 0) || (channel.indexOf('publicTrade') >= 0)) {
                 this.handleTradesUnSubscription(client, message);
             }
-            else if (channel === 'ticker') {
+            else if (channel.indexOf('ticker') >= 0) {
                 this.handleTickerUnSubscription(client, message);
             }
-            else if (channel.startsWith('candle')) {
+            else if (channel.indexOf('candle') >= 0) {
                 this.handleOHLCVUnSubscription(client, message);
             }
-            else if (channel.startsWith('kline')) {
+            else if (channel.indexOf('kline') >= 0) {
                 this.handleOHLCVUnSubscription(client, message);
             }
         }

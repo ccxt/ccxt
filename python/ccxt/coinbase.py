@@ -96,7 +96,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': 'emulated',
-                'fetchDepositAddresses': False,
+                'fetchDepositAddresses': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDepositMethodId': True,
                 'fetchDepositMethodIds': True,
@@ -673,11 +673,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         accounts = self.safe_list(response, 'accounts', [])
-        length = len(accounts)
-        lastIndex = length - 1
-        last = self.safe_dict(accounts, lastIndex)
+        accountsLength = len(accounts)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
+        if (accountsLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = accountsLength - 1
+            last = self.safe_dict(accounts, lastIndex)
             last['cursor'] = cursor
             accounts[lastIndex] = last
         return self.parse_accounts(accounts, params)
@@ -2158,7 +2158,8 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'trades', [])
-        ticker = self.parse_ticker(data[0], market)
+        first = self.safe_dict(data, 0, {})
+        ticker = self.parse_ticker(first, market)
         ticker['bid'] = self.safe_number(response, 'best_bid')
         ticker['ask'] = self.safe_number(response, 'best_ask')
         return ticker
@@ -2455,7 +2456,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         paginate = False
@@ -4121,6 +4122,19 @@ class coinbase(Exchange, ImplicitAPI):
         #        }
         #    }
         #
+        # {
+        #     "id":"3f2434234943-8c1c-50ef-a5a1-342213bbf45d",
+        #     "address":"0x123123126F5921XXXXX",
+        #     "currency":"USDC",
+        #     "name":"",
+        #     "network":"ethereum",
+        #     "created_at":"2022-03-17T09:20:17.002Z",
+        #     "updated_at":"2022-03-17T09:20:17.002Z",
+        #     "resource":"addresses",
+        #     "resource_path":"v2/accounts/b1091c6e-9ef2-5e4d-b352-665d0cf8f742/addresses/32fd0943-8c1c-50ef-a5a1-342213bbf45d",
+        #     "destination_tag":""
+        # }
+        #
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         networkId = self.safe_string(depositAddress, 'network')
@@ -4130,6 +4144,8 @@ class coinbase(Exchange, ImplicitAPI):
         if addressLabel is not None:
             splitAddressLabel = addressLabel.split(' ')
             currencyId = self.safe_string(splitAddressLabel, 0)
+        else:
+            currencyId = self.safe_string(depositAddress, 'currency')
         addressInfo = self.safe_dict(depositAddress, 'address_info')
         return {
             'info': depositAddress,
@@ -4999,3 +5015,20 @@ class coinbase(Exchange, ImplicitAPI):
         if not ('data' in response) and (not advancedTrade):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
         return None
+
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+        """
+        fetch deposit addresses for multiple currencies(when available)
+
+        https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+
+        :param str[] [codes]: list of unified currency codes, default is None(all currencies)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountId]: account ID to fetch deposit addresses for
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by currency code
+        """
+        self.load_markets()
+        request = self.prepare_account_request(None, params)
+        response = self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, params))
+        data = self.safe_list(response, 'data', [])
+        return self.parse_deposit_addresses(data, codes, False, {})

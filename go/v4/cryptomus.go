@@ -77,7 +77,7 @@ func (this *CryptomusCore) Describe() interface{} {
 			"fetchConvertTradeHistory":               false,
 			"fetchCrossBorrowRate":                   false,
 			"fetchCrossBorrowRates":                  false,
-			"fetchCurrencies":                        true,
+			"fetchCurrencies":                        false,
 			"fetchDepositAddress":                    false,
 			"fetchDeposits":                          false,
 			"fetchDepositsWithdrawals":               false,
@@ -855,7 +855,7 @@ func (this *CryptomusCore) CreateOrder(symbol interface{}, typeVar interface{}, 
 
 		//
 		//     {
-		//         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+		//         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
 		//     }
 		//
 		ch <- this.ParseOrder(response, market)
