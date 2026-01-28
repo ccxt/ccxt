@@ -2309,14 +2309,14 @@ export default class gate extends Exchange {
      */
     async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
         const chains = this.safeValue (response, 'multichain_addresses', []);
-        const currencyId = this.safeString (response, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
+        // const currencyId = this.safeString (response, 'currency');
+        // currency = this.safeCurrency (currencyId, currency);
         const parsed = this.parseDepositAddresses (chains, undefined, false);
         return this.indexBy (parsed, 'network') as DepositAddress[];
     }
@@ -6497,14 +6497,17 @@ export default class gate extends Exchange {
         const tiers = [];
         while (Precise.stringLt (floor, riskLimitMax)) {
             const cap = Precise.stringAdd (floor, riskLimitStep);
+            const minNotional = this.parseNumber (floor);
+            const maintenanceMarginRateParsed = this.parseNumber (maintenanceMarginRate);
+            const maxLev = this.parseNumber (Precise.stringDiv ('1', initialMarginRatio));
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
                 'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
                 'currency': this.safeString (market, 'settle'),
-                'minNotional': this.parseNumber (floor),
+                'minNotional': minNotional,
                 'maxNotional': this.parseNumber (cap),
-                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
-                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRatio)),
+                'maintenanceMarginRate': maintenanceMarginRateParsed,
+                'maxLeverage': maxLev,
                 'info': info,
             });
             maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, maintenanceMarginUnit);
@@ -6534,11 +6537,12 @@ export default class gate extends Exchange {
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
             const maxNotional = this.safeNumber (item, 'risk_limit');
+            const minNot = minNotional; // java req
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': market['symbol'],
                 'currency': market['base'],
-                'minNotional': minNotional,
+                'minNotional': minNot,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber (item, 'maintenance_rate'),
                 'maxLeverage': this.safeNumber (item, 'leverage_max'),
