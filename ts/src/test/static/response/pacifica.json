@@ -2,6 +2,9 @@
     "exchange": "pacifica",
     "skipKeys": ["start_time", "end_time"],
     "options": {},
+    "privateKey": "2fGURdTtScQVocLdZovb6kJ3V8TmWe3eg5TJpYAqrTRTqYf27goDdQVfMx4W2uUmTwTc78qxsxhhvrdx7MTd55rn",
+    "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+    "isSandboxModeEnabled": true,
     "methods": {
         "cancelOrders": [
             {
@@ -9,8 +12,8 @@
                 "method": "cancelOrders",
                 "input": [
                     [
-                        241524077,
-                        241567560
+                        "241524077",
+                        "241567560"
                     ],
                     "BTC/USDC:USDC",
                     {}
@@ -163,7 +166,9 @@
             {
                 "description": "Fetch positions state",
                 "method": "fetchPositions",
-                "input": [],
+                "input": [
+                    null
+                ],
                 "httpResponse": {
                     "success": true,
                     "data": [
@@ -231,8 +236,8 @@
                 "input": [
                     241146145,
                     "BTC/USDC:USDC",
-                    null,
-                    null,
+                    "null",
+                    "null",
                     0.003,
                     83900
                 ],
@@ -490,7 +495,7 @@
                     "BTC/USDC:USDC",
                     "limit",
                     "buy",
-                    null,
+                    0.001,
                     null,
                     {
                         "takeProfitPrice": 83000,
