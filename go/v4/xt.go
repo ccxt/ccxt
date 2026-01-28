@@ -2014,8 +2014,8 @@ func (this *XtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{})
 		"change":        this.SafeNumber(ticker, "cv"),
 		"percentage":    this.ParseNumber(percentage),
 		"average":       nil,
-		"baseVolume":    nil,
-		"quoteVolume":   this.SafeNumber2(ticker, "a", "v"),
+		"baseVolume":    this.SafeNumber(ticker, "a"),
+		"quoteVolume":   this.SafeNumber(ticker, "v"),
 		"info":          ticker,
 	}, market)
 }
@@ -4237,7 +4237,7 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		//             "hasNext": false,
 		//             "items": [
 		//                 {
-		//                     "id": "207260567109387524",
+		//                     "id": "207260567109387525",
 		//                     "coin": "usdt",
 		//                     "symbol": "btc_usdt",
 		//                     "type": "FEE",

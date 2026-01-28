@@ -2551,7 +2551,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''], // remove equals
                 // Fix infinite loop bug in WebSocket tests - move now = exchange.Milliseconds() outside success check
                 [/(\s+)(if IsTrue\(IsEqual\(success, true\)\) \{\s*\n[\s\S]*?)(\s+now = exchange\.Milliseconds\(\)\s*\n\s*\})/gm, '$1$2$1now = exchange.Milliseconds()$3'],
-
+                // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
+                [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
+                
 
 
                 // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
