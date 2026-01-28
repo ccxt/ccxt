@@ -32,7 +32,9 @@ interface Exchange {
     v2publicGetMarketAll(params?: {}): Promise<implicitReturnType>;
     v2publicGetTicker(params?: {}): Promise<implicitReturnType>;
     v2publicGetOrderbook(params?: {}): Promise<implicitReturnType>;
-    v2publicGetTradesRecent(params?: {}): Promise<implicitReturnType>;
+    v2publicGetTradesTicks(params?: {}): Promise<implicitReturnType>;
+    v2publicGetCandlesMinutesUnit(params?: {}): Promise<implicitReturnType>;
+    v2publicGetCandlesInterval(params?: {}): Promise<implicitReturnType>;
     v2publicGetCandlestickMarketInterval(params?: {}): Promise<implicitReturnType>;
     v2privateGetAccounts(params?: {}): Promise<implicitReturnType>;
     v2privateGetOrdersChance(params?: {}): Promise<implicitReturnType>;

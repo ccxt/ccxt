@@ -100,8 +100,14 @@ abstract class bithumb extends \ccxt\Exchange {
     public function v2public_get_orderbook($params = array()) {
         return $this->request('orderbook', 'v2public', 'GET', $params, null, null, array());
     }
-    public function v2public_get_trades_recent($params = array()) {
-        return $this->request('trades/recent', 'v2public', 'GET', $params, null, null, array());
+    public function v2public_get_trades_ticks($params = array()) {
+        return $this->request('trades/ticks', 'v2public', 'GET', $params, null, null, array());
+    }
+    public function v2public_get_candles_minutes_unit($params = array()) {
+        return $this->request('candles/minutes/{unit}', 'v2public', 'GET', $params, null, null, array());
+    }
+    public function v2public_get_candles_interval($params = array()) {
+        return $this->request('candles/{interval}', 'v2public', 'GET', $params, null, null, array());
     }
     public function v2public_get_candlestick_market_interval($params = array()) {
         return $this->request('candlestick/{market}/{interval}', 'v2public', 'GET', $params, null, null, array());
@@ -217,8 +223,14 @@ abstract class bithumb extends \ccxt\Exchange {
     public function v2publicGetOrderbook($params = array()) {
         return $this->request('orderbook', 'v2public', 'GET', $params, null, null, array());
     }
-    public function v2publicGetTradesRecent($params = array()) {
-        return $this->request('trades/recent', 'v2public', 'GET', $params, null, null, array());
+    public function v2publicGetTradesTicks($params = array()) {
+        return $this->request('trades/ticks', 'v2public', 'GET', $params, null, null, array());
+    }
+    public function v2publicGetCandlesMinutesUnit($params = array()) {
+        return $this->request('candles/minutes/{unit}', 'v2public', 'GET', $params, null, null, array());
+    }
+    public function v2publicGetCandlesInterval($params = array()) {
+        return $this->request('candles/{interval}', 'v2public', 'GET', $params, null, null, array());
     }
     public function v2publicGetCandlestickMarketInterval($params = array()) {
         return $this->request('candlestick/{market}/{interval}', 'v2public', 'GET', $params, null, null, array());
