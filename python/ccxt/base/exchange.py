@@ -1023,6 +1023,7 @@ class Exchange(object):
         result_is_dict = False
 
         for arg in args:
+            # if _all_dicts or isinstance(arg, dict):
             if _all_dicts or (arg is not None and arg.__class__ is dict):
                 # This is a dict (even if empty) so set the return type.
                 if result is None or not result_is_dict:
@@ -1035,6 +1036,7 @@ class Exchange(object):
 
                 for key, value in arg.items():
                     current = result.get(key)
+                    # if isinstance(current, dict) and isinstance(value, dict):
                     if current is not None and current.__class__ is dict and value.__class__ is dict:
                         result[key] = Exchange.deep_extend_new(current, value, _all_dicts=True)
                     else:
