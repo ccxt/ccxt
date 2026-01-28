@@ -1458,7 +1458,7 @@ export default class bigone extends Exchange {
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //    {
-        //        "id": "42154072251",
+        //        "id": "42154072252",
         //        "asset_pair_name": "SOL-USDT",
         //        "price": "20",
         //        "amount": "0.5",

@@ -2596,7 +2596,10 @@ class Exchange(object):
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
-        return self.safe_bool_n(dictionary, [key], defaultValue)
+        value = self.safe_value(dictionary, key, defaultValue)
+        if isinstance(value, bool):
+            return value
+        return defaultValue
 
     def safe_dict_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: dict = None):
         """
@@ -2617,7 +2620,12 @@ class Exchange(object):
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
-        return self.safe_dict_n(dictionary, [key], defaultValue)
+        value = self.safe_value(dictionary, key, defaultValue)
+        if value is None:
+            return defaultValue
+        if isinstance(value, dict):
+            return value
+        return defaultValue
 
     def safe_dict_2(self, dictionary, key1: IndexType, key2: str, defaultValue: dict = None):
         """
@@ -2654,7 +2662,12 @@ class Exchange(object):
         safely extract an Array from dictionary or list
         :returns Array | None:
         """
-        return self.safe_list_n(dictionaryOrList, [key], defaultValue)
+        value = self.safe_value(dictionaryOrList, key, defaultValue)
+        if value is None:
+            return defaultValue
+        if isinstance(value, list):
+            return value
+        return defaultValue
 
     def handle_deltas(self, orderbook, deltas):
         for i in range(0, len(deltas)):
