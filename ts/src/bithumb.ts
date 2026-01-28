@@ -477,21 +477,21 @@ export default class bithumb extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market);
         const open = this.safeString (ticker, 'opening_price');
-        let close = this.safeString (ticker, 'trade_price');
+        const close = this.safeString (ticker, 'trade_price');
         let high = this.safeString (ticker, 'high_price');
         let low = this.safeString (ticker, 'low_price');
         // workaround for Bithumb data inconsistency
         if (close !== undefined) {
-             if (high !== undefined) {
-                  if (Precise.stringLt (high, close)) {
-                       high = close;
-                  }
-             }
-             if (low !== undefined) {
-                  if (Precise.stringGt (low, close)) {
-                       low = close;
-                  }
-             }
+            if (high !== undefined) {
+                if (Precise.stringLt (high, close)) {
+                    high = close;
+                }
+            }
+            if (low !== undefined) {
+                if (Precise.stringGt (low, close)) {
+                    low = close;
+                }
+            }
         }
         const baseVolume = this.safeString (ticker, 'acc_trade_volume_24h');
         const quoteVolume = this.safeString (ticker, 'acc_trade_price_24h');
@@ -524,9 +524,9 @@ export default class bithumb extends Exchange {
         symbols = this.marketSymbols (symbols);
         let marketIds = [];
         if (symbols === undefined) {
-             marketIds = Object.keys (this.markets_by_id);
+            marketIds = Object.keys (this.markets_by_id);
         } else {
-             marketIds = this.marketIds (symbols);
+            marketIds = this.marketIds (symbols);
         }
         const promises = [];
         const chunkSize = 20; // safe chunk size
