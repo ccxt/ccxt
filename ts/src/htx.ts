@@ -1831,7 +1831,16 @@ export default class htx extends Exchange {
                 }
             }
         }
-        promises = await Promise.all (promises);
+        try {
+            promises = await Promise.all (promises);
+        } catch (e) {
+            const msg = this.exceptionMessage (e);
+            if (msg.indexOf ('api.hbdm.com') >= 0) {
+                throw new ExchangeError (this.id + " fetchMarkets failed. Adjust SSL certificate on your device or switch to alternative api domain using `exchange.urls['hostnames']['contract'] = 'https://api.hbdm.vn'`. Original error: " + msg);
+            } else {
+                throw new ExchangeError (this.id + ':' + msg);
+            }
+        }
         for (let i = 0; i < promises.length; i++) {
             allMarkets = this.arrayConcat (allMarkets, promises[i]);
         }
