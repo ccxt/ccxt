@@ -1736,8 +1736,8 @@ export default class pacifica extends Exchange {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/edit-order
      * @param {string} id edit order id
      * @param {string} symbol unified symbol of the market to edit an order in
-     * @param {string} type 'market' or 'limit' WARN is not usable
-     * @param {string} side 'buy' or 'sell' WARN is not usable
+     * @param {string} type 'market' or 'limit' WARN is not usable!
+     * @param {string} side 'buy' or 'sell' WARN is not usable!
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1766,13 +1766,6 @@ export default class pacifica extends Exchange {
     }
 
     editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params = {}) {
-        // should we throw?
-        if (side !== undefined) {
-            throw new NotSupported (this.id + ' editOrder() do not support side');
-        }
-        if (type !== undefined) {
-            throw new NotSupported (this.id + ' editOrder() do not support type');
-        }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount!');
         }
