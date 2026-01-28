@@ -1645,7 +1645,7 @@ export default class pacifica extends Exchange {
         ] as Order[];
     }
 
-    cancelAllOrdersRequest (symbol: string = undefined, params: Dict = {}) {
+    cancelAllOrdersRequest (symbol: Str = undefined, params: Dict = {}) {
         const operationType = 'cancel_all_orders';
         const sigPayload: Dict = { };
         const excludeReduceOnly = this.safeBool (params, 'excludeReduceOnly', false);
@@ -2205,7 +2205,7 @@ export default class pacifica extends Exchange {
         return this.parseOrder (lastInfo, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: string) {
         const statuses: Dict = {
             'open': 'open',
             'partially_filled': 'open',
@@ -2216,7 +2216,7 @@ export default class pacifica extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    mapTimeInForce (tifRaw: string) {
+    mapTimeInForce (tifRaw: Str) {
         const tifMap: Dict = {
             'GTC': 'GTC',
             'IOC': 'IOC',
