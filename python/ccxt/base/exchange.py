@@ -1024,7 +1024,7 @@ class Exchange(object):
                     current = result.get(key)
                     # if current is not None and current.__class__ is dict and value.__class__ is dict:
                     if isinstance(current, dict) and isinstance(value, dict):
-                        result[key] = Exchange.deep_extend_new(current, value, _all_dicts=True)
+                        result[key] = Exchange.deep_extend(current, value, _all_dicts=True)
                     else:
                         result[key] = value
             else:
