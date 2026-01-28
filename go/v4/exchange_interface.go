@@ -235,6 +235,88 @@ type ICoreExchange interface {
 	CreateSafeDictionary() *sync.Map
 	SetOptions(options interface{})
 	CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
+	AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	AmountToPrecision(symbol interface{}, amount interface{}) interface{}
+	BorrowCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	BorrowIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	BorrowMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CancelAllOrders(optionalArgs ...interface{}) <-chan interface{}
+	CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CloseAllPositions(optionalArgs ...interface{}) <-chan interface{}
+	ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CostToPrecision(symbol interface{}, cost interface{}) interface{}
+	CreateDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateLimitBuyOrder(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateLimitOrder(symbol interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateLimitSellOrder(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateMarketBuyOrder(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateMarketOrder(symbol interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateMarketSellOrder(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateOrderWithTakeProfitAndStopLoss(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreatePostOnlyOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateReduceOnlyOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateStopLimitOrder(symbol interface{}, side interface{}, amount interface{}, price interface{}, triggerPrice interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateStopLossOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateStopMarketOrder(symbol interface{}, side interface{}, amount interface{}, triggerPrice interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateStopOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateTakeProfitOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateTrailingAmountOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateTrailingPercentOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateTriggerOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CurrencyToPrecision(code interface{}, fee interface{}, optionalArgs ...interface{}) interface{}
+	EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{}
+	EditOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FeeToPrecision(symbol interface{}, fee interface{}) interface{}
+	FetchBorrowRate(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-chan interface{}
+	FetchCrossBorrowRate(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchCrossBorrowRates(optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositAddresses(optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositWithdrawFee(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{}
+	FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchFundingIntervals(optionalArgs ...interface{}) <-chan interface{}
+	FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchFundingRates(optionalArgs ...interface{}) <-chan interface{}
+	FetchIndexOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchIsolatedBorrowRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchIsolatedBorrowRates(optionalArgs ...interface{}) <-chan interface{}
+	FetchL3OrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchLeverages(optionalArgs ...interface{}) <-chan interface{}
+	FetchLongShortRatio(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchLongShortRatioHistory(optionalArgs ...interface{}) <-chan interface{}
+	FetchMarkOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchMarkPrices(optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
+	FetchOptionChain(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchPositionHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchPositionsForSymbol(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchPositionsHistory(optionalArgs ...interface{}) <-chan interface{}
+	FetchPositionsRisk(optionalArgs ...interface{}) <-chan interface{}
+	FetchPremiumIndexOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchTransactionFee(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchTransactionFees(optionalArgs ...interface{}) <-chan interface{}
+	FetchTransfer(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchTransfers(optionalArgs ...interface{}) <-chan interface{}
+	PriceToPrecision(symbol interface{}, price interface{}) interface{}
+	ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	RepayCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	RepayIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	SetLeverage(leverage interface{}, optionalArgs ...interface{}) <-chan interface{}
+	SetMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	SetMarginMode(marginMode interface{}, optionalArgs ...interface{}) <-chan interface{}
+	SetPositionMode(hedged interface{}, optionalArgs ...interface{}) <-chan interface{}
+	Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{}
 	Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{}
 	// WS methods
 	CancelAllOrdersWs(optionalArgs ...interface{}) <-chan interface{}
@@ -263,7 +345,7 @@ type ICoreExchange interface {
 	EditOrderWs(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchBalanceWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchClosedOrdersWs(optionalArgs ...interface{}) <-chan interface{}
-	// FetchCurrenciesWs(optionalArgs ...interface{}) <-chan interface{}
+    // FetchCurrenciesWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchDepositsWs(optionalArgs ...interface{}) <-chan interface{}
 	// FetchMarketsWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchMyTradesWs(optionalArgs ...interface{}) <-chan interface{}
