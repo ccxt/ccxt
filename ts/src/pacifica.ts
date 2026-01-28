@@ -1217,7 +1217,7 @@ export default class pacifica extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} amount how much of currency you want to trade in units of base currency. Not used for set tpsl order!
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float|undefined} [params.stopPrice] alias for triggerPrice
@@ -1542,6 +1542,7 @@ export default class pacifica extends Exchange {
         const request = this.cancelOrdersRequest (ids, symbol, params);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderIds' ]);
         const response = await this.privatePostOrdersBatch (this.extend (request, params));
+        this.log (response);
         //
         // {
         //   "success": true,
@@ -1618,7 +1619,7 @@ export default class pacifica extends Exchange {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
      * @param {string} symbol (optional) unified market symbol of the market to cancel orders in.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
+     * @param {boolean|undefined} [params.excludeReduceOnly] whether to exclude reduce-only orders
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
@@ -1645,7 +1646,7 @@ export default class pacifica extends Exchange {
         ] as Order[];
     }
 
-    cancelAllOrdersRequest (symbol: Str = undefined, params: Dict = {}) {
+    cancelAllOrdersRequest (symbol: Str, params = {}) {
         const operationType = 'cancel_all_orders';
         const sigPayload: Dict = { };
         const excludeReduceOnly = this.safeBool (params, 'excludeReduceOnly', false);
@@ -2205,7 +2206,7 @@ export default class pacifica extends Exchange {
         return this.parseOrder (lastInfo, market);
     }
 
-    parseOrderStatus (status: string) {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'open': 'open',
             'partially_filled': 'open',
@@ -2355,7 +2356,7 @@ export default class pacifica extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger2 (order, 'created_at', 'ct');
-        const status = this.safeString2 (order, 'order_status', 'os');
+        const status = this.safeString2 (order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         let side = this.safeString (order, 'side', 'd');
         if (side !== undefined) {
             side = (side === 'bid') ? 'buy' : 'sell';
