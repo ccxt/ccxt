@@ -2592,7 +2592,7 @@ export default class woo extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
@@ -3690,7 +3690,7 @@ export default class woo extends Exchange {
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
@@ -3704,7 +3704,7 @@ export default class woo extends Exchange {
      * @param {float} amount amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'REDUCE', params);

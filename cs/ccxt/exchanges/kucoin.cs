@@ -578,7 +578,7 @@ public partial class kucoin : Exchange
                     { "400370", typeof(InvalidOrder) },
                     { "400400", typeof(BadRequest) },
                     { "400401", typeof(AuthenticationError) },
-                    { "400500", typeof(InvalidOrder) },
+                    { "400500", typeof(RestrictedLocation) },
                     { "400600", typeof(BadSymbol) },
                     { "400760", typeof(InvalidOrder) },
                     { "401000", typeof(BadRequest) },
@@ -4982,7 +4982,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

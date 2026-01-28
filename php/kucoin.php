@@ -620,7 +620,7 @@ class kucoin extends Exchange {
                     '400370' => '\\ccxt\\InvalidOrder', // array("code":"400370","msg":"Max. price => 0.02500000000000000000")
                     '400400' => '\\ccxt\\BadRequest', // Parameter error
                     '400401' => '\\ccxt\\AuthenticationError', // User is not logged in
-                    '400500' => '\\ccxt\\InvalidOrder', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
+                    '400500' => '\\ccxt\\RestrictedLocation', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
                     '400600' => '\\ccxt\\BadSymbol', // array("code":"400600","msg":"validation.createOrder.symbolNotAvailable")
                     '400760' => '\\ccxt\\InvalidOrder', // array("code":"400760","msg":"order price should be more than XX")
                     '401000' => '\\ccxt\\BadRequest', // array("code":"401000","msg":"The interface has been deprecated")
@@ -4892,7 +4892,7 @@ class kucoin extends Exchange {
          * @param {boolean} [$params->hf] default false, when true will fetch ledger entries for the high frequency trading account
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $this->load_accounts();

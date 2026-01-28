@@ -13,6 +13,7 @@ public partial class aster : Exchange
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 333 },
             { "hostname", "aster.markets" },
+            { "certified", false },
             { "pro", true },
             { "dex", true },
             { "urls", new Dictionary<string, object>() {
@@ -179,25 +180,21 @@ public partial class aster : Exchange
             { "api", new Dictionary<string, object>() {
                 { "fapiPublic", new Dictionary<string, object>() {
                     { "get", new List<object>() {"v1/ping", "v1/time", "v1/exchangeInfo", "v1/depth", "v1/trades", "v1/historicalTrades", "v1/aggTrades", "v1/klines", "v1/indexPriceKlines", "v1/markPriceKlines", "v1/premiumIndex", "v1/fundingRate", "v1/fundingInfo", "v1/ticker/24hr", "v1/ticker/price", "v1/ticker/bookTicker", "v1/adlQuantile", "v1/forceOrders"} },
-                    { "post", new List<object>() {"v1/listenKey"} },
-                    { "put", new List<object>() {"v1/listenKey"} },
-                    { "delete", new List<object>() {"v1/listenKey"} },
                 } },
                 { "fapiPrivate", new Dictionary<string, object>() {
                     { "get", new List<object>() {"v1/positionSide/dual", "v1/multiAssetsMargin", "v1/order", "v1/openOrder", "v1/openOrders", "v1/allOrders", "v2/balance", "v3/balance", "v3/account", "v4/account", "v1/positionMargin/history", "v2/positionRisk", "v3/positionRisk", "v1/userTrades", "v1/income", "v1/leverageBracket", "v1/commissionRate"} },
-                    { "post", new List<object>() {"v1/positionSide/dual", "v1/multiAssetsMargin", "v1/order", "v1/order/test", "v1/batchOrders", "v1/asset/wallet/transfer", "v1/countdownCancelAll", "v1/leverage", "v1/marginType", "v1/positionMargin"} },
-                    { "delete", new List<object>() {"v1/order", "v1/allOpenOrders", "v1/batchOrders"} },
+                    { "post", new List<object>() {"v1/positionSide/dual", "v1/multiAssetsMargin", "v1/order", "v1/order/test", "v1/batchOrders", "v1/asset/wallet/transfer", "v1/countdownCancelAll", "v1/leverage", "v1/marginType", "v1/positionMargin", "v1/listenKey"} },
+                    { "put", new List<object>() {"v1/listenKey"} },
+                    { "delete", new List<object>() {"v1/order", "v1/allOpenOrders", "v1/batchOrders", "v1/listenKey"} },
                 } },
                 { "sapiPublic", new Dictionary<string, object>() {
                     { "get", new List<object>() {"v1/ping", "v1/time", "v1/exchangeInfo", "v1/depth", "v1/trades", "v1/historicalTrades", "v1/aggTrades", "v1/klines", "v1/ticker/24hr", "v1/ticker/price", "v1/ticker/bookTicker", "v1/aster/withdraw/estimateFee"} },
-                    { "post", new List<object>() {"v1/getNonce", "v1/createApiKey", "v1/listenKey"} },
-                    { "put", new List<object>() {"v1/listenKey"} },
-                    { "delete", new List<object>() {"v1/listenKey"} },
                 } },
                 { "sapiPrivate", new Dictionary<string, object>() {
                     { "get", new List<object>() {"v1/commissionRate", "v1/order", "v1/openOrders", "v1/allOrders", "v1/transactionHistory", "v1/account", "v1/userTrades"} },
-                    { "post", new List<object>() {"v1/order", "v1/asset/wallet/transfer", "v1/asset/sendToAddress", "v1/aster/user-withdraw"} },
-                    { "delete", new List<object>() {"v1/order", "v1/allOpenOrders"} },
+                    { "post", new List<object>() {"v1/order", "v1/asset/wallet/transfer", "v1/asset/sendToAddress", "v1/aster/user-withdraw", "v1/listenKey"} },
+                    { "put", new List<object>() {"v1/listenKey"} },
+                    { "delete", new List<object>() {"v1/order", "v1/allOpenOrders", "v1/listenKey"} },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -231,6 +228,7 @@ public partial class aster : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "defaultType", "spot" },
                 { "recvWindow", multiply(10, 1000) },
                 { "defaultTimeInForce", "GTC" },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
@@ -3885,10 +3883,12 @@ public partial class aster : Exchange
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            object nonce = this.milliseconds();
+            object timestamp = this.milliseconds();
+            // Nonce is in microseconds
+            object nonce = this.microseconds();
             object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             object extendedParams = this.extend(new Dictionary<string, object>() {
-                { "timestamp", nonce },
+                { "timestamp", timestamp },
             }, parameters);
             if (isTrue(!isEqual(defaultRecvWindow, null)))
             {

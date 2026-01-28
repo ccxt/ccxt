@@ -585,7 +585,7 @@ func (this *KucoinCore) Describe() interface{} {
 				"400370":                                                   InvalidOrder,
 				"400400":                                                   BadRequest,
 				"400401":                                                   AuthenticationError,
-				"400500":                                                   InvalidOrder,
+				"400500":                                                   RestrictedLocation,
 				"400600":                                                   BadSymbol,
 				"400760":                                                   InvalidOrder,
 				"401000":                                                   BadRequest,
@@ -5425,7 +5425,7 @@ func (this *KucoinCore) ParseLedgerEntry(item interface{}, optionalArgs ...inter
  * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *KucoinCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

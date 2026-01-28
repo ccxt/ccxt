@@ -389,7 +389,7 @@ export default class xt extends Exchange {
      * @param {float} amount amount of margin to add
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
@@ -401,7 +401,7 @@ export default class xt extends Exchange {
      * @param {float} amount the amount of margin to remove
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<MarginModification>;

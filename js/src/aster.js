@@ -29,6 +29,7 @@ export default class aster extends Exchange {
             // for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
             'hostname': 'aster.markets',
+            'certified': false,
             'pro': true,
             'dex': true,
             'urls': {
@@ -214,15 +215,6 @@ export default class aster extends Exchange {
                         'v1/adlQuantile',
                         'v1/forceOrders',
                     ],
-                    'post': [
-                        'v1/listenKey',
-                    ],
-                    'put': [
-                        'v1/listenKey',
-                    ],
-                    'delete': [
-                        'v1/listenKey',
-                    ],
                 },
                 'fapiPrivate': {
                     'get': [
@@ -255,11 +247,16 @@ export default class aster extends Exchange {
                         'v1/leverage',
                         'v1/marginType',
                         'v1/positionMargin',
+                        'v1/listenKey',
+                    ],
+                    'put': [
+                        'v1/listenKey',
                     ],
                     'delete': [
                         'v1/order',
                         'v1/allOpenOrders',
                         'v1/batchOrders',
+                        'v1/listenKey',
                     ],
                 },
                 'sapiPublic': {
@@ -277,17 +274,6 @@ export default class aster extends Exchange {
                         'v1/ticker/bookTicker',
                         'v1/aster/withdraw/estimateFee',
                     ],
-                    'post': [
-                        'v1/getNonce',
-                        'v1/createApiKey',
-                        'v1/listenKey',
-                    ],
-                    'put': [
-                        'v1/listenKey',
-                    ],
-                    'delete': [
-                        'v1/listenKey',
-                    ],
                 },
                 'sapiPrivate': {
                     'get': [
@@ -304,10 +290,15 @@ export default class aster extends Exchange {
                         'v1/asset/wallet/transfer',
                         'v1/asset/sendToAddress',
                         'v1/aster/user-withdraw',
+                        'v1/listenKey',
+                    ],
+                    'put': [
+                        'v1/listenKey',
                     ],
                     'delete': [
                         'v1/order',
                         'v1/allOpenOrders',
+                        'v1/listenKey',
                     ],
                 },
             },
@@ -342,6 +333,7 @@ export default class aster extends Exchange {
                 },
             },
             'options': {
+                'defaultType': 'spot',
                 'recvWindow': 10 * 1000,
                 'defaultTimeInForce': 'GTC',
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
@@ -3710,10 +3702,12 @@ export default class aster extends Exchange {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            const nonce = this.milliseconds();
+            const timestamp = this.milliseconds();
+            // Nonce is in microseconds
+            const nonce = this.microseconds();
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
             let extendedParams = this.extend({
-                'timestamp': nonce,
+                'timestamp': timestamp,
             }, params);
             if (defaultRecvWindow !== undefined) {
                 extendedParams['recvWindow'] = defaultRecvWindow;

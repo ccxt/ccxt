@@ -1,23 +1,23 @@
 package ccxt
 
-type Btcalpha struct {
-	*BtcalphaCore
-	Core          *BtcalphaCore
+type Alp struct {
+	*AlpCore
+	Core          *AlpCore
 	exchangeTyped *ExchangeTyped
 }
 
-func NewBtcalpha(userConfig map[string]interface{}) *Btcalpha {
-	p := NewBtcalphaCore()
+func NewAlp(userConfig map[string]interface{}) *Alp {
+	p := NewAlpCore()
 	p.Init(userConfig)
-	return &Btcalpha{
-		BtcalphaCore:  p,
+	return &Alp{
+		AlpCore:       p,
 		Core:          p,
 		exchangeTyped: NewExchangeTyped(&p.Exchange),
 	}
 }
-func NewBtcalphaFromCore(core *BtcalphaCore) *Btcalpha {
-	return &Btcalpha{
-		BtcalphaCore:  core,
+func NewAlpFromCore(core *AlpCore) *Alp {
+	return &Alp{
+		AlpCore:       core,
 		Core:          core,
 		exchangeTyped: NewExchangeTyped(&core.Exchange),
 	}
@@ -28,13 +28,13 @@ func NewBtcalphaFromCore(core *BtcalphaCore) *Btcalpha {
 
 /**
  * @method
- * @name btcalpha#fetchMarkets
- * @description retrieves data on all markets for btcalpha
- * @see https://btc-alpha.github.io/api-docs/#list-all-currencies
+ * @name alp#fetchMarkets
+ * @description retrieves data on all markets for alp
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-all-currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Btcalpha) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Alp) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -44,14 +44,14 @@ func (this *Btcalpha) FetchMarkets(params ...interface{}) ([]MarketInterface, er
 
 /**
  * @method
- * @name btcalpha#fetchTickers
- * @see https://btc-alpha.github.io/api-docs/#tickers
+ * @name alp#fetchTickers
+ * @see https://alpcomdev.github.io/alp-api-docs/#tickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Btcalpha) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
+func (this *Alp) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
 	opts := FetchTickersOptionsStruct{}
 
@@ -77,14 +77,14 @@ func (this *Btcalpha) FetchTickers(options ...FetchTickersOptions) (Tickers, err
 
 /**
  * @method
- * @name btcalpha#fetchTicker
- * @see https://btc-alpha.github.io/api-docs/#tickers
+ * @name alp#fetchTicker
+ * @see https://alpcomdev.github.io/alp-api-docs/#tickers
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Btcalpha) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
+func (this *Alp) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
 	opts := FetchTickerOptionsStruct{}
 
@@ -105,15 +105,15 @@ func (this *Btcalpha) FetchTicker(symbol string, options ...FetchTickerOptions) 
 
 /**
  * @method
- * @name btcalpha#fetchOrderBook
- * @see https://btc-alpha.github.io/api-docs/#get-orderbook
+ * @name alp#fetchOrderBook
+ * @see https://alpcomdev.github.io/alp-api-docs/#get-orderbook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func (this *Btcalpha) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
+func (this *Alp) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
 	opts := FetchOrderBookOptionsStruct{}
 
@@ -139,16 +139,16 @@ func (this *Btcalpha) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 
 /**
  * @method
- * @name btcalpha#fetchTrades
+ * @name alp#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://btc-alpha.github.io/api-docs/#list-all-exchanges
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-all-exchanges
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Btcalpha) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
+func (this *Alp) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
 	opts := FetchTradesOptionsStruct{}
 
@@ -179,16 +179,16 @@ func (this *Btcalpha) FetchTrades(symbol string, options ...FetchTradesOptions) 
 
 /**
  * @method
- * @name btcalpha#fetchDeposits
+ * @name alp#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://btc-alpha.github.io/api-docs/#list-own-deposits
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-own-deposits
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Btcalpha) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
+func (this *Alp) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsOptionsStruct{}
 
@@ -224,16 +224,16 @@ func (this *Btcalpha) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
 
 /**
  * @method
- * @name btcalpha#fetchWithdrawals
+ * @name alp#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://btc-alpha.github.io/api-docs/#list-own-made-withdraws
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-own-made-withdraws
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Btcalpha) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
+func (this *Alp) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
 	opts := FetchWithdrawalsOptionsStruct{}
 
@@ -269,9 +269,9 @@ func (this *Btcalpha) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
 
 /**
  * @method
- * @name btcalpha#fetchOHLCV
+ * @name alp#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://btc-alpha.github.io/api-docs/#charts
+ * @see https://alpcomdev.github.io/alp-api-docs/#charts
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -279,7 +279,7 @@ func (this *Btcalpha) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Btcalpha) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
+func (this *Alp) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
 
 	opts := FetchOHLCVOptionsStruct{}
 
@@ -315,13 +315,13 @@ func (this *Btcalpha) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
 
 /**
  * @method
- * @name btcalpha#fetchBalance
+ * @name alp#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://btc-alpha.github.io/api-docs/#list-own-wallets
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-own-wallets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Btcalpha) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Alp) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -331,8 +331,8 @@ func (this *Btcalpha) FetchBalance(params ...interface{}) (Balances, error) {
 
 /**
  * @method
- * @name btcalpha#createOrder
- * @see https://btc-alpha.github.io/api-docs/#create-order
+ * @name alp#createOrder
+ * @see https://alpcomdev.github.io/alp-api-docs/#create-order
  * @description create a trade order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'limit'
@@ -342,7 +342,7 @@ func (this *Btcalpha) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcalpha) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
+func (this *Alp) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
 	opts := CreateOrderOptionsStruct{}
 
@@ -368,15 +368,15 @@ func (this *Btcalpha) CreateOrder(symbol string, typeVar string, side string, am
 
 /**
  * @method
- * @name btcalpha#cancelOrder
- * @see https://btc-alpha.github.io/api-docs/#cancel-order
+ * @name alp#cancelOrder
+ * @see https://alpcomdev.github.io/alp-api-docs/#cancel-order
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcalpha) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
+func (this *Alp) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
 	opts := CancelOrderOptionsStruct{}
 
@@ -402,15 +402,15 @@ func (this *Btcalpha) CancelOrder(id string, options ...CancelOrderOptions) (Ord
 
 /**
  * @method
- * @name btcalpha#fetchOrder
- * @see https://btc-alpha.github.io/api-docs/#retrieve-single-order
+ * @name alp#fetchOrder
+ * @see https://alpcomdev.github.io/alp-api-docs/#retrieve-single-order
  * @description fetches information on an order made by the user
  * @param {string} id the order id
- * @param {string} symbol not used by btcalpha fetchOrder
+ * @param {string} symbol not used by alp fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcalpha) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
+func (this *Alp) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
 	opts := FetchOrderOptionsStruct{}
 
@@ -436,8 +436,8 @@ func (this *Btcalpha) FetchOrder(id string, options ...FetchOrderOptions) (Order
 
 /**
  * @method
- * @name btcalpha#fetchOrders
- * @see https://btc-alpha.github.io/api-docs/#list-own-orders
+ * @name alp#fetchOrders
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-own-orders
  * @description fetches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
@@ -445,7 +445,7 @@ func (this *Btcalpha) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcalpha) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
+func (this *Alp) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
 	opts := FetchOrdersOptionsStruct{}
 
@@ -481,16 +481,16 @@ func (this *Btcalpha) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 
 /**
  * @method
- * @name btcalpha#fetchOpenOrders
+ * @name alp#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://btc-alpha.github.io/api-docs/#list-own-orders
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-own-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcalpha) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
+func (this *Alp) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
 	opts := FetchOpenOrdersOptionsStruct{}
 
@@ -526,16 +526,16 @@ func (this *Btcalpha) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
 
 /**
  * @method
- * @name btcalpha#fetchClosedOrders
+ * @name alp#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://btc-alpha.github.io/api-docs/#list-own-orders
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-own-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcalpha) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
+func (this *Alp) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
 	opts := FetchClosedOrdersOptionsStruct{}
 
@@ -571,16 +571,16 @@ func (this *Btcalpha) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
 
 /**
  * @method
- * @name btcalpha#fetchMyTrades
+ * @name alp#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://btc-alpha.github.io/api-docs/#list-own-exchanges
+ * @see https://alpcomdev.github.io/alp-api-docs/#list-own-exchanges
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Btcalpha) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
+func (this *Alp) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
 	opts := FetchMyTradesOptionsStruct{}
 
@@ -616,573 +616,573 @@ func (this *Btcalpha) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 
 // missing typed methods from base
 // nolint
-func (this *Btcalpha) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Alp) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
-func (this *Btcalpha) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+func (this *Alp) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrders(ids, options...)
 }
-func (this *Btcalpha) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+func (this *Alp) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
-func (this *Btcalpha) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
+func (this *Alp) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
-func (this *Btcalpha) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Alp) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
-func (this *Btcalpha) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+func (this *Alp) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
-func (this *Btcalpha) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
+func (this *Alp) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }
-func (this *Btcalpha) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
+func (this *Alp) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
 }
-func (this *Btcalpha) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
+func (this *Alp) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.CreateDepositAddress(code, options...)
 }
-func (this *Btcalpha) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
+func (this *Alp) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
 }
-func (this *Btcalpha) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
+func (this *Alp) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
 }
-func (this *Btcalpha) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
+func (this *Alp) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
 }
-func (this *Btcalpha) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
+func (this *Alp) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
 }
-func (this *Btcalpha) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
+func (this *Alp) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
 }
-func (this *Btcalpha) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
+func (this *Alp) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
 }
-func (this *Btcalpha) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
+func (this *Alp) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
 }
-func (this *Btcalpha) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
+func (this *Alp) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
 }
-func (this *Btcalpha) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
+func (this *Alp) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
 }
-func (this *Btcalpha) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
+func (this *Alp) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CreateOrders(orders, options...)
 }
-func (this *Btcalpha) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
+func (this *Alp) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
 	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
+func (this *Alp) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
+func (this *Alp) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
+func (this *Alp) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
 }
-func (this *Btcalpha) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
+func (this *Alp) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
+func (this *Alp) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
 }
-func (this *Btcalpha) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
+func (this *Alp) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
+func (this *Alp) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
+func (this *Alp) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
+func (this *Alp) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
+func (this *Alp) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
 	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
+func (this *Alp) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
 }
-func (this *Btcalpha) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
+func (this *Alp) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
 }
-func (this *Btcalpha) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
+func (this *Alp) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
 }
-func (this *Btcalpha) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+func (this *Alp) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
 }
-func (this *Btcalpha) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+func (this *Alp) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
-func (this *Btcalpha) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+func (this *Alp) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Btcalpha) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Alp) FetchAccounts(params ...interface{}) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Btcalpha) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Alp) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
-func (this *Btcalpha) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
+func (this *Alp) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchBidsAsks(options...)
 }
-func (this *Btcalpha) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
+func (this *Alp) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Btcalpha) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
-func (this *Btcalpha) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
+func (this *Alp) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Btcalpha) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Alp) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
-func (this *Btcalpha) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
+func (this *Alp) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
 	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
 }
-func (this *Btcalpha) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
+func (this *Alp) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.FetchConvertTrade(id, options...)
 }
-func (this *Btcalpha) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
+func (this *Alp) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
 	return this.exchangeTyped.FetchConvertTradeHistory(options...)
 }
-func (this *Btcalpha) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
+func (this *Alp) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Btcalpha) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Alp) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
-func (this *Btcalpha) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Alp) FetchCurrencies(params ...interface{}) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
-func (this *Btcalpha) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
+func (this *Alp) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddress(code, options...)
 }
-func (this *Btcalpha) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
+func (this *Alp) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Btcalpha) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Alp) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Btcalpha) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
+func (this *Alp) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Btcalpha) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Btcalpha) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Btcalpha) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Alp) FetchFreeBalance(params ...interface{}) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
-func (this *Btcalpha) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
+func (this *Alp) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 	return this.exchangeTyped.FetchFundingHistory(options...)
 }
-func (this *Btcalpha) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
+func (this *Alp) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
 }
-func (this *Btcalpha) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
+func (this *Alp) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingIntervals(options...)
 }
-func (this *Btcalpha) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+func (this *Alp) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 	return this.exchangeTyped.FetchFundingRate(symbol, options...)
 }
-func (this *Btcalpha) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
+func (this *Alp) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 	return this.exchangeTyped.FetchFundingRateHistory(options...)
 }
-func (this *Btcalpha) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
+func (this *Alp) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingRates(options...)
 }
-func (this *Btcalpha) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
+func (this *Alp) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 	return this.exchangeTyped.FetchGreeks(symbol, options...)
 }
-func (this *Btcalpha) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
+func (this *Alp) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
 }
-func (this *Btcalpha) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
+func (this *Alp) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Btcalpha) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Alp) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
-func (this *Btcalpha) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
+func (this *Alp) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
 	return this.exchangeTyped.FetchLastPrices(options...)
 }
-func (this *Btcalpha) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
+func (this *Alp) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 	return this.exchangeTyped.FetchLedger(options...)
 }
-func (this *Btcalpha) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
+func (this *Alp) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
 	return this.exchangeTyped.FetchLedgerEntry(id, options...)
 }
-func (this *Btcalpha) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
+func (this *Alp) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 	return this.exchangeTyped.FetchLeverage(symbol, options...)
 }
-func (this *Btcalpha) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
+func (this *Alp) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
 	return this.exchangeTyped.FetchLeverages(options...)
 }
-func (this *Btcalpha) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
+func (this *Alp) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 	return this.exchangeTyped.FetchLeverageTiers(options...)
 }
-func (this *Btcalpha) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
+func (this *Alp) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchLiquidations(symbol, options...)
 }
-func (this *Btcalpha) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
+func (this *Alp) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
 	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
 }
-func (this *Btcalpha) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
+func (this *Alp) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
 	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
 }
-func (this *Btcalpha) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
+func (this *Alp) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
 	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
 }
-func (this *Btcalpha) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
+func (this *Alp) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
 	return this.exchangeTyped.FetchMarginMode(symbol, options...)
 }
-func (this *Btcalpha) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
+func (this *Alp) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)
 }
-func (this *Btcalpha) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
+func (this *Alp) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Btcalpha) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Alp) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
-func (this *Btcalpha) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
+func (this *Alp) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
 }
-func (this *Btcalpha) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
+func (this *Alp) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchMarkPrices(options...)
 }
-func (this *Btcalpha) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
+func (this *Alp) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
-func (this *Btcalpha) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+func (this *Alp) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
 }
-func (this *Btcalpha) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
+func (this *Alp) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
 }
-func (this *Btcalpha) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+func (this *Alp) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
 	return this.exchangeTyped.FetchOpenInterests(options...)
 }
-func (this *Btcalpha) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
+func (this *Alp) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 	return this.exchangeTyped.FetchOption(symbol, options...)
 }
-func (this *Btcalpha) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
+func (this *Alp) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
-func (this *Btcalpha) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+func (this *Alp) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
-func (this *Btcalpha) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
+func (this *Alp) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
-func (this *Btcalpha) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+func (this *Alp) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Btcalpha) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
+func (this *Alp) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Btcalpha) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Alp) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
-func (this *Btcalpha) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
+func (this *Alp) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 	return this.exchangeTyped.FetchPosition(symbol, options...)
 }
-func (this *Btcalpha) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
+func (this *Alp) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Btcalpha) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
-func (this *Btcalpha) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
+func (this *Alp) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositions(options...)
 }
-func (this *Btcalpha) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
+func (this *Alp) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
 }
-func (this *Btcalpha) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
+func (this *Alp) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsHistory(options...)
 }
-func (this *Btcalpha) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
+func (this *Alp) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsRisk(options...)
 }
-func (this *Btcalpha) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
+func (this *Alp) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Btcalpha) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Alp) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Btcalpha) FetchTime(params ...interface{}) (int64, error) {
+func (this *Alp) FetchTime(params ...interface{}) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
-func (this *Btcalpha) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
+func (this *Alp) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Btcalpha) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Alp) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Btcalpha) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Btcalpha) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Btcalpha) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
-func (this *Btcalpha) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
+func (this *Alp) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchTransactions(options...)
 }
-func (this *Btcalpha) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
+func (this *Alp) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
 	return this.exchangeTyped.FetchTransfer(id, options...)
 }
-func (this *Btcalpha) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
+func (this *Alp) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 	return this.exchangeTyped.FetchTransfers(options...)
 }
-func (this *Btcalpha) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
+func (this *Alp) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Btcalpha) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Alp) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Btcalpha) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Alp) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
-func (this *Btcalpha) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
+func (this *Alp) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 	return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)
 }
-func (this *Btcalpha) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
+func (this *Alp) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 	return this.exchangeTyped.Withdraw(code, amount, address, options...)
 }
-func (this *Btcalpha) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
+func (this *Alp) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrdersWs(options...)
 }
-func (this *Btcalpha) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
+func (this *Alp) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWs(ids, options...)
 }
-func (this *Btcalpha) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
+func (this *Alp) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CancelOrderWs(id, options...)
 }
-func (this *Btcalpha) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
+func (this *Alp) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
 }
-func (this *Btcalpha) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
+func (this *Alp) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
 }
-func (this *Btcalpha) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
+func (this *Alp) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
 }
-func (this *Btcalpha) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
+func (this *Alp) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
 }
-func (this *Btcalpha) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
+func (this *Alp) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
 }
-func (this *Btcalpha) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
+func (this *Alp) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
 }
-func (this *Btcalpha) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
+func (this *Alp) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
 }
-func (this *Btcalpha) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
+func (this *Alp) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.CreateOrdersWs(orders, options...)
 }
-func (this *Btcalpha) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
+func (this *Alp) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
+func (this *Alp) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
+func (this *Alp) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
+func (this *Alp) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
+func (this *Alp) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
 }
-func (this *Btcalpha) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
+func (this *Alp) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
+func (this *Alp) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
 }
-func (this *Btcalpha) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
+func (this *Alp) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
+func (this *Alp) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
+func (this *Alp) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
+func (this *Alp) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
+func (this *Alp) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
 }
-func (this *Btcalpha) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
+func (this *Alp) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Btcalpha) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Alp) FetchBalanceWs(params ...interface{}) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
-func (this *Btcalpha) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
+func (this *Alp) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Btcalpha) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
-func (this *Btcalpha) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
+func (this *Alp) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchMyTradesWs(options...)
 }
-func (this *Btcalpha) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
+func (this *Alp) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
 }
-func (this *Btcalpha) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
+func (this *Alp) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOpenOrdersWs(options...)
 }
-func (this *Btcalpha) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
+func (this *Alp) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
 	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
 }
-func (this *Btcalpha) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
+func (this *Alp) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
 }
-func (this *Btcalpha) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
+func (this *Alp) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchOrdersWs(options...)
 }
-func (this *Btcalpha) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
+func (this *Alp) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.FetchOrderWs(id, options...)
 }
-func (this *Btcalpha) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
+func (this *Alp) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
 }
-func (this *Btcalpha) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
+func (this *Alp) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsWs(options...)
 }
-func (this *Btcalpha) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
+func (this *Alp) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionWs(symbol, options...)
 }
-func (this *Btcalpha) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
+func (this *Alp) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickersWs(options...)
 }
-func (this *Btcalpha) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
+func (this *Alp) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchTickerWs(symbol, options...)
 }
-func (this *Btcalpha) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
+func (this *Alp) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Btcalpha) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Alp) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Btcalpha) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Alp) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Btcalpha) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Alp) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Btcalpha) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Alp) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Btcalpha) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Alp) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Btcalpha) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Alp) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Btcalpha) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Alp) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Btcalpha) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Alp) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Btcalpha) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Alp) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Btcalpha) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Alp) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Btcalpha) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Alp) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Btcalpha) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Alp) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Btcalpha) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Alp) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Btcalpha) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Alp) WatchBalance(params ...interface{}) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
-func (this *Btcalpha) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
+func (this *Alp) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
 	return this.exchangeTyped.WatchBidsAsks(options...)
 }
-func (this *Btcalpha) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
+func (this *Alp) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.WatchLiquidations(symbol, options...)
 }
-func (this *Btcalpha) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
+func (this *Alp) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
 	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
 }
-func (this *Btcalpha) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
+func (this *Alp) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
 	return this.exchangeTyped.WatchMarkPrices(options...)
 }
-func (this *Btcalpha) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
+func (this *Alp) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
 }
-func (this *Btcalpha) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
+func (this *Alp) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
 }
-func (this *Btcalpha) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
+func (this *Alp) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.WatchMyTrades(options...)
 }
-func (this *Btcalpha) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
+func (this *Alp) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.WatchOHLCV(symbol, options...)
 }
-func (this *Btcalpha) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
+func (this *Alp) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
 	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Btcalpha) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
+func (this *Alp) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
 	return this.exchangeTyped.WatchOrderBook(symbol, options...)
 }
-func (this *Btcalpha) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
+func (this *Alp) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
 	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Btcalpha) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
+func (this *Alp) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.WatchOrders(options...)
 }
-func (this *Btcalpha) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
+func (this *Alp) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
 }
-func (this *Btcalpha) WatchPosition(options ...WatchPositionOptions) (Position, error) {
+func (this *Alp) WatchPosition(options ...WatchPositionOptions) (Position, error) {
 	return this.exchangeTyped.WatchPosition(options...)
 }
-func (this *Btcalpha) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
+func (this *Alp) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
 	return this.exchangeTyped.WatchPositions(options...)
 }
-func (this *Btcalpha) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
+func (this *Alp) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
 	return this.exchangeTyped.WatchTicker(symbol, options...)
 }
-func (this *Btcalpha) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
+func (this *Alp) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.WatchTickers(options...)
 }
-func (this *Btcalpha) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
+func (this *Alp) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.WatchTrades(symbol, options...)
 }
-func (this *Btcalpha) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
+func (this *Alp) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
 	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
 }
-func (this *Btcalpha) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
+func (this *Alp) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
 	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

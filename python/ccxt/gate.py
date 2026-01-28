@@ -67,6 +67,7 @@ class gate(Exchange, ImplicitAPI):
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
                         'loan': 'https://api.gateio.ws/api/v4',
+                        'otc': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -491,6 +492,7 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/account_book': 1,
                             '{settle}/positions': 1,
                             '{settle}/positions/{contract}': 1,
+                            '{settle}/get_leverage/{contract}': 1,
                             '{settle}/dual_comp/positions/{contract}': 1,
                             '{settle}/orders': 1,
                             '{settle}/orders_timerange': 1,
@@ -508,10 +510,12 @@ class gate(Exchange, ImplicitAPI):
                         'post': {
                             '{settle}/positions/{contract}/margin': 1,
                             '{settle}/positions/{contract}/leverage': 1,
+                            '{settle}/positions/{contract}/set_leverage': 1,
                             '{settle}/positions/{contract}/risk_limit': 1,
                             '{settle}/positions/cross_mode': 1,
                             '{settle}/dual_comp/positions/cross_mode': 1,
                             '{settle}/dual_mode': 1,
+                            '{settle}/set_position_mode': 1,
                             '{settle}/dual_comp/positions/{contract}/margin': 1,
                             '{settle}/dual_comp/positions/{contract}/leverage': 1,
                             '{settle}/dual_comp/positions/{contract}/risk_limit': 1,
@@ -598,6 +602,7 @@ class gate(Exchange, ImplicitAPI):
                             'uni/rate': 20 / 15,
                             'staking/eth2/rate_records': 20 / 15,
                             'dual/orders': 20 / 15,
+                            'dual/balance': 20 / 15,
                             'structured/orders': 20 / 15,
                             'staking/coins': 20 / 15,
                             'staking/order_list': 20 / 15,
@@ -678,6 +683,21 @@ class gate(Exchange, ImplicitAPI):
                             'broker/transaction_history': 20 / 15,
                             'user/info': 20 / 15,
                             'user/sub_relation': 20 / 15,
+                        },
+                    },
+                    'otc': {
+                        'get': {
+                            'get_user_def_bank': 1,
+                            'order/list': 1,
+                            'stable_coin/order/list': 1,
+                            'order/detail': 1,
+                        },
+                        'post': {
+                            'quote': 1,
+                            'order/create': 1,
+                            'stable_coin/order/create': 1,
+                            'order/paid': 1,
+                            'order/cancel': 1,
                         },
                     },
                 },
@@ -6508,6 +6528,7 @@ class gate(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             queryString = ''
+            rawQueryString = ''
             requiresURLEncoding = False
             if ((type == 'futures') or (type == 'delivery')) and method == 'POST':
                 pathParts = path.split('/')
@@ -6515,6 +6536,8 @@ class gate(Exchange, ImplicitAPI):
                 requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if query:
+                    # https://github.com/ccxt/ccxt/issues/27663
+                    rawQueryString = self.rawencode(query)
                     queryString = self.urlencode(query)
                     # https://github.com/ccxt/ccxt/issues/25570
                     if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
@@ -6535,7 +6558,7 @@ class gate(Exchange, ImplicitAPI):
             timestamp = self.parse_to_int(nonce / 1000)
             timestampString = str(timestamp)
             signaturePath = '/api/' + self.version + entirePath
-            payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
+            payloadArray = [method.upper(), signaturePath, rawQueryString, bodySignature, timestampString]
             # eslint-disable-next-line quotes
             payload = "\n".join(payloadArray)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
@@ -6615,7 +6638,7 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, -amount, params)
 
@@ -6629,7 +6652,7 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, params)
 
@@ -6904,7 +6927,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         paginate = False

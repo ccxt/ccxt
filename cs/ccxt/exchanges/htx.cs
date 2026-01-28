@@ -145,7 +145,7 @@ public partial class htx : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg" },
                 { "hostnames", new Dictionary<string, object>() {
-                    { "contract", "api.hbdm.com" },
+                    { "contract", "api.hbdm.vn" },
                     { "spot", "api.huobi.pro" },
                     { "status", new Dictionary<string, object>() {
                         { "spot", "status.huobigroup.com" },
@@ -571,6 +571,20 @@ public partial class htx : Exchange
                             { "linear-swap-api/v3/fix_position_margin_change_record", 1 },
                             { "linear-swap-api/v3/swap_unified_account_type", 1 },
                             { "linear-swap-api/v3/linear_swap_overview_account_info", 1 },
+                            { "v5/account/balance", 1 },
+                            { "v5/account/asset_mode", 1 },
+                            { "v5/trade/position/opens", 1 },
+                            { "v5/trade/order/opens", 1 },
+                            { "v5/trade/order/details", 1 },
+                            { "v5/trade/order/history", 1 },
+                            { "v5/trade/order", 1 },
+                            { "v5/position/lever", 1 },
+                            { "v5/position/mode", 1 },
+                            { "v5/position/risk/limit", 1 },
+                            { "v5/position/risk/limit_tier", 1 },
+                            { "v5/market/risk/limit", 1 },
+                            { "v5/market/assets_deduction_currency", 1 },
+                            { "v5/market/multi_assets_margin", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "api/v1/contract_balance_valuation", 1 },
@@ -790,6 +804,17 @@ public partial class htx : Exchange
                             { "linear-swap-api/v1/swap_cross_track_openorders", 1 },
                             { "linear-swap-api/v1/swap_track_hisorders", 1 },
                             { "linear-swap-api/v1/swap_cross_track_hisorders", 1 },
+                            { "v5/account/asset_mode", 1 },
+                            { "v5/trade/order", 1 },
+                            { "v5/trade/batch_orders", 1 },
+                            { "v5/trade/cancel_order", 1 },
+                            { "v5/trade/cancel_batch_orders", 1 },
+                            { "v5/trade/cancel_all_orders", 1 },
+                            { "v5/trade/position", 1 },
+                            { "v5/trade/position_all", 1 },
+                            { "v5/position/lever", 1 },
+                            { "v5/position/mode", 1 },
+                            { "v5/account/fee_deduction_currency", 1 },
                         } },
                     } },
                 } },
@@ -8562,7 +8587,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

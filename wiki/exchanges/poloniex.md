@@ -797,7 +797,7 @@ poloniex.fetchPositions (symbols[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -818,7 +818,7 @@ poloniex.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |

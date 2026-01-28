@@ -28,6 +28,7 @@ function testSafeMethods() {
         'bool': true,
         'list': [1, 2, 3],
         'dict': { 'a': 1 },
+        'listOfDicts': [{ 'a': 1 }],
         'str': 'heLlo',
         'strNumber': '3',
         //
@@ -98,6 +99,8 @@ function testSafeMethods() {
     assert(equals(dictObject, compareDict));
     assert(exchange.safeList(inputDict, 'dict') === undefined);
     assert(exchange.safeList(inputList, 1) === undefined);
+    const arrayOfDicts = exchange.safeList(inputDict, 'listOfDicts');
+    assert(equals(arrayOfDicts[0], { 'a': 1 }));
     // safeList2
     listObject = exchange.safeList2(inputDict, 'a', 'list');
     assert(equals(dictObject, compareDict));

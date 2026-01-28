@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.32';
+$version = '4.5.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.32';
+    const VERSION = '4.5.34';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -341,6 +341,7 @@ class Exchange {
     public $quoteCurrencies = null;
 
     public static $exchanges = array(
+        'alp',
         'alpaca',
         'apex',
         'arkham',
@@ -372,7 +373,6 @@ class Exchange {
         'bitvavo',
         'blockchaincom',
         'blofin',
-        'btcalpha',
         'btcbox',
         'btcmarkets',
         'btcturk',
@@ -2852,10 +2852,14 @@ class Exchange {
     public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean value from $dictionary or list
+         * safely extract boolean $value from $dictionary or list
          * @return array(bool | null)
          */
-        return $this->safe_bool_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if (is_bool($value)) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
@@ -2880,7 +2884,14 @@ class Exchange {
          * safely extract a $dictionary from $dictionary or list
          * @return array(object | null)
          */
-        return $this->safe_dict_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
@@ -2923,7 +2934,14 @@ class Exchange {
          * safely extract an Array from dictionary or list
          * @return array(Array | null)
          */
-        return $this->safe_list_n($dictionaryOrList, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function handle_deltas($orderbook, $deltas) {

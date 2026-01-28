@@ -191,6 +191,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'public/get-valuations': 1,
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
+                            'public/get-announcements': 1,
                             'public/get-risk-parameters': 1,
                         },
                         'post': {
@@ -245,6 +246,8 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/staking/convert': 2,
                             'private/staking/get-open-convert': 2,
                             'private/staking/get-convert-history': 2,
+                            'private/create-isolated-margin-transfer': 10 / 3,
+                            'private/change-isolated-margin-leverage': 10 / 3,
                         },
                     },
                 },
@@ -2572,7 +2575,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         request: dict = {}

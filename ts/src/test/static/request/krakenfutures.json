@@ -19,6 +19,15 @@
                 "output": null
             }
         ],
+        "fetchOrders": [
+            {
+                "description": "orders status",
+                "method": "fetchOrders",
+                "url": "https://futures.kraken.com/derivatives/api/v3/orders/status",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Swap limit buy",

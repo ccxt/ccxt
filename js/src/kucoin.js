@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/kucoin.js';
-import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -626,7 +626,7 @@ export default class kucoin extends Exchange {
                     '400370': InvalidOrder,
                     '400400': BadRequest,
                     '400401': AuthenticationError,
-                    '400500': InvalidOrder,
+                    '400500': RestrictedLocation,
                     '400600': BadSymbol,
                     '400760': InvalidOrder,
                     '401000': BadRequest,
@@ -4911,7 +4911,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

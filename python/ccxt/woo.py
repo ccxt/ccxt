@@ -2487,7 +2487,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         currencyRows = self.get_asset_history_rows(code, since, limit, params)
         currency = self.safe_value(currencyRows, 0)
@@ -3530,7 +3530,7 @@ class woo(Exchange, ImplicitAPI):
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.position_side]: 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
@@ -3544,7 +3544,7 @@ class woo(Exchange, ImplicitAPI):
         :param float amount: amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.position_side]: 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'REDUCE', params)
 

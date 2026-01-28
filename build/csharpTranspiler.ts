@@ -1381,6 +1381,8 @@ class NewTranspiler {
                 [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [ /void function/g, 'void'],
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
+                // apply 'getPreTranspilationRegexes' here, bcz in CS we don't have pre-transpilation regexes
+                [/exchange.jsonStringifyWithNull/g, 'json'],
             ];
 
             if (isWs) {

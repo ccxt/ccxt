@@ -4068,7 +4068,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the exchange API endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: A `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

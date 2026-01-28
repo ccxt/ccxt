@@ -20,6 +20,7 @@ class aster extends Exchange {
             // for brokers => https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit' => 333,
             'hostname' => 'aster.markets',
+            'certified' => false,
             'pro' => true,
             'dex' => true,
             'urls' => array(
@@ -205,15 +206,6 @@ class aster extends Exchange {
                         'v1/adlQuantile',
                         'v1/forceOrders',
                     ),
-                    'post' => array(
-                        'v1/listenKey',
-                    ),
-                    'put' => array(
-                        'v1/listenKey',
-                    ),
-                    'delete' => array(
-                        'v1/listenKey',
-                    ),
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
@@ -246,11 +238,16 @@ class aster extends Exchange {
                         'v1/leverage',
                         'v1/marginType',
                         'v1/positionMargin',
+                        'v1/listenKey',
+                    ),
+                    'put' => array(
+                        'v1/listenKey',
                     ),
                     'delete' => array(
                         'v1/order',
                         'v1/allOpenOrders',
                         'v1/batchOrders',
+                        'v1/listenKey',
                     ),
                 ),
                 'sapiPublic' => array(
@@ -268,17 +265,6 @@ class aster extends Exchange {
                         'v1/ticker/bookTicker',
                         'v1/aster/withdraw/estimateFee',
                     ),
-                    'post' => array(
-                        'v1/getNonce',
-                        'v1/createApiKey',
-                        'v1/listenKey',
-                    ),
-                    'put' => array(
-                        'v1/listenKey',
-                    ),
-                    'delete' => array(
-                        'v1/listenKey',
-                    ),
                 ),
                 'sapiPrivate' => array(
                     'get' => array(
@@ -295,10 +281,15 @@ class aster extends Exchange {
                         'v1/asset/wallet/transfer',
                         'v1/asset/sendToAddress',
                         'v1/aster/user-withdraw',
+                        'v1/listenKey',
+                    ),
+                    'put' => array(
+                        'v1/listenKey',
                     ),
                     'delete' => array(
                         'v1/order',
                         'v1/allOpenOrders',
+                        'v1/listenKey',
                     ),
                 ),
             ),
@@ -333,6 +324,7 @@ class aster extends Exchange {
                 ),
             ),
             'options' => array(
+                'defaultType' => 'spot',
                 'recvWindow' => 10 * 1000, // 10 sec
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
@@ -3707,10 +3699,12 @@ class aster extends Exchange {
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            $nonce = $this->milliseconds();
+            $timestamp = $this->milliseconds();
+            // Nonce is in microseconds
+            $nonce = $this->microseconds();
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = $this->extend(array(
-                'timestamp' => $nonce,
+                'timestamp' => $timestamp,
             ), $params);
             if ($defaultRecvWindow !== null) {
                 $extendedParams['recvWindow'] = $defaultRecvWindow;

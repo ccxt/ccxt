@@ -230,6 +230,7 @@ interface binance {
     sapiGetPortfolioNegativeBalanceExchangeRecord (params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioPmloanHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioEarnAssetBalance (params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioDeltaMode (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord (params?: {}): Promise<implicitReturnType>;
@@ -373,6 +374,7 @@ interface binance {
     sapiPostPortfolioMint (params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRedeem (params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioEarnAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioDeltaMode (params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanAdd (params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEdit (params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEditStatus (params?: {}): Promise<implicitReturnType>;
@@ -677,6 +679,8 @@ interface binance {
     privatePostOrderListOco (params?: {}): Promise<implicitReturnType>;
     privatePostOrderListOto (params?: {}): Promise<implicitReturnType>;
     privatePostOrderListOtoco (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOpo (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOpoco (params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;

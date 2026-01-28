@@ -660,10 +660,10 @@ func AssertRoundMinuteTimestamp(exchange ccxt.ICoreExchange, skippedProperties i
 	var ts interface{} = exchange.SafeString(entry, key)
 	Assert(IsEqual(ccxt.Precise.StringMod(ts, "60000"), "0"), Add("timestamp should be a multiple of 60 seconds (1 minute)", logText))
 }
-func DeepEqual(a interface{}, b interface{}) interface{} {
+func DeepEqual(exchange ccxt.ICoreExchange, a interface{}, b interface{}) interface{} {
 	return IsEqual(JsonStringify(a), JsonStringify(b))
 }
 func AssertDeepEqual(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, a interface{}, b interface{}) {
 	var logText interface{} = LogTemplate(exchange, method, map[string]interface{}{})
-	Assert(DeepEqual(a, b), Add(Add(Add(Add("two dicts do not match: ", JsonStringify(a)), " != "), JsonStringify(b)), logText))
+	Assert(DeepEqual(exchange, a, b), Add(Add(Add(Add("two dicts do not match: ", JsonStringify(a)), " != "), JsonStringify(b)), logText))
 }

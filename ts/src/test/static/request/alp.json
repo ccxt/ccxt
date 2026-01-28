@@ -7,7 +7,7 @@
             {
                 "description": "Spot orders",
                 "method": "fetchOrders",
-                "url": "https://btc-alpha.com/api/v1/orders/own/?pair=LTC_USDT",
+                "url": "https://alp.com/api/v1/orders/own/?pair=LTC_USDT",
                 "input": [
                     "LTC/USDT"
                 ]
@@ -17,7 +17,7 @@
             {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
-                "url": "https://btc-alpha.com/api/v1/exchanges/own/?limit=5&pair=LTC_USDT",
+                "url": "https://alp.com/api/v1/exchanges/own/?limit=5&pair=LTC_USDT",
                 "input": [
                     "LTC/USDT",
                     1699457638000,
@@ -29,7 +29,7 @@
             {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://btc-alpha.com/api/v1/orders/own/?pair=LTC_USDT&status=1",
+                "url": "https://alp.com/api/v1/orders/own/?pair=LTC_USDT&status=1",
                 "input": [
                     "LTC/USDT"
                 ]
@@ -39,7 +39,7 @@
             {
                 "description": "Spot closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://btc-alpha.com/api/v1/orders/own/?pair=LTC_USDT&status=3",
+                "url": "https://alp.com/api/v1/orders/own/?pair=LTC_USDT&status=3",
                 "input": [
                     "LTC/USDT"
                 ]
@@ -49,7 +49,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://btc-alpha.com/api/v1/wallets/?type=spot",
+                "url": "https://alp.com/api/v1/wallets/?type=spot",
                 "input": [
                     {
                         "type": "spot"
@@ -59,7 +59,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://btc-alpha.com/api/v1/wallets/?type=swap",
+                "url": "https://alp.com/api/v1/wallets/?type=swap",
                 "input": [
                     {
                         "type": "swap"
@@ -71,7 +71,7 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://btc-alpha.com/api/v1/deposits/",
+                "url": "https://alp.com/api/v1/deposits/",
                 "input": []
             }
         ],
@@ -79,7 +79,7 @@
             {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",
-                "url": "https://btc-alpha.com/api/v1/withdraws/",
+                "url": "https://alp.com/api/v1/withdraws/",
                 "input": []
             }
         ],
@@ -87,7 +87,7 @@
             {
                 "description": "Spot limit buy",
                 "method": "createOrder",
-                "url": "https://btc-alpha.com/api/v1/order/",
+                "url": "https://alp.com/api/v1/order/",
                 "input": [
                     "LTC/USDT",
                     "limit",
@@ -102,7 +102,7 @@
             {
                 "description": "spot fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://btc-alpha.com/api/v1/exchanges/?pair=BTC_USDT",
+                "url": "https://alp.com/api/v1/exchanges/?pair=BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -112,7 +112,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://btc-alpha.com/api/v1/orderbook/BTC_USDT",
+                "url": "https://alp.com/api/v1/orderbook/BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -122,7 +122,7 @@
             {
                 "description": "spot ticker",
                 "method": "fetchTicker",
-                "url": "https://btc-alpha.com/api/v1/ticker/?pair=BTC_USDT",
+                "url": "https://alp.com/api/v1/ticker/?pair=BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -132,7 +132,7 @@
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
-                "url": "https://btc-alpha.com/api/v1/ticker/",
+                "url": "https://alp.com/api/v1/ticker/",
                 "input": [
                     [
                         "BTC/USDT",
@@ -145,7 +145,7 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://btc-alpha.com/api/charts/BTC_USDT/5/chart/",
+                "url": "https://alp.com/api/charts/BTC_USDT/5/chart/",
                 "input": [
                     "BTC/USDT"
                 ]

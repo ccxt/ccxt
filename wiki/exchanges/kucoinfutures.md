@@ -513,7 +513,7 @@ kucoinfutures.cancelAllOrders (symbol[, params])
 add margin
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually  
 
