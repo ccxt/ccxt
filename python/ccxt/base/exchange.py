@@ -993,6 +993,7 @@ class Exchange(object):
     def extend(*args):
         if not args:
             return {}
+        # after dropping 3.7 py, we can use result = {}
         result = collections.OrderedDict() if type(args[0]) is collections.OrderedDict else {}
         for arg in args:
             result.update(arg)
