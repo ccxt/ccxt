@@ -991,16 +991,12 @@ class Exchange(object):
 
     @staticmethod
     def extend(*args):
-        if args is not None:
-            result = None
-            if type(args[0]) is collections.OrderedDict:
-                result = collections.OrderedDict()
-            else:
-                result = {}
-            for arg in args:
-                result.update(arg)
-            return result
-        return {}
+        if not args:
+            return {}
+        result = collections.OrderedDict() if type(args[0]) is collections.OrderedDict else {}
+        for arg in args:
+            result.update(arg)
+        return result
 
     @staticmethod
     def deep_extend(*args):
