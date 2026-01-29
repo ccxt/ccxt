@@ -7959,7 +7959,8 @@ export default class Exchange {
             uniqueResults = this.removeRepeatedElementsFromArray (result);
         }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit (uniqueResults, since, limit, key);
+        const sortedRes = this.sortBy (uniqueResults, key);
+        return this.filterBySinceLimit (sortedRes, since, limit, key);
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
