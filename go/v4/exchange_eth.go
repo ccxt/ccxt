@@ -278,7 +278,7 @@ func (this *Exchange) EthEncodeStructuredDataDynamically(domain2 interface{}, me
 	if err != nil {
 		panic(fmt.Sprintf("Error building typed data: %v", err))
 	}
-	digest, err := ComputeTypedDataDigest(td)
+	digest, err := this.EncodeTypedData(td)
 	if err != nil {
 		panic(fmt.Sprintf("Error computing digest: %v", err))
 	}
@@ -641,19 +641,19 @@ func BuildTypedDataFromJS(primaryType string, domain map[string]interface{}, raw
 	}, nil
 }
 
-// ComputeTypedDataDigest returns the EIP-712 digest keccak256("\x19\x01" || domainSeparator || hashStruct(message)).
-func ComputeTypedDataDigest(td apitypes.TypedData) ([32]byte, error) {
+// EncodeTypedData returns the EIP-712 digest "\x19\x01" + domainSeparator + hashStruct(message)
+func (this *Exchange) EncodeTypedData(td apitypes.TypedData) ([]byte, error) {
 	domainSeparator, err := td.HashStruct("EIP712Domain", td.Domain.Map())
 	if err != nil {
-		return [32]byte{}, err
+		return []byte{}, err
 	}
 	typedDataHash, err := td.HashStruct(td.PrimaryType, td.Message)
 	if err != nil {
-		return [32]byte{}, err
+		return []byte{}, err
 	}
 	prefix := []byte{0x19, 0x01}
 	rawData := append(append(prefix, domainSeparator...), typedDataHash...)
-	return crypto.Keccak256Hash(rawData), nil
+	return rawData, nil
 }
 
 func toTypedDataTypes(rawTypes map[string]interface{}, domain map[string]interface{}) (map[string][]apitypes.Type, string, error) {
