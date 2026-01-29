@@ -1466,6 +1466,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param int [since]: Timestamp(ms) of earliest order.
         :param int [limit]: How many orders to return.
         :param dict [params]: Exchange specific parameters
+        :param bool [params.trigger]: set to True if you wish to fetch only trigger orders
         :returns: An array of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -1477,13 +1478,19 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['count'] = limit
         if since is not None:
             request['from'] = since
-        response = self.historyGetOrders(self.extend(request, params))
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
+        response = None
+        if isTrigger:
+            params = self.omit(params, ['trigger', 'stop'])
+            response = self.historyGetTriggers(self.extend(request, params))
+        else:
+            response = self.historyGetOrders(self.extend(request, params))
         allOrders = self.safe_list(response, 'elements', [])
         closedOrders = []
         for i in range(0, len(allOrders)):
             order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
-            orderPlaced = self.safe_dict(event, 'OrderPlaced')
+            orderPlaced = self.safe_dict_2(event, 'OrderPlaced', 'OrderTriggerActivated')
             if orderPlaced is not None:
                 innerOrder = self.safe_dict(orderPlaced, 'order', {})
                 filled = self.safe_string(innerOrder, 'filled')
@@ -1502,6 +1509,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param int [since]: Timestamp(ms) of earliest order.
         :param int [limit]: How many orders to return.
         :param dict [params]: Exchange specific parameters
+        :param bool [params.trigger]: set to True if you wish to fetch only trigger orders
         :returns: An array of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -1513,17 +1521,24 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['count'] = limit
         if since is not None:
             request['from'] = since
-        response = self.historyGetOrders(self.extend(request, params))
+        response = None
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
+        if isTrigger:
+            params = self.omit(params, ['trigger', 'stop'])
+            response = self.historyGetTriggers(self.extend(request, params))
+        else:
+            response = self.historyGetOrders(self.extend(request, params))
         allOrders = self.safe_list(response, 'elements', [])
         canceledAndRejected = []
         for i in range(0, len(allOrders)):
             order = allOrders[i]
             event = self.safe_dict(order, 'event', {})
-            orderPlaced = self.safe_dict(event, 'OrderPlaced')
+            isCancelledTriggerOrder = ('OrderTriggerCancelled' in event)
+            orderPlaced = self.safe_dict_2(event, 'OrderPlaced', 'OrderTriggerCancelled')
             if orderPlaced is not None:
                 innerOrder = self.safe_dict(orderPlaced, 'order', {})
                 filled = self.safe_string(innerOrder, 'filled')
-                if filled == '0':
+                if filled == '0' or isCancelledTriggerOrder:
                     innerOrder['status'] = 'canceled'  # status not available in the response
                     canceledAndRejected.append(innerOrder)
             orderCanceled = self.safe_dict(event, 'OrderCancelled')
@@ -2803,7 +2818,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             postData = 'json=' + self.json(params)
             body = postData
         elif params:
-            postData = self.urlencode(params)
+            if 'orderIds' in params:
+                postData = self.urlencode_with_array_repeat(params)
+            else:
+                postData = self.urlencode(params)
             query += '?' + postData
         url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':

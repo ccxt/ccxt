@@ -3918,13 +3918,14 @@ class coinbase(Exchange, ImplicitAPI):
         """
         make a withdrawal
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str [tag]: an optional tag for the withdrawal
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

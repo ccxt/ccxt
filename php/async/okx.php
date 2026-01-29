@@ -1799,8 +1799,10 @@ class okx extends Exchange {
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
         $status = $this->safe_string($market, 'state');
+        $instIdCode = $this->safe_integer($market, 'instIdCode');
         return $this->extend($fees, array(
             'id' => $id,
+            'instIdCode' => $instIdCode,
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,

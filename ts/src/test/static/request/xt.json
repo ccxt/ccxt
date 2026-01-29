@@ -3,6 +3,17 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetch swap ticker",
+                "method": "fetchTicker",
+                "url": "https://fapi.xt.com/future/market/v1/public/q/agg-ticker?symbol=river_usdt",
+                "input": [
+                    "RIVER/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "setMarginMode": [
             {
                 "description": "set margin mode isolated",

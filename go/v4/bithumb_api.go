@@ -117,6 +117,7 @@ func (this *BithumbCore) PrivatePostTradeMarketSell (args ...interface{}) <-chan
 
 func (this *BithumbCore) PrivatePostTradeStopLimit (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privatePostTradeStopLimit", args...)
+<<<<<<< HEAD
 }
 
 func (this *BithumbCore) V2publicGetMarketAll (args ...interface{}) <-chan interface{} {
@@ -169,4 +170,6 @@ func (this *BithumbCore) V2privatePostOrders (args ...interface{}) <-chan interf
 
 func (this *BithumbCore) V2privateDeleteOrder (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("v2privateDeleteOrder", args...)
+=======
+>>>>>>> upstream/master
 }

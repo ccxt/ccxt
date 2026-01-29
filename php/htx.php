@@ -154,7 +154,7 @@ class htx extends Exchange {
                 // ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'hostnames' => array(
-                    'contract' => 'api.hbdm.com', // alternatively use api.hbdm.vn
+                    'contract' => 'api.hbdm.vn', // alternatively use api.hbdm.com
                     'spot' => 'api.huobi.pro',
                     'status' => array(
                         'spot' => 'status.huobigroup.com',

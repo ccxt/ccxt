@@ -117,9 +117,12 @@ func  (this *BithumbCore) Describe() interface{}  {
             "api": map[string]interface{} {
                 "public": "https://api.{hostname}/public",
                 "private": "https://api.{hostname}",
+<<<<<<< HEAD
                 "v2public": "https://api.bithumb.com/v1",
                 "v2private": "https://api.bithumb.com/v1",
                 "v2order": "https://api.bithumb.com/v2",
+=======
+>>>>>>> upstream/master
             },
             "www": "https://www.bithumb.com",
             "doc": "https://apidocs.bithumb.com",
@@ -132,6 +135,7 @@ func  (this *BithumbCore) Describe() interface{}  {
             "private": map[string]interface{} {
                 "post": []interface{}{"info/account", "info/balance", "info/wallet_address", "info/ticker", "info/orders", "info/user_transactions", "info/order_detail", "trade/place", "trade/cancel", "trade/btc_withdrawal", "trade/krw_deposit", "trade/krw_withdrawal", "trade/market_buy", "trade/market_sell", "trade/stop_limit"},
             },
+<<<<<<< HEAD
             "v2public": map[string]interface{} {
                 "get": []interface{}{"market/all", "ticker", "orderbook", "trades/ticks", "candles/minutes/{unit}", "candles/{interval}", "candlestick/{market}/{interval}"},
             },
@@ -140,6 +144,8 @@ func  (this *BithumbCore) Describe() interface{}  {
                 "post": []interface{}{"orders"},
                 "delete": []interface{}{"order"},
             },
+=======
+>>>>>>> upstream/master
         },
         "fees": map[string]interface{} {
             "trading": map[string]interface{} {
@@ -297,6 +303,7 @@ func  (this *BithumbCore) FetchMarkets(optionalArgs ...interface{}) <- chan inte
                 defer ReturnPanicError(ch)
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
+<<<<<<< HEAD
         
             response:= (<-this.V2publicGetMarketAll(params))
             PanicOnError(response)
@@ -370,6 +377,90 @@ func  (this *BithumbCore) FetchMarkets(optionalArgs ...interface{}) <- chan inte
                     "created": nil,
                     "info": entry,
                 })
+=======
+            var result interface{} = []interface{}{}
+            var quoteCurrencies interface{} = this.SafeDict(this.Options, "quoteCurrencies", map[string]interface{} {})
+            var quotes interface{} = ObjectKeys(quoteCurrencies)
+            var promises interface{} = []interface{}{}
+            for i := 0; IsLessThan(i, GetArrayLength(quotes)); i++ {
+                var request interface{} = map[string]interface{} {
+                    "quoteId": GetValue(quotes, i),
+                }
+                AppendToArray(&promises, this.PublicGetTickerALLQuoteId(this.Extend(request, params)))
+            }
+        
+            results:= (<-promiseAll(promises))
+            PanicOnError(results)
+            for i := 0; IsLessThan(i, GetArrayLength(quotes)); i++ {
+                var quote interface{} = GetValue(quotes, i)
+                var quoteId interface{} = quote
+                var response interface{} = GetValue(results, i)
+                var data interface{} = this.SafeDict(response, "data")
+                var extension interface{} = this.SafeDict(quoteCurrencies, quote, map[string]interface{} {})
+                var currencyIds interface{} = ObjectKeys(data)
+                for j := 0; IsLessThan(j, GetArrayLength(currencyIds)); j++ {
+                    var currencyId interface{} = GetValue(currencyIds, j)
+                    if IsTrue(IsEqual(currencyId, "date")) {
+                        continue
+                    }
+                    var market interface{} = GetValue(data, currencyId)
+                    var base interface{} = this.SafeCurrencyCode(currencyId)
+                    var active interface{} = true
+                    if IsTrue(IsArray(market)) {
+                        var numElements interface{} =                 GetArrayLength(market)
+                        if IsTrue(IsEqual(numElements, 0)) {
+                            active = false
+                        }
+                    }
+                    var entry interface{} = this.DeepExtend(map[string]interface{} {
+                        "id": currencyId,
+                        "symbol": Add(Add(base, "/"), quote),
+                        "base": base,
+                        "quote": quote,
+                        "settle": nil,
+                        "baseId": currencyId,
+                        "quoteId": quoteId,
+                        "settleId": nil,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": active,
+                        "contract": false,
+                        "linear": nil,
+                        "inverse": nil,
+                        "contractSize": nil,
+                        "expiry": nil,
+                        "expiryDateTime": nil,
+                        "strike": nil,
+                        "optionType": nil,
+                        "precision": map[string]interface{} {
+                            "amount": ParseInt("4"),
+                            "price": ParseInt("4"),
+                        },
+                        "limits": map[string]interface{} {
+                            "leverage": map[string]interface{} {
+                                "min": nil,
+                                "max": nil,
+                            },
+                            "amount": map[string]interface{} {
+                                "min": nil,
+                                "max": nil,
+                            },
+                            "price": map[string]interface{} {
+                                "min": nil,
+                                "max": nil,
+                            },
+                            "cost": map[string]interface{} {},
+                        },
+                        "created": nil,
+                        "info": market,
+                    }, extension)
+                    AppendToArray(&result, entry)
+                }
+>>>>>>> upstream/master
             }
         
             ch <- result
@@ -382,6 +473,7 @@ func  (this *BithumbCore) ParseBalance(response interface{}) interface{}  {
     var result interface{} = map[string]interface{} {
         "info": response,
     }
+<<<<<<< HEAD
     var balances interface{} = this.SafeList(response, "data", []interface{}{})
     for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
         var entry interface{} = GetValue(balances, i)
@@ -390,6 +482,18 @@ func  (this *BithumbCore) ParseBalance(response interface{}) interface{}  {
         var account interface{} = this.Account()
         AddElementToObject(account, "free", this.SafeString(entry, "balance"))
         AddElementToObject(account, "used", this.SafeString(entry, "locked"))
+=======
+    var balances interface{} = this.SafeDict(response, "data")
+    var codes interface{} = ObjectKeys(this.Currencies)
+    for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
+        var code interface{} = GetValue(codes, i)
+        var account interface{} = this.Account()
+        var currency interface{} = this.Currency(code)
+        var lowerCurrencyId interface{} = this.SafeStringLower(currency, "id")
+        AddElementToObject(account, "total", this.SafeString(balances, Add("total_", lowerCurrencyId)))
+        AddElementToObject(account, "used", this.SafeString(balances, Add("in_use_", lowerCurrencyId)))
+        AddElementToObject(account, "free", this.SafeString(balances, Add("available_", lowerCurrencyId)))
+>>>>>>> upstream/master
         AddElementToObject(result, code, account)
     }
     return this.SafeBalance(result)
@@ -410,10 +514,20 @@ func  (this *BithumbCore) FetchBalance(optionalArgs ...interface{}) <- chan inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
+<<<<<<< HEAD
             retRes4248 := (<-this.LoadMarkets())
             PanicOnError(retRes4248)
         
             response:= (<-this.V2privateGetAccounts(params))
+=======
+            retRes4538 := (<-this.LoadMarkets())
+            PanicOnError(retRes4538)
+            var request interface{} = map[string]interface{} {
+                "currency": "ALL",
+            }
+        
+            response:= (<-this.PrivatePostInfoBalance(this.Extend(request, params)))
+>>>>>>> upstream/master
             PanicOnError(response)
         
             ch <- this.ParseBalance(response)
@@ -442,6 +556,7 @@ func  (this *BithumbCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
+<<<<<<< HEAD
             retRes4408 := (<-this.LoadMarkets())
             PanicOnError(retRes4408)
             var market interface{} = this.Market(symbol)
@@ -501,12 +616,52 @@ func  (this *BithumbCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
                 "datetime": this.Iso8601(timestamp),
                 "nonce": nil,
             }
+=======
+            retRes4728 := (<-this.LoadMarkets())
+            PanicOnError(retRes4728)
+            var market interface{} = this.Market(symbol)
+            var request interface{} = map[string]interface{} {
+                "baseId": GetValue(market, "baseId"),
+                "quoteId": GetValue(market, "quoteId"),
+            }
+            if IsTrue(!IsEqual(limit, nil)) {
+                AddElementToObject(request, "count", limit) // default 30, max 30
+            }
+        
+            response:= (<-this.PublicGetOrderbookBaseIdQuoteId(this.Extend(request, params)))
+            PanicOnError(response)
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "timestamp":"1587621553942",
+            //             "payment_currency":"KRW",
+            //             "order_currency":"BTC",
+            //             "bids":[
+            //                 {"price":"8652000","quantity":"0.0043"},
+            //                 {"price":"8651000","quantity":"0.0049"},
+            //                 {"price":"8650000","quantity":"8.4791"},
+            //             ],
+            //             "asks":[
+            //                 {"price":"8654000","quantity":"0.119"},
+            //                 {"price":"8655000","quantity":"0.254"},
+            //                 {"price":"8658000","quantity":"0.119"},
+            //             ]
+            //         }
+            //     }
+            //
+            var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
+            var timestamp interface{} = this.SafeInteger(data, "timestamp")
+        
+            ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
+>>>>>>> upstream/master
             return nil
         
             }()
             return ch
         }
 func  (this *BithumbCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}  {
+<<<<<<< HEAD
     market := GetArg(optionalArgs, 0, nil)
     _ = market
     var timestamp interface{} = this.SafeInteger(ticker, "timestamp")
@@ -534,23 +689,65 @@ func  (this *BithumbCore) ParseTicker(ticker interface{}, optionalArgs ...interf
     }
     var baseVolume interface{} = this.SafeString(ticker, "acc_trade_volume_24h")
     var quoteVolume interface{} = this.SafeString(ticker, "acc_trade_price_24h")
+=======
+    //
+    // fetchTicker, fetchTickers
+    //
+    //     {
+    //         "opening_price":"227100",
+    //         "closing_price":"228400",
+    //         "min_price":"222300",
+    //         "max_price":"230000",
+    //         "units_traded":"82618.56075337",
+    //         "acc_trade_value":"18767376138.6031",
+    //         "prev_closing_price":"227100",
+    //         "units_traded_24H":"151871.13484676",
+    //         "acc_trade_value_24H":"34247610416.8974",
+    //         "fluctate_24H":"8700",
+    //         "fluctate_rate_24H":"3.96",
+    //         "date":"1587710327264", // fetchTickers inject this
+    //     }
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var timestamp interface{} = this.SafeInteger(ticker, "date")
+    var symbol interface{} = this.SafeSymbol(nil, market)
+    var open interface{} = this.SafeString(ticker, "opening_price")
+    var close interface{} = this.SafeString(ticker, "closing_price")
+    var baseVolume interface{} = this.SafeString(ticker, "units_traded_24H")
+    var quoteVolume interface{} = this.SafeString(ticker, "acc_trade_value_24H")
+>>>>>>> upstream/master
     return this.SafeTicker(map[string]interface{} {
         "symbol": symbol,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
+<<<<<<< HEAD
         "high": high,
         "low": low,
         "bid": nil,
         "bidVolume": nil,
         "ask": nil,
+=======
+        "high": this.SafeString(ticker, "max_price"),
+        "low": this.SafeString(ticker, "min_price"),
+        "bid": this.SafeString(ticker, "buy_price"),
+        "bidVolume": nil,
+        "ask": this.SafeString(ticker, "sell_price"),
+>>>>>>> upstream/master
         "askVolume": nil,
         "vwap": nil,
         "open": open,
         "close": close,
         "last": close,
+<<<<<<< HEAD
         "previousClose": this.SafeString(ticker, "prev_closing_price"),
         "change": this.SafeString(ticker, "change_price"),
         "percentage": this.SafeString(ticker, "change_rate"),
+=======
+        "previousClose": nil,
+        "change": nil,
+        "percentage": nil,
+>>>>>>> upstream/master
         "average": nil,
         "baseVolume": baseVolume,
         "quoteVolume": quoteVolume,
@@ -576,6 +773,7 @@ func  (this *BithumbCore) FetchTickers(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
+<<<<<<< HEAD
             retRes5578 := (<-this.LoadMarkets())
             PanicOnError(retRes5578)
             symbols = this.MarketSymbols(symbols)
@@ -599,17 +797,36 @@ func  (this *BithumbCore) FetchTickers(optionalArgs ...interface{}) <- chan inte
                 AppendToArray(&promises, this.V2publicGetTicker(this.Extend(params, map[string]interface{} {
                     "markets": marketsString,
                 })))
+=======
+            retRes5668 := (<-this.LoadMarkets())
+            PanicOnError(retRes5668)
+            var result interface{} = map[string]interface{} {}
+            var quoteCurrencies interface{} = this.SafeDict(this.Options, "quoteCurrencies", map[string]interface{} {})
+            var quotes interface{} = ObjectKeys(quoteCurrencies)
+            var promises interface{} = []interface{}{}
+            for i := 0; IsLessThan(i, GetArrayLength(quotes)); i++ {
+                var request interface{} = map[string]interface{} {
+                    "quoteId": GetValue(quotes, i),
+                }
+                AppendToArray(&promises, this.PublicGetTickerALLQuoteId(this.Extend(request, params)))
+>>>>>>> upstream/master
             }
         
             responses:= (<-promiseAll(promises))
             PanicOnError(responses)
+<<<<<<< HEAD
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(responses)); i++ {
+=======
+            for i := 0; IsLessThan(i, GetArrayLength(quotes)); i++ {
+                var quote interface{} = GetValue(quotes, i)
+>>>>>>> upstream/master
                 var response interface{} = GetValue(responses, i)
                 //
                 //     {
                 //         "status":"0000",
                 //         "data":{
+<<<<<<< HEAD
                 //             "opening_price":"227100",
                 //             "closing_price":"228400",
                 //             "min_price":"222300",
@@ -631,6 +848,41 @@ func  (this *BithumbCore) FetchTickers(optionalArgs ...interface{}) <- chan inte
             }
         
             ch <- this.ParseTickers(result, symbols)
+=======
+                //             "BTC":{
+                //                 "opening_price":"9045000",
+                //                 "closing_price":"9132000",
+                //                 "min_price":"8938000",
+                //                 "max_price":"9168000",
+                //                 "units_traded":"4619.79967497",
+                //                 "acc_trade_value":"42021363832.5187",
+                //                 "prev_closing_price":"9041000",
+                //                 "units_traded_24H":"8793.5045804",
+                //                 "acc_trade_value_24H":"78933458515.4962",
+                //                 "fluctate_24H":"530000",
+                //                 "fluctate_rate_24H":"6.16"
+                //             },
+                //             "date":"1587710878669"
+                //         }
+                //     }
+                //
+                var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
+                var timestamp interface{} = this.SafeInteger(data, "date")
+                var tickers interface{} = this.Omit(data, "date")
+                var currencyIds interface{} = ObjectKeys(tickers)
+                for j := 0; IsLessThan(j, GetArrayLength(currencyIds)); j++ {
+                    var currencyId interface{} = GetValue(currencyIds, j)
+                    var ticker interface{} = GetValue(data, currencyId)
+                    var base interface{} = this.SafeCurrencyCode(currencyId)
+                    var symbol interface{} = Add(Add(base, "/"), quote)
+                    var market interface{} = this.SafeMarket(symbol)
+                    AddElementToObject(ticker, "date", timestamp)
+                    AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
+                }
+            }
+        
+            ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+>>>>>>> upstream/master
             return nil
         
             }()
@@ -653,6 +905,7 @@ func  (this *BithumbCore) FetchTicker(symbol interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
+<<<<<<< HEAD
             retRes6188 := (<-this.LoadMarkets())
             PanicOnError(retRes6188)
             var market interface{} = this.Market(symbol)
@@ -661,6 +914,17 @@ func  (this *BithumbCore) FetchTicker(symbol interface{}, optionalArgs ...interf
             }
         
             response:= (<-this.V2publicGetTicker(this.Extend(request, params)))
+=======
+            retRes6298 := (<-this.LoadMarkets())
+            PanicOnError(retRes6298)
+            var market interface{} = this.Market(symbol)
+            var request interface{} = map[string]interface{} {
+                "baseId": GetValue(market, "baseId"),
+                "quoteId": GetValue(market, "quoteId"),
+            }
+        
+            response:= (<-this.PublicGetTickerBaseIdQuoteId(this.Extend(request, params)))
+>>>>>>> upstream/master
             PanicOnError(response)
             //
             //     {
@@ -677,11 +941,19 @@ func  (this *BithumbCore) FetchTicker(symbol interface{}, optionalArgs ...interf
             //             "acc_trade_value_24H":"34247610416.8974",
             //             "fluctate_24H":"8700",
             //             "fluctate_rate_24H":"3.96",
+<<<<<<< HEAD
             //             "date":"1587710327264",
             //         }
             //     }
             //
             var data interface{} = this.SafeDict(response, 0, map[string]interface{} {})
+=======
+            //             "date":"1587710327264"
+            //         }
+            //     }
+            //
+            var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
+>>>>>>> upstream/master
         
             ch <- this.ParseTicker(data, market)
             return nil
@@ -690,9 +962,25 @@ func  (this *BithumbCore) FetchTicker(symbol interface{}, optionalArgs ...interf
             return ch
         }
 func  (this *BithumbCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}  {
+<<<<<<< HEAD
     market := GetArg(optionalArgs, 0, nil)
     _ = market
     return []interface{}{this.Parse8601(this.SafeString(ohlcv, "candle_date_time_utc")), this.SafeNumber(ohlcv, "opening_price"), this.SafeNumber(ohlcv, "high_price"), this.SafeNumber(ohlcv, "low_price"), this.SafeNumber(ohlcv, "trade_price"), this.SafeNumber(ohlcv, "candle_acc_trade_volume")}
+=======
+    //
+    //     [
+    //         1576823400000, // 기준 시간
+    //         "8284000", // 시가
+    //         "8286000", // 종가
+    //         "8289000", // 고가
+    //         "8276000", // 저가
+    //         "15.41503692" // 거래량
+    //     ]
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    return []interface{}{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)}
+>>>>>>> upstream/master
 }
 /**
  * @method
@@ -720,6 +1008,7 @@ func  (this *BithumbCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
+<<<<<<< HEAD
             retRes6718 := (<-this.LoadMarkets())
             PanicOnError(retRes6718)
             var market interface{} = this.Market(symbol)
@@ -765,12 +1054,52 @@ func  (this *BithumbCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
             //    ]
             //
         ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+=======
+            retRes6938 := (<-this.LoadMarkets())
+            PanicOnError(retRes6938)
+            var market interface{} = this.Market(symbol)
+            var request interface{} = map[string]interface{} {
+                "baseId": GetValue(market, "baseId"),
+                "quoteId": GetValue(market, "quoteId"),
+                "interval": this.SafeString(this.Timeframes, timeframe, timeframe),
+            }
+        
+            response:= (<-this.PublicGetCandlestickBaseIdQuoteIdInterval(this.Extend(request, params)))
+            PanicOnError(response)
+            //
+            //     {
+            //         "status": "0000",
+            //         "data": {
+            //             [
+            //                 1576823400000, // 기준 시간
+            //                 "8284000", // 시가
+            //                 "8286000", // 종가
+            //                 "8289000", // 고가
+            //                 "8276000", // 저가
+            //                 "15.41503692" // 거래량
+            //             ],
+            //             [
+            //                 1576824000000, // 기준 시간
+            //                 "8284000", // 시가
+            //                 "8281000", // 종가
+            //                 "8289000", // 고가
+            //                 "8275000", // 저가
+            //                 "6.19584467" // 거래량
+            //             ],
+            //         }
+            //     }
+            //
+            var data interface{} = this.SafeList(response, "data", []interface{}{})
+        
+            ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
+>>>>>>> upstream/master
             return nil
         
             }()
             return ch
         }
 func  (this *BithumbCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
+<<<<<<< HEAD
     market := GetArg(optionalArgs, 0, nil)
     _ = market
     var timestamp interface{} = this.SafeInteger(trade, "timestamp")
@@ -779,11 +1108,76 @@ func  (this *BithumbCore) ParseTrade(trade interface{}, optionalArgs ...interfac
     var amount interface{} = this.SafeString(trade, "trade_volume")
     var id interface{} = this.SafeString(trade, "sequential_id")
     var symbol interface{} = this.SafeSymbol(nil, market)
+=======
+    //
+    // fetchTrades (public)
+    //
+    //     {
+    //         "transaction_date":"2020-04-23 22:21:46",
+    //         "type":"ask",
+    //         "units_traded":"0.0125",
+    //         "price":"8667000",
+    //         "total":"108337"
+    //     }
+    //
+    // fetchOrder (private)
+    //
+    //     {
+    //         "transaction_date": "1572497603902030",
+    //         "price": "8601000",
+    //         "units": "0.005",
+    //         "fee_currency": "KRW",
+    //         "fee": "107.51",
+    //         "total": "43005"
+    //     }
+    //
+    // a workaround for their bug in date format, hours are not 0-padded
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var timestamp interface{} = nil
+    var transactionDatetime interface{} = this.SafeString(trade, "transaction_date")
+    if IsTrue(!IsEqual(transactionDatetime, nil)) {
+        var parts interface{} = Split(transactionDatetime, " ")
+        var numParts interface{} =         GetArrayLength(parts)
+        if IsTrue(IsGreaterThan(numParts, 1)) {
+            var transactionDate interface{} = GetValue(parts, 0)
+            var transactionTime interface{} = GetValue(parts, 1)
+            if IsTrue(IsLessThan(GetLength(transactionTime), 8)) {
+                transactionTime = Add("0", transactionTime)
+            }
+            timestamp = this.Parse8601(Add(Add(transactionDate, " "), transactionTime))
+        } else {
+            timestamp = this.SafeIntegerProduct(trade, "transaction_date", 0.001)
+        }
+    }
+    if IsTrue(!IsEqual(timestamp, nil)) {
+        timestamp = Subtract(timestamp, Multiply(9, 3600000)) // they report UTC + 9 hours, server in Korean timezone
+    }
+    var typeVar interface{} = nil
+    var side interface{} = this.SafeString(trade, "type")
+    side = Ternary(IsTrue((IsEqual(side, "ask"))), "sell", "buy")
+    var id interface{} = this.SafeString(trade, "cont_no")
+    market = this.SafeMarket(nil, market)
+    var priceString interface{} = this.SafeString(trade, "price")
+    var amountString interface{} = this.FixCommaNumber(this.SafeString2(trade, "units_traded", "units"))
+    var costString interface{} = this.SafeString(trade, "total")
+    var fee interface{} = nil
+    var feeCostString interface{} = this.SafeString(trade, "fee")
+    if IsTrue(!IsEqual(feeCostString, nil)) {
+        var feeCurrencyId interface{} = this.SafeString(trade, "fee_currency")
+        var feeCurrencyCode interface{} = this.CommonCurrencyCode(feeCurrencyId)
+        fee = map[string]interface{} {
+            "cost": feeCostString,
+            "currency": feeCurrencyCode,
+        }
+    }
+>>>>>>> upstream/master
     return this.SafeTrade(map[string]interface{} {
         "id": id,
         "info": trade,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
+<<<<<<< HEAD
         "symbol": symbol,
         "order": nil,
         "type": nil,
@@ -793,6 +1187,17 @@ func  (this *BithumbCore) ParseTrade(trade interface{}, optionalArgs ...interfac
         "amount": amount,
         "cost": nil,
         "fee": nil,
+=======
+        "symbol": GetValue(market, "symbol"),
+        "order": nil,
+        "type": typeVar,
+        "side": side,
+        "takerOrMaker": nil,
+        "price": priceString,
+        "amount": amountString,
+        "cost": costString,
+        "fee": fee,
+>>>>>>> upstream/master
     }, market)
 }
 /**
@@ -818,6 +1223,7 @@ func  (this *BithumbCore) FetchTrades(symbol interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
+<<<<<<< HEAD
             retRes7488 := (<-this.LoadMarkets())
             PanicOnError(retRes7488)
             var market interface{} = this.Market(symbol)
@@ -832,6 +1238,38 @@ func  (this *BithumbCore) FetchTrades(symbol interface{}, optionalArgs ...interf
             PanicOnError(response)
         
             ch <- this.ParseTrades(response, market, since, limit)
+=======
+            retRes8188 := (<-this.LoadMarkets())
+            PanicOnError(retRes8188)
+            var market interface{} = this.Market(symbol)
+            var request interface{} = map[string]interface{} {
+                "baseId": GetValue(market, "baseId"),
+                "quoteId": GetValue(market, "quoteId"),
+            }
+            if IsTrue(!IsEqual(limit, nil)) {
+                AddElementToObject(request, "count", limit) // default 20, max 100
+            }
+        
+            response:= (<-this.PublicGetTransactionHistoryBaseIdQuoteId(this.Extend(request, params)))
+            PanicOnError(response)
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":[
+            //             {
+            //                 "transaction_date":"2020-04-23 22:21:46",
+            //                 "type":"ask",
+            //                 "units_traded":"0.0125",
+            //                 "price":"8667000",
+            //                 "total":"108337"
+            //             },
+            //         ]
+            //     }
+            //
+            var data interface{} = this.SafeList(response, "data", []interface{}{})
+        
+            ch <- this.ParseTrades(data, market, since, limit)
+>>>>>>> upstream/master
             return nil
         
             }()
@@ -862,6 +1300,7 @@ func  (this *BithumbCore) CreateOrder(symbol interface{}, typeVar interface{}, s
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
+<<<<<<< HEAD
             retRes7768 := (<-this.LoadMarkets())
             PanicOnError(retRes7768)
             var market interface{} = this.Market(symbol)
@@ -879,6 +1318,38 @@ func  (this *BithumbCore) CreateOrder(symbol interface{}, typeVar interface{}, s
             PanicOnError(response)
         
             ch <- this.ParseOrder(response, market)
+=======
+            retRes8628 := (<-this.LoadMarkets())
+            PanicOnError(retRes8628)
+            var market interface{} = this.Market(symbol)
+            var request interface{} = map[string]interface{} {
+                "order_currency": GetValue(market, "id"),
+                "payment_currency": GetValue(market, "quote"),
+                "units": amount,
+            }
+            var method interface{} = "privatePostTradePlace"
+            if IsTrue(IsEqual(typeVar, "limit")) {
+                AddElementToObject(request, "price", price)
+                AddElementToObject(request, "type", Ternary(IsTrue((IsEqual(side, "buy"))), "bid", "ask"))
+            } else {
+                method = Add("privatePostTradeMarket", this.Capitalize(side))
+            }
+        
+            response:= (<-this.CallDynamically(method, this.Extend(request, params)))
+            PanicOnError(response)
+            var id interface{} = this.SafeString(response, "order_id")
+            if IsTrue(IsEqual(id, nil)) {
+                panic(InvalidOrder(Add(this.Id, " createOrder() did not return an order id")))
+            }
+        
+            ch <- this.SafeOrder(map[string]interface{} {
+                "info": response,
+                "symbol": symbol,
+                "type": typeVar,
+                "side": side,
+                "id": id,
+            }, market)
+>>>>>>> upstream/master
             return nil
         
             }()
@@ -894,7 +1365,11 @@ func  (this *BithumbCore) CreateOrder(symbol interface{}, typeVar interface{}, s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
+<<<<<<< HEAD
 func  (this *BithumbCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
+=======
+func  (this *BithumbCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
+>>>>>>> upstream/master
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -903,6 +1378,7 @@ func  (this *BithumbCore) CancelOrder(id interface{}, optionalArgs ...interface{
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
+<<<<<<< HEAD
             var request interface{} = map[string]interface{} {
                 "uuid": id,
             }
@@ -911,11 +1387,62 @@ func  (this *BithumbCore) CancelOrder(id interface{}, optionalArgs ...interface{
             PanicOnError(response)
         
             ch <- this.ParseOrder(response)
+=======
+            if IsTrue(IsEqual(symbol, nil)) {
+                panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
+            }
+        
+            retRes9048 := (<-this.LoadMarkets())
+            PanicOnError(retRes9048)
+            var market interface{} = this.Market(symbol)
+            var request interface{} = map[string]interface{} {
+                "order_id": id,
+                "count": 1,
+                "order_currency": GetValue(market, "base"),
+                "payment_currency": GetValue(market, "quote"),
+            }
+        
+            response:= (<-this.PrivatePostInfoOrderDetail(this.Extend(request, params)))
+            PanicOnError(response)
+            //
+            //     {
+            //         "status": "0000",
+            //         "data": {
+            //             "order_date": "1603161798539254",
+            //             "type": "ask",
+            //             "order_status": "Cancel",
+            //             "order_currency": "BTC",
+            //             "payment_currency": "KRW",
+            //             "watch_price": "0",
+            //             "order_price": "13344000",
+            //             "order_qty": "0.0125",
+            //             "cancel_date": "1603161803809993",
+            //             "cancel_type": "사용자취소",
+            //             "contract": [
+            //                 {
+            //                     "transaction_date": "1603161799976383",
+            //                     "price": "13344000",
+            //                     "units": "0.0015",
+            //                     "fee_currency": "KRW",
+            //                     "fee": "0",
+            //                     "total": "20016"
+            //                 }
+            //             ],
+            //         }
+            //     }
+            //
+            var data interface{} = this.SafeDict(response, "data")
+        
+            ch <- this.ParseOrder(this.Extend(data, map[string]interface{} {
+                "order_id": id,
+            }), market)
+>>>>>>> upstream/master
             return nil
         
             }()
             return ch
         }
+<<<<<<< HEAD
 func  (this *BithumbCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
@@ -963,6 +1490,114 @@ func  (this *BithumbCore) ParseOrderStatus(status interface{}) interface{}  {
         "cancel": "canceled",
     }
     return this.SafeString(statuses, status, status)
+=======
+func  (this *BithumbCore) ParseOrderStatus(status interface{}) interface{}  {
+    var statuses interface{} = map[string]interface{} {
+        "Pending": "open",
+        "Completed": "closed",
+        "Cancel": "canceled",
+    }
+    return this.SafeString(statuses, status, status)
+}
+func  (this *BithumbCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    //
+    // fetchOrder
+    //
+    //     {
+    //         "transaction_date": "1572497603668315",
+    //         "type": "bid",
+    //         "order_status": "Completed", // Completed, Cancel ...
+    //         "order_currency": "BTC",
+    //         "payment_currency": "KRW",
+    //         "watch_price": "0", // present in Cancel order
+    //         "order_price": "8601000",
+    //         "order_qty": "0.007",
+    //         "cancel_date": "", // filled in Cancel order
+    //         "cancel_type": "", // filled in Cancel order, i.e. 사용자취소
+    //         "contract": [
+    //             {
+    //                 "transaction_date": "1572497603902030",
+    //                 "price": "8601000",
+    //                 "units": "0.005",
+    //                 "fee_currency": "KRW",
+    //                 "fee": "107.51",
+    //                 "total": "43005"
+    //             },
+    //         ]
+    //     }
+    //
+    // fetchOpenOrders
+    //
+    //     {
+    //         "order_currency": "BTC",
+    //         "payment_currency": "KRW",
+    //         "order_id": "C0101000007408440032",
+    //         "order_date": "1571728739360570",
+    //         "type": "bid",
+    //         "units": "5.0",
+    //         "units_remaining": "5.0",
+    //         "price": "501000",
+    //     }
+    //
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var timestamp interface{} = this.SafeIntegerProduct(order, "order_date", 0.001)
+    var sideProperty interface{} = this.SafeString2(order, "type", "side")
+    var side interface{} = Ternary(IsTrue((IsEqual(sideProperty, "bid"))), "buy", "sell")
+    var status interface{} = this.ParseOrderStatus(this.SafeString(order, "order_status"))
+    var price interface{} = this.SafeString2(order, "order_price", "price")
+    var typeVar interface{} = "limit"
+    if IsTrue(Precise.StringEquals(price, "0")) {
+        typeVar = "market"
+    }
+    var amount interface{} = this.FixCommaNumber(this.SafeString2(order, "order_qty", "units"))
+    var remaining interface{} = this.FixCommaNumber(this.SafeString(order, "units_remaining"))
+    if IsTrue(IsEqual(remaining, nil)) {
+        if IsTrue(IsEqual(status, "closed")) {
+            remaining = "0"
+        } else if IsTrue(!IsEqual(status, "canceled")) {
+            remaining = amount
+        }
+    }
+    var symbol interface{} = nil
+    var baseId interface{} = this.SafeString(order, "order_currency")
+    var quoteId interface{} = this.SafeString(order, "payment_currency")
+    var base interface{} = this.SafeCurrencyCode(baseId)
+    var quote interface{} = this.SafeCurrencyCode(quoteId)
+    if IsTrue(IsTrue((!IsEqual(base, nil))) && IsTrue((!IsEqual(quote, nil)))) {
+        symbol = Add(Add(base, "/"), quote)
+    }
+    if IsTrue(IsEqual(symbol, nil)) {
+        market = this.SafeMarket(nil, market)
+        symbol = GetValue(market, "symbol")
+    }
+    var id interface{} = this.SafeString(order, "order_id")
+    var rawTrades interface{} = this.SafeList(order, "contract", []interface{}{})
+    return this.SafeOrder(map[string]interface{} {
+        "info": order,
+        "id": id,
+        "clientOrderId": nil,
+        "timestamp": timestamp,
+        "datetime": this.Iso8601(timestamp),
+        "lastTradeTimestamp": nil,
+        "symbol": symbol,
+        "type": typeVar,
+        "timeInForce": nil,
+        "postOnly": nil,
+        "side": side,
+        "price": price,
+        "triggerPrice": nil,
+        "amount": amount,
+        "cost": nil,
+        "average": nil,
+        "filled": nil,
+        "remaining": remaining,
+        "status": status,
+        "fee": nil,
+        "trades": rawTrades,
+    }, market)
+>>>>>>> upstream/master
 }
 /**
  * @method
@@ -988,6 +1623,7 @@ func  (this *BithumbCore) FetchOpenOrders(optionalArgs ...interface{}) <- chan i
             _ = limit
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
+<<<<<<< HEAD
         
             retRes8698 := (<-this.LoadMarkets())
             PanicOnError(retRes8698)
@@ -1004,6 +1640,30 @@ func  (this *BithumbCore) FetchOpenOrders(optionalArgs ...interface{}) <- chan i
             PanicOnError(response)
         
                 //
+=======
+            if IsTrue(IsEqual(symbol, nil)) {
+                panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
+            }
+        
+            retRes10668 := (<-this.LoadMarkets())
+            PanicOnError(retRes10668)
+            var market interface{} = this.Market(symbol)
+            if IsTrue(IsEqual(limit, nil)) {
+                limit = 100
+            }
+            var request interface{} = map[string]interface{} {
+                "count": limit,
+                "order_currency": GetValue(market, "base"),
+                "payment_currency": GetValue(market, "quote"),
+            }
+            if IsTrue(!IsEqual(since, nil)) {
+                AddElementToObject(request, "after", since)
+            }
+        
+            response:= (<-this.PrivatePostInfoOrders(this.Extend(request, params)))
+            PanicOnError(response)
+            //
+>>>>>>> upstream/master
             //     {
             //         "status": "0000",
             //         "data": [
@@ -1020,7 +1680,13 @@ func  (this *BithumbCore) FetchOpenOrders(optionalArgs ...interface{}) <- chan i
             //         ]
             //     }
             //
+<<<<<<< HEAD
         ch <- this.ParseOrders(response, nil, since, limit)
+=======
+            var data interface{} = this.SafeList(response, "data", []interface{}{})
+        
+            ch <- this.ParseOrders(data, market, since, limit)
+>>>>>>> upstream/master
             return nil
         
             }()
@@ -1036,7 +1702,11 @@ func  (this *BithumbCore) FetchOpenOrders(optionalArgs ...interface{}) <- chan i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
+<<<<<<< HEAD
 func  (this *BithumbCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
+=======
+func  (this *BithumbCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
+>>>>>>> upstream/master
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -1045,6 +1715,7 @@ func  (this *BithumbCore) FetchOrder(id interface{}, optionalArgs ...interface{}
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
+<<<<<<< HEAD
         
             retRes9108 := (<-this.LoadMarkets())
             PanicOnError(retRes9108)
@@ -1056,11 +1727,43 @@ func  (this *BithumbCore) FetchOrder(id interface{}, optionalArgs ...interface{}
             PanicOnError(response)
         
             ch <- this.ParseOrder(response)
+=======
+            if IsTrue(IsEqual(symbol, nil)) {
+                panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
+            }
+            var side_in_params interface{} =     (InOp(params, "side"))
+            if !IsTrue(side_in_params) {
+                panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a `side` parameter (sell or buy)")))
+            }
+            var market interface{} = this.Market(symbol)
+            var side interface{} = Ternary(IsTrue((IsEqual(GetValue(params, "side"), "buy"))), "bid", "ask")
+            params = this.Omit(params, []interface{}{"side", "currency"})
+            // https://github.com/ccxt/ccxt/issues/6771
+            var request interface{} = map[string]interface{} {
+                "order_id": id,
+                "type": side,
+                "order_currency": GetValue(market, "base"),
+                "payment_currency": GetValue(market, "quote"),
+            }
+        
+            response:= (<-this.PrivatePostTradeCancel(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
+            //    {
+            //       'status': 'string',
+            //    }
+            //
+        ch <- this.SafeOrder(map[string]interface{} {
+                "info": response,
+            })
+>>>>>>> upstream/master
             return nil
         
             }()
             return ch
         }
+<<<<<<< HEAD
 func  (this *BithumbCore) HandleErrors(httpCode interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}  {
     if IsTrue(IsEqual(response, nil)) {
         return nil  // fallback to default error handler
@@ -1162,6 +1865,27 @@ func  (this *BithumbCore) Sign(path interface{}, optionalArgs ...interface{}) in
         "headers": headers,
     }
 }
+=======
+func  (this *BithumbCore) CancelUnifiedOrder(order interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+            var request interface{} = map[string]interface{} {
+                "side": GetValue(order, "side"),
+            }
+        
+                retRes114415 :=  (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
+                PanicOnError(retRes114415)
+                ch <- retRes114415
+                return nil
+        
+            }()
+            return ch
+        }
+>>>>>>> upstream/master
 /**
  * @method
  * @name bithumb#withdraw
@@ -1188,8 +1912,13 @@ func  (this *BithumbCore) Withdraw(code interface{}, amount interface{}, address
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
+<<<<<<< HEAD
             retRes10218 := (<-this.LoadMarkets())
             PanicOnError(retRes10218)
+=======
+            retRes11628 := (<-this.LoadMarkets())
+            PanicOnError(retRes11628)
+>>>>>>> upstream/master
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "units": amount,
@@ -1217,6 +1946,122 @@ func  (this *BithumbCore) Withdraw(code interface{}, amount interface{}, address
             }()
             return ch
         }
+<<<<<<< HEAD
+=======
+func  (this *BithumbCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    // withdraw
+    //
+    //     { "status" : "0000"}
+    //
+    currency := GetArg(optionalArgs, 0, nil)
+    _ = currency
+    currency = this.SafeCurrency(nil, currency)
+    return map[string]interface{} {
+        "id": nil,
+        "txid": nil,
+        "timestamp": nil,
+        "datetime": nil,
+        "network": nil,
+        "addressFrom": nil,
+        "address": nil,
+        "addressTo": nil,
+        "amount": nil,
+        "type": nil,
+        "currency": GetValue(currency, "code"),
+        "status": nil,
+        "updated": nil,
+        "tagFrom": nil,
+        "tag": nil,
+        "tagTo": nil,
+        "comment": nil,
+        "internal": nil,
+        "fee": nil,
+        "info": transaction,
+    }
+}
+func  (this *BithumbCore) FixCommaNumber(numberStr interface{}) interface{}  {
+    // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
+    if IsTrue(IsEqual(numberStr, nil)) {
+        return nil
+    }
+    var finalNumberStr interface{} = numberStr
+    for IsGreaterThan(GetIndexOf(finalNumberStr, ","), OpNeg(1)) {
+        finalNumberStr = Replace(finalNumberStr, ",", "")
+    }
+    return finalNumberStr
+}
+func  (this *BithumbCore) Nonce() interface{}  {
+    return this.Milliseconds()
+}
+func  (this *BithumbCore) Sign(path interface{}, optionalArgs ...interface{}) interface{}  {
+    api := GetArg(optionalArgs, 0, "public")
+    _ = api
+    method := GetArg(optionalArgs, 1, "GET")
+    _ = method
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    _ = params
+    headers := GetArg(optionalArgs, 3, nil)
+    _ = headers
+    body := GetArg(optionalArgs, 4, nil)
+    _ = body
+    var endpoint interface{} = Add("/", this.ImplodeParams(path, params))
+    var url interface{} = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), endpoint)
+    var query interface{} = this.Omit(params, this.ExtractParams(path))
+    if IsTrue(IsEqual(api, "public")) {
+        if IsTrue(GetArrayLength(ObjectKeys(query))) {
+            url = Add(url, Add("?", this.Urlencode(query)))
+        }
+    } else {
+        this.CheckRequiredCredentials()
+        body = this.Urlencode(this.Extend(map[string]interface{} {
+            "endpoint": endpoint,
+        }, query))
+        var nonce interface{} = ToString(this.Nonce())
+        var auth interface{} = Add(Add(Add(Add(endpoint, "//" + "0"), body), "//" + "0"), nonce) // eslint-disable-line quotes
+        var signature interface{} = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
+        var signature64 interface{} = this.StringToBase64(signature)
+        headers = map[string]interface{} {
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Api-Key": this.ApiKey,
+            "Api-Sign": signature64,
+            "Api-Nonce": nonce,
+        }
+    }
+    return map[string]interface{} {
+        "url": url,
+        "method": method,
+        "body": body,
+        "headers": headers,
+    }
+}
+func  (this *BithumbCore) HandleErrors(httpCode interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}  {
+    if IsTrue(IsEqual(response, nil)) {
+        return nil  // fallback to default error handler
+    }
+    if IsTrue(InOp(response, "status")) {
+        //
+        //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+        //
+        var status interface{} = this.SafeString(response, "status")
+        var message interface{} = this.SafeString(response, "message")
+        if IsTrue(!IsEqual(status, nil)) {
+            if IsTrue(IsEqual(status, "0000")) {
+                return nil  // no error
+            } else if IsTrue(IsEqual(message, "거래 진행중인 내역이 존재하지 않습니다.")) {
+                // https://github.com/ccxt/ccxt/issues/9017
+                return nil  // no error
+            }
+            var feedback interface{} = Add(Add(this.Id, " "), message)
+            this.ThrowExactlyMatchedException(this.Exceptions, status, feedback)
+            this.ThrowExactlyMatchedException(this.Exceptions, message, feedback)
+            panic(ExchangeError(feedback))
+        }
+    }
+    return nil
+}
+>>>>>>> upstream/master
 
 
 func (this *BithumbCore) Init(userConfig map[string]interface{}) {

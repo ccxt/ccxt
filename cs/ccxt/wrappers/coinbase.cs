@@ -1113,7 +1113,7 @@ public partial class coinbase
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>tag</term>
@@ -1125,6 +1125,12 @@ public partial class coinbase
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
     /// </description>
     /// </item>
     /// </list>

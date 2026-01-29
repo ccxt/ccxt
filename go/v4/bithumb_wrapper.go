@@ -283,7 +283,11 @@ func (this *Bithumb) CreateOrder(symbol string, typeVar string, side string, amo
  */
 func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
+<<<<<<< HEAD
     opts := CancelOrderOptionsStruct{}
+=======
+    opts := FetchOrderOptionsStruct{}
+>>>>>>> upstream/master
 
     for _, opt := range options {
         opt(&opts)
@@ -298,7 +302,11 @@ func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Orde
     if opts.Params != nil {
         params = *opts.Params
     }
+<<<<<<< HEAD
     res := <- this.Core.CancelOrder(id, symbol, params)
+=======
+    res := <- this.Core.FetchOrder(id, symbol, params)
+>>>>>>> upstream/master
     if IsError(res) {
         return Order{}, CreateReturnError(res)
     }
@@ -360,7 +368,11 @@ func (this *Bithumb) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  */
 func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
+<<<<<<< HEAD
     opts := FetchOrderOptionsStruct{}
+=======
+    opts := CancelOrderOptionsStruct{}
+>>>>>>> upstream/master
 
     for _, opt := range options {
         opt(&opts)
@@ -375,12 +387,37 @@ func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order,
     if opts.Params != nil {
         params = *opts.Params
     }
+<<<<<<< HEAD
     res := <- this.Core.FetchOrder(id, symbol, params)
+=======
+    res := <- this.Core.CancelOrder(id, symbol, params)
+>>>>>>> upstream/master
     if IsError(res) {
         return Order{}, CreateReturnError(res)
     }
     return NewOrder(res), nil
 }
+<<<<<<< HEAD
+=======
+func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (Order, error) {
+
+    opts := CancelUnifiedOrderOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.CancelUnifiedOrder(order, params)
+    if IsError(res) {
+        return Order{}, CreateReturnError(res)
+    }
+    return NewOrder(res), nil
+}
+>>>>>>> upstream/master
 /**
  * @method
  * @name bithumb#withdraw
