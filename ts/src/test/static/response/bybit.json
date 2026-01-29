@@ -2,6 +2,78 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "contract with a funding interval different from 8h",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ZRX/USDT:USDT",
+                    1769529863000,
+                    3
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00010131",
+                                "fundingRateTimestamp": "1769540400000"
+                            },
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00014161",
+                                "fundingRateTimestamp": "1769536800000"
+                            },
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00017947",
+                                "fundingRateTimestamp": "1769533200000"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1769616369874"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00017947",
+                            "fundingRateTimestamp": "1769533200000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00017947,
+                        "timestamp": 1769533200000,
+                        "datetime": "2026-01-27T17:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00014161",
+                            "fundingRateTimestamp": "1769536800000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00014161,
+                        "timestamp": 1769536800000,
+                        "datetime": "2026-01-27T18:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00010131",
+                            "fundingRateTimestamp": "1769540400000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00010131,
+                        "timestamp": 1769540400000,
+                        "datetime": "2026-01-27T19:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "fetch margin mode",
