@@ -2152,7 +2152,7 @@ export default class woo extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         if (since !== undefined) {
-            request['after'] = since - 1;
+            request['after'] = since - 1; // #27793
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
