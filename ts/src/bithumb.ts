@@ -415,7 +415,7 @@ export default class bithumb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'markets': market['id'],
+            'markets': market['quote'] + '-' + market['base'],
         };
         const response = await this.v2publicGetOrderbook (this.extend (request, params));
         //
@@ -532,8 +532,14 @@ export default class bithumb extends Exchange {
         const chunkSize = 20; // safe chunk size
         for (let i = 0; i < marketIds.length; i += chunkSize) {
             const chunk = marketIds.slice (i, i + chunkSize);
-            const markets = chunk.join (',');
-            promises.push (this.v2publicGetTicker (this.extend (params, { 'markets': markets })));
+            const markets = [];
+            for (let j = 0; j < chunk.length; j++) {
+                const marketId = chunk[j];
+                const market = this.safeMarket (marketId);
+                markets.push (market['quote'] + '-' + market['base']);
+            }
+            const marketsString = markets.join (',');
+            promises.push (this.v2publicGetTicker (this.extend (params, { 'markets': marketsString })));
         }
         const responses = await Promise.all (promises);
         const result = [];
@@ -550,7 +556,7 @@ export default class bithumb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'markets': market['id'],
+            'markets': market['quote'] + '-' + market['base'],
         };
         const response = await this.v2publicGetTicker (this.extend (request, params));
         const data = this.safeDict (response, 0, {});
@@ -573,7 +579,7 @@ export default class bithumb extends Exchange {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
-            'market': market['id'],
+            'market': market['quote'] + '-' + market['base'],
         };
         if (timeframe === '1d' || timeframe === '1w' || timeframe === '1M') {
             request['interval'] = interval;
@@ -638,7 +644,7 @@ export default class bithumb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'market': market['id'],
+            'market': market['quote'] + '-' + market['base'],
         };
         if (limit !== undefined) {
             request['count'] = limit;
@@ -651,7 +657,7 @@ export default class bithumb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'market': market['id'],
+            'market': market['quote'] + '-' + market['base'],
             'side': (side === 'buy') ? 'bid' : 'ask',
             'volume': this.amountToPrecision (symbol, amount),
             'ord_type': (type === 'limit') ? 'limit' : 'price', // price is market buy/sell
@@ -723,7 +729,8 @@ export default class bithumb extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         if (symbol !== undefined) {
-            request['market'] = this.marketId (symbol);
+            const market = this.market (symbol);
+            request['market'] = market['quote'] + '-' + market['base'];
         }
         if (limit !== undefined) {
             request['limit'] = limit;

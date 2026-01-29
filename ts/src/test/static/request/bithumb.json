@@ -45,7 +45,7 @@
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.bithumb.com/v1/candlestick/KRW-BTC/1m?count=5",
+                "url": "https://api.bithumb.com/v1/candles/minutes/1?market=KRW-BTC&count=5",
                 "input": [
                     "BTC/KRW",
                     "1m",
@@ -58,7 +58,7 @@
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.bithumb.com/v1/trades/recent?market=KRW-BTC&count=5",
+                "url": "https://api.bithumb.com/v1/trades/ticks?market=KRW-BTC&count=5",
                 "input": [
                     "BTC/KRW",
                     null,
