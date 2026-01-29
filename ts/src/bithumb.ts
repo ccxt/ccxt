@@ -268,17 +268,15 @@ export default class bithumb extends Exchange {
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
             'timeframes': {
-                '1m': '1',
-                '3m': '3',
-                '5m': '5',
-                '10m': '10',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '4h': '240',
-                '1d': 'days',
-                '1w': 'weeks',
-                '1M': 'months',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '10m': '10m',
+                '30m': '30m',
+                '1h': '1h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '24h',
             },
             'options': {
                 'quoteCurrencies': {
