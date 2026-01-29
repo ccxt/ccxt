@@ -1,0 +1,264 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var o2exchange$1 = require('./abstract/o2exchange.js');
+var number = require('./base/functions/number.js');
+var Precise = require('./base/Precise.js');
+
+// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
+/**
+ * @class o2exchange
+ * @augments Exchange
+ * @description O2 Exchange - Decentralized exchange on Fuel blockchain
+ */
+class o2exchange extends o2exchange$1["default"] {
+    describe() {
+        return this.deepExtend(super.describe(), {
+            'id': 'o2exchange',
+            'name': 'O2 Exchange',
+            'countries': ['US'],
+            'version': 'v1',
+            'rateLimit': 100,
+            'certified': false,
+            'pro': false,
+            'dex': true,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                // Public API
+                'fetchMarkets': true,
+                'fetchTicker': true,
+                'fetchTickers': false,
+                'fetchOrderBook': true,
+                'fetchTrades': true,
+                'fetchOHLCV': true,
+                // Private API (to implement later)
+                'fetchBalance': false,
+                'createOrder': false,
+                'cancelOrder': false,
+                'fetchOpenOrders': false,
+                'fetchClosedOrders': false,
+                'fetchMyTrades': false,
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1440',
+            },
+            'urls': {
+                'logo': 'https://o2.app/logo.png',
+                'api': {
+                    'public': 'https://api.o2.app',
+                    'private': 'https://api.o2.app',
+                },
+                'test': {
+                    'public': 'https://api.testnet.o2.app',
+                    'private': 'https://api.testnet.o2.app',
+                },
+                'www': 'https://o2.app',
+                'doc': [
+                    'https://docs.o2.app',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'v1/markets': 1,
+                        'v1/markets/summary': 1,
+                        'v1/markets/ticker': 1,
+                        'v1/depth': 1,
+                        'v1/trades': 1,
+                        'v1/bars': 1,
+                        'health': 1,
+                    },
+                },
+                'private': {
+                    'get': {
+                        'v1/accounts': 1,
+                        'v1/balance': 1,
+                        'v1/orders': 1,
+                    },
+                    'post': {
+                        'v1/accounts': 1,
+                        'v1/session/call': 1,
+                    },
+                    'put': {
+                        'v1/session': 1,
+                    },
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': this.parseNumber('0.01'),
+                    'taker': this.parseNumber('0.01'), // 100 basis points = 1%
+                },
+            },
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+                'walletAddress': true,
+                'privateKey': true,
+            },
+            'precisionMode': number.TICK_SIZE,
+            'exceptions': {
+                'exact': {},
+                'broad': {},
+            },
+            'options': {
+                'sandboxMode': false,
+            },
+        });
+    }
+    /**
+     * @method
+     * @name o2exchange#fetchMarkets
+     * @description retrieves data on all markets for o2exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets(params = {}) {
+        const response = await this.publicGetV1Markets(params);
+        //
+        //     {
+        //         "books_registry_id": "0x...",
+        //         "accounts_registry_id": "0x...",
+        //         "trade_account_oracle_id": "0x...",
+        //         "markets": [
+        //             {
+        //                 "contract_id": "0x...",
+        //                 "market_id": "0x...",
+        //                 "maker_fee": "100",        // basis points (100 = 1%)
+        //                 "taker_fee": "100",        // basis points (100 = 1%)
+        //                 "min_order": "1000000000", // raw units (divide by 10^decimals)
+        //                 "dust": "1000",
+        //                 "price_window": "0",
+        //                 "base": {
+        //                     "symbol": "ETH",
+        //                     "asset": "0x...",
+        //                     "decimals": 9,
+        //                     "max_precision": 3
+        //                 },
+        //                 "quote": {
+        //                     "symbol": "USDC",
+        //                     "asset": "0x...",
+        //                     "decimals": 9,
+        //                     "max_precision": 2
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const markets = this.safeList(response, 'markets', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            result.push(this.parseMarket(market));
+        }
+        return result;
+    }
+    parseMarket(market) {
+        const baseInfo = this.safeDict(market, 'base', {});
+        const quoteInfo = this.safeDict(market, 'quote', {});
+        const baseId = this.safeString(baseInfo, 'symbol');
+        const quoteId = this.safeString(quoteInfo, 'symbol');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base + '/' + quote;
+        const marketId = this.safeString(market, 'market_id');
+        const basePrecision = this.safeInteger(baseInfo, 'max_precision', 8);
+        const quotePrecision = this.safeInteger(quoteInfo, 'max_precision', 6);
+        const baseDecimals = this.safeInteger(baseInfo, 'decimals', 9);
+        const makerFeeRaw = this.safeString(market, 'maker_fee', '0');
+        const takerFeeRaw = this.safeString(market, 'taker_fee', '0');
+        // Fees are in basis points (100 = 1%), convert to decimal
+        const makerFee = Precise["default"].stringDiv(makerFeeRaw, '10000');
+        const takerFee = Precise["default"].stringDiv(takerFeeRaw, '10000');
+        // min_order is in raw units, convert using base decimals
+        const minOrderRaw = this.safeString(market, 'min_order', '0');
+        const baseDecimalsDivisor = '1' + '0'.repeat(baseDecimals);
+        const minOrder = Precise["default"].stringDiv(minOrderRaw, baseDecimalsDivisor);
+        return this.safeMarketStructure({
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'active': true,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'settle': undefined,
+            'settleId': undefined,
+            'contractSize': undefined,
+            'linear': undefined,
+            'inverse': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'taker': this.parseNumber(takerFee),
+            'maker': this.parseNumber(makerFee),
+            'percentage': true,
+            'tierBased': false,
+            'feeSide': 'get',
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(basePrecision.toString())),
+                'price': this.parseNumber(this.parsePrecision(quotePrecision.toString())),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.parseNumber(minOrder),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
+    }
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;
+        if (method === 'GET') {
+            if (Object.keys(params).length) {
+                url += '?' + this.urlencode(params);
+            }
+        }
+        if (method === 'POST' || method === 'PUT') {
+            headers = {
+                'Content-Type': 'application/json',
+            };
+            body = this.json(params);
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+}
+
+exports["default"] = o2exchange;

@@ -429,6 +429,7 @@ class Exchange {
         'myokx',
         'ndax',
         'novadax',
+        'o2exchange',
         'okx',
         'okxus',
         'onetrading',

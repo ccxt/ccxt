@@ -2146,7 +2146,7 @@ class woo extends Exchange {
             $request['limit'] = min ($limit, 1000);
         }
         if ($since !== null) {
-            $request['after'] = $since;
+            $request['after'] = $since - 1;
         }
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, 'until');
