@@ -2822,7 +2822,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, params, 200)
         if limit is None:
             limit = 200
         request: dict = {
@@ -2833,6 +2833,7 @@ class bybit(Exchange, ImplicitAPI):
             'limit': limit,  # Limit for data size per page. [1, 200]. Default: 200
         }
         market = self.market(symbol)
+        fundingTimeFrameMins = self.safe_integer(market['info'], 'fundingInterval')
         symbol = market['symbol']
         request['symbol'] = market['id']
         type = None
@@ -2851,7 +2852,9 @@ class bybit(Exchange, ImplicitAPI):
             if since is not None:
                 # end time is required when since is not empty
                 fundingInterval = 60 * 60 * 8 * 1000
-                request['endTime'] = since + limit * fundingInterval
+                if fundingTimeFrameMins is not None:
+                    fundingInterval = fundingTimeFrameMins * 60 * 1000
+                request['endTime'] = self.sum(since, limit * fundingInterval)
         response = self.publicGetV5MarketFundingHistory(self.extend(request, params))
         #
         #     {
