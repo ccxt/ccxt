@@ -2896,7 +2896,7 @@ class bybit extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 200);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, 200);
         }
         if ($limit === null) {
             $limit = 200;
@@ -2909,6 +2909,7 @@ class bybit extends Exchange {
             'limit' => $limit, // Limit for data size per page. [1, 200]. Default => 200
         );
         $market = $this->market($symbol);
+        $fundingTimeFrameMins = $this->safe_integer($market['info'], 'fundingInterval');
         $symbol = $market['symbol'];
         $request['symbol'] = $market['id'];
         $type = null;
@@ -2929,7 +2930,10 @@ class bybit extends Exchange {
             if ($since !== null) {
                 // end time is required when $since is not empty
                 $fundingInterval = 60 * 60 * 8 * 1000;
-                $request['endTime'] = $since . $limit * $fundingInterval;
+                if ($fundingTimeFrameMins !== null) {
+                    $fundingInterval = $fundingTimeFrameMins * 60 * 1000;
+                }
+                $request['endTime'] = $this->sum($since, $limit * $fundingInterval);
             }
         }
         $response = $this->publicGetV5MarketFundingHistory ($this->extend($request, $params));

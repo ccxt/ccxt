@@ -4237,7 +4237,7 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		//             "hasNext": false,
 		//             "items": [
 		//                 {
-		//                     "id": "207260567109387524",
+		//                     "id": "207260567109387525",
 		//                     "coin": "usdt",
 		//                     "symbol": "btc_usdt",
 		//                     "type": "FEE",

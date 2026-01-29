@@ -34,7 +34,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool, Order
+from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, NumType, Strings, CancellationRequest, Bool, Order
 
 # -----------------------------------------------------------------------------
 
@@ -370,7 +370,7 @@ class Exchange(object):
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
-    number: Num = float  # or str (a pointer to a class)
+    number: NumType = float  # or str (a pointer to a class)
     handleContentTypeApplicationZip = False
     # whether fees should be summed by currency code
     reduceFees = True
@@ -7060,7 +7060,8 @@ class Exchange(object):
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+        sortedRes = self.sort_by(uniqueResults, key)
+        return self.filter_by_since_limit(sortedRes, since, limit, key)
 
     def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
         maxRetries = None
@@ -7680,3 +7681,23 @@ class Exchange(object):
                     bidsaskSymbol = bidsaskSymbols[i]
                     if bidsaskSymbol in self.bidsasks:
                         del self.bidsasks[bidsaskSymbol]
+
+    def timeframe_from_milliseconds(self, ms: float):
+        if ms <= 0:
+            return ''
+        second = 1000
+        minute = 60 * second
+        hour = 60 * minute
+        day = 24 * hour
+        week = 7 * day
+        if ms % week == 0:
+            return(ms / week) + 'w'
+        if ms % day == 0:
+            return(ms / day) + 'd'
+        if ms % hour == 0:
+            return(ms / hour) + 'h'
+        if ms % minute == 0:
+            return(ms / minute) + 'm'
+        if ms % second == 0:
+            return(ms / second) + 's'
+        return ''
