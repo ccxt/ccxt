@@ -12,6 +12,7 @@ import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
 import testJson from './test.json.js';
+import testExtractParams from './test.extractParams.js';
 import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
@@ -48,6 +49,7 @@ async function baseTestsInit () {
     testHandleMethods ();
     testRemoveRepeatedElementsFromArray ();
     testParsePrecision ();
+    testExtractParams ();
     testArraysConcat ();
     testEthMethods ();
     await testSleep ();
