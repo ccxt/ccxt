@@ -6,20 +6,17 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
+from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
-from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
-from ccxt.base.precise import Precise
 
 
 class bithumb(Exchange, ImplicitAPI):
@@ -59,7 +56,7 @@ class bithumb(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,
+                'fetchCurrencies': True,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -126,6 +123,9 @@ class bithumb(Exchange, ImplicitAPI):
                 'api': {
                     'public': 'https://api.{hostname}/public',
                     'private': 'https://api.{hostname}',
+                    'v2public': 'https://api.bithumb.com/v1',
+                    'v2private': 'https://api.bithumb.com/v1',
+                    'v2order': 'https://api.bithumb.com/v2',
                 },
                 'www': 'https://www.bithumb.com',
                 'doc': 'https://apidocs.bithumb.com',
@@ -168,6 +168,29 @@ class bithumb(Exchange, ImplicitAPI):
                         'trade/stop_limit',
                     ],
                 },
+                'v2public': {
+                    'get': [
+                        'market/all',
+                        'ticker',
+                        'orderbook',
+                        'trades/recent',
+                        'candlestick/{market}/{interval}',
+                    ],
+                },
+                'v2private': {
+                    'get': [
+                        'accounts',
+                        'orders/chance',
+                        'order',
+                        'orders',
+                    ],
+                    'post': [
+                        'orders',
+                    ],
+                    'delete': [
+                        'order',
+                    ],
+                },
             },
             'fees': {
                 'trading': {
@@ -176,7 +199,6 @@ class bithumb(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
-            # todo: update to v2 apis
             'features': {
                 'spot': {
                     'sandbox': False,
@@ -304,243 +326,139 @@ class bithumb(Exchange, ImplicitAPI):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def fetch_markets(self, params={}) -> List[Market]:
-        """
-        retrieves data on all markets for bithumb
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
-
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: an array of objects representing market data
-        """
+        response = self.v2publicGetMarketAll(params)
+        #
+        #    [
+        #        {
+        #            "market": "KRW-BTC",
+        #            "korean_name": "비트코인",
+        #            "english_name": "Bitcoin",
+        #            "market_warning": "NONE"
+        #        },
+        #        ...
+        #    ]
+        #
         result = []
-        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
-        quotes = list(quoteCurrencies.keys())
-        promises = []
-        for i in range(0, len(quotes)):
-            request = {
-                'quoteId': quotes[i],
-            }
-            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
-            #
-            #    {
-            #        "status": "0000",
-            #        "data": {
-            #            "ETH": {
-            #                "opening_price": "0.05153399",
-            #                "closing_price": "0.05145144",
-            #                "min_price": "0.05145144",
-            #                "max_price": "0.05160781",
-            #                "units_traded": "6.541124172077830855",
-            #                "acc_trade_value": "0.33705472498492329997697755",
-            #                "prev_closing_price": "0.0515943",
-            #                "units_traded_24H": "43.368879902677400513",
-            #                "acc_trade_value_24H": "2.24165339555398079994373342",
-            #                "fluctate_24H": "-0.00018203",
-            #                "fluctate_rate_24H": "-0.35"
-            #            },
-            #            "XRP": {
-            #                "opening_price": "0.00000918",
-            #                "closing_price": "0.0000092",
-            #                "min_price": "0.00000918",
-            #                "max_price": "0.0000092",
-            #                "units_traded": "6516.949363",
-            #                "acc_trade_value": "0.0598792533602796",
-            #                "prev_closing_price": "0.00000916",
-            #                "units_traded_24H": "229161.50354738",
-            #                "acc_trade_value_24H": "2.0446589371637117",
-            #                "fluctate_24H": "0.00000049",
-            #                "fluctate_rate_24H": "5.63"
-            #            },
-            #            ...
-            #            "date": "1721675913145"
-            #        }
-            #    }
-            #
-        results = promises
-        for i in range(0, len(quotes)):
-            quote = quotes[i]
-            quoteId = quote
-            response = results[i]
-            data = self.safe_dict(response, 'data')
-            extension = self.safe_dict(quoteCurrencies, quote, {})
-            currencyIds = list(data.keys())
-            for j in range(0, len(currencyIds)):
-                currencyId = currencyIds[j]
-                if currencyId == 'date':
-                    continue
-                market = data[currencyId]
-                base = self.safe_currency_code(currencyId)
-                active = True
-                if isinstance(market, list):
-                    numElements = len(market)
-                    if numElements == 0:
-                        active = False
-                entry = self.deep_extend({
-                    'id': currencyId,
-                    'symbol': base + '/' + quote,
-                    'base': base,
-                    'quote': quote,
-                    'settle': None,
-                    'baseId': currencyId,
-                    'quoteId': quoteId,
-                    'settleId': None,
-                    'type': 'spot',
-                    'spot': True,
-                    'margin': False,
-                    'swap': False,
-                    'future': False,
-                    'option': False,
-                    'active': active,
-                    'contract': False,
-                    'linear': None,
-                    'inverse': None,
-                    'contractSize': None,
-                    'expiry': None,
-                    'expiryDateTime': None,
-                    'strike': None,
-                    'optionType': None,
-                    'precision': {
-                        'amount': int('4'),
-                        'price': int('4'),
-                    },
-                    'limits': {
-                        'leverage': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {},  # set via options
-                    },
-                    'created': None,
-                    'info': market,
-                }, extension)
-                result.append(entry)
+        for i in range(0, len(response)):
+            entry = response[i]
+            marketId = self.safe_string(entry, 'market')
+            quoteId, baseId = marketId.split('-')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            result.append({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDateTime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': int('4'),  # todo: check if api provides precision
+                    'price': int('4'),
+                },
+                'limits': {
+                    'leverage': {'min': None, 'max': None},
+                    'amount': {'min': None, 'max': None},
+                    'price': {'min': None, 'max': None},
+                    'cost': {'min': None, 'max': None},
+                },
+                'created': None,
+                'info': entry,
+            })
         return result
 
     def parse_balance(self, response) -> Balances:
         result: dict = {'info': response}
-        balances = self.safe_dict(response, 'data')
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
+        balances = self.safe_list(response, 'data', [])
+        for i in range(0, len(balances)):
+            entry = balances[i]
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            currency = self.currency(code)
-            lowerCurrencyId = self.safe_string_lower(currency, 'id')
-            account['total'] = self.safe_string(balances, 'total_' + lowerCurrencyId)
-            account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
-            account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
+            account['free'] = self.safe_string(entry, 'balance')
+            account['used'] = self.safe_string(entry, 'locked')
             result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
-        """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
-
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
-        """
         self.load_markets()
-        request: dict = {
-            'currency': 'ALL',
-        }
-        response = self.privatePostInfoBalance(self.extend(request, params))
+        response = self.v2privateGetAccounts(params)
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
-        """
-        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
-
-        :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
-        """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
+        request = {
+            'markets': market['id'],
         }
-        if limit is not None:
-            request['count'] = limit  # default 30, max 30
-        response = self.publicGetOrderbookBaseIdQuoteId(self.extend(request, params))
+        response = self.v2publicGetOrderbook(self.extend(request, params))
         #
-        #     {
-        #         "status":"0000",
-        #         "data":{
-        #             "timestamp":"1587621553942",
-        #             "payment_currency":"KRW",
-        #             "order_currency":"BTC",
-        #             "bids":[
-        #                 {"price":"8652000","quantity":"0.0043"},
-        #                 {"price":"8651000","quantity":"0.0049"},
-        #                 {"price":"8650000","quantity":"8.4791"},
-        #             ],
-        #             "asks":[
-        #                 {"price":"8654000","quantity":"0.119"},
-        #                 {"price":"8655000","quantity":"0.254"},
-        #                 {"price":"8658000","quantity":"0.119"},
-        #             ]
-        #         }
-        #     }
+        #    [
+        #        {
+        #            "market": "KRW-BTC",
+        #            "timestamp": 1698125744837,
+        #            "total_ask_size": 12.345,
+        #            "total_bid_size": 23.456,
+        #            "orderbook_units": [
+        #                {
+        #                    "ask_price": 45831000,
+        #                    "bid_price": 45830000,
+        #                    "ask_size": 0.123,
+        #                    "bid_size": 0.234
+        #                },
+        #                ...
+        #            ]
+        #        }
+        #    ]
         #
-        data = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 0, {})
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
+        return self.parse_order_book(data, symbol, timestamp, 'bid_price', 'ask_price', 'bid_size', 'ask_size', 'orderbook_units')
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
-        #
-        # fetchTicker, fetchTickers
-        #
-        #     {
-        #         "opening_price":"227100",
-        #         "closing_price":"228400",
-        #         "min_price":"222300",
-        #         "max_price":"230000",
-        #         "units_traded":"82618.56075337",
-        #         "acc_trade_value":"18767376138.6031",
-        #         "prev_closing_price":"227100",
-        #         "units_traded_24H":"151871.13484676",
-        #         "acc_trade_value_24H":"34247610416.8974",
-        #         "fluctate_24H":"8700",
-        #         "fluctate_rate_24H":"3.96",
-        #         "date":"1587710327264",  # fetchTickers inject self
-        #     }
-        #
-        timestamp = self.safe_integer(ticker, 'date')
+        timestamp = self.safe_integer(ticker, 'timestamp')
         symbol = self.safe_symbol(None, market)
         open = self.safe_string(ticker, 'opening_price')
-        close = self.safe_string(ticker, 'closing_price')
-        baseVolume = self.safe_string(ticker, 'units_traded_24H')
-        quoteVolume = self.safe_string(ticker, 'acc_trade_value_24H')
+        close = self.safe_string(ticker, 'trade_price')
+        high = self.safe_string(ticker, 'high_price')
+        low = self.safe_string(ticker, 'low_price')
+        baseVolume = self.safe_string(ticker, 'acc_trade_volume_24h')
+        quoteVolume = self.safe_string(ticker, 'acc_trade_price_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'max_price'),
-            'low': self.safe_string(ticker, 'min_price'),
-            'bid': self.safe_string(ticker, 'buy_price'),
+            'high': high,
+            'low': low,
+            'bid': None,
             'bidVolume': None,
-            'ask': self.safe_string(ticker, 'sell_price'),
+            'ask': None,
             'askVolume': None,
             'vwap': None,
             'open': open,
             'close': close,
             'last': close,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
+            'previousClose': self.safe_string(ticker, 'prev_closing_price'),
+            'change': self.safe_string(ticker, 'change_price'),
+            'percentage': self.safe_string(ticker, 'change_rate'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -548,679 +466,227 @@ class bithumb(Exchange, ImplicitAPI):
         }, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
-        """
-        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
-
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
-        """
         self.load_markets()
-        result: dict = {}
-        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
-        quotes = list(quoteCurrencies.keys())
-        promises = []
-        for i in range(0, len(quotes)):
-            request: dict = {
-                'quoteId': quotes[i],
-            }
-            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
-        responses = promises
-        for i in range(0, len(quotes)):
-            quote = quotes[i]
-            response = responses[i]
-            #
-            #     {
-            #         "status":"0000",
-            #         "data":{
-            #             "BTC":{
-            #                 "opening_price":"9045000",
-            #                 "closing_price":"9132000",
-            #                 "min_price":"8938000",
-            #                 "max_price":"9168000",
-            #                 "units_traded":"4619.79967497",
-            #                 "acc_trade_value":"42021363832.5187",
-            #                 "prev_closing_price":"9041000",
-            #                 "units_traded_24H":"8793.5045804",
-            #                 "acc_trade_value_24H":"78933458515.4962",
-            #                 "fluctate_24H":"530000",
-            #                 "fluctate_rate_24H":"6.16"
-            #             },
-            #             "date":"1587710878669"
-            #         }
-            #     }
-            #
-            data = self.safe_dict(response, 'data', {})
-            timestamp = self.safe_integer(data, 'date')
-            tickers = self.omit(data, 'date')
-            currencyIds = list(tickers.keys())
-            for j in range(0, len(currencyIds)):
-                currencyId = currencyIds[j]
-                ticker = data[currencyId]
-                base = self.safe_currency_code(currencyId)
-                symbol = base + '/' + quote
-                market = self.safe_market(symbol)
-                ticker['date'] = timestamp
-                result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        response = self.v2publicGetTicker(params)
+        return self.parse_tickers(response, symbols)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
-        """
-        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
-
-        :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
-        """
         self.load_markets()
         market = self.market(symbol)
-        request: dict = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
+        request = {
+            'markets': market['id'],
         }
-        response = self.publicGetTickerBaseIdQuoteId(self.extend(request, params))
-        #
-        #     {
-        #         "status":"0000",
-        #         "data":{
-        #             "opening_price":"227100",
-        #             "closing_price":"228400",
-        #             "min_price":"222300",
-        #             "max_price":"230000",
-        #             "units_traded":"82618.56075337",
-        #             "acc_trade_value":"18767376138.6031",
-        #             "prev_closing_price":"227100",
-        #             "units_traded_24H":"151871.13484676",
-        #             "acc_trade_value_24H":"34247610416.8974",
-        #             "fluctate_24H":"8700",
-        #             "fluctate_rate_24H":"3.96",
-        #             "date":"1587710327264"
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data', {})
+        response = self.v2publicGetTicker(self.extend(request, params))
+        data = self.safe_dict(response, 0, {})
         return self.parse_ticker(data, market)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
-        #
-        #     [
-        #         1576823400000,  # 기준 시간
-        #         "8284000",  # 시가
-        #         "8286000",  # 종가
-        #         "8289000",  # 고가
-        #         "8276000",  # 저가
-        #         "15.41503692"  # 거래량
-        #     ]
-        #
         return [
-            self.safe_integer(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 5),
+            self.safe_integer(ohlcv, 'timestamp'),
+            self.safe_number(ohlcv, 'opening_price'),
+            self.safe_number(ohlcv, 'high_price'),
+            self.safe_number(ohlcv, 'low_price'),
+            self.safe_number(ohlcv, 'trade_price'),
+            self.safe_number(ohlcv, 'candle_acc_trade_volume'),
         ]
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
-        """
-        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-        https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
-
-        :param str symbol: unified symbol of the market to fetch OHLCV data for
-        :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
-        """
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
+            'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        response = self.publicGetCandlestickBaseIdQuoteIdInterval(self.extend(request, params))
+        if limit is not None:
+            request['count'] = limit
+        response = self.v2publicGetCandlestickMarketInterval(self.extend(request, params))
         #
-        #     {
-        #         "status": "0000",
-        #         "data": {
-        #             [
-        #                 1576823400000,  # 기준 시간
-        #                 "8284000",  # 시가
-        #                 "8286000",  # 종가
-        #                 "8289000",  # 고가
-        #                 "8276000",  # 저가
-        #                 "15.41503692"  # 거래량
-        #             ],
-        #             [
-        #                 1576824000000,  # 기준 시간
-        #                 "8284000",  # 시가
-        #                 "8281000",  # 종가
-        #                 "8289000",  # 고가
-        #                 "8275000",  # 저가
-        #                 "6.19584467"  # 거래량
-        #             ],
-        #         }
-        #     }
+        #    [
+        #        {
+        #            "market": "KRW-BTC",
+        #            "candle_date_time_utc": "2023-10-24T06:35:00",
+        #            "candle_date_time_kts": "2023-10-24T15:35:00",
+        #            "opening_price": 45831000,
+        #            "high_price": 45831000,
+        #            "low_price": 45831000,
+        #            "trade_price": 45831000,
+        #            "timestamp": 1698125700000,
+        #            "candle_acc_trade_price": 435133614.99125,
+        #            "candle_acc_trade_volume": 9.4943,
+        #            "unit": 1
+        #        },
+        #        ...
+        #    ]
         #
-        data = self.safe_list(response, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
-        #
-        # fetchTrades(public)
-        #
-        #     {
-        #         "transaction_date":"2020-04-23 22:21:46",
-        #         "type":"ask",
-        #         "units_traded":"0.0125",
-        #         "price":"8667000",
-        #         "total":"108337"
-        #     }
-        #
-        # fetchOrder(private)
-        #
-        #     {
-        #         "transaction_date": "1572497603902030",
-        #         "price": "8601000",
-        #         "units": "0.005",
-        #         "fee_currency": "KRW",
-        #         "fee": "107.51",
-        #         "total": "43005"
-        #     }
-        #
-        # a workaround for their bug in date format, hours are not 0-padded
-        timestamp = None
-        transactionDatetime = self.safe_string(trade, 'transaction_date')
-        if transactionDatetime is not None:
-            parts = transactionDatetime.split(' ')
-            numParts = len(parts)
-            if numParts > 1:
-                transactionDate = parts[0]
-                transactionTime = parts[1]
-                if len(transactionTime) < 8:
-                    transactionTime = '0' + transactionTime
-                timestamp = self.parse8601(transactionDate + ' ' + transactionTime)
-            else:
-                timestamp = self.safe_integer_product(trade, 'transaction_date', 0.001)
-        if timestamp is not None:
-            timestamp -= 9 * 3600000  # they report UTC + 9 hours, server in Korean timezone
-        type = None
-        side = self.safe_string(trade, 'type')
-        side = 'sell' if (side == 'ask') else 'buy'
-        id = self.safe_string(trade, 'cont_no')
-        market = self.safe_market(None, market)
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units'))
-        costString = self.safe_string(trade, 'total')
-        fee = None
-        feeCostString = self.safe_string(trade, 'fee')
-        if feeCostString is not None:
-            feeCurrencyId = self.safe_string(trade, 'fee_currency')
-            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
-            fee = {
-                'cost': feeCostString,
-                'currency': feeCurrencyCode,
-            }
+        timestamp = self.safe_integer(trade, 'timestamp')
+        side = self.safe_string_lower(trade, 'ask_bid') == 'sell' if 'ask' else 'buy'
+        price = self.safe_string(trade, 'trade_price')
+        amount = self.safe_string(trade, 'trade_volume')
+        id = self.safe_string(trade, 'sequential_id')
+        symbol = self.safe_symbol(None, market)
         return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': fee,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'fee': None,
         }, market)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
-        """
-        get the list of most recent trades for a particular symbol
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
-
-        :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
-        """
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
+            'market': market['id'],
         }
         if limit is not None:
-            request['count'] = limit  # default 20, max 100
-        response = self.publicGetTransactionHistoryBaseIdQuoteId(self.extend(request, params))
-        #
-        #     {
-        #         "status":"0000",
-        #         "data":[
-        #             {
-        #                 "transaction_date":"2020-04-23 22:21:46",
-        #                 "type":"ask",
-        #                 "units_traded":"0.0125",
-        #                 "price":"8667000",
-        #                 "total":"108337"
-        #             },
-        #         ]
-        #     }
-        #
-        data = self.safe_list(response, 'data', [])
-        return self.parse_trades(data, market, since, limit)
+            request['count'] = limit
+        response = self.v2publicGetTradesRecent(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        """
-        create a trade order
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
-        https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
-        https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
-
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
-        """
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'order_currency': market['id'],
-            'payment_currency': market['quote'],
-            'units': amount,
+            'market': market['id'],
+            'side': 'bid' if (side == 'buy') else 'ask',
+            'volume': self.amount_to_precision(symbol, amount),
+            'ord_type': 'limit' if (type == 'limit') else 'price',  # price is market buy/sell
         }
-        method = 'privatePostTradePlace'
         if type == 'limit':
-            request['price'] = price
-            request['type'] = 'bid' if (side == 'buy') else 'ask'
-        else:
-            method = 'privatePostTradeMarket' + self.capitalize(side)
-        response = getattr(self, method)(self.extend(request, params))
-        id = self.safe_string(response, 'order_id')
-        if id is None:
-            raise InvalidOrder(self.id + ' createOrder() did not return an order id')
-        return self.safe_order({
-            'info': response,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'id': id,
-        }, market)
+            request['price'] = self.price_to_precision(symbol, price)
+        response = self.v2privatePostOrders(self.extend(request, params))
+        return self.parse_order(response, market)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
-        """
-        fetches information on an order made by the user
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
-
-        :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
-        """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'order_id': id,
-            'count': 1,
-            'order_currency': market['base'],
-            'payment_currency': market['quote'],
+    def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+        request = {
+            'uuid': id,
         }
-        response = self.privatePostInfoOrderDetail(self.extend(request, params))
-        #
-        #     {
-        #         "status": "0000",
-        #         "data": {
-        #             "order_date": "1603161798539254",
-        #             "type": "ask",
-        #             "order_status": "Cancel",
-        #             "order_currency": "BTC",
-        #             "payment_currency": "KRW",
-        #             "watch_price": "0",
-        #             "order_price": "13344000",
-        #             "order_qty": "0.0125",
-        #             "cancel_date": "1603161803809993",
-        #             "cancel_type": "사용자취소",
-        #             "contract": [
-        #                 {
-        #                     "transaction_date": "1603161799976383",
-        #                     "price": "13344000",
-        #                     "units": "0.0015",
-        #                     "fee_currency": "KRW",
-        #                     "fee": "0",
-        #                     "total": "20016"
-        #                 }
-        #             ],
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data')
-        return self.parse_order(self.extend(data, {'order_id': id}), market)
-
-    def parse_order_status(self, status: Str):
-        statuses: dict = {
-            'Pending': 'open',
-            'Completed': 'closed',
-            'Cancel': 'canceled',
-        }
-        return self.safe_string(statuses, status, status)
+        response = self.v2privateDeleteOrder(self.extend(request, params))
+        return self.parse_order(response)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
-        #
-        #
-        # fetchOrder
-        #
-        #     {
-        #         "transaction_date": "1572497603668315",
-        #         "type": "bid",
-        #         "order_status": "Completed",  # Completed, Cancel ...
-        #         "order_currency": "BTC",
-        #         "payment_currency": "KRW",
-        #         "watch_price": "0",  # present in Cancel order
-        #         "order_price": "8601000",
-        #         "order_qty": "0.007",
-        #         "cancel_date": "",  # filled in Cancel order
-        #         "cancel_type": "",  # filled in Cancel order, i.e. 사용자취소
-        #         "contract": [
-        #             {
-        #                 "transaction_date": "1572497603902030",
-        #                 "price": "8601000",
-        #                 "units": "0.005",
-        #                 "fee_currency": "KRW",
-        #                 "fee": "107.51",
-        #                 "total": "43005"
-        #             },
-        #         ]
-        #     }
-        #
-        # fetchOpenOrders
-        #
-        #     {
-        #         "order_currency": "BTC",
-        #         "payment_currency": "KRW",
-        #         "order_id": "C0101000007408440032",
-        #         "order_date": "1571728739360570",
-        #         "type": "bid",
-        #         "units": "5.0",
-        #         "units_remaining": "5.0",
-        #         "price": "501000",
-        #     }
-        #
-        timestamp = self.safe_integer_product(order, 'order_date', 0.001)
-        sideProperty = self.safe_string_2(order, 'type', 'side')
-        side = 'buy' if (sideProperty == 'bid') else 'sell'
-        status = self.parse_order_status(self.safe_string(order, 'order_status'))
-        price = self.safe_string_2(order, 'order_price', 'price')
-        type = 'limit'
-        if Precise.string_equals(price, '0'):
-            type = 'market'
-        amount = self.fix_comma_number(self.safe_string_2(order, 'order_qty', 'units'))
-        remaining = self.fix_comma_number(self.safe_string(order, 'units_remaining'))
-        if remaining is None:
-            if status == 'closed':
-                remaining = '0'
-            elif status != 'canceled':
-                remaining = amount
-        symbol = None
-        baseId = self.safe_string(order, 'order_currency')
-        quoteId = self.safe_string(order, 'payment_currency')
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        if (base is not None) and (quote is not None):
-            symbol = base + '/' + quote
-        if symbol is None:
-            market = self.safe_market(None, market)
-            symbol = market['symbol']
-        id = self.safe_string(order, 'order_id')
-        rawTrades = self.safe_list(order, 'contract', [])
+        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        status = self.parse_order_status(self.safe_string(order, 'state'))
+        symbol = self.safe_symbol(self.safe_string(order, 'market'), market)
+        side = self.safe_string_lower(order, 'side') == 'buy' if 'bid' else 'sell'
+        type = self.safe_string_lower(order, 'ord_type')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'volume')
+        remaining = self.safe_string(order, 'remaining_volume')
+        filled = self.safe_string(order, 'executed_volume')
+        id = self.safe_string(order, 'uuid')
         return self.safe_order({
-            'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
+            'status': status,
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
-            'cost': None,
-            'average': None,
-            'filled': None,
+            'filled': filled,
             'remaining': remaining,
-            'status': status,
-            'fee': None,
-            'trades': rawTrades,
+            'cost': None,
+            'trades': None,
+            'fee': {
+                'currency': None,
+                'cost': self.safe_string(order, 'paid_fee'),
+            },
+            'info': order,
         }, market)
 
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
+            'wait': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        """
-        fetch all unfilled currently open orders
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
-
-        :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of open order structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
-        """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        if limit is None:
-            limit = 100
-        request: dict = {
-            'count': limit,
-            'order_currency': market['base'],
-            'payment_currency': market['quote'],
-        }
-        if since is not None:
-            request['after'] = since
-        response = self.privatePostInfoOrders(self.extend(request, params))
-        #
-        #     {
-        #         "status": "0000",
-        #         "data": [
-        #             {
-        #                 "order_currency": "BTC",
-        #                 "payment_currency": "KRW",
-        #                 "order_id": "C0101000007408440032",
-        #                 "order_date": "1571728739360570",
-        #                 "type": "bid",
-        #                 "units": "5.0",
-        #                 "units_remaining": "5.0",
-        #                 "price": "501000",
-        #             }
-        #         ]
-        #     }
-        #
-        data = self.safe_list(response, 'data', [])
-        return self.parse_orders(data, market, since, limit)
+        request: dict = {}
+        if symbol is not None:
+            request['market'] = self.market_id(symbol)
+        if limit is not None:
+            request['limit'] = limit
+        response = self.v2privateGetOrders(self.extend(request, params))
+        return self.parse_orders(response, None, since, limit)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
-        """
-        cancels an open order
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
-
-        :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
-        """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        side_in_params = ('side' in params)
-        if not side_in_params:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter(sell or buy)')
-        market = self.market(symbol)
-        side = 'bid' if (params['side'] == 'buy') else 'ask'
-        params = self.omit(params, ['side', 'currency'])
-        # https://github.com/ccxt/ccxt/issues/6771
-        request: dict = {
-            'order_id': id,
-            'type': side,
-            'order_currency': market['base'],
-            'payment_currency': market['quote'],
-        }
-        response = self.privatePostTradeCancel(self.extend(request, params))
-        #
-        #    {
-        #       'status': 'string',
-        #    }
-        #
-        return self.safe_order({
-            'info': response,
-        })
-
-    def cancel_unified_order(self, order: Order, params={}):
-        request: dict = {
-            'side': order['side'],
-        }
-        return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
-
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
-        """
-        make a withdrawal
-
-        https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
-
-        :param str code: unified currency code
-        :param float amount: the amount to withdraw
-        :param str address: the address to withdraw to
-        :param str tag:
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
-        """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+    def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         self.load_markets()
-        currency = self.currency(code)
-        request: dict = {
-            'units': amount,
-            'address': address,
-            'currency': currency['id'],
+        request = {
+            'uuid': id,
         }
-        if code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM' or code == 'TON':
-            destination = self.safe_string(params, 'destination')
-            if (tag is None) and (destination is None):
-                raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
-            elif tag is not None:
-                request['destination'] = tag
-        response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
-        #
-        # {"status" : "0000"}
-        #
-        return self.parse_transaction(response, currency)
-
-    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
-        #
-        # withdraw
-        #
-        #     {"status" : "0000"}
-        #
-        currency = self.safe_currency(None, currency)
-        return {
-            'id': None,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'network': None,
-            'addressFrom': None,
-            'address': None,
-            'addressTo': None,
-            'amount': None,
-            'type': None,
-            'currency': currency['code'],
-            'status': None,
-            'updated': None,
-            'tagFrom': None,
-            'tag': None,
-            'tagTo': None,
-            'comment': None,
-            'internal': None,
-            'fee': None,
-            'info': transaction,
-        }
-
-    def fix_comma_number(self, numberStr):
-        # some endpoints need self https://github.com/ccxt/ccxt/issues/11031
-        if numberStr is None:
-            return None
-        finalNumberStr = numberStr
-        while(finalNumberStr.find(',') > -1):
-            finalNumberStr = finalNumberStr.replace(',', '')
-        return finalNumberStr
-
-    def nonce(self):
-        return self.milliseconds()
+        response = self.v2privateGetOrder(self.extend(request, params))
+        return self.parse_order(response)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        endpoint = '/' + self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][api]) + endpoint
+        endpoint = self.implode_params(path, params)
+        url = self.urls['api'][api] + '/' + endpoint
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if api == 'v2public' or api == 'v2private':
             if query:
                 url += '?' + self.urlencode(query)
+            if api == 'v2private':
+                self.check_required_credentials()
+                nonce = self.uuid()
+                timestamp = self.milliseconds()
+                payload: dict = {
+                    'access_key': self.apiKey,
+                    'nonce': nonce,
+                    'timestamp': timestamp,
+                }
+                if query:
+                    if method == 'GET' or method == 'DELETE':
+                        queryString = self.urlencode(query)
+                        payload['query_hash'] = self.hash(self.encode(queryString), 'sha512')
+                        payload['query_hash_alg'] = 'SHA512'
+                    else:
+                        body = self.json(query)
+                        payload['query_hash'] = self.hash(self.encode(body), 'sha512')
+                        payload['query_hash_alg'] = 'SHA512'
+                token = self.jwt(payload, self.encode(self.secret), 'sha256')
+                headers = {
+                    'Authorization': 'Bearer ' + token,
+                }
+                if method == 'POST':
+                    headers['Content-Type'] = 'application/json'
         else:
-            self.check_required_credentials()
-            body = self.urlencode(self.extend({
-                'endpoint': endpoint,
-            }, query))
-            nonce = str(self.nonce())
-            auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            signature64 = self.string_to_base64(signature)
-            headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Api-Key': self.apiKey,
-                'Api-Sign': signature64,
-                'Api-Nonce': nonce,
-            }
+            if api == 'public':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                self.check_required_credentials()
+                body = self.urlencode(self.extend({
+                    'endpoint': '/' + endpoint,
+                }, query))
+                nonce = str(self.milliseconds())
+                auth = '/' + endpoint + ';' + body + ';' + nonce
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512, 'hex')
+                signature64 = self.string_to_base64(signature)
+                headers = {
+                    'Api-Key': self.apiKey,
+                    'Api-Sign': signature64,
+                    'Api-Nonce': nonce,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if response is None:
-            return None  # fallback to default error handler
-        if 'status' in response:
-            #
-            #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
-            #
-            status = self.safe_string(response, 'status')
-            message = self.safe_string(response, 'message')
-            if status is not None:
-                if status == '0000':
-                    return None  # no error
-                elif message == '거래 진행중인 내역이 존재하지 않습니다.':
-                    # https://github.com/ccxt/ccxt/issues/9017
-                    return None  # no error
-                feedback = self.id + ' ' + message
-                self.throw_exactly_matched_exception(self.exceptions, status, feedback)
-                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
-                raise ExchangeError(feedback)
-        return None
