@@ -744,7 +744,7 @@ make a withdrawal
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money  
+**See**: https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -753,6 +753,7 @@ make a withdrawal
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | No | an optional tag for the withdrawal |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc. |
 
 
 ```javascript

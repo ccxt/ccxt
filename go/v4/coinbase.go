@@ -4934,12 +4934,13 @@ func (this *CoinbaseCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan inte
  * @method
  * @name coinbase#withdraw
  * @description make a withdrawal
- * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+ * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} [tag] an optional tag for the withdrawal
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CoinbaseCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
@@ -4956,8 +4957,8 @@ func (this *CoinbaseCore) Withdraw(code interface{}, amount interface{}, address
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes41248 := (<-this.LoadMarkets())
-		PanicOnError(retRes41248)
+		retRes41258 := (<-this.LoadMarkets())
+		PanicOnError(retRes41258)
 		var currency interface{} = this.Currency(code)
 		var accountId interface{} = this.SafeString2(params, "account_id", "accountId")
 		params = this.Omit(params, []interface{}{"account_id", "accountId"})
@@ -5063,8 +5064,8 @@ func (this *CoinbaseCore) FetchDepositAddressesByNetwork(code interface{}, optio
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes42148 := (<-this.LoadMarkets())
-		PanicOnError(retRes42148)
+		retRes42158 := (<-this.LoadMarkets())
+		PanicOnError(retRes42158)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = nil
 		requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCode(GetValue(currency, "code"), nil, params))
@@ -5238,8 +5239,8 @@ func (this *CoinbaseCore) Deposit(code interface{}, amount interface{}, id inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes43718 := (<-this.LoadMarkets())
-		PanicOnError(retRes43718)
+		retRes43728 := (<-this.LoadMarkets())
+		PanicOnError(retRes43728)
 		var accountId interface{} = this.SafeString2(params, "account_id", "accountId")
 		params = this.Omit(params, []interface{}{"account_id", "accountId"})
 		if IsTrue(IsEqual(accountId, nil)) {
@@ -5330,8 +5331,8 @@ func (this *CoinbaseCore) FetchDeposit(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes44448 := (<-this.LoadMarkets())
-		PanicOnError(retRes44448)
+		retRes44458 := (<-this.LoadMarkets())
+		PanicOnError(retRes44458)
 		var accountId interface{} = this.SafeString2(params, "account_id", "accountId")
 		params = this.Omit(params, []interface{}{"account_id", "accountId"})
 		if IsTrue(IsEqual(accountId, nil)) {
@@ -5414,8 +5415,8 @@ func (this *CoinbaseCore) FetchDepositMethodIds(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes45118 := (<-this.LoadMarkets())
-		PanicOnError(retRes45118)
+		retRes45128 := (<-this.LoadMarkets())
+		PanicOnError(retRes45128)
 
 		response := (<-this.V3PrivateGetBrokeragePaymentMethods(params))
 		PanicOnError(response)
@@ -5464,8 +5465,8 @@ func (this *CoinbaseCore) FetchDepositMethodId(id interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes45468 := (<-this.LoadMarkets())
-		PanicOnError(retRes45468)
+		retRes45478 := (<-this.LoadMarkets())
+		PanicOnError(retRes45478)
 		var request interface{} = map[string]interface{}{
 			"payment_method_id": id,
 		}
@@ -5541,8 +5542,8 @@ func (this *CoinbaseCore) FetchConvertQuote(fromCode interface{}, toCode interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes46068 := (<-this.LoadMarkets())
-		PanicOnError(retRes46068)
+		retRes46078 := (<-this.LoadMarkets())
+		PanicOnError(retRes46078)
 		var request interface{} = map[string]interface{}{
 			"from_account": fromCode,
 			"to_account":   toCode,
@@ -5582,8 +5583,8 @@ func (this *CoinbaseCore) CreateConvertTrade(id interface{}, fromCode interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes46308 := (<-this.LoadMarkets())
-		PanicOnError(retRes46308)
+		retRes46318 := (<-this.LoadMarkets())
+		PanicOnError(retRes46318)
 		var request interface{} = map[string]interface{}{
 			"trade_id":     id,
 			"from_account": fromCode,
@@ -5622,8 +5623,8 @@ func (this *CoinbaseCore) FetchConvertTrade(id interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes46538 := (<-this.LoadMarkets())
-		PanicOnError(retRes46538)
+		retRes46548 := (<-this.LoadMarkets())
+		PanicOnError(retRes46548)
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchConvertTrade() requires a code argument")))
 		}
@@ -5696,8 +5697,8 @@ func (this *CoinbaseCore) ClosePosition(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes47078 := (<-this.LoadMarkets())
-		PanicOnError(retRes47078)
+		retRes47088 := (<-this.LoadMarkets())
+		PanicOnError(retRes47088)
 		var market interface{} = this.Market(symbol)
 		var clientOrderId interface{} = this.SafeString2(params, "client_order_id", "clientOrderId")
 		params = this.Omit(params, "clientOrderId")
@@ -5741,8 +5742,8 @@ func (this *CoinbaseCore) FetchPositions(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes47358 := (<-this.LoadMarkets())
-		PanicOnError(retRes47358)
+		retRes47368 := (<-this.LoadMarkets())
+		PanicOnError(retRes47368)
 		symbols = this.MarketSymbols(symbols)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -5801,8 +5802,8 @@ func (this *CoinbaseCore) FetchPosition(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes47748 := (<-this.LoadMarkets())
-		PanicOnError(retRes47748)
+		retRes47758 := (<-this.LoadMarkets())
+		PanicOnError(retRes47758)
 		var market interface{} = this.Market(symbol)
 		var response interface{} = nil
 		if IsTrue(GetValue(market, "future")) {
@@ -5996,8 +5997,8 @@ func (this *CoinbaseCore) FetchTradingFees(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes49498 := (<-this.LoadMarkets())
-		PanicOnError(retRes49498)
+		retRes49508 := (<-this.LoadMarkets())
+		PanicOnError(retRes49508)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
@@ -6075,8 +6076,8 @@ func (this *CoinbaseCore) FetchPortfolioDetails(portfolioUuid interface{}, optio
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes50118 := (<-this.LoadMarkets())
-		PanicOnError(retRes50118)
+		retRes50128 := (<-this.LoadMarkets())
+		PanicOnError(retRes50128)
 		var request interface{} = map[string]interface{}{
 			"portfolio_uuid": portfolioUuid,
 		}
@@ -6402,8 +6403,8 @@ func (this *CoinbaseCore) FetchDepositAddresses(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes52978 := (<-this.LoadMarkets())
-		PanicOnError(retRes52978)
+		retRes52988 := (<-this.LoadMarkets())
+		PanicOnError(retRes52988)
 		var request interface{} = this.PrepareAccountRequest(nil, params)
 
 		response := (<-this.V2PrivateGetAccountsAccountIdAddresses(this.Extend(request, params)))

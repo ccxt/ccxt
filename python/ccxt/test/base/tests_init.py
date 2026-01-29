@@ -38,6 +38,7 @@ from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E40
 from ccxt.test.base.test_arrays_concat import test_arrays_concat  # noqa E402
 from ccxt.test.base.test_sleep import test_sleep  # noqa E402
 from ccxt.test.base.test_eth_methods import test_eth_methods  # noqa E402
+from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
 
 async def base_tests_init():
     test_language_specific()
@@ -47,6 +48,7 @@ async def base_tests_init():
     test_cryptography()
     test_datetime()
     test_decimal_to_precision()
+    test_capitalize()
     test_number_to_string()
     test_precise()
     test_safe_methods()

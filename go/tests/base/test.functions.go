@@ -6,6 +6,7 @@ package base
 var FunctionsMap = map[string]interface{}{
 	"afterConstructor":                TestAfterConstructor,
 	"arraysConcat":                    TestArraysConcat,
+	"capitalize":                      TestCapitalize,
 	"datetime":                        TestDatetime,
 	"decimalToPrecision":              TestDecimalToPrecision,
 	"deepExtend":                      TestDeepExtend,
