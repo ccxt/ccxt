@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, MarketInterface
 from typing import List
@@ -17,6 +18,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class bithumb(Exchange, ImplicitAPI):
@@ -56,7 +58,7 @@ class bithumb(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': True,
+                'fetchCurrencies': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -173,7 +175,9 @@ class bithumb(Exchange, ImplicitAPI):
                         'market/all',
                         'ticker',
                         'orderbook',
-                        'trades/recent',
+                        'trades/ticks',
+                        'candles/minutes/{unit}',
+                        'candles/{interval}',
                         'candlestick/{market}/{interval}',
                     ],
                 },
@@ -270,15 +274,17 @@ class bithumb(Exchange, ImplicitAPI):
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '10m': '10m',
-                '30m': '30m',
-                '1h': '1h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '24h',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '10m': '10',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
             },
             'options': {
                 'quoteCurrencies': {
@@ -407,7 +413,7 @@ class bithumb(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'markets': market['id'],
+            'markets': market['quote'] + '-' + market['base'],
         }
         response = await self.v2publicGetOrderbook(self.extend(request, params))
         #
@@ -431,15 +437,48 @@ class bithumb(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 0, {})
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, symbol, timestamp, 'bid_price', 'ask_price', 'bid_size', 'ask_size', 'orderbook_units')
+        orderbookUnits = self.safe_list(data, 'orderbook_units', [])
+        bids = []
+        asks = []
+        for i in range(0, len(orderbookUnits)):
+            entry = orderbookUnits[i]
+            askPrice = self.safe_number(entry, 'ask_price')
+            askSize = self.safe_number(entry, 'ask_size')
+            bidPrice = self.safe_number(entry, 'bid_price')
+            bidSize = self.safe_number(entry, 'bid_size')
+            if askPrice is not None and askSize is not None:
+                if askSize > 0:
+                    asks.append([askPrice, askSize])
+            if bidPrice is not None and bidSize is not None:
+                if bidSize > 0:
+                    bids.append([bidPrice, bidSize])
+        return {
+            'symbol': symbol,
+            'bids': self.sort_by(bids, 0, True),
+            'asks': self.sort_by(asks, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'nonce': None,
+        }
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = self.safe_symbol(None, market)
+        if timestamp is None:
+            timestamp = self.safe_integer(ticker, 'trade_timestamp')
+        marketId = self.safe_string(ticker, 'market')
+        symbol = self.safe_symbol(marketId, market)
         open = self.safe_string(ticker, 'opening_price')
         close = self.safe_string(ticker, 'trade_price')
         high = self.safe_string(ticker, 'high_price')
         low = self.safe_string(ticker, 'low_price')
+        # workaround for Bithumb data inconsistency
+        if close is not None:
+            if high is not None:
+                if Precise.string_lt(high, close):
+                    high = close
+            if low is not None:
+                if Precise.string_gt(low, close):
+                    low = close
         baseVolume = self.safe_string(ticker, 'acc_trade_volume_24h')
         quoteVolume = self.safe_string(ticker, 'acc_trade_price_24h')
         return self.safe_ticker({
@@ -467,14 +506,36 @@ class bithumb(Exchange, ImplicitAPI):
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         await self.load_markets()
-        response = await self.v2publicGetTicker(params)
-        return self.parse_tickers(response, symbols)
+        symbols = self.market_symbols(symbols)
+        marketIds = []
+        if symbols is None:
+            marketIds = list(self.markets_by_id.keys())
+        else:
+            marketIds = self.market_ids(symbols)
+        promises = []
+        chunkSize = 20  # safe chunk size
+        for i in range(0, len(marketIds)):
+            chunk = marketIds[i:i + chunkSize]
+            markets = []
+            for j in range(0, len(chunk)):
+                marketId = chunk[j]
+                market = self.safe_market(marketId)
+                markets.append(market['quote'] + '-' + market['base'])
+            marketsString = ','.join(markets)
+            promises.append(self.v2publicGetTicker(self.extend(params, {'markets': marketsString})))
+        responses = await asyncio.gather(*promises)
+        result = []
+        for i in range(0, len(responses)):
+            response = responses[i]
+            for j in range(0, len(response)):
+                result.append(response[j])
+        return self.parse_tickers(result, symbols)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'markets': market['id'],
+            'markets': market['quote'] + '-' + market['base'],
         }
         response = await self.v2publicGetTicker(self.extend(request, params))
         data = self.safe_dict(response, 0, {})
@@ -482,7 +543,7 @@ class bithumb(Exchange, ImplicitAPI):
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         return [
-            self.safe_integer(ohlcv, 'timestamp'),
+            self.parse8601(self.safe_string(ohlcv, 'candle_date_time_utc')),
             self.safe_number(ohlcv, 'opening_price'),
             self.safe_number(ohlcv, 'high_price'),
             self.safe_number(ohlcv, 'low_price'),
@@ -493,13 +554,21 @@ class bithumb(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         await self.load_markets()
         market = self.market(symbol)
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         request: dict = {
-            'market': market['id'],
-            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
+            'market': market['quote'] + '-' + market['base'],
         }
+        if timeframe == '1d' or timeframe == '1w' or timeframe == '1M':
+            request['interval'] = interval
+        else:
+            request['unit'] = interval
         if limit is not None:
             request['count'] = limit
-        response = await self.v2publicGetCandlestickMarketInterval(self.extend(request, params))
+        response = None
+        if timeframe == '1d' or timeframe == '1w' or timeframe == '1M':
+            response = await self.v2publicGetCandlesInterval(self.extend(request, params))
+        else:
+            response = await self.v2publicGetCandlesMinutesUnit(self.extend(request, params))
         #
         #    [
         #        {
@@ -547,18 +616,18 @@ class bithumb(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'market': market['id'],
+            'market': market['quote'] + '-' + market['base'],
         }
         if limit is not None:
             request['count'] = limit
-        response = await self.v2publicGetTradesRecent(self.extend(request, params))
+        response = await self.v2publicGetTradesTicks(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'market': market['id'],
+            'market': market['quote'] + '-' + market['base'],
             'side': 'bid' if (side == 'buy') else 'ask',
             'volume': self.amount_to_precision(symbol, amount),
             'ord_type': 'limit' if (type == 'limit') else 'price',  # price is market buy/sell
@@ -625,7 +694,8 @@ class bithumb(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         if symbol is not None:
-            request['market'] = self.market_id(symbol)
+            market = self.market(symbol)
+            request['market'] = market['quote'] + '-' + market['base']
         if limit is not None:
             request['limit'] = limit
         response = await self.v2privateGetOrders(self.extend(request, params))

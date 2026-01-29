@@ -7,7 +7,9 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\bithumb as Exchange;
+use ccxt\Precise;
 use \React\Async;
+use \React\Promise;
 use \React\Promise\PromiseInterface;
 
 class bithumb extends Exchange {
@@ -47,7 +49,7 @@ class bithumb extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => true,
+                'fetchCurrencies' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -164,7 +166,9 @@ class bithumb extends Exchange {
                         'market/all',
                         'ticker',
                         'orderbook',
-                        'trades/recent',
+                        'trades/ticks',
+                        'candles/minutes/{unit}',
+                        'candles/{interval}',
                         'candlestick/{market}/{interval}',
                     ),
                 ),
@@ -261,15 +265,17 @@ class bithumb extends Exchange {
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             ),
             'timeframes' => array(
-                '1m' => '1m',
-                '3m' => '3m',
-                '5m' => '5m',
-                '10m' => '10m',
-                '30m' => '30m',
-                '1h' => '1h',
-                '6h' => '6h',
-                '12h' => '12h',
-                '1d' => '24h',
+                '1m' => '1',
+                '3m' => '3',
+                '5m' => '5',
+                '10m' => '10',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '4h' => '240',
+                '1d' => 'days',
+                '1w' => 'weeks',
+                '1M' => 'months',
             ),
             'options' => array(
                 'quoteCurrencies' => array(
@@ -411,7 +417,7 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'markets' => $market['id'],
+                'markets' => $market['quote'] . '-' . $market['base'],
             );
             $response = Async\await($this->v2publicGetOrderbook ($this->extend($request, $params)));
             //
@@ -435,17 +441,61 @@ class bithumb extends Exchange {
             //
             $data = $this->safe_dict($response, 0, array());
             $timestamp = $this->safe_integer($data, 'timestamp');
-            return $this->parse_order_book($data, $symbol, $timestamp, 'bid_price', 'ask_price', 'bid_size', 'ask_size', 'orderbook_units');
+            $orderbookUnits = $this->safe_list($data, 'orderbook_units', array());
+            $bids = array();
+            $asks = array();
+            for ($i = 0; $i < count($orderbookUnits); $i++) {
+                $entry = $orderbookUnits[$i];
+                $askPrice = $this->safe_number($entry, 'ask_price');
+                $askSize = $this->safe_number($entry, 'ask_size');
+                $bidPrice = $this->safe_number($entry, 'bid_price');
+                $bidSize = $this->safe_number($entry, 'bid_size');
+                if ($askPrice !== null && $askSize !== null) {
+                    if ($askSize > 0) {
+                        $asks[] = array( $askPrice, $askSize );
+                    }
+                }
+                if ($bidPrice !== null && $bidSize !== null) {
+                    if ($bidSize > 0) {
+                        $bids[] = array( $bidPrice, $bidSize );
+                    }
+                }
+            }
+            return array(
+                'symbol' => $symbol,
+                'bids' => $this->sort_by($bids, 0, true),
+                'asks' => $this->sort_by($asks, 0),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'nonce' => null,
+            );
         }) ();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = $this->safe_symbol(null, $market);
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer($ticker, 'trade_timestamp');
+        }
+        $marketId = $this->safe_string($ticker, 'market');
+        $symbol = $this->safe_symbol($marketId, $market);
         $open = $this->safe_string($ticker, 'opening_price');
         $close = $this->safe_string($ticker, 'trade_price');
         $high = $this->safe_string($ticker, 'high_price');
         $low = $this->safe_string($ticker, 'low_price');
+        // workaround for Bithumb data inconsistency
+        if ($close !== null) {
+            if ($high !== null) {
+                if (Precise::string_lt($high, $close)) {
+                    $high = $close;
+                }
+            }
+            if ($low !== null) {
+                if (Precise::string_gt($low, $close)) {
+                    $low = $close;
+                }
+            }
+        }
         $baseVolume = $this->safe_string($ticker, 'acc_trade_volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'acc_trade_price_24h');
         return $this->safe_ticker(array(
@@ -475,8 +525,35 @@ class bithumb extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
-            $response = Async\await($this->v2publicGetTicker ($params));
-            return $this->parse_tickers($response, $symbols);
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = array();
+            if ($symbols === null) {
+                $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
+            } else {
+                $marketIds = $this->market_ids($symbols);
+            }
+            $promises = array();
+            $chunkSize = 20; // safe $chunk size
+            for ($i = 0; $i < count($marketIds); $i .= $chunkSize) {
+                $chunk = mb_substr($marketIds, $i, $i . $chunkSize - $i);
+                $markets = array();
+                for ($j = 0; $j < count($chunk); $j++) {
+                    $marketId = $chunk[$j];
+                    $market = $this->safe_market($marketId);
+                    $markets[] = $market['quote'] . '-' . $market['base'];
+                }
+                $marketsString = implode(',', $markets);
+                $promises[] = $this->v2publicGetTicker ($this->extend($params, array( 'markets' => $marketsString )));
+            }
+            $responses = Async\await(Promise\all($promises));
+            $result = array();
+            for ($i = 0; $i < count($responses); $i++) {
+                $response = $responses[$i];
+                for ($j = 0; $j < count($response); $j++) {
+                    $result[] = $response[$j];
+                }
+            }
+            return $this->parse_tickers($result, $symbols);
         }) ();
     }
 
@@ -485,7 +562,7 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'markets' => $market['id'],
+                'markets' => $market['quote'] . '-' . $market['base'],
             );
             $response = Async\await($this->v2publicGetTicker ($this->extend($request, $params)));
             $data = $this->safe_dict($response, 0, array());
@@ -495,7 +572,7 @@ class bithumb extends Exchange {
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
         return array(
-            $this->safe_integer($ohlcv, 'timestamp'),
+            $this->parse8601($this->safe_string($ohlcv, 'candle_date_time_utc')),
             $this->safe_number($ohlcv, 'opening_price'),
             $this->safe_number($ohlcv, 'high_price'),
             $this->safe_number($ohlcv, 'low_price'),
@@ -508,14 +585,24 @@ class bithumb extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
-                'market' => $market['id'],
-                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+                'market' => $market['quote'] . '-' . $market['base'],
             );
+            if ($timeframe === '1d' || $timeframe === '1w' || $timeframe === '1M') {
+                $request['interval'] = $interval;
+            } else {
+                $request['unit'] = $interval;
+            }
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->v2publicGetCandlestickMarketInterval ($this->extend($request, $params)));
+            $response = null;
+            if ($timeframe === '1d' || $timeframe === '1w' || $timeframe === '1M') {
+                $response = Async\await($this->v2publicGetCandlesInterval ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->v2publicGetCandlesMinutesUnit ($this->extend($request, $params)));
+            }
             //
             //    array(
             //        array(
@@ -567,12 +654,12 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'market' => $market['id'],
+                'market' => $market['quote'] . '-' . $market['base'],
             );
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->v2publicGetTradesRecent ($this->extend($request, $params)));
+            $response = Async\await($this->v2publicGetTradesTicks ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -582,7 +669,7 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'market' => $market['id'],
+                'market' => $market['quote'] . '-' . $market['base'],
                 'side' => ($side === 'buy') ? 'bid' : 'ask',
                 'volume' => $this->amount_to_precision($symbol, $amount),
                 'ord_type' => ($type === 'limit') ? 'limit' : 'price', // $price is $market buy/sell
@@ -658,7 +745,8 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             if ($symbol !== null) {
-                $request['market'] = $this->market_id($symbol);
+                $market = $this->market($symbol);
+                $request['market'] = $market['quote'] . '-' . $market['base'];
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
