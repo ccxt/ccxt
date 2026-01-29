@@ -1951,7 +1951,7 @@ var_dump (new \ccxt\okcoin ()); // PHP
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
-- `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of Market objects as defined by the Market structure (with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
+- `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of Market objects as defined by the [Market structure](#market-structure) (with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `fetchCurrencies ()`: Fetches all available currencies from an exchange and returns an associative dictionary of currencies (objects with properties such as `code`, `name`, etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
 - `fetchOrderBook (symbol, limit = undefined, params = {})`: Fetch L2/L3 order book for a particular market trading symbol.
