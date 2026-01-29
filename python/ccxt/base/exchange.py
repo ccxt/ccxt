@@ -1171,14 +1171,6 @@ class Exchange(object):
         return list(set(array))
 
     @staticmethod
-    def pluck(array, key):
-        return [
-            element[key]
-            for element in array
-            if (key in element) and (element[key] is not None)
-        ]
-
-    @staticmethod
     def sum(*args):
         return sum([arg for arg in args if isinstance(arg, (float, int))])
 
