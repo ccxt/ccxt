@@ -27,6 +27,14 @@ func NewBithumbFromCore(core *BithumbCore) *Bithumb {
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
+/**
+ * @method
+ * @name bithumb#fetchMarkets
+ * @description retrieves data on all markets for bithumb
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
 func (this *Bithumb) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
     res := <- this.Core.FetchMarkets(params...)
     if IsError(res) {
@@ -34,6 +42,14 @@ func (this *Bithumb) FetchMarkets(params ...interface{}) ([]MarketInterface, err
     }
     return NewMarketInterfaceArray(res), nil
 }
+/**
+ * @method
+ * @name bithumb#fetchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ */
 func (this *Bithumb) FetchBalance(params ...interface{}) (Balances, error) {
     res := <- this.Core.FetchBalance(params...)
     if IsError(res) {
@@ -41,6 +57,16 @@ func (this *Bithumb) FetchBalance(params ...interface{}) (Balances, error) {
     }
     return NewBalances(res), nil
 }
+/**
+ * @method
+ * @name bithumb#fetchOrderBook
+ * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+ * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ */
 func (this *Bithumb) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
     opts := FetchOrderBookOptionsStruct{}
@@ -64,6 +90,15 @@ func (this *Bithumb) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
     }
     return NewOrderBook(res), nil
 }
+/**
+ * @method
+ * @name bithumb#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+ * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
 func (this *Bithumb) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
     opts := FetchTickersOptionsStruct{}
@@ -87,6 +122,15 @@ func (this *Bithumb) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
     }
     return NewTickers(res), nil
 }
+/**
+ * @method
+ * @name bithumb#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
 func (this *Bithumb) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
     opts := FetchTickerOptionsStruct{}
@@ -105,6 +149,18 @@ func (this *Bithumb) FetchTicker(symbol string, options ...FetchTickerOptions) (
     }
     return NewTicker(res), nil
 }
+/**
+ * @method
+ * @name bithumb#fetchOHLCV
+ * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+ * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
 func (this *Bithumb) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
 
     opts := FetchOHLCVOptionsStruct{}
@@ -138,6 +194,17 @@ func (this *Bithumb) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
     }
     return NewOHLCVArray(res), nil
 }
+/**
+ * @method
+ * @name bithumb#fetchTrades
+ * @description get the list of most recent trades for a particular symbol
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+ * @param {string} symbol unified symbol of the market to fetch trades for
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+ */
 func (this *Bithumb) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
     opts := FetchTradesOptionsStruct{}
@@ -166,6 +233,21 @@ func (this *Bithumb) FetchTrades(symbol string, options ...FetchTradesOptions) (
     }
     return NewTradeArray(res), nil
 }
+/**
+ * @method
+ * @name bithumb#createOrder
+ * @description create a trade order
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Bithumb) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
     opts := CreateOrderOptionsStruct{}
@@ -189,6 +271,16 @@ func (this *Bithumb) CreateOrder(symbol string, typeVar string, side string, amo
     }
     return NewOrder(res), nil
 }
+/**
+ * @method
+ * @name bithumb#cancelOrder
+ * @description cancels an open order
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
     opts := CancelOrderOptionsStruct{}
@@ -212,6 +304,17 @@ func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Orde
     }
     return NewOrder(res), nil
 }
+/**
+ * @method
+ * @name bithumb#fetchOpenOrders
+ * @description fetch all unfilled currently open orders
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for
+ * @param {int} [limit] the maximum number of open order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Bithumb) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
     opts := FetchOpenOrdersOptionsStruct{}
@@ -245,6 +348,16 @@ func (this *Bithumb) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
     }
     return NewOrderArray(res), nil
 }
+/**
+ * @method
+ * @name bithumb#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
     opts := FetchOrderOptionsStruct{}
@@ -267,6 +380,41 @@ func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order,
         return Order{}, CreateReturnError(res)
     }
     return NewOrder(res), nil
+}
+/**
+ * @method
+ * @name bithumb#withdraw
+ * @description make a withdrawal
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+ * @param {string} code unified currency code
+ * @param {float} amount the amount to withdraw
+ * @param {string} address the address to withdraw to
+ * @param {string} tag
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
+func (this *Bithumb) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
+
+    opts := WithdrawOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var tag interface{} = nil
+    if opts.Tag != nil {
+        tag = *opts.Tag
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.Withdraw(code, amount, address, tag, params)
+    if IsError(res) {
+        return Transaction{}, CreateReturnError(res)
+    }
+    return NewTransaction(res), nil
 }
 // missing typed methods from base
 //nolint
@@ -390,7 +538,6 @@ func (this *Bithumb) SetMargin(symbol string, amount float64, options ...SetMarg
 func (this *Bithumb) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
 func (this *Bithumb) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
 func (this *Bithumb) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)}
-func (this *Bithumb) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {return this.exchangeTyped.Withdraw(code, amount, address, options...)}
 func (this *Bithumb) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
 func (this *Bithumb) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWs(ids, options...)}
 func (this *Bithumb) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {return this.exchangeTyped.CancelOrderWs(id, options...)}

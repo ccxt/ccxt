@@ -272,6 +272,14 @@ public partial class bithumb : Exchange
         return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), DECIMAL_PLACES);
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchMarkets
+     * @description retrieves data on all markets for bithumb
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -370,6 +378,14 @@ public partial class bithumb : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -378,6 +394,16 @@ public partial class bithumb : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -500,6 +526,15 @@ public partial class bithumb : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -535,6 +570,25 @@ public partial class bithumb : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(responses)); postFixIncrement(ref i))
         {
             object response = getValue(responses, i);
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "opening_price":"227100",
+            //             "closing_price":"228400",
+            //             "min_price":"222300",
+            //             "max_price":"230000",
+            //             "units_traded":"82618.56075337",
+            //             "acc_trade_value":"18767376138.6031",
+            //             "prev_closing_price":"227100",
+            //             "units_traded_24H":"151871.13484676",
+            //             "acc_trade_value_24H":"34247610416.8974",
+            //             "fluctate_24H":"8700",
+            //             "fluctate_rate_24H":"3.96",
+            //             "date":"1587710327264", // fetchTickers inject this
+            //         }
+            //     }
+            //
             for (object j = 0; isLessThan(j, getArrayLength(response)); postFixIncrement(ref j))
             {
                 ((IList<object>)result).Add(getValue(response, j));
@@ -543,6 +597,15 @@ public partial class bithumb : Exchange
         return this.parseTickers(result, symbols);
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -552,6 +615,25 @@ public partial class bithumb : Exchange
             { "markets", add(add(getValue(market, "quote"), "-"), getValue(market, "base")) },
         };
         object response = await this.v2publicGetTicker(this.extend(request, parameters));
+        //
+        //     {
+        //         "status":"0000",
+        //         "data":{
+        //             "opening_price":"227100",
+        //             "closing_price":"228400",
+        //             "min_price":"222300",
+        //             "max_price":"230000",
+        //             "units_traded":"82618.56075337",
+        //             "acc_trade_value":"18767376138.6031",
+        //             "prev_closing_price":"227100",
+        //             "units_traded_24H":"151871.13484676",
+        //             "acc_trade_value_24H":"34247610416.8974",
+        //             "fluctate_24H":"8700",
+        //             "fluctate_rate_24H":"3.96",
+        //             "date":"1587710327264",
+        //         }
+        //     }
+        //
         object data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
@@ -561,6 +643,18 @@ public partial class bithumb : Exchange
         return new List<object> {this.parse8601(this.safeString(ohlcv, "candle_date_time_utc")), this.safeNumber(ohlcv, "opening_price"), this.safeNumber(ohlcv, "high_price"), this.safeNumber(ohlcv, "low_price"), this.safeNumber(ohlcv, "trade_price"), this.safeNumber(ohlcv, "candle_acc_trade_volume")};
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
@@ -636,6 +730,17 @@ public partial class bithumb : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -652,6 +757,21 @@ public partial class bithumb : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bithumb#createOrder
+     * @description create a trade order
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -671,6 +791,16 @@ public partial class bithumb : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name bithumb#cancelOrder
+     * @description cancels an open order
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -731,6 +861,17 @@ public partial class bithumb : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -746,9 +887,36 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.v2privateGetOrders(this.extend(request, parameters));
+        //
+        //     {
+        //         "status": "0000",
+        //         "data": [
+        //             {
+        //                 "order_currency": "BTC",
+        //                 "payment_currency": "KRW",
+        //                 "order_id": "C0101000007408440032",
+        //                 "order_date": "1571728739360570",
+        //                 "type": "bid",
+        //                 "units": "5.0",
+        //                 "units_remaining": "5.0",
+        //                 "price": "501000",
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseOrders(response, null, since, limit);
     }
 
+    /**
+     * @method
+     * @name bithumb#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -758,6 +926,39 @@ public partial class bithumb : Exchange
         };
         object response = await this.v2privateGetOrder(this.extend(request, parameters));
         return this.parseOrder(response);
+    }
+
+    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        if (isTrue(isEqual(response, null)))
+        {
+            return null;  // fallback to default error handler
+        }
+        if (isTrue(inOp(response, "status")))
+        {
+            //
+            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+            //
+            object status = this.safeString(response, "status");
+            object message = this.safeString(response, "message");
+            if (isTrue(!isEqual(status, null)))
+            {
+                if (isTrue(isEqual(status, "0000")))
+                {
+                    return null;  // no error
+                }
+                if (isTrue(isEqual(message, "거래 진행중인 내역이 존재하지 않습니다.")))
+                {
+                    // https://github.com/ccxt/ccxt/issues/9017
+                    return null;  // no error
+                }
+                object feedback = add(add(this.id, " "), message);
+                this.throwExactlyMatchedException(this.exceptions, status, feedback);
+                this.throwExactlyMatchedException(this.exceptions, message, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            }
+        }
+        return null;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -839,5 +1040,49 @@ public partial class bithumb : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    /**
+     * @method
+     * @name bithumb#withdraw
+     * @description make a withdrawal
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        tag = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
+        this.checkAddress(address);
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "units", amount },
+            { "address", address },
+            { "currency", getValue(currency, "id") },
+        };
+        if (isTrue(isTrue(isTrue(isTrue(isTrue(isEqual(code, "XRP")) || isTrue(isEqual(code, "XMR"))) || isTrue(isEqual(code, "EOS"))) || isTrue(isEqual(code, "STEEM"))) || isTrue(isEqual(code, "TON"))))
+        {
+            object destination = this.safeString(parameters, "destination");
+            if (isTrue(isTrue((isEqual(tag, null))) && isTrue((isEqual(destination, null)))))
+            {
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
+            } else if (isTrue(!isEqual(tag, null)))
+            {
+                ((IDictionary<string,object>)request)["destination"] = tag;
+            }
+        }
+        object response = await this.privatePostTradeBtcWithdrawal(this.extend(request, parameters));
+        //
+        // { "status" : "0000"}
+        //
+        return this.parseTransaction(response, currency);
     }
 }

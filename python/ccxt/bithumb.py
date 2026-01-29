@@ -6,11 +6,12 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, MarketInterface
+from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ExchangeNotAvailable
@@ -331,6 +332,14 @@ class bithumb(Exchange, ImplicitAPI):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def fetch_markets(self, params={}) -> List[Market]:
+        """
+        retrieves data on all markets for bithumb
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
         response = self.v2publicGetMarketAll(params)
         #
         #    [
@@ -404,11 +413,29 @@ class bithumb(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
         self.load_markets()
         response = self.v2privateGetAccounts(params)
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -504,6 +531,15 @@ class bithumb(Exchange, ImplicitAPI):
         }, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         marketIds = []
@@ -526,17 +562,64 @@ class bithumb(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(responses)):
             response = responses[i]
+            #
+            #     {
+            #         "status":"0000",
+            #         "data":{
+            #             "opening_price":"227100",
+            #             "closing_price":"228400",
+            #             "min_price":"222300",
+            #             "max_price":"230000",
+            #             "units_traded":"82618.56075337",
+            #             "acc_trade_value":"18767376138.6031",
+            #             "prev_closing_price":"227100",
+            #             "units_traded_24H":"151871.13484676",
+            #             "acc_trade_value_24H":"34247610416.8974",
+            #             "fluctate_24H":"8700",
+            #             "fluctate_rate_24H":"3.96",
+            #             "date":"1587710327264",  # fetchTickers inject self
+            #         }
+            #     }
+            #
             for j in range(0, len(response)):
                 result.append(response[j])
         return self.parse_tickers(result, symbols)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'markets': market['quote'] + '-' + market['base'],
         }
         response = self.v2publicGetTicker(self.extend(request, params))
+        #
+        #     {
+        #         "status":"0000",
+        #         "data":{
+        #             "opening_price":"227100",
+        #             "closing_price":"228400",
+        #             "min_price":"222300",
+        #             "max_price":"230000",
+        #             "units_traded":"82618.56075337",
+        #             "acc_trade_value":"18767376138.6031",
+        #             "prev_closing_price":"227100",
+        #             "units_traded_24H":"151871.13484676",
+        #             "acc_trade_value_24H":"34247610416.8974",
+        #             "fluctate_24H":"8700",
+        #             "fluctate_rate_24H":"3.96",
+        #             "date":"1587710327264",
+        #         }
+        #     }
+        #
         data = self.safe_dict(response, 0, {})
         return self.parse_ticker(data, market)
 
@@ -551,6 +634,18 @@ class bithumb(Exchange, ImplicitAPI):
         ]
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -612,6 +707,17 @@ class bithumb(Exchange, ImplicitAPI):
         }, market)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -623,6 +729,21 @@ class bithumb(Exchange, ImplicitAPI):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+        """
+        create a trade order
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -637,6 +758,16 @@ class bithumb(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        cancels an open order
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
         request = {
             'uuid': id,
         }
@@ -690,6 +821,17 @@ class bithumb(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all unfilled currently open orders
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
         self.load_markets()
         request: dict = {}
         if symbol is not None:
@@ -698,15 +840,63 @@ class bithumb(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = self.v2privateGetOrders(self.extend(request, params))
+        #
+        #     {
+        #         "status": "0000",
+        #         "data": [
+        #             {
+        #                 "order_currency": "BTC",
+        #                 "payment_currency": "KRW",
+        #                 "order_id": "C0101000007408440032",
+        #                 "order_date": "1571728739360570",
+        #                 "type": "bid",
+        #                 "units": "5.0",
+        #                 "units_remaining": "5.0",
+        #                 "price": "501000",
+        #             }
+        #         ]
+        #     }
+        #
         return self.parse_orders(response, None, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        fetches information on an order made by the user
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
         self.load_markets()
         request = {
             'uuid': id,
         }
         response = self.v2privateGetOrder(self.extend(request, params))
         return self.parse_order(response)
+
+    def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+        if response is None:
+            return None  # fallback to default error handler
+        if 'status' in response:
+            #
+            #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+            #
+            status = self.safe_string(response, 'status')
+            message = self.safe_string(response, 'message')
+            if status is not None:
+                if status == '0000':
+                    return None  # no error
+                if message == '거래 진행중인 내역이 존재하지 않습니다.':
+                    # https://github.com/ccxt/ccxt/issues/9017
+                    return None  # no error
+                feedback = self.id + ' ' + message
+                self.throw_exactly_matched_exception(self.exceptions, status, feedback)
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                raise ExchangeError(feedback)
+        return None
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = self.implode_params(path, params)
@@ -759,3 +949,37 @@ class bithumb(Exchange, ImplicitAPI):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+        """
+        make a withdrawal
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'units': amount,
+            'address': address,
+            'currency': currency['id'],
+        }
+        if code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM' or code == 'TON':
+            destination = self.safe_string(params, 'destination')
+            if (tag is None) and (destination is None):
+                raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
+            elif tag is not None:
+                request['destination'] = tag
+        response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
+        #
+        # {"status" : "0000"}
+        #
+        return self.parse_transaction(response, currency)
