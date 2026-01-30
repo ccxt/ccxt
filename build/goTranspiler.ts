@@ -450,7 +450,7 @@ const INTERFACE_METHODS = [
     'watchTrades',
     'watchTradesForSymbols',
     'withdrawWs',
-
+    
 ];
 
 class NewTranspiler {
@@ -499,29 +499,29 @@ class NewTranspiler {
             [/((\w+)(\.hashmap))/g, '$1.Hashmap'],
             [/(countedBookSide)\.store\(/g, '$1.Store('],
             [/(\w+)\.(store|storeArray)\(/g, '$1.$2('],
-
+            
             // DynamicInvoker from C# → callDynamically helper in Go
             [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)'],
-
+            
             // .limit() on order book variable should be capitalised
             [/(\w+)\.limit\(\)/g, '$1.Limit()'],
-
+            
             // Future/Client Resolve/Reject casts
             [/future\.resolve/g, 'future.(*Future).Resolve'],
             [/(\w+)\.(resolve|reject)/g, '$1.$2'],
-
+            
             // spawn/delay helpers – convert additional params array creation to variadic list
             [/this\.spawn\((this\.\w+),(.+)\)/g, 'this.Spawn($1, $2)'],
             [/this\.delay\(([^,]+),([^,]+),(.+)\)/g, 'this.Delay($1, $2, $3)'],
-
+            
             // callDynamically array wrapper removal
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'ccxt.CallDynamically($1, "$3", '],
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
             [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, '],
-
+            
             [/Future\)/g, ''],  // Remove C# generics / casts that are invalid in Go
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
-
+            
             [/\.Append\(/g, '.(Appender).Append('],
             [/stored\.\(Appender\)\.Append\(this\.ParseOHLCV/g, "stored.Append(this.ParseOHLCV"],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
@@ -582,7 +582,7 @@ class NewTranspiler {
 
                 if (match) {
                     const baseExchange = match[2];
-
+                    
                     if (baseExchange.toLowerCase() !== exchangeName.toLowerCase()) {
                         extendedExchanges[exchangeName] = baseExchange;
                     }
@@ -806,10 +806,10 @@ class NewTranspiler {
 
     /**
      * @description Converts a JavaScript type to a Go type
-     * @param name
-     * @param type
-     * @param isReturn
-     * @returns
+     * @param name 
+     * @param type 
+     * @param isReturn 
+     * @returns 
      */
     jsTypeToGo(name: string, type: string, isReturn = false): string | undefined {
 
@@ -823,7 +823,7 @@ class NewTranspiler {
         if (name.startsWith('withdrawWs')) {
             return 'Transaction'
         }
-
+        
         if (name.startsWith('watchOrderBook')) {
             // if (isReturn) {
             //     return `NewOrderBookFromWs`
@@ -1013,7 +1013,6 @@ class NewTranspiler {
             'createSwapOrder',
             'createVault',
             'fetch',
-            'fetchContractTickers',
             'fetchCurrenciesWs',
             'fetchMarketsWs',
             'fetchPortfolioDetails',
@@ -1176,9 +1175,9 @@ class NewTranspiler {
     createOptionsStruct(methodName: string, params: any[], isWs = false) {
         const capName = capitalize(methodName);
         const optionalParams = params.filter(param => (
-            param.optional ||
-            param.initializer !== undefined ||
-            param.initializer === 'undefined' ||
+            param.optional || 
+            param.initializer !== undefined || 
+            param.initializer === 'undefined' || 
             param.initializer === '{}'
         ));
         if (
@@ -1195,7 +1194,7 @@ class NewTranspiler {
 
         const options = `${capName}Options`;
         const optionsStruct = `${capName}OptionsStruct`;
-
+        
         if (isWs) {
             goTypeOptions[capName] = [
                 `type ${optionsStruct} = ccxt.${optionsStruct}`,
@@ -1693,7 +1692,7 @@ ${constStatements.join('\n')}
     createDynamicInstanceFile(ws = false){
         const dynamicInstanceFile = `./go/v4${ws ? '/pro' : ''}/exchange_dynamic.go`;
         const exchanges = ws ? exchangeIdsWs : ['Exchange'].concat(exchangeIds);
-
+        
         const caseStatements = exchanges.map(exchange => {
             const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
             return`    case "${exchange}":
@@ -1966,8 +1965,8 @@ ${caseStatements.join('\n')}
     }
 
     safeOptionsStructFile(ws: boolean = false) {
-        const EXCHANGE_OPTIONS_FILE = ws
-            ? './go/v4/pro/exchange_wrapper_structs.go'
+        const EXCHANGE_OPTIONS_FILE = ws 
+            ? './go/v4/pro/exchange_wrapper_structs.go' 
             : './go/v4/exchange_wrapper_structs.go';
 
         const file = [
@@ -2012,7 +2011,7 @@ ${caseStatements.join('\n')}
         } else {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))));
         }
-
+        
         // Only process exchanges that are in transpiledExchanges
         exchanges = exchanges.filter (file => {
             const exchangeName = basename (file, pattern);
@@ -2552,7 +2551,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''], // remove equals
                 // Fix infinite loop bug in WebSocket tests - move now = exchange.Milliseconds() outside success check
                 [/(\s+)(if IsTrue\(IsEqual\(success, true\)\) \{\s*\n[\s\S]*?)(\s+now = exchange\.Milliseconds\(\)\s*\n\s*\})/gm, '$1$2$1now = exchange.Milliseconds()$3'],
-
+                // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
+                [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
+                
 
 
                 // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
@@ -2684,7 +2685,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const lines = file.split(/\r?\n/);
 
         const structRegex = /^type\s+(\w+)\s+struct\s*{/;
-
+    
         for (const line of lines) {
             const structMatch = line.match(structRegex);
 
@@ -2696,7 +2697,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         fs.writeFileSync(GO_TYPES_FILE_PRO, output.join("\n") + "\n", "utf8");
     }
-
+    
 }
 
 if (isMainEntry(import.meta.url)) {
