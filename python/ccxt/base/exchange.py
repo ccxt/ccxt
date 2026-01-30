@@ -1273,18 +1273,18 @@ class Exchange(object):
     @staticmethod
     def parse_date(timestamp=None):
         if timestamp is None:
-            return timestamp
+            return None
         if not isinstance(timestamp, str):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([str(value).zfill(2) for value in parsedate(timestamp)[:6]]) + '.000Z'
-                dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-                return calendar.timegm(dt.utctimetuple()) * 1000
+                parsed = parsedate(timestamp)
+                if parsed is None:
+                    return None
+                return calendar.timegm(parsed[:6]) * 1000
             except (TypeError, OverflowError, OSError):
                 return None
-        else:
-            return Exchange.parse8601(timestamp)
+        return Exchange.parse8601(timestamp)
 
     @staticmethod
     def parse8601(timestamp=None):
