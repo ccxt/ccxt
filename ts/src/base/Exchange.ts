@@ -1095,19 +1095,116 @@ export default class Exchange {
     }
 
     async loadMarketsHelper (reload = false, params = {}) {
+        const loadedMarketCallback = this.safeValue (params, 'loadedMarketCallback', undefined);
+        let loadMarketsOutdated;
+        loadMarketsOutdated = !loadedMarketCallback || await loadedMarketCallback ();
+        if (loadMarketsOutdated && loadedMarketCallback !== undefined) {
+            reload = true;
+        }
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
                 return this.setMarkets (this.markets);
             }
             return this.markets;
         }
+        const leveragesFromOutside = this.safeValue (params, 'leveragesFromOutside', undefined);
+        if (leveragesFromOutside) {
+            this.options['leveragesFromOutside'] = leveragesFromOutside;
+        }
+        const fetchLeveragesCallback = this.safeValue (params, 'fetchLeveragesCallback', this.options['fetchLeveragesCallback']);
+        if (fetchLeveragesCallback) {
+            this.options['fetchLeveragesCallback'] = fetchLeveragesCallback;
+        }
         let currencies = undefined;
+        let catchedHandled;
+        let postponeExceptionThrow;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ();
-            this.options['cachedCurrencies'] = currencies;
+            const currenciesFromOutside = this.safeValue (params, 'currenciesFromOutside', undefined);
+            const fetchCurrenciesCallback = this.safeValue (params, 'fetchCurrenciesCallback', this.options['fetchCurrenciesCallback']);
+            let currenciesOutdated = !fetchCurrenciesCallback || await fetchCurrenciesCallback ();
+            if (currenciesOutdated && fetchCurrenciesCallback !== undefined) {
+                reload = true;
+            }
+            if ((!currenciesFromOutside || reload) && currenciesOutdated) {
+                let catched;
+                try {
+                    currencies = await this.fetchCurrencies ();
+                } catch (e) {
+                    catched = e;
+                    if (e instanceof NetworkError || e instanceof AuthenticationError) {
+                        if (currenciesFromOutside) {
+                            currencies = currenciesFromOutside;
+                            catchedHandled = true;
+                        }
+                    }
+                }
+                this.options['cachedCurrencies'] = currencies;
+                if (!catched) {
+                    // can happens if request is rejected before getting it to the exchange,
+                    // for example, cloudflare can reject with html/200 response
+                    if (isEmpty (currencies) && !isEmpty (currenciesFromOutside)) {
+                        currencies = currenciesFromOutside;
+                    }
+                    if (typeof fetchCurrenciesCallback === 'function' && !isEmpty(currencies)) {
+                        fetchCurrenciesCallback (currencies);
+                    }
+                }
+                if (!postponeExceptionThrow && !catchedHandled) {
+                    postponeExceptionThrow = catched;
+                }
+            } else {
+                if (!isEmpty (currenciesFromOutside)) {
+                    currencies = currenciesFromOutside;
+                }
+            }
+            if (fetchCurrenciesCallback) {
+                this.options['fetchCurrenciesCallback'] = fetchCurrenciesCallback;
+                this.omit (params, 'fetchCurrenciesCallback');
+            }
+            this.omit (params, 'currenciesFromOutside');
         }
-        const markets = await this.fetchMarkets (params);
+        let markets;
+        const marketsFromOutside = this.safeValue (params, 'marketsFromOutside', undefined);
+        if ((!marketsFromOutside || reload) && loadMarketsOutdated) {
+            let catched;
+            try {
+                markets = await this.fetchMarkets (params);
+            } catch (e) {
+                catched = e;
+                if (e instanceof NetworkError || e instanceof AuthenticationError) {
+                    if (marketsFromOutside) {
+                        markets = marketsFromOutside;
+                        catchedHandled = true;
+                    }
+                }
+            }
+            if (!catched) {
+                if (isEmpty (markets) && !isEmpty (marketsFromOutside)) {
+                    // can happens if request is rejected before getting to the exchange,
+                    // for example, got cloudflare throws exception
+                    markets = marketsFromOutside;
+                } else if (loadedMarketCallback) {
+                    loadedMarketCallback (markets);
+                }
+            }
+            if (!postponeExceptionThrow && !catchedHandled) {
+                postponeExceptionThrow = catched;
+            }
+        } else {
+            markets = marketsFromOutside;
+        }
+        this.omit (params, 'marketsFromOutside');
+        if (loadedMarketCallback) {
+            this.options['loadedMarketCallback'] = loadedMarketCallback;
+            this.omit (params, 'loadedMarketCallback');
+        }
+
+        if (postponeExceptionThrow && !catchedHandled) {
+            // this.bootstrapped = false;
+            throw postponeExceptionThrow;
+        }
+
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
@@ -1180,6 +1277,10 @@ export default class Exchange {
         return new Promise ((resolve, reject) => {
             resolve (Object.values (this.markets));
         });
+    }
+
+    fetchMarketsFromOutside (markets: {}) {
+        return markets;
     }
 
     checkRequiredDependencies () {
