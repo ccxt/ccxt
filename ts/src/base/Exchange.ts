@@ -4470,6 +4470,14 @@ export default class Exchange {
         return result;
     }
 
+    preciseDiv (a: Str = undefined, b: Str = undefined, precision: Num = undefined): string {
+        let value = Precise.stringDiv (a, b, precision);
+        if (value === '0' && a !== undefined && a !== '0' && b !== undefined && b !== '0') {
+            value = Precise.stringDiv (a, b, 36); // increase precision
+        }
+        return value;
+    }
+
     safeTicker (ticker: Dict, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
         let close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
@@ -4480,7 +4488,7 @@ export default class Exchange {
         const baseVolume = this.safeString (ticker, 'baseVolume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
+            vwap = this.preciseDiv (this.omitZero (quoteVolume), baseVolume);
         }
         // calculate open
         if (change !== undefined) {
@@ -4536,7 +4544,7 @@ export default class Exchange {
                         precision = this.precisionFromString (precisionPrice);
                     }
                 }
-                average = Precise.stringDiv (Precise.stringAdd (open, close), '2', precision);
+                average = this.preciseDiv (Precise.stringAdd (open, close), '2', precision);
             }
         }
         // timestamp and symbol operations don't belong in safeTicker
