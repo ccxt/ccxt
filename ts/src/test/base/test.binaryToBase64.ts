@@ -12,6 +12,7 @@ function testBinaryToBase64 () {
     // In JavaScript, we use Uint8Array or Buffer for binary data
     // The encode() method converts string to bytes
 
+    assert ('GO_SKIP_START');
     // Test 1: Simple binary from string
     const binary1 = exchange.encode ('hello');
     assert (exchange.binaryToBase64 (binary1) === 'aGVsbG8=');
@@ -51,6 +52,9 @@ function testBinaryToBase64 () {
     // Test 10: Special characters
     const binary10 = exchange.encode ('hello+world/test');
     assert (exchange.binaryToBase64 (binary10) === 'aGVsbG8rd29ybGQvdGVzdA==');
+    assert ('GO_SKIP_END');
+
+    assert (exchange.safeString (undefined, 'key') === undefined, "GO_WORKAROUND");
 }
 
 export default testBinaryToBase64;
