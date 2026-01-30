@@ -597,6 +597,22 @@ class Exchange(object):
             headers = response.headers
             http_status_code = response.status_code
             http_status_text = response.reason
+            # Handle SBE binary responses
+            content_type = headers.get('Content-Type', '')
+            use_sbe = self.safe_bool(self.options, 'useSbe', False)
+            if use_sbe and ('application/sbe' in content_type or 'application/octet-stream' in content_type):
+                # SBE binary response - decode using exchange-specific decoder
+                response_buffer = response.content
+                if self.enableLastHttpResponse:
+                    self.last_http_response = response_buffer
+                if self.enableLastResponseHeaders:
+                    self.last_response_headers = headers
+                if self.verbose:
+                    buffer_length = len(response_buffer) if response_buffer else 'None'
+                    self.log('fetch Response (SBE):', self.id, method, url, http_status_code, 'ResponseHeaders:', headers, 'SBE binary data, buffer length:', buffer_length)
+                # Call exchange-specific SBE decoder (overridden in binance.py, okx.py, etc.)
+                json_response = self.decode_sbe_response(response_buffer, url)
+                return json_response
             http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, response.text, request_headers, request_body)
             json_response = self.parse_json(http_response)
             # FIXME remove last_x_responses from subclasses
@@ -1990,6 +2006,349 @@ class Exchange(object):
     def binary_length(self, binary):
         return len(binary)
 
+    def read_sbe_template_id(self, buffer):
+        """
+        Reads the template ID from an SBE message header
+        :param buffer: The binary SBE message (bytes or bytearray)
+        :returns: Template ID
+        """
+        # SBE message header format (8 bytes):
+        # - blockLength (2 bytes, uint16, offset 0)
+        # - templateId (2 bytes, uint16, offset 2)
+        # - schemaId (2 bytes, uint16, offset 4)
+        # - version (2 bytes, uint16, offset 6)
+        if len(buffer) < 8:
+            return -1
+        # Read uint16 at offset 2, little-endian
+        template_id = int.from_bytes(buffer[2:4], byteorder='little', signed=False)
+        return template_id
+
+    def apply_exponent(self, mantissa, exponent):
+        """
+        Convert mantissa and exponent to decimal number
+        Used by exchanges that encode prices/amounts as mantissa * 10^exponent
+        :param mantissa: The mantissa value (int or float)
+        :param exponent: The power of 10 exponent
+        :returns: The decimal number
+        """
+        mantissa_num = float(mantissa) if isinstance(mantissa, int) else mantissa
+        return mantissa_num * (10 ** exponent)
+
+    def mantissa128_to_number(self, bytes_data):
+        """
+        Convert mantissa128 byte array to number
+        mantissa128 is a signed 128-bit integer encoded as a little-endian byte array
+        Used by Binance SBE for large volume values
+        :param bytes_data: The byte array
+        :returns: The numeric value
+        """
+        if not bytes_data or len(bytes_data) == 0:
+            return 0
+        # Convert to bytes if it's a list
+        if isinstance(bytes_data, list):
+            bytes_data = bytes(bytes_data)
+        # For mantissa128, we need to handle signed 128-bit integers
+        # The value −2^127 is nullValue by default
+        # For practical purposes, we'll read up to 8 bytes (64-bit) as most values fit
+        result = 0
+        multiplier = 1
+        # Read up to 8 bytes (64-bit safe range for Python numbers)
+        limit = min(len(bytes_data), 8)
+        for i in range(limit):
+            result += bytes_data[i] * multiplier
+            multiplier *= 256
+        return result
+
+    def decode_sbe_message(self, buffer, decoder_registry):
+        """
+        Decode SBE message using registered decoder based on template ID
+        :param buffer: The binary SBE message (ArrayBuffer, bytes, or bytearray)
+        :param decoder_registry: Map of template ID to decoder class
+        :returns: Decoded message with templateId and data
+        """
+        # Convert to bytes if needed
+        if isinstance(buffer, (memoryview, bytearray)):
+            buffer_bytes = bytes(buffer)
+        elif hasattr(buffer, 'content'):
+            buffer_bytes = buffer.content
+        else:
+            buffer_bytes = buffer
+
+        # Read template ID from header
+        template_id = self.read_sbe_template_id(buffer_bytes)
+
+        # Look up decoder class in registry
+        decoder_class = decoder_registry.get(str(template_id))
+        if not decoder_class:
+            raise ExchangeError(self.id + ' decode_sbe_message() unknown template ID: ' + str(template_id))
+
+        # Instantiate and decode
+        # Skip 8-byte SBE message header (blockLength, templateId, schemaId, version)
+        decoder = decoder_class()
+        decoded = decoder.decode(buffer_bytes, 8)
+
+        return {
+            'templateId': template_id,
+            'data': decoded,
+        }
+
+    def apply_sbe_exponents(self, data, exponent_map=None):
+        """
+        Automatically apply exponents to mantissa fields in decoded SBE data
+        Finds fields ending in 'Mantissa' and applies corresponding 'Exponent' field
+        :param data: Decoded SBE message data
+        :param exponent_map: Optional map of mantissa field names to exponent field names
+        :returns: Data with mantissas converted to decimal numbers
+        """
+        if not data or not isinstance(data, dict):
+            return data
+
+        result = {}
+
+        # Get all exponent fields first
+        exponents = {}
+        for key in data.keys():
+            if key.endswith('Exponent'):
+                exponents[key] = data[key]
+
+        # Process all fields
+        for key, value in data.items():
+            # Handle arrays recursively
+            if isinstance(value, list):
+                mapped_array = []
+                for item in value:
+                    mapped_array.append(self.apply_sbe_exponents(item, exponent_map))
+                result[key] = mapped_array
+            elif key.endswith('Mantissa'):
+                # Find corresponding exponent
+                base_field_name = key.replace('Mantissa', '')
+                exponent_key = base_field_name + 'Exponent'
+
+                # Check if custom exponent mapping provided
+                if exponent_map and key in exponent_map:
+                    exponent_key = exponent_map[key]
+
+                exponent = exponents.get(exponent_key, 0)
+
+                # Convert mantissa to decimal number
+                mantissa_num = float(value) if isinstance(value, int) else value
+                result[base_field_name] = self.apply_exponent(mantissa_num, exponent)
+            elif not key.endswith('Exponent'):
+                # Copy non-exponent fields
+                result[key] = value
+
+        return result
+
+    def setup_sbe_binary_decoder(self, client, url: str, decoder_function=None):
+        """
+        Setup binary message decoder for SBE WebSocket connections
+        :param client: WebSocket client
+        :param url: WebSocket URL
+        :param decoder_function: Custom decoder function
+        """
+        # Check if URL indicates SBE format and decoder not already set
+        is_sbe_url = 'responseFormat=sbe' in url or '/public-sbe' in url or '/ws-sbe' in url
+        if is_sbe_url and not hasattr(client, 'binary_message_decoder'):
+            if decoder_function:
+                client.binary_message_decoder = decoder_function
+            else:
+                client.binary_message_decoder = self.decode_sbe_websocket_message
+            if self.verbose:
+                self.log('setup_sbe_binary_decoder: Set binary decoder for SBE on URL:', url)
+
+    def decode_sbe_nested_message(self, buffer):
+        """
+        Decode nested SBE message (used in envelope patterns like Binance WebSocket)
+        :param buffer: The binary SBE message (bytes or bytearray)
+        :returns: Decoded message data
+        """
+        template_id = self.read_sbe_template_id(buffer)
+        if self.verbose:
+            self.log('decode_sbe_nested_message: templateId:', template_id, 'buffer length:', len(buffer))
+
+        registry = self.get_sbe_decoder_registry()
+        decoder_class = registry.get(str(template_id))
+
+        if not decoder_class:
+            if self.verbose:
+                self.log('decode_sbe_nested_message: unknown template ID:', template_id)
+            return None
+
+        try:
+            decoder = decoder_class()
+            decoded = decoder.decode(buffer, 8)
+            return decoded
+        except Exception as e:
+            if self.verbose:
+                self.log('decode_sbe_nested_message: error decoding templateId', template_id, ':', str(e))
+            return None
+
+    def decode_sbe_websocket_message(self, buffer):
+        """
+        Decode SBE-encoded WebSocket message
+        Override this in exchange class to handle exchange-specific envelope patterns
+        :param buffer: The binary SBE message
+        :returns: Decoded message data
+        """
+        # Default implementation: direct decode without envelope
+        result = self.decode_sbe_message(buffer, self.get_sbe_decoder_registry())
+        return result['data']
+
+    def get_sbe_message_handlers(self):
+        """
+        Get SBE message handlers registry
+        Override this in exchange class to provide message routing
+        :returns: Dict mapping template ID to handler function
+        """
+        return {}
+
+    def handle_sbe_message(self, client, message):
+        """
+        Handle SBE binary message with automatic routing
+        :param client: WebSocket client
+        :param message: Binary SBE message
+        """
+        try:
+            if self.verbose:
+                self.log('handle_sbe_message: Received binary message, size:', len(message))
+
+            # Decode the SBE message
+            decoder_registry = self.get_sbe_decoder_registry()
+            result = self.decode_sbe_message(message, decoder_registry)
+            template_id = result['templateId']
+            decoded = result['data']
+
+            if self.verbose:
+                self.log('handle_sbe_message: Decoded template ID:', template_id)
+
+            # Route to appropriate handler
+            handlers = self.get_sbe_message_handlers()
+            handler = handlers.get(str(template_id))
+
+            if handler:
+                handler(client, decoded)
+            elif self.verbose:
+                self.log('handle_sbe_message: No handler for template ID:', template_id)
+        except Exception as e:
+            if self.verbose:
+                self.log('handle_sbe_message: Failed to decode SBE message:', str(e))
+
+    def format_sbe_orderbook(self, message, bids_key='bids', asks_key='asks', price_key='px', size_key='sz'):
+        """
+        Format orderbook from SBE message with exponents
+        Convenience helper for common orderbook processing pattern
+        :param message: Decoded SBE message
+        :param bids_key: Key for bids array
+        :param asks_key: Key for asks array
+        :param price_key: Key for price in bid/ask objects
+        :param size_key: Key for size in bid/ask objects
+        :returns: Formatted orderbook with bids and asks arrays
+        """
+        px_exponent = self.safe_integer(message, 'pxExponent', self.safe_integer(message, 'priceExponent', 0))
+        sz_exponent = self.safe_integer(message, 'szExponent', self.safe_integer(message, 'qtyExponent', 0))
+        raw_bids = self.safe_list(message, bids_key, [])
+        raw_asks = self.safe_list(message, asks_key, [])
+
+        bids = []
+        asks = []
+
+        # Process bids
+        for bid in raw_bids:
+            px_mantissa = self.safe_integer(bid, price_key + 'Mantissa', self.safe_integer(bid, price_key, 0))
+            sz_mantissa = self.safe_integer(bid, size_key + 'Mantissa', self.safe_integer(bid, size_key, 0))
+            price = self.apply_exponent(px_mantissa, px_exponent)
+            size = self.apply_exponent(sz_mantissa, sz_exponent)
+            bids.append([price, size])
+
+        # Process asks
+        for ask in raw_asks:
+            px_mantissa = self.safe_integer(ask, price_key + 'Mantissa', self.safe_integer(ask, price_key, 0))
+            sz_mantissa = self.safe_integer(ask, size_key + 'Mantissa', self.safe_integer(ask, size_key, 0))
+            price = self.apply_exponent(px_mantissa, px_exponent)
+            size = self.apply_exponent(sz_mantissa, sz_exponent)
+            asks.append([price, size])
+
+        return {
+            'bids': bids,
+            'asks': asks,
+        }
+
+    def safe_big_int(self, dictionary, key, default_value=None):
+        """
+        Safely access a BigInt value and convert to number
+        Many SBE decoders return large integers - this helper safely converts them
+        :param dictionary: The dictionary containing the value
+        :param key: The key to access
+        :param default_value: Default value if key not found
+        :returns: The value as number
+        """
+        value = self.safe_value(dictionary, key, default_value)
+        if value is None:
+            return default_value
+        return int(value) if isinstance(value, int) else value
+
+    def convert_big_int_fields(self, obj, fields=None):
+        """
+        Convert all large integer fields in an object
+        Useful for SBE messages that use large integers for IDs and timestamps
+        :param obj: The object to process
+        :param fields: Specific fields to convert (if None, converts all int fields)
+        :returns: New object with fields converted
+        """
+        if not obj or not isinstance(obj, dict):
+            return obj
+
+        result = {}
+        keys = fields if fields else list(obj.keys())
+
+        for key in keys:
+            value = obj.get(key)
+            if isinstance(value, int):
+                result[key] = int(value)
+            elif isinstance(value, list):
+                result[key] = [self.convert_big_int_fields(item, fields) for item in value]
+            else:
+                result[key] = value
+
+        return result
+
+    def normalize_sbe_order(self, order):
+        """
+        Normalize SBE order data (common pattern for Binance WebSocket)
+        Converts exponent fields to actual values
+        :param order: SBE order data
+        :returns: Normalized order data compatible with parse_order
+        """
+        # Check if this is SBE format (has exponent fields)
+        has_exponents = 'priceExponent' in order or 'qtyExponent' in order
+        if not has_exponents:
+            return order  # Already normalized or not SBE format
+
+        # Apply exponents and convert to standard format
+        price_exponent = self.safe_integer(order, 'priceExponent', 0)
+        qty_exponent = self.safe_integer(order, 'qtyExponent', 0)
+        normalized = {}
+
+        for key, value in order.items():
+            # Skip exponent fields themselves
+            if key.endswith('Exponent'):
+                continue
+
+            # Handle price-related fields
+            if key in ['price', 'stopPrice', 'icebergQty']:
+                normalized[key] = self.number_to_string(self.apply_exponent(value, price_exponent))
+            # Handle quantity-related fields
+            elif key in ['origQty', 'executedQty', 'cummulativeQuoteQty']:
+                normalized[key] = self.number_to_string(self.apply_exponent(value, qty_exponent))
+            # Convert large integers to strings for IDs
+            elif isinstance(value, int) and value > 2**53:
+                normalized[key] = str(value)
+            else:
+                # Copy other fields as-is
+                normalized[key] = value
+
+        return normalized
+
     def get_zk_contract_signature_obj(self, seeds: str, params={}):
         if zklink_sdk is None:
             raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
@@ -2291,7 +2650,6 @@ class Exchange(object):
                 'createTriggerOrderWs': None,
                 'deposit': None,
                 'editOrder': 'emulated',
-                'editOrderWithClientOrderId': None,
                 'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
@@ -2370,7 +2728,6 @@ class Exchange(object):
                 'fetchOption': None,
                 'fetchOptionChain': None,
                 'fetchOrder': None,
-                'fetchOrderWithClientOrderId': None,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': None,
                 'fetchOrderBookWs': None,
@@ -2753,6 +3110,31 @@ class Exchange(object):
             joinedProxyNames = ','.join(usedProxies)
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
         return [httpProxy, httpsProxy, socksProxy]
+
+    def decode_sbe_response(self, buffer: ArrayBuffer, url: str):
+        # Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
+        if self.verbose:
+            self.log('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength)
+        try:
+            # Use global decodeSbeMessage with OKX decoder registry
+            decoderRegistry = self.get_sbe_decoder_registry()
+            result = self.decode_sbe_message(buffer, decoderRegistry)
+            templateId = result['templateId']
+            decoded = result['data']
+            if self.verbose:
+                self.log('decodeSbeResponse: Template ID:', templateId)
+                self.log('decodeSbeResponse: Successfully decoded SBE message')
+            return decoded
+        except Exception as e:
+            errorMessage = e.message if isinstance(e, Error) else str(e)
+            errorStack = e.stack if isinstance(e, Error) else ''
+            self.log('decodeSbeResponse: Error decoding SBE buffer:', errorMessage)
+            self.log('decodeSbeResponse: Stack trace:', errorStack)
+            self.log('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes')
+            raise ExchangeError(self.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to False in options.')
+
+    def get_sbe_decoder_registry(self):
+        return {}
 
     def check_ws_proxy_settings(self):
         usedProxies = []

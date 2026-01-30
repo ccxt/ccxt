@@ -6,6 +6,13 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { SnapshotDepthResponseEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/SnapshotDepthResponseEvent.js';
+import { BboTbtChannelEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BboTbtChannelEvent.js';
+import { BooksL2TbtChannelEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtChannelEvent.js';
+import { BooksL2TbtExponentUpdateEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtExponentUpdateEvent.js';
+import { BooksL2TbtElpChannelEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtElpChannelEvent.js';
+import { BooksL2TbtElpExponentUpdateEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/BooksL2TbtElpExponentUpdateEvent.js';
+import { TradesChannelEventDecoder } from '../../sbe/okx/okx_sbe_1_0/generated-typescript/com/okx/sbe/TradesChannelEvent.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -1065,6 +1072,7 @@ export default class okx extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'sandboxMode': false,
+                'useSbe': false, // use SBE (Simple Binary Encoding) for market data when available
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
@@ -6447,12 +6455,22 @@ export default class okx extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
+        // Check for SBE (Simple Binary Encoding) parameters and remove from query
+        let useSbe = false;
+        [ useSbe, query ] = this.handleOptionAndParams (query, 'sign', 'useSbe', false);
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
+            // Add SBE headers for public API if enabled
+            if (useSbe) {
+                if (headers === undefined) {
+                    headers = {};
+                }
+                headers['Accept'] = 'application/sbe';
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -6504,6 +6522,18 @@ export default class okx extends Exchange {
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    getSbeDecoderRegistry () {
+        return {
+            '1000': BboTbtChannelEventDecoder,
+            '1001': BooksL2TbtChannelEventDecoder,
+            '1002': BooksL2TbtExponentUpdateEventDecoder,
+            '1003': BooksL2TbtElpChannelEventDecoder,
+            '1004': BooksL2TbtElpExponentUpdateEventDecoder,
+            '1005': TradesChannelEventDecoder,
+            '1006': SnapshotDepthResponseEventDecoder,
+        };
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

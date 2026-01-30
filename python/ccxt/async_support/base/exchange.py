@@ -219,7 +219,6 @@ class Exchange(BaseExchange):
                                       headers=request_headers,
                                       timeout=(self.timeout / 1000),
                                       proxy=final_proxy) as response:
-                http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
                 raw_headers = response.headers
                 headers = {}
@@ -230,6 +229,23 @@ class Exchange(BaseExchange):
                         headers[header] = raw_headers[header]
                 http_status_code = response.status
                 http_status_text = response.reason
+                # Handle SBE binary responses
+                content_type = headers.get('Content-Type', '')
+                use_sbe = self.safe_bool(self.options, 'useSbe', False)
+                if use_sbe and ('application/sbe' in content_type or 'application/octet-stream' in content_type):
+                    # SBE binary response - decode using exchange-specific decoder
+                    response_buffer = await response.read()
+                    if self.enableLastHttpResponse:
+                        self.last_http_response = response_buffer
+                    if self.enableLastResponseHeaders:
+                        self.last_response_headers = headers
+                    if self.verbose:
+                        buffer_length = len(response_buffer) if response_buffer else 'None'
+                        self.log('fetch Response (SBE):', self.id, method, url, http_status_code, 'ResponseHeaders:', headers, 'SBE binary data, buffer length:', buffer_length)
+                    # Call exchange-specific SBE decoder (overridden in binance.py, okx.py, etc.)
+                    json_response = self.decode_sbe_response(response_buffer, url)
+                    return json_response
+                http_response = await response.text(errors='replace')
                 http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, http_response, request_headers, request_body)
                 json_response = self.parse_json(http_response)
                 if self.enableLastHttpResponse:

@@ -10,7 +10,69 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-
+// SBE Decoders - WebSocket (50-54)
+import { WebSocketResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketResponse.js';
+import { WebSocketSessionLogonResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketSessionLogonResponse.js';
+import { WebSocketSessionStatusResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketSessionStatusResponse.js';
+import { WebSocketSessionLogoutResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketSessionLogoutResponse.js';
+import { WebSocketSessionSubscriptionsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/WebSocketSessionSubscriptionsResponse.js';
+// SBE Decoders - General (100-105)
+import { ErrorResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/ErrorResponse.js';
+import { PingResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/PingResponse.js';
+import { ServerTimeResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/ServerTimeResponse.js';
+import { ExchangeInfoResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/ExchangeInfoResponse.js';
+import { MyFiltersResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/MyFiltersResponse.js';
+// SBE Decoders - Market Data (200-216)
+import { DepthResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/DepthResponse.js';
+import { TradesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TradesResponse.js';
+import { AggTradesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AggTradesResponse.js';
+import { KlinesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/KlinesResponse.js';
+import { AveragePriceResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AveragePriceResponse.js';
+import { Ticker24hSymbolFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/Ticker24hSymbolFullResponse.js';
+import { Ticker24hFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/Ticker24hFullResponse.js';
+import { Ticker24hSymbolMiniResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/Ticker24hSymbolMiniResponse.js';
+import { Ticker24hMiniResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/Ticker24hMiniResponse.js';
+import { PriceTickerSymbolResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/PriceTickerSymbolResponse.js';
+import { PriceTickerResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/PriceTickerResponse.js';
+import { BookTickerSymbolResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/BookTickerSymbolResponse.js';
+import { BookTickerResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/BookTickerResponse.js';
+import { TickerSymbolFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TickerSymbolFullResponse.js';
+import { TickerFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TickerFullResponse.js';
+import { TickerSymbolMiniResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TickerSymbolMiniResponse.js';
+import { TickerMiniResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/TickerMiniResponse.js';
+// SBE Decoders - Trading (300-317)
+import { NewOrderAckResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderAckResponse.js';
+import { NewOrderResultResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderResultResponse.js';
+import { NewOrderFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderFullResponse.js';
+import { OrderTestResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderTestResponse.js';
+import { OrderResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderResponse.js';
+import { CancelOrderResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/CancelOrderResponse.js';
+import { CancelOpenOrdersResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/CancelOpenOrdersResponse.js';
+import { CancelReplaceOrderResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/CancelReplaceOrderResponse.js';
+import { OrdersResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrdersResponse.js';
+import { NewOrderListAckResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderListAckResponse.js';
+import { NewOrderListResultResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderListResultResponse.js';
+import { NewOrderListFullResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/NewOrderListFullResponse.js';
+import { CancelOrderListResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/CancelOrderListResponse.js';
+import { OrderListResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderListResponse.js';
+import { OrderListsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderListsResponse.js';
+import { OrderTestWithCommissionsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderTestWithCommissionsResponse.js';
+import { OrderAmendmentsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderAmendmentsResponse.js';
+import { OrderAmendKeepPriorityResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/OrderAmendKeepPriorityResponse.js';
+// SBE Decoders - Account (400-405)
+import { AccountResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountResponse.js';
+import { AccountTradesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountTradesResponse.js';
+import { AccountOrderRateLimitResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountOrderRateLimitResponse.js';
+import { AccountPreventedMatchesResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountPreventedMatchesResponse.js';
+import { AccountAllocationsResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountAllocationsResponse.js';
+import { AccountCommissionResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/AccountCommissionResponse.js';
+// SBE Decoders - User Data Stream (500-505)
+import { UserDataStreamStartResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamStartResponse.js';
+import { UserDataStreamPingResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamPingResponse.js';
+import { UserDataStreamStopResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamStopResponse.js';
+import { UserDataStreamSubscribeResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamSubscribeResponse.js';
+import { UserDataStreamUnsubscribeResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamUnsubscribeResponse.js';
+import { UserDataStreamSubscribeListenTokenResponseDecoder } from '../../sbe/binance/spot_3_2/generated-typescript/spot_sbe/UserDataStreamSubscribeListenTokenResponse.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -1324,6 +1386,9 @@ export default class binance extends Exchange {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
+                'useSbe': true, // use SBE (Simple Binary Encoding) for spot API when available
+                'sbeSchemaId': 3, // Binance SBE schema ID
+                'sbeSchemaVersion': 1, // Binance SBE schema version (spot_3_1 for prod, spot_3_2 for testnet)
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
@@ -3107,6 +3172,10 @@ export default class binance extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        const originalUseSbe = this.safeBool (this.options, 'useSbe', false);
+        if (originalUseSbe) {
+            this.options['useSbe'] = false;
+        }
         const promisesRaw = [];
         let rawFetchMarkets = undefined;
         const defaultTypes = [ 'spot', 'linear', 'inverse' ];
@@ -3155,6 +3224,10 @@ export default class binance extends Exchange {
             }
         }
         const results = await Promise.all (promisesRaw);
+        // Restore original useSbe setting
+        if (originalUseSbe) {
+            this.options['useSbe'] = true;
+        }
         let markets = [];
         this.options['crossMarginPairsData'] = [];
         this.options['isolatedMarginPairsData'] = [];
@@ -4049,6 +4122,36 @@ export default class binance extends Exchange {
         //         "u": 1015939
         //     }
         //
+        // SBE response
+        //    {
+        //       messageId: 200,
+        //       messageName: "DepthResponse",
+        //       lastUpdateId: 11875115077,
+        //       priceExponent: -8,
+        //       qtyExponent: -8,
+        //       bids: [
+        //         {
+        //           price: 10456800000000,
+        //           qty: 52066000,
+        //         },
+        //         ...
+        //       ],
+        //    }
+        //
+        const priceExponent = this.safeInteger (response, 'priceExponent');
+        const qtyExponent = this.safeInteger (response, 'qtyExponent');
+        if (priceExponent !== undefined && qtyExponent !== undefined) {
+            const bids = this.safeList (response, 'bids', response);
+            const asks = this.safeList (response, 'asks', response);
+            for (let i = 0; i < bids.length; i++) {
+                bids[i] = [ this.applyExponent (bids[i]['price'], priceExponent), this.applyExponent (bids[i]['qty'], qtyExponent) ];
+            }
+            for (let i = 0; i < asks.length; i++) {
+                asks[i] = [ this.applyExponent (asks[i]['price'], priceExponent), this.applyExponent (asks[i]['qty'], qtyExponent) ];
+            }
+            response['bids'] = bids;
+            response['asks'] = asks;
+        }
         const timestamp = this.safeInteger (response, 'T');
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger2 (response, 'lastUpdateId', 'u');
@@ -5090,7 +5193,8 @@ export default class binance extends Exchange {
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        if (!market['option']) {
+        const isOption = this.safeBool (market, 'option', false);
+        if (!isOption) {
             if (since !== undefined) {
                 request['startTime'] = since;
                 // https://github.com/ccxt/ccxt/issues/6400
@@ -5111,8 +5215,58 @@ export default class binance extends Exchange {
             request['limit'] = isFutureOrSwap ? Math.min (limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
+        // Check if SBE is enabled for spot trades endpoint
+        const useSbe = this.safeBool (this.options, 'useSbe', false);
+        const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
+        const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
         let response = undefined;
-        if (market['option'] || method === 'eapiPublicGetTrades') {
+        if (useSbe && market['spot']) {
+            // Use SBE for spot trades endpoint /api/v3/trades
+            const sbeHeaders = {
+                'Accept': 'application/sbe',
+                'X-MBX-SBE': sbeSchemaId + ':' + sbeSchemaVersion,
+            };
+            // Call request directly with headers as a separate parameter
+            // handleRestResponse will automatically call decodeSbeResponse for SBE responses
+            response = await this.request ('trades', 'public', 'GET', this.extend (request, params), sbeHeaders, undefined);
+            // Response is already decoded by decodeSbeResponse via handleRestResponse
+            // Extract exponents and trades from decoded SBE object using safe functions
+            const priceExponent = this.safeInteger (response, 'priceExponent', 0);
+            const qtyExponent = this.safeInteger (response, 'qtyExponent', 0);
+            const sbeTradesArray = this.safeList (response, 'trades', this.safeList (response, 'trade', this.safeList (response, 'Trade', [])));
+            // Check if we got SBE trades data
+            if (sbeTradesArray.length > 0) {
+                if (this.verbose) {
+                    this.log ('fetchTrades: Using decoded SBE response, trades count');
+                    this.log ('fetchTrades: First trade raw');
+                }
+                // Normalize trades to standard format
+                const normalizedTrades = [];
+                for (let i = 0; i < sbeTradesArray.length; i++) {
+                    const trade = sbeTradesArray[i];
+                    // safeInteger now handles BigInt values from SBE
+                    const priceNum = this.safeInteger (trade, 'price', 0);
+                    const qtyNum = this.safeInteger (trade, 'qty', 0);
+                    const quoteQtyNum = this.safeInteger (trade, 'quoteQty', 0);
+                    const idNum = this.safeString (trade, 'id');
+                    const timeNum = this.safeInteger (trade, 'time', 0);
+                    const price = this.applyExponent (priceNum, priceExponent);
+                    const qty = this.applyExponent (qtyNum, qtyExponent);
+                    const quoteQty = this.applyExponent (quoteQtyNum, priceExponent);
+                    const timestamp = Math.floor (timeNum / 1000); // microseconds to milliseconds
+                    normalizedTrades.push ({
+                        'id': idNum.toString (),
+                        'price': price.toString (),
+                        'qty': qty.toString (),
+                        'quoteQty': quoteQty.toString (),
+                        'time': timestamp,
+                        'isBuyerMaker': this.safeInteger (trade, 'isBuyerMaker') === 1,
+                        'isBestMatch': this.safeInteger (trade, 'isBestMatch') === 1,
+                    });
+                }
+                response = normalizedTrades;
+            }
+        } else if (market['option'] || method === 'eapiPublicGetTrades') {
             response = await this.eapiPublicGetTrades (this.extend (request, params));
         } else if (market['linear'] || method === 'fapiPublicGetAggTrades') {
             response = await this.fapiPublicGetAggTrades (this.extend (request, params));
@@ -5187,7 +5341,9 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        const rawTrades = this.safeList (response, 'trades', response);
+        const trades = this.parseTrades (rawTrades, market, since, limit);
+        return trades;
     }
 
     /**
@@ -11990,13 +12146,98 @@ export default class binance extends Exchange {
         return scheme + '//' + domain + '/';
     }
 
+    getSbeDecoderRegistry () {
+        // Registry mapping template IDs to decoder classes
+        return {
+            // WebSocket (50-54)
+            '50': WebSocketResponseDecoder,
+            '51': WebSocketSessionLogonResponseDecoder,
+            '52': WebSocketSessionStatusResponseDecoder,
+            '53': WebSocketSessionLogoutResponseDecoder,
+            '54': WebSocketSessionSubscriptionsResponseDecoder,
+            // General (100-105)
+            '100': ErrorResponseDecoder,
+            '101': PingResponseDecoder,
+            '102': ServerTimeResponseDecoder,
+            '103': ExchangeInfoResponseDecoder,
+            '105': MyFiltersResponseDecoder,
+            // Market Data (200-216)
+            '200': DepthResponseDecoder,
+            '201': TradesResponseDecoder,
+            '202': AggTradesResponseDecoder,
+            '203': KlinesResponseDecoder,
+            '204': AveragePriceResponseDecoder,
+            '205': Ticker24hSymbolFullResponseDecoder,
+            '206': Ticker24hFullResponseDecoder,
+            '207': Ticker24hSymbolMiniResponseDecoder,
+            '208': Ticker24hMiniResponseDecoder,
+            '209': PriceTickerSymbolResponseDecoder,
+            '210': PriceTickerResponseDecoder,
+            '211': BookTickerSymbolResponseDecoder,
+            '212': BookTickerResponseDecoder,
+            '213': TickerSymbolFullResponseDecoder,
+            '214': TickerFullResponseDecoder,
+            '215': TickerSymbolMiniResponseDecoder,
+            '216': TickerMiniResponseDecoder,
+            // Trading (300-317)
+            '300': NewOrderAckResponseDecoder,
+            '301': NewOrderResultResponseDecoder,
+            '302': NewOrderFullResponseDecoder,
+            '303': OrderTestResponseDecoder,
+            '304': OrderResponseDecoder,
+            '305': CancelOrderResponseDecoder,
+            '306': CancelOpenOrdersResponseDecoder,
+            '307': CancelReplaceOrderResponseDecoder,
+            '308': OrdersResponseDecoder,
+            '309': NewOrderListAckResponseDecoder,
+            '310': NewOrderListResultResponseDecoder,
+            '311': NewOrderListFullResponseDecoder,
+            '312': CancelOrderListResponseDecoder,
+            '313': OrderListResponseDecoder,
+            '314': OrderListsResponseDecoder,
+            '315': OrderTestWithCommissionsResponseDecoder,
+            '316': OrderAmendmentsResponseDecoder,
+            '317': OrderAmendKeepPriorityResponseDecoder,
+            // Account (400-405)
+            '400': AccountResponseDecoder,
+            '401': AccountTradesResponseDecoder,
+            '402': AccountOrderRateLimitResponseDecoder,
+            '403': AccountPreventedMatchesResponseDecoder,
+            '404': AccountAllocationsResponseDecoder,
+            '405': AccountCommissionResponseDecoder,
+            // User Data Stream (500-505)
+            '500': UserDataStreamStartResponseDecoder,
+            '501': UserDataStreamPingResponseDecoder,
+            '502': UserDataStreamStopResponseDecoder,
+            '503': UserDataStreamSubscribeResponseDecoder,
+            '504': UserDataStreamUnsubscribeResponseDecoder,
+            '505': UserDataStreamSubscribeListenTokenResponseDecoder,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        // Check for SBE (Simple Binary Encoding) parameters in params or exchange options
+        // Params take precedence over exchange options
+        let result = this.handleOptionAndParams (params, 'sign', 'useSbe', false);
+        const useSbe = result[0];
+        params = result[1];
+        result = this.handleOptionAndParams (params, 'sign', 'sbeSchemaId', 3);
+        const sbeSchemaId = result[0];
+        params = result[1];
+        result = this.handleOptionAndParams (params, 'sign', 'sbeSchemaVersion', 1);
+        let sbeSchemaVersion = result[0];
+        params = result[1];
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
         let url = this.urls['api'][api];
         url += '/' + path;
+        // Adjust SBE schema version based on environment (prod vs testnet)
+        // Production uses spot_3_1 (version 1), Testnet uses spot_3_2 (version 2)
+        if (url.indexOf ('testnet.binance.vision') > -1) {
+            sbeSchemaVersion = 2; // Use spot_3_2 for testnet
+        }
         if (path === 'historicalTrades') {
             if (this.apiKey) {
                 headers = {
@@ -12126,6 +12367,14 @@ export default class binance extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        }
+        const isSpotApi = (api === 'public' || api === 'private');
+        if (useSbe && sbeSchemaId !== undefined && sbeSchemaVersion !== undefined && isSpotApi) {
+            if (headers === undefined) {
+                headers = {};
+            }
+            headers['Accept'] = 'application/sbe';
+            headers['X-MBX-SBE'] = sbeSchemaId + ':' + sbeSchemaVersion;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

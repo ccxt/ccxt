@@ -69,6 +69,8 @@ class Client {
 
     public $decompressBinary = true;
 
+    public $binaryMessageDecoder = null; // custom decoder for binary messages (e.g., SBE)
+
     // ratchet/pawl/reactphp stuff
     public $connector = null;
 
@@ -285,27 +287,47 @@ class Client {
 
     public function on_message(Message $message) {
         $is_binary = preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0;
+        $message_data = (string) $message;
+        
         if ($is_binary) { // only decompress if the message is a binary
-            if (!$this->decompressBinary) {
-                // do nothing, we need it as is
-            } else if ($this->gunzip) {
-                $message = \ccxt\pro\gunzip($message);
+            if ($this->gunzip) {
+                $message_data = \ccxt\pro\gunzip($message_data);
             } else if ($this->inflate) {
-                $message = \ccxt\pro\inflate($message);
+                $message_data = \ccxt\pro\inflate($message_data);
+            } else if ($this->binaryMessageDecoder) {
+                // Custom binary message decoder (e.g., for SBE)
+                // Convert message to binary string if needed
+                $binary_data = $message_data;
+                try {
+                    $decoded = call_user_func($this->binaryMessageDecoder, $binary_data);
+                    $message_data = $decoded;
+                    if ($this->verbose) {
+                        echo date('c'), ' on_message decoded binary ', json_encode($message_data), "\n";
+                    }
+                } catch (Exception $e) {
+                    if ($this->verbose) {
+                        echo date('c'), ' binaryMessageDecoder error ', $e->getMessage(), "\n";
+                    }
+                    // If binary decoding fails, fall back to normal handling
+                    if ($this->decompressBinary) {
+                        $message_data = (string) $message;
+                    }
+                }
+            } else {
+                if ($this->decompressBinary) {
+                    $message_data = (string) $message;
+                }
             }
         }
 
         try {
-            $message = (string) $message;
-            // if (!$is_binary) {
-            //     $message = (string) $message;
-            // } else {
-            //     $message = $message->getContents();
-            // }
             if ($this->verbose) {
-                echo date('c'), ' on_message ', $message, "\n";
+                echo date('c'), ' on_message ', is_string($message_data) ? $message_data : json_encode($message_data), "\n";
             }
-            $message = Exchange::is_json_encoded_object($message) ? json_decode($message, true) : $message;
+            // Only try to parse as JSON if it's a string and looks like JSON
+            if (is_string($message_data) && Exchange::is_json_encoded_object($message_data)) {
+                $message_data = json_decode($message_data, true);
+            }
         } catch (Exception $e) {
             if ($this->verbose) {
                 echo date('c'), ' on_message json_decode ', $e->getMessage(), "\n";
@@ -314,7 +336,7 @@ class Client {
         }
         try {
             $on_message_callback = $this->on_message_callback;
-            $on_message_callback($this, $message);
+            $on_message_callback($this, $message_data);
         } catch (Exception $error) {
             $this->reject($error);
         }

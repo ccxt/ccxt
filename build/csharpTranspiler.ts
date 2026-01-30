@@ -98,6 +98,15 @@ class NewTranspiler {
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
+            // Fix SBE decoder class names - C# classes don't have "Decoder" suffix
+            [/(\w+ResponseDecoder)\(/gm, function(match, p1) {
+                // Remove "Decoder" suffix for SBE response classes
+                return p1.replace('Decoder', '') + '(';
+            }],
+            [/new\s+(\w+ResponseDecoder)\s*\(/gm, function(match, p1) {
+                // Remove "Decoder" suffix for SBE response classes in constructor calls
+                return 'new ' + p1.replace('Decoder', '') + '(';
+            }],
             [/(object \w+) = client\.futures/, '$1 = (client as WebSocketClient).futures'],
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
             [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
@@ -131,6 +140,15 @@ class NewTranspiler {
             [/\(object client\)/gm, '(WebSocketClient client)'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
+            // Fix property access on decoded objects - common SBE pattern
+            [/decoded\.result/gm, 'getValue(decoded, "result")'],
+            [/decoded\.id/gm, 'getValue(decoded, "id")'],
+            [/decoded\.status/gm, 'getValue(decoded, "status")'],
+            [/decoded\.rateLimits/gm, 'getValue(decoded, "rateLimits")'],
+            [/decodedResult\.constructor\.name/gm, 'decodedResult.GetType().Name'],
+            [/decodedResult\.constructor/gm, 'decodedResult.GetType()'],
+            // Fix .bind(this) pattern - C# doesn't need bind, just pass the method reference
+            [/(this\.\w+)\.bind\(this\)/gm, '$1'],
         ]
     }
 

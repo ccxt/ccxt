@@ -1965,8 +1965,8 @@ ${caseStatements.join('\n')}
     }
 
     safeOptionsStructFile(ws: boolean = false) {
-        const EXCHANGE_OPTIONS_FILE = ws 
-            ? './go/v4/pro/exchange_wrapper_structs.go' 
+        const EXCHANGE_OPTIONS_FILE = ws
+            ? './go/v4/pro/exchange_wrapper_structs.go'
             : './go/v4/exchange_wrapper_structs.go';
 
         const file = [
@@ -1990,6 +1990,183 @@ ${caseStatements.join('\n')}
         }
 
         fs.writeFileSync (EXCHANGE_OPTIONS_FILE, file.join('\n'));
+    }
+
+    /**
+     * Pre-processes TypeScript source to handle SBE imports that the transpiler can't process
+     * Detects imports from /sbe/ directories and comments them out for Go transpilation
+     * Also comments out usage of imported SBE symbols
+     * @param tsContent The TypeScript source code
+     * @param exchangeName The exchange name (for context)
+     * @returns Object with processed content and detected SBE info
+     */
+    preprocessSbeImports(tsContent: string, exchangeName: string): { content: string, hasSbe: boolean, sbePackage: string } {
+        // Comment out problematic SBE-related imports
+        // These will be added back as Go imports after transpilation
+        const sbeImportPatterns = [
+            // Match any imports from /sbe/<exchange>/generated-* directories (generated-typescript, generated-golang, etc.)
+            /import\s+\{[^}]*\}\s+from\s+['"][^'"]*\/sbe\/[^\/]+\/[^\/]+\/generated-[^\/]+[^'"]*\.js['"]/g,
+            // Match imports from /sbe-schemas/ directories
+            /import\s+\{[^}]*\}\s+from\s+['"][^'"]*\/sbe-schemas\/[^'"]+\.js['"]/g,
+            // Match SBE helper function imports from base/functions/sbe.js
+            // BUT keep applyExponent since it's used for processing
+            /import\s+\{([^}]*(?:decodeSbeOrderbook|createSbeDecoder)[^}]*)\}\s+from\s+['"][^'"]*\/functions\/sbe\.js['"]/g,
+        ];
+
+        let processed = tsContent;
+        let hasSbe = false;
+        let sbePackage = '';
+        const sbeSymbols: string[] = [];
+
+        for (const pattern of sbeImportPatterns) {
+            const matches = tsContent.match(pattern);
+            if (matches && matches.length > 0) {
+                hasSbe = true;
+
+                // Extract SBE package info and imported symbols from first match
+                for (const match of matches) {
+                    if (!sbePackage) {
+                        const packageMatch = match.match(/\/sbe\/([^\/]+)\//);
+                        if (packageMatch) {
+                            sbePackage = packageMatch[1]; // e.g., 'binance', 'okx'
+                        }
+                    }
+
+                    // Extract imported symbol names (e.g., TradesResponseDecoder, okxSbe10Schema)
+                    const symbolsMatch = match.match(/import\s+\{([^}]+)\}/);
+                    if (symbolsMatch) {
+                        const symbols = symbolsMatch[1].split(',').map(s => s.trim().split(' as ')[0].trim());
+                        sbeSymbols.push(...symbols);
+                    }
+
+                    processed = processed.replace(match, `// @go-sbe-import: ${match}`);
+                }
+            }
+        }
+
+        // Now comment out or transform usages of the imported SBE symbols
+        if (hasSbe && sbeSymbols.length > 0) {
+            // For each symbol, comment out direct assignments/usage
+            for (const symbol of sbeSymbols) {
+                // Comment out schema assignments like: this.sbeSchema = okxSbe10Schema
+                const schemaAssignPattern = new RegExp(`(\\s+)(this\\.\\w+\\s*=\\s*${symbol})`, 'g');
+                processed = processed.replace(schemaAssignPattern, '$1// @go-sbe-usage: $2');
+
+                // Comment out decoder instantiations like: new TradesResponseDecoder()
+                const decoderInstPattern = new RegExp(`new\\s+${symbol}\\s*\\(`, 'g');
+                processed = processed.replace(decoderInstPattern, `// @go-sbe-usage: new ${symbol}(`);
+
+                // Comment out variable declarations using the symbol as a type
+                const typeUsagePattern = new RegExp(`(\\w+):\\s*${symbol}`, 'g');
+                processed = processed.replace(typeUsagePattern, `$1 /* ${symbol} */`);
+
+                // Comment out function calls like: createSbeDecoder(okxSbe10Schema) or decodeSbeOrderbook(...)
+                if (symbol === 'decodeSbeOrderbook' || symbol === 'createSbeDecoder') {
+                    // Replace function calls with undefined
+                    const funcCallPattern = new RegExp(`${symbol}\\s*\\([^)]*\\)`, 'g');
+                    processed = processed.replace(funcCallPattern, `/* ${symbol}(...) */ undefined`);
+                }
+            }
+        }
+
+        return { content: processed, hasSbe, sbePackage };
+    }
+
+    /**
+     * Post-processes transpiled Go code to add SBE imports and transform method calls
+     * Works generically for any exchange using SBE
+     * @param content The transpiled Go code
+     * @param exchangeName The exchange name (e.g., 'binance', 'okx')
+     * @param sbePackage The SBE package name extracted during preprocessing (e.g., 'binance', 'okx')
+     * @returns Go code with SBE imports and transformed method calls
+     */
+    postprocessSbeCode(content: string, exchangeName: string, sbePackage: string = ''): { content: string, additionalImports: string[] } {
+        const additionalImports: string[] = [];
+
+        // Check if there are commented SBE imports (from preprocessing)
+        const hasSbeImports = content.includes('// @go-sbe-import:');
+
+        if (!hasSbeImports && !sbePackage) {
+            return { content, additionalImports };
+        }
+
+        // Add SBE-specific transformations - these are generic patterns
+        const sbeRegexes: Array<[RegExp, string]> = [];
+
+        // If we have an SBE package, add the Go import
+        if (sbePackage) {
+            // Determine the correct SBE package name based on exchange
+            // The generated files are now in go/v4/sbe/{exchange}_{schema}/
+            // For binance: binance_spot_3_2, for okx: okx_1_0
+            let goSbePackage = `${sbePackage}_spot_3_2`; // default for binance
+            if (sbePackage === 'okx') {
+                goSbePackage = 'okx_1_0';
+            }
+
+            // Add import for SBE generated types using the new structure
+            // e.g., import binance_sbe "github.com/ccxt/ccxt/go/v4/sbe/binance_spot_3_2"
+            additionalImports.push(`import ${sbePackage}_sbe "github.com/ccxt/ccxt/go/v4/sbe/${goSbePackage}"`);
+
+            // Transform decoder references in GetSbeDecoderRegistry method
+            // From: "50": WebSocketResponseDecoder,
+            // To:   "50": &binance_sbe.WebSocketResponse{},
+            const decoderNames = [
+                'WebSocketResponse', 'WebSocketSessionLogonResponse', 'WebSocketSessionStatusResponse',
+                'WebSocketSessionLogoutResponse', 'WebSocketSessionSubscriptionsResponse',
+                'ErrorResponse', 'PingResponse', 'ServerTimeResponse', 'ExchangeInfoResponse', 'MyFiltersResponse',
+                'DepthResponse', 'TradesResponse', 'AggTradesResponse', 'KlinesResponse', 'AveragePriceResponse',
+                'Ticker24hSymbolFullResponse', 'Ticker24hFullResponse', 'Ticker24hSymbolMiniResponse', 'Ticker24hMiniResponse',
+                'PriceTickerSymbolResponse', 'PriceTickerResponse', 'BookTickerSymbolResponse', 'BookTickerResponse',
+                'TickerSymbolFullResponse', 'TickerFullResponse', 'TickerSymbolMiniResponse', 'TickerMiniResponse',
+                'NewOrderAckResponse', 'NewOrderResultResponse', 'NewOrderFullResponse', 'OrderTestResponse',
+                'OrderResponse', 'CancelOrderResponse', 'CancelOpenOrdersResponse', 'CancelReplaceOrderResponse',
+                'OrdersResponse', 'NewOrderListAckResponse', 'NewOrderListResultResponse', 'NewOrderListFullResponse',
+                'CancelOrderListResponse', 'OrderListResponse', 'OrderListsResponse', 'OrderTestWithCommissionsResponse',
+                'OrderAmendmentsResponse', 'OrderAmendKeepPriorityResponse', 'AccountResponse', 'AccountTradesResponse',
+                'AccountOrderRateLimitResponse', 'AccountPreventedMatchesResponse', 'AccountCommissionResponse',
+                'AccountAllocationsResponse', 'UserDataStreamStartResponse', 'UserDataStreamPingResponse',
+                'UserDataStreamStopResponse', 'UserDataStreamSubscribeResponse', 'UserDataStreamUnsubscribeResponse',
+                'UserDataStreamSubscribeListenTokenResponse',
+                // OKX decoders
+                'BboTbtChannelEvent', 'BooksL2TbtChannelEvent', 'BooksL2TbtElpChannelEvent',
+                'BooksL2TbtExponentUpdateEvent', 'BooksL2TbtElpExponentUpdateEvent',
+                'SnapshotDepthResponseEvent', 'TradesChannelEvent'
+            ];
+
+            for (const decoderName of decoderNames) {
+                // Transform: DecoderName, -> &package_sbe.DecoderName{},
+                const decoderPattern = new RegExp(`(["']\\d+["']\\s*:\\s*)${decoderName}Decoder,`, 'g');
+                const replacement = `$1&${sbePackage}_sbe.${decoderName}{},`;
+                sbeRegexes.push([decoderPattern, replacement]);
+            }
+
+            // Transform generic decoder instantiation patterns
+            // New<Type>Decoder() -> comment as TODO
+            sbeRegexes.push(
+                [/(\w+)\s*:=\s*New(\w+)Decoder\(\)/g, '// $1 := New$2Decoder() // TODO: Go SBE - see SBE-TRANSPILATION-PLAN.md']
+            );
+
+            // Transform decoder.Decode(buffer, 0) calls
+            sbeRegexes.push(
+                [/(\w+)\s*:=\s*(\w+)\.Decode\(buffer,\s*0\)/g, '// $1 := $2.Decode(buffer, 0) // TODO: Go SBE - see SBE-TRANSPILATION-PLAN.md']
+            );
+        }
+
+        // Generic transformations for SBE-related code
+        // Comment out schema assignments
+        sbeRegexes.push(
+            [/this\.sbeSchema\s*=\s*(\w+)/g, '// this.sbeSchema = $1 // TODO: Go SBE - see SBE-TRANSPILATION-PLAN.md']
+        );
+
+        // Comment out decoder helper calls
+        sbeRegexes.push(
+            [/decodeSbeOrderbook\(/g, '// decodeSbeOrderbook( // TODO: Go SBE - see SBE-TRANSPILATION-PLAN.md'],
+            [/createSbeDecoder\(/g, '// createSbeDecoder( // TODO: Go SBE - see SBE-TRANSPILATION-PLAN.md']
+        );
+
+        content = this.regexAll(content, sbeRegexes);
+
+        return { content, additionalImports };
     }
 
     async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
@@ -2023,7 +2200,36 @@ ${caseStatements.join('\n')}
         const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
+
+        // Pre-process files to handle SBE imports before transpilation
+        const transpiledFiles: any[] = [];
+        const sbeInfo: Record<string, { hasSbe: boolean, sbePackage: string }> = {};
+
+        for (const filePath of allFilesPath) {
+            const exchangeName = basename(filePath, '.ts');
+            const tsContent = fs.readFileSync(filePath, 'utf8');
+
+            // Always preprocess to detect SBE imports
+            const preprocessResult = this.preprocessSbeImports(tsContent, exchangeName);
+            sbeInfo[exchangeName] = {
+                hasSbe: preprocessResult.hasSbe,
+                sbePackage: preprocessResult.sbePackage
+            };
+
+            if (preprocessResult.hasSbe) {
+                log.yellow(`[go] Exchange ${exchangeName} uses SBE, preprocessing imports`);
+                // Write preprocessed content to a temporary file for transpilation
+                const tempFilePath = `/tmp/ccxt-go-transpile-${exchangeName}.ts`;
+                fs.writeFileSync(tempFilePath, preprocessResult.content);
+                // Transpile from the temp file
+                transpiledFiles.push(this.transpiler.transpileGoByPath(tempFilePath));
+                // Clean up temp file
+                try { fs.unlinkSync(tempFilePath); } catch (e) {}
+            } else {
+                // Normal transpilation for exchanges without SBE
+                transpiledFiles.push(this.transpiler.transpileGoByPath(filePath));
+            }
+        }
 
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
@@ -2032,7 +2238,11 @@ ${caseStatements.join('\n')}
 
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
+        exchanges.map ((file: string, idx: number) => {
+            const exchangeName = file.replace('.ts', '');
+            const sbePackage = sbeInfo[exchangeName]?.sbePackage || '';
+            return this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, sbePackage);
+        });
         if (exchanges.length > 1) {
             this.safeOptionsStructFile(ws);
         }
@@ -2130,8 +2340,8 @@ ${caseStatements.join('\n')}
             .join("\n");
     }
 
-    createGoExchange(className: string, goVersion: any, ws = false) {
-        const goImports = this.getGoImports(goVersion, ws).join("\n") + "\n\n";
+    createGoExchange(className: string, goVersion: any, ws = false, sbePackage = '') {
+        let goImports = this.getGoImports(goVersion, ws).join("\n");
         let content = goVersion.content;
         const exchangeName = className;
 
@@ -2143,6 +2353,14 @@ ${caseStatements.join('\n')}
         let isExtended = this.isExtendedExchange(exchangeName);
         const isAlias = this.isAlias (exchangeName);
 
+        // Post-process SBE code and get additional imports
+        const sbeResult = this.postprocessSbeCode(content, exchangeName, sbePackage);
+        content = sbeResult.content;
+        if (sbeResult.additionalImports.length > 0) {
+            goImports += "\n" + sbeResult.additionalImports.join("\n");
+        }
+        goImports += "\n\n";
+
         if (!ws) {
             content = this.regexAll(content, [
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
@@ -2151,7 +2369,8 @@ ${caseStatements.join('\n')}
                 [/var (precise|preciseAmount) interface\{\} = /gm, "$1 := "],
                 [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
-                [/<\-callDynamically/gm, '<-this.CallDynamically'],
+                [/callDynamically\(/gm, 'this.CallDynamically('], // Fix regular callDynamically calls
+                [/<\-callDynamically/gm, '<-this.CallDynamically'], // Fix channel receive calls
                 [/toFixed/gm, 'ToFixed'],
                 [/throwDynamicException/gm, 'ThrowDynamicException'],
             ]);
@@ -2193,7 +2412,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         return goImports + content;
     }
 
-    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws = false) {
+    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws = false, sbePackage = '') {
 
         const tsPath = `${tsFolder}/${filename}`;
 
@@ -2204,7 +2423,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ();
 
-        const go  = this.createGoExchange (extensionlessName, goResult, ws);
+        const go  = this.createGoExchange (extensionlessName, goResult, ws, sbePackage);
 
         if (goFolder) {
             overwriteFileAndFolder (`${goFolder}/${goFilename}`, go);

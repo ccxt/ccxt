@@ -464,7 +464,6 @@ class Exchange extends \ccxt\Exchange {
                 'createTriggerOrderWs' => null,
                 'deposit' => null,
                 'editOrder' => 'emulated',
-                'editOrderWithClientOrderId' => null,
                 'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
@@ -543,7 +542,6 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOption' => null,
                 'fetchOptionChain' => null,
                 'fetchOrder' => null,
-                'fetchOrderWithClientOrderId' => null,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrderBookWs' => null,
@@ -974,6 +972,36 @@ class Exchange extends \ccxt\Exchange {
             throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => $httpProxy, $httpsProxy, httpProxyCallback, httpsProxyCallback, $socksProxy, socksProxyCallback');
         }
         return array( $httpProxy, $httpsProxy, $socksProxy );
+    }
+
+    public function decode_sbe_response(string $buffer, string $url) {
+        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
+        if ($this->verbose) {
+            $this->log('decodeSbeResponse => Decoding SBE $buffer, size:', strlen($buffer));
+        }
+        try {
+            // Use global decodeSbeMessage with OKX decoder registry
+            $decoderRegistry = $this->get_sbe_decoder_registry();
+            $result = $this->decode_sbe_message($buffer, $decoderRegistry);
+            $templateId = $result['templateId'];
+            $decoded = $result['data'];
+            if ($this->verbose) {
+                $this->log('decodeSbeResponse => Template ID:', $templateId);
+                $this->log('decodeSbeResponse => Successfully $decoded SBE message');
+            }
+            return $decoded;
+        } catch (Exception $e) {
+            $errorMessage = $e instanceof Error ? $e->message : 'strval' ($e);
+            $errorStack = $e instanceof Error ? $e->stack : '';
+            $this->log('decodeSbeResponse => Error decoding SBE $buffer:', $errorMessage);
+            $this->log('decodeSbeResponse => Stack trace:', $errorStack);
+            $this->log('decodeSbeResponse => Buffer size:', strlen($buffer), 'bytes');
+            throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . $errorMessage . '. Try setting useSbe to false in options.');
+        }
+    }
+
+    public function get_sbe_decoder_registry() {
+        return array();
     }
 
     public function check_ws_proxy_settings() {
