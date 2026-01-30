@@ -1229,7 +1229,7 @@ class Exchange(object):
         if not isinstance(timestamp, int) or timestamp < 0:
             return None
         try:
-            utc = datetime.datetime.fromtimestamp(timestamp // 1000, _UTC)
+            utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
             return f"{utc.year:04d}-{utc.month:02d}-{utc.day:02d}T{utc.hour:02d}:{utc.minute:02d}:{utc.second:02d}.{timestamp % 1000:03d}Z"
         except (TypeError, OverflowError, OSError):
             return None
