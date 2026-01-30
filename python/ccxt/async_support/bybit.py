@@ -366,7 +366,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
-                        'v5/account/transaction-log': 1,
+                        'v5/account/transaction-log': 1.66,  # 30/s = 50 / 30
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
