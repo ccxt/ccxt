@@ -1199,18 +1199,6 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def sec():
-        return Exchange.seconds()
-
-    @staticmethod
-    def msec():
-        return Exchange.milliseconds()
-
-    @staticmethod
-    def usec():
-        return Exchange.microseconds()
-
-    @staticmethod
     def seconds():
         return int(time.time())
 
