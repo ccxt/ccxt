@@ -273,21 +273,17 @@ func (this *Bithumb) CreateOrder(symbol string, typeVar string, side string, amo
 }
 /**
  * @method
- * @name bithumb#cancelOrder
- * @description cancels an open order
- * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+ * @name bithumb#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
+func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
-<<<<<<< HEAD
-    opts := CancelOrderOptionsStruct{}
-=======
     opts := FetchOrderOptionsStruct{}
->>>>>>> upstream/master
 
     for _, opt := range options {
         opt(&opts)
@@ -302,11 +298,7 @@ func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Orde
     if opts.Params != nil {
         params = *opts.Params
     }
-<<<<<<< HEAD
-    res := <- this.Core.CancelOrder(id, symbol, params)
-=======
     res := <- this.Core.FetchOrder(id, symbol, params)
->>>>>>> upstream/master
     if IsError(res) {
         return Order{}, CreateReturnError(res)
     }
@@ -358,21 +350,17 @@ func (this *Bithumb) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 }
 /**
  * @method
- * @name bithumb#fetchOrder
- * @description fetches information on an order made by the user
- * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+ * @name bithumb#cancelOrder
+ * @description cancels an open order
+ * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
+func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
-<<<<<<< HEAD
-    opts := FetchOrderOptionsStruct{}
-=======
     opts := CancelOrderOptionsStruct{}
->>>>>>> upstream/master
 
     for _, opt := range options {
         opt(&opts)
@@ -387,18 +375,12 @@ func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order,
     if opts.Params != nil {
         params = *opts.Params
     }
-<<<<<<< HEAD
-    res := <- this.Core.FetchOrder(id, symbol, params)
-=======
     res := <- this.Core.CancelOrder(id, symbol, params)
->>>>>>> upstream/master
     if IsError(res) {
         return Order{}, CreateReturnError(res)
     }
     return NewOrder(res), nil
 }
-<<<<<<< HEAD
-=======
 func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (Order, error) {
 
     opts := CancelUnifiedOrderOptionsStruct{}
@@ -417,7 +399,6 @@ func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrd
     }
     return NewOrder(res), nil
 }
->>>>>>> upstream/master
 /**
  * @method
  * @name bithumb#withdraw
