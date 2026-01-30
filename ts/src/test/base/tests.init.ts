@@ -16,7 +16,7 @@ import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
-import testIndexBy from './test.testIndexBy.js';
+import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
